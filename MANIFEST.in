@@ -1,0 +1,3 @@
+include README.rst CHANGES.rst LICENSE NOTICE
+recursive-include src/ralph_pricing/templates *.html
+recursive-include src/ralph_pricing/static *
