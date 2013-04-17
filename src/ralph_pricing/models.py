@@ -9,6 +9,10 @@ from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
 
+PRICE_DIGITS = 16
+PRICE_PLACES = 6
+
+
 class Device(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255)
     device = db.ForeignKey(
@@ -60,7 +64,11 @@ class DailyPart(db.Model):
         verbose_name=_("asset"),
         related_name="daily_part_set",
     )
-    price = db.DecimalField(max_digits=12, decimal_places=4)
+    price = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("price"),
+    )
     is_deprecated = db.BooleanField(
         verbose_name=_("is deprecated"),
         default=False,
@@ -93,7 +101,11 @@ class DailyDevice(db.Model):
         default=None,
         on_delete=db.SET_NULL,
     )
-    price = db.DecimalField(max_digits=12, decimal_places=4)
+    price = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("price"),
+    )
     pricing_venture = db.ForeignKey(
         Venture,
         verbose_name=_("venture"),
@@ -131,8 +143,8 @@ class UsageType(db.Model):
 class UsagePrice(db.Model):
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
     price = db.DecimalField(
-        max_digits=12,
-        decimal_places=4,
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
     )
     start = db.DateField()
@@ -194,8 +206,8 @@ class ExtraCost(db.Model):
     end = db.DateField()
     type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
     price = db.DecimalField(
-        max_digits=12,
-        decimal_places=4,
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
     )
     pricing_venture = db.ForeignKey(Venture, verbose_name=_("venture"))
