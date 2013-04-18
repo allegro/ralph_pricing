@@ -12,7 +12,7 @@ with open(os.path.join(current_dir, 'README.rst')) as readme_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
 sys.path.insert(0, current_dir + os.sep + 'src')
-from ralph_assets import VERSION
+from ralph_pricing import VERSION
 release = ".".join(str(num) for num in VERSION)
 
 setup(
@@ -31,7 +31,7 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
-        'ralph==1.2.0',
+        'ralph==1.2.1',
         'django-mptt==0.5.5',
     ],
     entry_points={
