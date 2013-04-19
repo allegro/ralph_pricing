@@ -17,11 +17,11 @@ PRICE_PLACES = 6
 
 class Device(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255)
-    device = db.IntegerField(
+    device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
     )
-    asset = db.IntegerField(
+    asset_id = db.IntegerField(
         verbose_name=_("asset id"),
         unique=True,
         null=True,
@@ -41,9 +41,8 @@ class Device(db.Model):
 
 
 class Venture(MPTTModel, db.Model):
-    venture = db.IntegerField()
+    venture_id = db.IntegerField()
     name = db.CharField(verbose_name=_("name"), max_length=255)
-    parent = db.IntegerField()
     department = db.CharField(
         verbose_name=_("department name"),
         max_length=255,
@@ -64,7 +63,7 @@ class DailyPart(db.Model):
     date = db.DateField()
     name = db.CharField(verbose_name=_("name"), max_length=255)
     pricing_device = db.ForeignKey(Device)
-    asset = db.IntegerField()
+    asset_id = db.IntegerField()
     price = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
@@ -78,8 +77,8 @@ class DailyPart(db.Model):
     class Meta:
         verbose_name = _("daily part")
         verbose_name_plural = _("daily parts")
-        unique_together = ('date', 'asset')
-        ordering = ('asset', 'pricing_device', 'date')
+        unique_together = ('date', 'asset_id')
+        ordering = ('asset_id', 'pricing_device', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)

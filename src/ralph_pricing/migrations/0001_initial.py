@@ -12,8 +12,8 @@ class Migration(SchemaMigration):
         db.create_table('ralph_pricing_device', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('device', self.gf('django.db.models.fields.IntegerField')(unique=True)),
-            ('asset', self.gf('django.db.models.fields.IntegerField')(default=None, unique=True, null=True, blank=True)),
+            ('device_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
+            ('asset_id', self.gf('django.db.models.fields.IntegerField')(default=None, unique=True, null=True, blank=True)),
             ('is_virtual', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('is_blade', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('slots', self.gf('django.db.models.fields.FloatField')(default=0)),
@@ -23,9 +23,8 @@ class Migration(SchemaMigration):
         # Adding model 'Venture'
         db.create_table('ralph_pricing_venture', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('venture', self.gf('django.db.models.fields.IntegerField')()),
+            ('venture_id', self.gf('django.db.models.fields.IntegerField')()),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('parent', self.gf('django.db.models.fields.IntegerField')()),
             ('department', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('lft', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
             ('rght', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
@@ -40,14 +39,14 @@ class Migration(SchemaMigration):
             ('date', self.gf('django.db.models.fields.DateField')()),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Device'])),
-            ('asset', self.gf('django.db.models.fields.IntegerField')()),
+            ('asset_id', self.gf('django.db.models.fields.IntegerField')()),
             ('price', self.gf('django.db.models.fields.DecimalField')(max_digits=16, decimal_places=6)),
             ('is_deprecated', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal('ralph_pricing', ['DailyPart'])
 
-        # Adding unique constraint on 'DailyPart', fields ['date', 'asset']
-        db.create_unique('ralph_pricing_dailypart', ['date', 'asset'])
+        # Adding unique constraint on 'DailyPart', fields ['date', 'asset_id']
+        db.create_unique('ralph_pricing_dailypart', ['date', 'asset_id'])
 
         # Adding model 'DailyDevice'
         db.create_table('ralph_pricing_dailydevice', (
@@ -146,8 +145,8 @@ class Migration(SchemaMigration):
         # Removing unique constraint on 'DailyDevice', fields ['date', 'pricing_device']
         db.delete_unique('ralph_pricing_dailydevice', ['date', 'pricing_device_id'])
 
-        # Removing unique constraint on 'DailyPart', fields ['date', 'asset']
-        db.delete_unique('ralph_pricing_dailypart', ['date', 'asset'])
+        # Removing unique constraint on 'DailyPart', fields ['date', 'asset_id']
+        db.delete_unique('ralph_pricing_dailypart', ['date', 'asset_id'])
 
         # Deleting model 'Device'
         db.delete_table('ralph_pricing_device')
@@ -190,8 +189,8 @@ class Migration(SchemaMigration):
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Venture']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'})
         },
         'ralph_pricing.dailypart': {
-            'Meta': {'ordering': "(u'asset', u'pricing_device', u'date')", 'unique_together': "((u'date', u'asset'),)", 'object_name': 'DailyPart'},
-            'asset': ('django.db.models.fields.IntegerField', [], {}),
+            'Meta': {'ordering': "(u'asset_id', u'pricing_device', u'date')", 'unique_together': "((u'date', u'asset_id'),)", 'object_name': 'DailyPart'},
+            'asset_id': ('django.db.models.fields.IntegerField', [], {}),
             'date': ('django.db.models.fields.DateField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -210,8 +209,8 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.device': {
             'Meta': {'object_name': 'Device'},
-            'asset': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'device': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'asset_id': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'device_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_blade': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_virtual': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -252,10 +251,9 @@ class Migration(SchemaMigration):
             'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'parent': ('django.db.models.fields.IntegerField', [], {}),
             'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'venture': ('django.db.models.fields.IntegerField', [], {})
+            'venture_id': ('django.db.models.fields.IntegerField', [], {})
         }
     }
 
