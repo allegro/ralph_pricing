@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
+from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
 
@@ -47,6 +48,12 @@ class Venture(MPTTModel, db.Model):
         verbose_name=_("department name"),
         max_length=255,
     )
+    parent = TreeForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        related_name='children',
+    )
 
     class Meta:
         verbose_name = _("venture")
@@ -84,6 +91,11 @@ class DailyPart(db.Model):
         return '{} ({})'.format(self.name, self.date)
 
 
+class ParentDevice(Device):
+    class Meta:
+        proxy = True
+
+
 class DailyDevice(db.Model):
     date = db.DateField()
     name = db.CharField(verbose_name=_("name"), max_length=255)
@@ -93,7 +105,7 @@ class DailyDevice(db.Model):
     )
     parent = db.ForeignKey(
         # Note: this is only relevant for blade and virtual servers.
-        Device,
+        ParentDevice,
         verbose_name=_("parent"),
         related_name='child_set',
         null=True,
