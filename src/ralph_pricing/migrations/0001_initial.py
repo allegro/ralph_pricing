@@ -26,6 +26,7 @@ class Migration(SchemaMigration):
             ('venture_id', self.gf('django.db.models.fields.IntegerField')()),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('department', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('parent', self.gf('mptt.fields.TreeForeignKey')(blank=True, related_name=u'children', null=True, to=orm['ralph_pricing.Venture'])),
             ('lft', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
             ('rght', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
             ('tree_id', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
@@ -251,6 +252,7 @@ class Migration(SchemaMigration):
             'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'parent': ('mptt.fields.TreeForeignKey', [], {'blank': 'True', 'related_name': "u'children'", 'null': 'True', 'to': "orm['ralph_pricing.Venture']"}),
             'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'venture_id': ('django.db.models.fields.IntegerField', [], {})

@@ -20,19 +20,23 @@ def register(model):
 
 class DailyDeviceInline(admin.TabularInline):
     model = models.DailyDevice
-
+    verbose_name = "Daily device"
+    verbose_name_plural = "Daily devices"
 
 class DailyPartInline(admin.TabularInline):
     model = models.DailyDevice
+    verbose_name = "Daily part"
+    verbose_name_plural = "Daily parts"
 
 class DailyUsageInline(admin.TabularInline):
     model = models.DailyUsage
-
+    verbose_name = "Daily usage"
+    verbose_name_plural = "Daily usages"
 
 @register(models.Device)
 class DeviceAdmin(ModelAdmin):
     inlines = [DailyDeviceInline, DailyPartInline, DailyUsageInline]
-
+    # pass
 
 class ExtraCostInline(admin.TabularInline):
     model = models.ExtraCost
