@@ -36,7 +36,7 @@ class DailyUsageInline(admin.TabularInline):
 @register(models.Device)
 class DeviceAdmin(ModelAdmin):
     inlines = [DailyDeviceInline, DailyPartInline, DailyUsageInline]
-    # pass
+
 
 class ExtraCostInline(admin.TabularInline):
     model = models.ExtraCost
