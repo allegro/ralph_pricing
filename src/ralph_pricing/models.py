@@ -120,7 +120,7 @@ class DailyDevice(db.Model):
     )
     pricing_venture = db.ForeignKey(
         Venture,
-        verbose_name=_("venture_id"),
+        verbose_name=_("venture"),
         null=True,
         blank=True,
         default=None,
