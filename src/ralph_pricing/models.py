@@ -8,6 +8,8 @@ from __future__ import unicode_literals
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
+from mptt.models import MPTTModel
+
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -15,21 +17,16 @@ PRICE_PLACES = 6
 
 class Device(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255)
-    device = db.ForeignKey(
-        'discovery.Device',
-        verbose_name=_("device"),
+    device_id = db.IntegerField(
+        verbose_name=_("device id"),
         unique=True,
-        related_name="pricing_device_set",
-    ),
-    asset = db.ForignKey(
-        'ralph_assets.Asset',
-        verbose_name=_("asset"),
+    )
+    asset_id = db.IntegerField(
+        verbose_name=_("asset id"),
         unique=True,
-        related_name="pricing_device_set",
         null=True,
         blank=True,
         default=None,
-        on_delete=db.SET_NULL,
     )
     is_virtual = db.BooleanField(verbose_name=_("is virtual"), default=False)
     is_blade = db.BooleanField(verbose_name=_("is blade"), default=False)
@@ -43,27 +40,30 @@ class Device(db.Model):
         return self.name
 
 
-class Venture(db.Model):
-    venture = db.OneToOneField("business.Venture")
-    department = db.OneToOneField("business.Department")
+class Venture(MPTTModel, db.Model):
+    venture_id = db.IntegerField()
+    name = db.CharField(verbose_name=_("name"), max_length=255)
+    department = db.CharField(
+        verbose_name=_("department name"),
+        max_length=255,
+    )
 
     class Meta:
         verbose_name = _("venture")
         verbose_name_plural = _("ventures")
 
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
     def __unicode__(self):
-        return self.venture.name
+        return self.name
 
 
 class DailyPart(db.Model):
     date = db.DateField()
     name = db.CharField(verbose_name=_("name"), max_length=255)
     pricing_device = db.ForeignKey(Device)
-    asset = db.ForeignKey(
-        'ralph_assets.Asset',
-        verbose_name=_("asset"),
-        related_name="daily_part_set",
-    )
+    asset_id = db.IntegerField()
     price = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
@@ -77,8 +77,8 @@ class DailyPart(db.Model):
     class Meta:
         verbose_name = _("daily part")
         verbose_name_plural = _("daily parts")
-        unique_together = ('date', 'asset')
-        ordering = ('asset', 'device', 'date')
+        unique_together = ('date', 'asset_id')
+        ordering = ('asset_id', 'pricing_device', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
@@ -123,7 +123,7 @@ class DailyDevice(db.Model):
         verbose_name = _("daily device")
         verbose_name_plural = _("daily devices")
         unique_together = ('date', 'pricing_device')
-        ordering = ('device', 'date')
+        ordering = ('pricing_device', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
@@ -227,4 +227,3 @@ class ExtraCost(db.Model):
             self.start,
             self.end,
         )
-
