@@ -24,8 +24,9 @@ class Migration(SchemaMigration):
         db.create_table('ralph_pricing_venture', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('venture_id', self.gf('django.db.models.fields.IntegerField')()),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('department', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('name', self.gf('django.db.models.fields.CharField')(default=u'', max_length=255)),
+            ('department', self.gf('django.db.models.fields.CharField')(default=u'', max_length=255)),
+            ('parent', self.gf('mptt.fields.TreeForeignKey')(default=None, related_name=u'children', null=True, blank=True, to=orm['ralph_pricing.Venture'])),
             ('lft', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
             ('rght', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
             ('tree_id', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
@@ -55,7 +56,7 @@ class Migration(SchemaMigration):
             ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Device'])),
             ('parent', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'child_set', on_delete=models.SET_NULL, default=None, to=orm['ralph_pricing.Device'], blank=True, null=True)),
-            ('price', self.gf('django.db.models.fields.DecimalField')(max_digits=16, decimal_places=6)),
+            ('price', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6)),
             ('pricing_venture', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Venture'], null=True, on_delete=models.SET_NULL, blank=True)),
             ('is_deprecated', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
@@ -184,7 +185,7 @@ class Migration(SchemaMigration):
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'child_set'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['ralph_pricing.Device']", 'blank': 'True', 'null': 'True'}),
-            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
+            'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Device']"}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Venture']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'})
         },
@@ -246,11 +247,12 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.venture': {
             'Meta': {'object_name': 'Venture'},
-            'department': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'department': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'name': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255'}),
+            'parent': ('mptt.fields.TreeForeignKey', [], {'default': 'None', 'related_name': "u'children'", 'null': 'True', 'blank': 'True', 'to': "orm['ralph_pricing.Venture']"}),
             'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'venture_id': ('django.db.models.fields.IntegerField', [], {})
