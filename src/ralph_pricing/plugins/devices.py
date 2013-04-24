@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from ralph.util import plugin, api_pricing
-from ralp_pricing.models import Device, Venture, DailyDevice
+from ralph_pricing.models import Device, Venture, DailyDevice
 
 
 def update_device(data, date):
@@ -26,7 +26,7 @@ def update_device(data, date):
     )
     daily.parent = parent
     venture, venture_created = Venture.objects.get_or_create(
-        venture_id = data['venture_id']
+        venture_id = data['venture_id'],
     )
     daily.pricing_venture = venture
     daily.name = data['name']

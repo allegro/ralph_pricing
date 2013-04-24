@@ -62,7 +62,7 @@ class Venture(MPTTModel):
         null=True,
         blank=True,
         default=None,
-        related_name='children',
+        related_name=_('children'),
     )
 
     class Meta:

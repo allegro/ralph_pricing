@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from ralph.util import plugin, api_pricing
-from ralp_pricing.models import Venture
+from ralph_pricing.models import Venture
 
 
 def update_venture(data):
