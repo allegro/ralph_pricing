@@ -15,7 +15,7 @@ def update_venture(data):
     )
     venture.name = data['name']
     venture.department = data['department']
-    if data['parent_id']:
+    if data.get('parent_id'):
         parent, parent_created = Venture.objects.get_or_create(
             venture_id=data['parent_id'],
         )

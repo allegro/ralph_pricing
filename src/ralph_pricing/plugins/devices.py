@@ -21,10 +21,13 @@ def update_device(data, date):
         date=date,
         pricing_device=device,
     )
-    parent, parent_created = Device.objects.get_or_create(
-        device_id=data['parent_id'],
-    )
-    daily.parent = parent
+    if data.get('parent_id'):
+        parent, parent_created = Device.objects.get_or_create(
+            device_id=data['parent_id'],
+        )
+        daily.parent = parent
+    else:
+        parent_created = False
     venture, venture_created = Venture.objects.get_or_create(
         venture_id = data['venture_id'],
     )
