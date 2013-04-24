@@ -40,6 +40,11 @@ class Device(db.Model):
         return self.name
 
 
+class ParentDevice(Device):
+    class Meta:
+        proxy = True
+
+
 class Venture(MPTTModel):
     venture_id = db.IntegerField()
     name = db.CharField(
@@ -105,7 +110,7 @@ class DailyDevice(db.Model):
     )
     parent = db.ForeignKey(
         # Note: this is only relevant for blade and virtual servers.
-        Device,
+        ParentDevice,
         verbose_name=_("parent"),
         related_name='child_set',
         null=True,
