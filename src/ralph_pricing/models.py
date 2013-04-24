@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
-from mptt.models import MPTTModel
+from mptt.models import MPTTModel, TreeForeignKey
 
 
 PRICE_DIGITS = 16
@@ -40,12 +40,29 @@ class Device(db.Model):
         return self.name
 
 
-class Venture(MPTTModel, db.Model):
+class ParentDevice(Device):
+    class Meta:
+        proxy = True
+
+
+class Venture(MPTTModel):
     venture_id = db.IntegerField()
-    name = db.CharField(verbose_name=_("name"), max_length=255)
+    name = db.CharField(
+        verbose_name=_("name"),
+        max_length=255,
+        default='',
+    )
     department = db.CharField(
         verbose_name=_("department name"),
         max_length=255,
+        default='',
+    )
+    parent = TreeForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        related_name=_('children'),
     )
 
     class Meta:
@@ -93,7 +110,7 @@ class DailyDevice(db.Model):
     )
     parent = db.ForeignKey(
         # Note: this is only relevant for blade and virtual servers.
-        Device,
+        ParentDevice,
         verbose_name=_("parent"),
         related_name='child_set',
         null=True,
@@ -105,6 +122,7 @@ class DailyDevice(db.Model):
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
+        default=0,
     )
     pricing_venture = db.ForeignKey(
         Venture,
