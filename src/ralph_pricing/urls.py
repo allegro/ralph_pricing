@@ -8,9 +8,7 @@ from __future__ import unicode_literals
 from django.conf.urls.defaults import patterns, url
 from django.contrib.auth.decorators import login_required
 
-from ralph_pricing.views import (
-    Home,
-)
+from ralph_pricing.views.home import Home
 
 
 urlpatterns = patterns(
