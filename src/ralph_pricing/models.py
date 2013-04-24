@@ -117,6 +117,7 @@ class DailyDevice(db.Model):
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
+        default=0,
     )
     pricing_venture = db.ForeignKey(
         Venture,
