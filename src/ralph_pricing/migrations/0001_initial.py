@@ -93,7 +93,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('date', self.gf('django.db.models.fields.DateField')()),
             ('pricing_venture', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Venture'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Device'])),
+            ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Device'], null=True, on_delete=models.SET_NULL, blank=True)),
             ('value', self.gf('django.db.models.fields.FloatField')()),
             ('type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.UsageType'])),
         ))
@@ -203,7 +203,7 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "(u'pricing_device', u'type', u'date')", 'unique_together': "((u'date', u'pricing_device', u'type'),)", 'object_name': 'DailyUsage'},
             'date': ('django.db.models.fields.DateField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Device']"}),
+            'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Venture']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.UsageType']"}),
             'value': ('django.db.models.fields.FloatField', [], {})
