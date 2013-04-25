@@ -19,8 +19,8 @@ class ExtraCostForm(forms.ModelForm):
         model = ExtraCost
         fields = 'type', 'price', 'start', 'end'
         widgets = {
-            'start': DateWidget,
-            'end': DateWidget,
+            'start': DateWidget(attrs={'class': 'input-small'}),
+            'end': DateWidget(attrs={'class': 'input-small'}),
         }
 
     def clean_end(self):
