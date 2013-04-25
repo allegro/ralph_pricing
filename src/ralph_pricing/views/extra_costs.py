@@ -44,7 +44,7 @@ class ExtraCosts(Base):
                 messages.success(self.request, "Extra costs updated.")
                 return HttpResponseRedirect(self.request.path)
             else:
-                messages.success(self.request, "Please fix the errors.")
+                messages.error(self.request, "Please fix the errors.")
         return super(ExtraCosts, self).get(*args, **kwargs)
 
     def get(self, *args, **kwargs):
