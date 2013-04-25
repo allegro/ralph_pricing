@@ -10,25 +10,30 @@ from ralph_pricing.models import Venture
 from bob.menu import MenuItem
 
 
-def ventures_menu(href=''):
+def ventures_menu(href='', selected=None):
     top_items = []
     stack = [
-        (top_items, Venture.objects.filter(parent=None)),
+        (None, top_items, Venture.objects.root_nodes()),
     ]
     while stack:
-        items, ventures = stack.pop()
+        parent, items, ventures = stack.pop()
         for venture in ventures.order_by('name'):
             item = MenuItem(
                 venture.name,
-                name=venture.id,
+                name='{}'.format(venture.id),
+                subitems=[],
                 fugue_icon='fugue-store-medium',
                 indent = ' ',
                 href='{}/{}/'.format(href, venture.id),
                 collapsed = True,
                 collapsible = True,
             )
+            item.parent = parent
             items.append(item)
-            item.subitems = []
-            stack.append((item.subitems, venture.get_children()))
+            stack.append((item, item.subitems, venture.get_children()))
+            if item.name == selected:
+                while item:
+                    item.kwargs['collapsed'] = False
+                    item = item.parent
     return top_items
 
