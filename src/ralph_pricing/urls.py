@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 
 from ralph_pricing.views.home import Home
 from ralph_pricing.views.extra_costs import ExtraCosts
+from ralph_pricing.views.usages import Usages
 
 
 urlpatterns = patterns(
@@ -24,6 +25,17 @@ urlpatterns = patterns(
     url(
         r'^extra-costs/(?P<venture>\d+)/$',
         login_required(ExtraCosts.as_view()),
+        name='extra-costs',
+    ),
+    url(
+        r'^usages/$',
+        login_required(Usages.as_view()),
+        name='usages',
+        kwargs={'usage': None},
+    ),
+    url(
+        r'^usages/(?P<usage>[^/]+)/$',
+        login_required(Usages.as_view()),
         name='extra-costs',
     ),
 
