@@ -194,6 +194,10 @@ class DailyUsage(db.Model):
     pricing_device = db.ForeignKey(
         Device,
         verbose_name=_("pricing device"),
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=db.SET_NULL,
     )
     value = db.FloatField(verbose_name=_("value"))
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
