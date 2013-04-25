@@ -10,19 +10,25 @@ from ralph_pricing.models import Venture
 from bob.menu import MenuItem
 
 
-def ventures_menu(ventures=None):
-    if ventures is None:
-        ventures = Venture.objects.filter(parent=None)
-    items = []
-    for venture in ventures.order_by('name'):
-        item = MenuItem(
-            venture.name,
-            fugue_icon='fugue-store-medium',
-            indent = ' ',
-            collapsed = True,
-            collapsible = True,
-        )
-        item.subitems = ventures_menu(venture.children)
-        items.append(item)
-    return items
+def ventures_menu(href=''):
+    top_items = []
+    stack = [
+        (top_items, Venture.objects.filter(parent=None)),
+    ]
+    while stack:
+        items, ventures = stack.pop()
+        for venture in ventures.order_by('name'):
+            item = MenuItem(
+                venture.name,
+                name=venture.id,
+                fugue_icon='fugue-store-medium',
+                indent = ' ',
+                href='{}/{}/'.format(href, venture.id),
+                collapsed = True,
+                collapsible = True,
+            )
+            items.append(item)
+            item.subitems = []
+            stack.append((item.subitems, venture.get_children()))
+    return top_items
 
