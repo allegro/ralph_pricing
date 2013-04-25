@@ -15,10 +15,13 @@ def update_venture(data):
     )
     venture.name = data['name']
     venture.department = data['department']
-    parent, parent_created = Venture.objects.get_or_create(
-        venture_id=data['parent_id'],
-    )
-    venture.parent = parent
+    if data.get('parent_id'):
+        parent, parent_created = Venture.objects.get_or_create(
+            venture_id=data['parent_id'],
+        )
+        venture.parent = parent
+    else:
+        parent_created = False
     venture.save()
     return created + parent_created
 
