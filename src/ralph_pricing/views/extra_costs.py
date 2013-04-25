@@ -49,14 +49,14 @@ class ExtraCosts(Base):
 
     def get(self, *args, **kwargs):
         self.init_args()
+        if self.venture:
+            self.formset = ExtraCostFormSet(
+                queryset=self.venture.extracost_set.order_by('start', 'type'),
+            )
         return super(ExtraCosts, self).get(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(ExtraCosts, self).get_context_data(**kwargs)
-        if self.venture and self.formset is None:
-            self.formset = ExtraCostFormSet(
-                queryset=self.venture.extracost_set.order_by('start', 'type'),
-            )
         context.update({
             'section': 'extra-costs',
             'sidebar_items': ventures_menu(
