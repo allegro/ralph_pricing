@@ -199,7 +199,7 @@ class DailyUsage(db.Model):
         default=None,
         on_delete=db.SET_NULL,
     )
-    value = db.FloatField(verbose_name=_("value"))
+    value = db.FloatField(verbose_name=_("value"), default=0)
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
 
     class Meta:
