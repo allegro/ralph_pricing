@@ -64,6 +64,12 @@ class Venture(MPTTModel):
         default=None,
         related_name=_('children'),
     )
+    symbol = db.CharField(
+        verbose_name=_("symbol"),
+        max_length=32,
+        blank=True,
+        default="",
+    )
 
     class Meta:
         verbose_name = _("venture")
