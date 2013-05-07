@@ -15,6 +15,7 @@ def update_venture(data):
     )
     venture.name = data['name']
     venture.department = data['department']
+    venture.symbol = data['symbol']
     if data.get('parent_id'):
         parent, parent_created = Venture.objects.get_or_create(
             venture_id=data['parent_id'],
@@ -32,4 +33,3 @@ def sync_ventures(**kwargs):
 
     count = sum(update_venture(data) for data in api_pricing.get_ventures())
     return True, '%d new ventures' % count, kwargs
-
