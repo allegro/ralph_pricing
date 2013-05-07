@@ -33,3 +33,4 @@ def sync_ventures(**kwargs):
 
     count = sum(update_venture(data) for data in api_pricing.get_ventures())
     return True, '%d new ventures' % count, kwargs
+

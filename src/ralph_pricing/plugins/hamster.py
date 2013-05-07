@@ -56,7 +56,7 @@ def hamster_usage(**kwargs):
         return False, "Not configured", kwargs
     url = settings.HAMSTER_API_URL
     usage_type, created = UsageType.objects.get_or_create(
-        name="Hamster Capacity 1 GB",
+        name="Hamster Capacity 1 MB",
     )
     date = kwargs['today']
     ventures = Venture.objects.all()
@@ -65,3 +65,4 @@ def hamster_usage(**kwargs):
         for venture in ventures
     )
     return True, '%d new Hamster usage added in Ventures' % count, kwargs
+
