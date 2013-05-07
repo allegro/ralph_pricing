@@ -5,8 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
 from ralph_pricing.models import Device
+
 
 def update_assets(data, date):
     device, created = Device.objects.get(
