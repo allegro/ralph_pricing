@@ -25,10 +25,10 @@ def update_hamster_usage(venture, usage_type, date, url):
         capacity = get_venture_capacity(venture_symbol, url)
     except ResourceNotFound:
         # apache not found error
-        logger.error('Hamster data for %s not found' % venture_symbol)
-    if capacity:
-        return set_hamster_usage(venture, capacity, usage_type, date)
-    return False
+        logger.error('Hamster data for %r not found' % venture_symbol)
+    else:
+        if capacity > 0:
+            return set_hamster_usage(venture, capacity, usage_type, date)
 
 
 def get_venture_capacity(venture_symbol, url):
@@ -44,7 +44,7 @@ def set_hamster_usage(venture, capacity, usage_type, date):
         type=usage_type,
         pricing_venture=venture,
     )
-    usage.value = capacity
+    usage.value = capacity / (1024 * 1024)  # in MB
     usage.save()
     return created
 
@@ -53,15 +53,15 @@ def set_hamster_usage(venture, capacity, usage_type, date):
 def hamster_usage(**kwargs):
     """Updates Hamster usage per Venture"""
     if not settings.HAMSTER_API_URL:
-        return False, "Not configured", {}
+        return False, "Not configured", kwargs
     url = settings.HAMSTER_API_URL
     usage_type, created = UsageType.objects.get_or_create(
         name="Hamster Capacity 1 GB",
     )
     date = kwargs['today']
-    ventures = Venture.objects.filter(symbol__gt='')
+    ventures = Venture.objects.all()
     count = sum(
-        update_hamster_usage(venture, usage_type, date, url)
+        update_hamster_usage(venture, usage_type, date, url) or 0
         for venture in ventures
     )
-    return True, 'Hamster usage added in %d Ventures' % count, kwargs
+    return True, '%d new Hamster usage added in Ventures' % count, kwargs
