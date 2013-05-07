@@ -11,9 +11,11 @@ from ralph_pricing.models import Device
 
 
 def update_assets(data, date):
-    device, created = Device.objects.get(
+    device, created = Device.objects.get_or_create(
         device_id=data['device_id'],
     )
+    if not created:
+        device.device_id = data['device_id']
     device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.save()
@@ -21,7 +23,8 @@ def update_assets(data, date):
         date=date,
         pricing_device=device,
     )
-    daily.price
+    daily.price = data['price']
+    daily.is_deprecated = data['is_deprecated']
     daily.save()
     return created
 
