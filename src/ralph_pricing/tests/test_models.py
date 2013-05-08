@@ -95,3 +95,43 @@ class TestModels(TestCase):
         self.assertEquals(cost.price, 3)
         self.assertEquals(cost.pricing_venture, venture)
 
+class TestPrices(TestCase):
+    def test_asset_count(self):
+        day = datetime.date(2013, 4, 25)
+        venture = models.Venture(venture_id=3)
+        venture.save()
+        device = models.Device(
+            device_id=3,
+            asset_id=5,
+            pricing_venture=venture,
+        )
+        device.save()
+        daily = models.DailyDevice(
+            pricing_device=device,
+            date=day,
+            name='ziew',
+            price='1337',
+        )
+        daily.save()
+        subventure = models.Venture(venture_id=2, parent=venture)
+        subventure.save()
+        other_device = models.Device(
+            device_id=2,
+            asset_id=3,
+            pricing_venture=subventure,
+        )
+        other_device.save()
+        other_daily = models.DailyDevice(
+            pricing_device=other_device,
+            date=day,
+            name='ziew',
+            price='833833',
+        )
+        other_daily.save()
+        count, price = venture.get_assets_count_price(day, day)
+        self.assertEquals(count, 1)
+        self.assertEquals(price, 1337)
+        count, price = venture.get_assets_count_price(day, day, True)
+        self.assertEquals(count, 2)
+        self.assertEquals(price, 835270)
+
