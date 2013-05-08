@@ -102,16 +102,17 @@ class Venture(MPTTModel):
             query = query.filter(date=day)
             daily_count = query.aggregate(db.Sum('value'))['value__sum'] or 0
             count += daily_count
-            try:
-                daily_price = type_.get_price_at(day)
-            except (
-                UsagePrice.DoesNotExist,
-                UsagePrice.MultipleObjectsReturned,
-            ):
-                price = None
-            else:
-                if price is not None:
-                    price += daily_count * daily_price
+            if count:
+                try:
+                    daily_price = type_.get_price_at(day)
+                except (
+                    UsagePrice.DoesNotExist,
+                    UsagePrice.MultipleObjectsReturned,
+                ):
+                    price = None
+                else:
+                    if price is not None:
+                        price += decimal.Decimal(daily_count) * daily_price
         return count, price
 
     def get_extra_costs(self, start, end, type_, descendants=False):
