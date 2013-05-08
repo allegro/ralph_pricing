@@ -190,9 +190,10 @@ class TestPrices(TestCase):
             price='65535',
         )
         extra_cost.save()
-        price = venture.get_extra_costs(day, extra_cost_type)
+        price = venture.get_extra_costs(day, day, extra_cost_type)
         self.assertEqual(price, decimal.Decimal('65535'))
-        price = venture.get_extra_cost(
+        price = venture.get_extra_costs(
+            datetime.date(2013, 4, 24),
             datetime.date(2013, 4, 24),
             extra_cost_type,
         )
