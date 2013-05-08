@@ -147,3 +147,19 @@ UsagesFormSet = forms.models.modelformset_factory(
     can_delete=True,
 )
 
+
+class DateRangeForm(forms.Form):
+    start = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='Start date',
+    )
+    end = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='End date',
+    )
+
+

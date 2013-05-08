@@ -1,0 +1,45 @@
+{% extends "ralph_pricing/base.html" %}
+{% load url from future %}
+{% load icons %}
+{% load formats %}
+{% load bob %}
+
+{% block contentarea %}
+<div class="row-fluid main-body"><div class="span12">
+<form class="form form-inline daterange-form">
+<div class="form-actions">
+    {% for f in form %}
+        <div style="display:inline-block; vertical-align:top" class="control-group {% if f.errors %}error{% endif %}" >
+            {{ f }}
+            {% if f.errors %}
+                <span class="help-block">
+                    {% for e in f.errors %}{{ e }}{% endfor %}
+                </span>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn">{% spaceless %}
+        {% icon 'fugue-calendar-search-result' %}&nbsp;Update
+        {% endspaceless %}</button>
+</div>
+</form>
+</div>
+
+<table class="table table-striped table-bordered table-condensed">
+    <tr>
+        {% for column in header %}
+        <th>{{ column }}</th>
+        {% endfor %}
+    </tr>
+    {% for row in data %}
+        <tr>
+            {% for value in row %}
+            <td
+                {% if forloop.counter > 3 %}style="text-align:right"{% endif %}
+            >{{ value }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+</div></div>
+{% endblock contentarea %}
