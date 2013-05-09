@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
@@ -10,32 +9,40 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.views.generic import TemplateView
 from bob.menu import MenuItem
+from django.utils.translation import ugettext_lazy as _
+
 
 
 MAIN_MENU = [
     MenuItem(
-        'Ventures',
-        name='ventures',
-        fugue_icon='fugue-store',
-        href='/pricing/ventures/',
+        _("All ventures"),
+        name='all-ventures',
+        fugue_icon='fugue-store-medium',
+        view_name='all_ventures',
     ),
     MenuItem(
-        'Devices',
+        _("Top ventures"),
+        name='top-ventures',
+        fugue_icon='fugue-store',
+        view_name='top_ventures',
+    ),
+    MenuItem(
+        _("Devices"),
         name='devices',
         fugue_icon='fugue-wooden-box',
-        href='/pricing/devices/',
+        view_name='devices',
     ),
     MenuItem(
-        'Extra costs',
+        _("Extra costs"),
         name='extra-costs',
         fugue_icon='fugue-money-coin',
-        href='/pricing/extra-costs/',
+        view_name='extra_costs',
     ),
     MenuItem(
-        'Usages',
+        _("Usage types"),
         name='usages',
         fugue_icon='fugue-beaker',
-        href='/pricing/usages/',
+        view_name='usages',
     ),
 ]
 

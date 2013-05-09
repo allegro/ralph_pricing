@@ -5,6 +5,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import decimal
+from dateutil import rrule
+
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
@@ -74,6 +77,52 @@ class Venture(MPTTModel):
 
     def __unicode__(self):
         return self.name
+
+    def _by_venture(self, query, descendants):
+        if descendants:
+            ventures = self.get_descendants(include_self=True)
+            return query.filter(pricing_venture__in=ventures)
+        return query.filter(pricing_venture=self)
+
+    def get_assets_count_price(self, start, end, descendants=False):
+        days = (end - start).days + 1
+        query = DailyDevice.objects.all()
+        query = self._by_venture(query, descendants)
+        query = query.filter(date__gte=start, date__lte=end)
+        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
+        count = query.count()
+        return count / days, price / days
+
+    def get_usages_count_price(self, start, end, type_, descendants=False):
+        count = 0
+        price = decimal.Decimal('0')
+        query = DailyUsage.objects.filter(type=type_)
+        query = self._by_venture(query, descendants)
+        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            query = query.filter(date=day)
+            daily_count = query.aggregate(db.Sum('value'))['value__sum'] or 0
+            count += daily_count
+            if count:
+                try:
+                    daily_price = type_.get_price_at(day)
+                except (
+                    UsagePrice.DoesNotExist,
+                    UsagePrice.MultipleObjectsReturned,
+                ):
+                    price = None
+                else:
+                    if price is not None:
+                        price += decimal.Decimal(daily_count) * daily_price
+        return count, price
+
+    def get_extra_costs(self, start, end, type_, descendants=False):
+        price = decimal.Decimal('0')
+        query = ExtraCost.objects.filter(type=type_)
+        query = self._by_venture(query, descendants)
+        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            query = query.filter(start__lte=day, end__gte=day)
+            price += query.aggregate(db.Sum('price'))['price__sum'] or 0
+        return price
 
 
 class DailyPart(db.Model):
@@ -157,6 +206,9 @@ class UsageType(db.Model):
     def __unicode__(self):
         return self.name
 
+    def get_price_at(self, date):
+        return self.usageprice_set.get(start__lte=date, end__gte=date).price
+
 
 class UsagePrice(db.Model):
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
@@ -221,6 +273,9 @@ class ExtraCostType(db.Model):
 
     def __unicode__(self):
         return self.name
+
+    def get_cost_at(self, date):
+        return 1 # XXX
 
 
 class ExtraCost(db.Model):
