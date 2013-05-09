@@ -9,17 +9,27 @@ import itertools
 import urllib
 
 from django.conf import settings
-from django.core.cache import get_cache, InvalidCacheBackendError
+from django.core.cache import get_cache
 
 from ralph_pricing.views.base import Base
 from bob.csvutil import make_csv_response
+import django_rq
+from rq.job import Job
 
 
 def currency(value):
+    """Formats currency as string according to the settings."""
+
     return '{:,.2f} {}'.format(value or 0, settings.CURRENCY).replace(',', ' ')
 
 
 class Report(Base):
+    """
+    A base class for the reports. Override ``template_name``, ``Form``,
+    ``section``, ``get_header`` and ``get_data`` in the specific reports.
+
+    Make sure that ``get_header`` and ``get_data`` are static methods.
+    """
     template_name = None
     Form = None
     section = ''
@@ -29,6 +39,13 @@ class Report(Base):
         self.data = []
         self.header = []
         self.form = None
+        self.processing = False
+        self.cache_name = 'reports'
+        if self.cache_name not in settings.CACHES:
+            self.cache_name = None
+        self.queue_name = 'reports'
+        if self.queue_name not in settings.RQ_QUEUES:
+            self.queue_name = None
 
     def get(self, *args, **kwargs):
         get = self.request.GET
@@ -37,7 +54,9 @@ class Report(Base):
         else:
             self.form = self.Form()
         if self.form.is_valid():
-            self.header, self.data = self.get_cached(**self.form.cleaned_data)
+            self.processing, self.header, self.data = self._get_cached(
+                **self.form.cleaned_data
+            )
             if get.get('format', '').lower() == 'csv':
                 return make_csv_response(
                     itertools.chain([self.header], self.data),
@@ -48,6 +67,7 @@ class Report(Base):
     def get_context_data(self, **kwargs):
         context = super(Report, self).get_context_data(**kwargs)
         context.update({
+            'processing': self.processing,
             'data': self.data,
             'header': self.header,
             'section': self.section,
@@ -55,29 +75,58 @@ class Report(Base):
         })
         return context
 
-    def get_cache_key(self, **kwargs):
+    def _get_cache_key(self, **kwargs):
         return b'{}?{}'.format(self.section, urllib.urlencode(kwargs))
 
-    def get_cached(self, **kwargs):
-        try:
-            cache = get_cache('pricing_reports')
-        except InvalidCacheBackendError:
-            cache = get_cache('default')
-        key = self.get_cache_key(**kwargs)
+    def _get_cached(self, **kwargs):
+        cache = get_cache(self.cache_name or 'default')
+        key = self._get_cache_key(**kwargs)
         cached = cache.get(key)
         if cached is not None:
-            jobid, header, data = cached
-            # XXX if jobid is not None, we are still processing...
+            processing, job_id, header, data = cached
+            if processing and job_id is not None and self.queue_name:
+                connection = django_rq.get_connection(self.queue_name)
+                job = Job.fetch(job_id, connection)
+                result = job.result
+                if result is not None:
+                    header, data = result
+                    processing = False
+                    cache.set(key, (processing, job_id, header, data))
         else:
-            cache.set(key, (1, None, None))  # Avoid dogpiling
-            header = self.get_header(**kwargs)
-            data = self.get_data(**kwargs)
-            cache.set(key, (None, header, data))
-        return header, data
+            if self.queue_name:
+                queue = django_rq.get_queue(self.queue_name)
+                job = queue.enqueue(self._get_header_and_data, **kwargs)
+                processing = True
+                header = None
+                data = None
+                cache.set(key, (processing, job.id, None, None))
+            else:
+                processing = True
+                cache.set(key, (processing, None, None, None))
+                header, data = self._get_header_and_data(**kwargs)
+                processing = False
+                cache.set(key, (processing, None, header, data))
+        return processing, header or [], data or []
 
-    def get_data(self, **kwargs):
+    @classmethod
+    def _get_header_and_data(self, **kwargs):
+        return self.get_header(**kwargs), self.get_data(**kwargs)
+
+    @staticmethod
+    def get_data(**kwargs):
+        """
+        Override this static method to provide data for the report.
+        It gets called with the form's data as arguments.
+        Make sure it's a static method.
+        """
         return []
 
-    def get_header(self, **kwargs):
+    @staticmethod
+    def get_header(**kwargs):
+        """
+        Override this static method to provide header for the report.
+        It gets called with the form's data as arguments.
+        Make sure it's a static method.
+        """
         return []
 

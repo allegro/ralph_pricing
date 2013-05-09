@@ -17,7 +17,8 @@ class AllVentures(Report):
     Form = DateRangeForm
     section = 'all-ventures'
 
-    def get_data(self, start, end, **kwargs):
+    @staticmethod
+    def get_data(start, end, **kwargs):
         ventures = Venture.objects.order_by('name')
         data = []
         for venture in ventures:
@@ -52,7 +53,8 @@ class AllVentures(Report):
             data.append(row)
         return data
 
-    def get_header(self, **kwargs):
+    @staticmethod
+    def get_header(**kwargs):
         header = [
             _("ID"),
             _("Venture"),
@@ -71,7 +73,8 @@ class AllVentures(Report):
 class TopVentures(AllVentures):
     section = 'top-ventures'
 
-    def get_data(self, start, end):
+    @staticmethod
+    def get_data(start, end):
         ventures = Venture.objects.root_nodes().order_by('name')
         data = []
         for venture in ventures:
