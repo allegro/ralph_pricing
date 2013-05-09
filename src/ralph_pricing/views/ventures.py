@@ -17,10 +17,6 @@ class AllVentures(Report):
     Form = DateRangeForm
     section = 'all-ventures'
 
-    def __init__(self, *args, **kwargs):
-        super(AllVentures, self).__init__(*args, **kwargs)
-        self.form = None
-
     def get_data(self, start, end, **kwargs):
         ventures = Venture.objects.order_by('name')
         data = []

@@ -19,12 +19,6 @@ class Report(Base):
     Form = None
     section = None
 
-    def get_data(self, **kwargs):
-        return []
-
-    def get_header(self, **kwargs):
-        return []
-
     def get_context_data(self, **kwargs):
         context = super(Report, self).get_context_data(**kwargs)
         if self.request.GET:
@@ -39,4 +33,10 @@ class Report(Base):
             'form': form,
         })
         return context
+
+    def get_data(self, **kwargs):
+        return []
+
+    def get_header(self, **kwargs):
+        return []
 
