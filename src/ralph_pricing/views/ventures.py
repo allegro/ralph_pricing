@@ -5,28 +5,23 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import datetime
-
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_pricing.views.base import Base
+from ralph_pricing.views.reports import Report, currency
 from ralph_pricing.models import UsageType, ExtraCostType, Venture
 from ralph_pricing.forms import DateRangeForm
 
 
-def currency(value):
-    return '{:,.2f} {}'.format(value or 0, settings.CURRENCY).replace(',', ' ')
-
-
-class AllVentures(Base):
+class AllVentures(Report):
     template_name = 'ralph_pricing/ventures.html'
+    Form = DateRangeForm
+    section = 'all-ventures'
 
     def __init__(self, *args, **kwargs):
         super(AllVentures, self).__init__(*args, **kwargs)
         self.form = None
 
-    def get_data(self, start, end):
+    def get_data(self, start, end, **kwargs):
         ventures = Venture.objects.order_by('name')
         data = []
         for venture in ventures:
@@ -61,7 +56,7 @@ class AllVentures(Base):
             data.append(row)
         return data
 
-    def get_header(self):
+    def get_header(self, **kwargs):
         header = [
             _("ID"),
             _("Venture"),
@@ -76,32 +71,10 @@ class AllVentures(Base):
             header.append(extra_cost_type.name)
         return header
 
-    def get_context_data(self, **kwargs):
-        context = super(AllVentures, self).get_context_data(**kwargs)
-        if self.request.GET.get('start'):
-            form = DateRangeForm(self.request.GET)
-        else:
-            today = datetime.date.today()
-            form = DateRangeForm(
-                initial={
-                    'start': today - datetime.timedelta(days=31),
-                    'end': today,
-                },
-            )
-        if form.is_valid():
-            start = form.cleaned_data['start']
-            end = form.cleaned_data['end']
-            data=self.get_data(start, end)
-            context.update(data=data)
-        context.update({
-            'section': 'all-ventures',
-            'form': form,
-            'header': self.get_header(),
-        })
-        return context
-
 
 class TopVentures(AllVentures):
+    section = 'top-ventures'
+
     def get_data(self, start, end):
         ventures = Venture.objects.root_nodes().order_by('name')
         data = []
@@ -137,9 +110,3 @@ class TopVentures(AllVentures):
             data.append(row)
         return data
 
-    def get_context_data(self, **kwargs):
-        context = super(TopVentures, self).get_context_data(**kwargs)
-        context.update({
-            'section': 'top-ventures',
-        })
-        return context
