@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import collections
+import datetime
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
@@ -146,4 +147,22 @@ UsagesFormSet = forms.models.modelformset_factory(
     formset=UsagesBaseFormSet,
     can_delete=True,
 )
+
+
+class DateRangeForm(forms.Form):
+    start = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='Start date',
+        initial=lambda: datetime.date.today() - datetime.timedelta(days=30),
+    )
+    end = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='End date',
+        initial=datetime.date.today,
+    )
+
 
