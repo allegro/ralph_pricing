@@ -7,15 +7,15 @@ from __future__ import unicode_literals
 
 from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
-from ralph_pricing.models import Device
+from ralph_pricing.models import Device, DailyDevice
 
 
 def update_assets(data, date):
     device, created = Device.objects.get_or_create(
-        device_id=data['device_id'],
+        device_id=data['ralph_id'],
     )
     if not created:
-        device.device_id = data['device_id']
+        device.device_id = data['ralph_id']
     device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.save()
