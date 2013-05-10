@@ -31,6 +31,10 @@ def currency(value):
     return '{:,.2f} {}'.format(value or 0, settings.CURRENCY).replace(',', ' ')
 
 
+def _get_cache_key(section, **kwargs):
+    return b'{}?{}'.format(section, urllib.urlencode(kwargs))
+
+
 class Report(Base):
     """
     A base class for the reports. Override ``template_name``, ``Form``,
@@ -77,12 +81,10 @@ class Report(Base):
         })
         return context
 
-    def _get_cache_key(self, **kwargs):
-        return b'{}?{}'.format(self.section, urllib.urlencode(kwargs))
 
     def _get_cached(self, **kwargs):
         cache = get_cache(CACHE_NAME)
-        key = self._get_cache_key(**kwargs)
+        key = _get_cache_key(self.section, **kwargs)
         cached = cache.get(key)
         if cached is not None:
             processing, job_id, header, data = cached
@@ -114,7 +116,7 @@ class Report(Base):
     def _get_header_and_data(self, **kwargs):
         header, data =  self.get_header(**kwargs), self.get_data(**kwargs)
         cache = get_cache(CACHE_NAME)
-        key = self._get_cache_key(**kwargs)
+        key = _get_cache_key(self.section, **kwargs)
         # If the workers share the cache with the WWW instance, we save it now.
         cache.set(key, (False, None, header, data))
         return header, data
