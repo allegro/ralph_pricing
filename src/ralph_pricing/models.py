@@ -90,13 +90,56 @@ class Venture(MPTTModel):
             return query.filter(pricing_venture__in=ventures)
         return query.filter(pricing_venture=self)
 
+    def get_blade_systems_price(self, query):
+        """The prices of the blade systems"""
+
+        price = decimal.Decimal('0')
+        for blade_server in query.filter(
+            pricing_device__is_blade=True,
+        ).exclude(
+            parent=None,
+        ).exclude(
+            pricing_device__slots=0,
+        ).exclude(
+            parent__slots=0,
+        ).select_related(
+            'pricing__device',
+            'parent',
+            'parent__pricing_device',
+        ):
+            price += blade_server.get_blade_system_price()
+        return price
+
+    def get_other_blade_systems_price(self, query):
+        """The prices of the blade systems added to other ventures"""
+
+        price = decimal.Decimal('0')
+        for blade_system in query.exclude(
+            pricing_device__slots=0,
+        ).select_related('pricing__device'):
+            for blade_server in blade_system.pricing_device.child_set.filter(
+                date=blade_system.date,
+                pricing_device__is_blade=True,
+            ).exclude(
+                pricing_device__slots=0,
+            ).select_related(
+                'pricing__device',
+                'parent',
+                'parent__pricing_device',
+            ):
+                price += blade_server.get_blade_system_price()
+        return price
+
     def get_assets_count_price(self, start, end, descendants=False):
         days = (end - start).days + 1
-        query = DailyDevice.objects.all()
+        query = DailyDevice.objects.filter(pricing_device__is_virtual=False)
         query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
+        query = query.exclude(price=0)
         price = query.aggregate(db.Sum('price'))['price__sum'] or 0
         count = query.count()
+        price += self.get_blade_systems_price(query)
+        price -= self.get_other_blade_systems_price(query)
         return count / days, price / days
 
     def get_usages_count_price(self, start, end, type_, descendants=False):
@@ -200,6 +243,17 @@ class DailyDevice(db.Model):
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
+
+    def get_blade_system_price(self):
+        try:
+            parent_price = self.parent.dailydevice_set.get(
+                date=self.date
+            ).price
+        except DailyDevice.DoesNotExist:
+            return 0
+        return decimal.Decimal(self.pricing_device.slots) * (
+            parent_price / decimal.Decimal(self.parent.slots)
+        )
 
 
 class UsageType(db.Model):
