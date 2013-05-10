@@ -113,10 +113,10 @@ class Report(Base):
         return processing, header or [], data or []
 
     @classmethod
-    def _get_header_and_data(self, **kwargs):
-        header, data =  self.get_header(**kwargs), self.get_data(**kwargs)
+    def _get_header_and_data(cls, **kwargs):
+        header, data =  cls.get_header(**kwargs), cls.get_data(**kwargs)
         cache = get_cache(CACHE_NAME)
-        key = _get_cache_key(self.section, **kwargs)
+        key = _get_cache_key(cls.section, **kwargs)
         # If the workers share the cache with the WWW instance, we save it now.
         cache.set(key, (False, None, header, data))
         return header, data
