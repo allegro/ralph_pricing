@@ -17,6 +17,14 @@ import django_rq
 from rq.job import Job
 
 
+CACHE_NAME = 'reports'
+if CACHE_NAME not in settings.CACHES:
+    CACHE_NAME = 'default'
+QUEUE_NAME = 'reports'
+if QUEUE_NAME not in settings.RQ_QUEUES:
+    QUEUE_NAME = None
+
+
 def currency(value):
     """Formats currency as string according to the settings."""
 
@@ -40,12 +48,6 @@ class Report(Base):
         self.header = []
         self.form = None
         self.processing = False
-        self.cache_name = 'reports'
-        if self.cache_name not in settings.CACHES:
-            self.cache_name = None
-        self.queue_name = 'reports'
-        if self.queue_name not in settings.RQ_QUEUES:
-            self.queue_name = None
 
     def get(self, *args, **kwargs):
         get = self.request.GET
@@ -79,13 +81,13 @@ class Report(Base):
         return b'{}?{}'.format(self.section, urllib.urlencode(kwargs))
 
     def _get_cached(self, **kwargs):
-        cache = get_cache(self.cache_name or 'default')
+        cache = get_cache(CACHE_NAME)
         key = self._get_cache_key(**kwargs)
         cached = cache.get(key)
         if cached is not None:
             processing, job_id, header, data = cached
-            if processing and job_id is not None and self.queue_name:
-                connection = django_rq.get_connection(self.queue_name)
+            if processing and job_id is not None and QUEUE_NAME:
+                connection = django_rq.get_connection(QUEUE_NAME)
                 job = Job.fetch(job_id, connection)
                 result = job.result
                 if result is not None:
@@ -93,8 +95,8 @@ class Report(Base):
                     processing = False
                     cache.set(key, (processing, job_id, header, data))
         else:
-            if self.queue_name:
-                queue = django_rq.get_queue(self.queue_name)
+            if QUEUE_NAME:
+                queue = django_rq.get_queue(QUEUE_NAME)
                 job = queue.enqueue(self._get_header_and_data, **kwargs)
                 processing = True
                 header = None
@@ -110,7 +112,12 @@ class Report(Base):
 
     @classmethod
     def _get_header_and_data(self, **kwargs):
-        return self.get_header(**kwargs), self.get_data(**kwargs)
+        header, data =  self.get_header(**kwargs), self.get_data(**kwargs)
+        cache = get_cache(CACHE_NAME)
+        key = self._get_cache_key(**kwargs)
+        # If the workers share the cache with the WWW instance, we save it now.
+        cache.set(key, (False, None, header, data))
+        return header, data
 
     @staticmethod
     def get_data(**kwargs):
