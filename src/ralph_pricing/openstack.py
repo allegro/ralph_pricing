@@ -11,10 +11,12 @@ import urllib2
 import json
 import datetime
 
+
 class Error(Exception):
     pass
 
-class Openstack(object):
+
+class OpenStack(object):
     def __init__(self, url, user, password, region=''):
         self.auth_url = url
         self.user = user

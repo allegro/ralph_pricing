@@ -215,7 +215,9 @@ class DailyUsage(db.Model):
         ordering = ('pricing_device', 'type', 'date')
 
     def __unicode__(self):
-        return '{} ({}-{})'.format(self.pricing_device, self.start, self.end)
+        return '{}-{} ({})'.format(
+            self.pricing_device, self.pricing_venture, self.date,
+        )
 
 
 class ExtraCostType(db.Model):

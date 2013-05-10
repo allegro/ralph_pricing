@@ -15,7 +15,7 @@ from lck.django.common import nested_commit_on_success
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
-from ralph_pricing.openstack import Openstack
+from ralph_pricing.openstack import OpenStack
 
 
 VENTURE = re.compile('venture:(?P<venture>.*);')
@@ -24,6 +24,7 @@ VENTURE = re.compile('venture:(?P<venture>.*);')
 @nested_commit_on_success
 def set_usages(venture, data):
     venture = Venture.objects.get(symbol=venture)
+
     def set_usage(name, key, venture, multiplier):
         if key not in data:
             return
@@ -40,21 +41,21 @@ def set_usages(venture, data):
         usage.value = data[key] / multiplier
         usage.save()
     if venture:
-        set_usage('OpenStack 10000 Memory GiB Hours','total_memory_mb_usage',
-                   venture, 1024)
-        set_usage('OpenStack 10000 CPU Hours','total_vcpus_usage',
-                   venture, 1)
-        set_usage('OpenStack 10000 Disk GiB Hours','total_local_gb_usage',
-                   venture, 1)
-        set_usage('OpenStack 10000 Volume GiB Hours','total_volume_gb_usage',
-                   venture, 1)
-        set_usage('OpenStack 10000 Images GiB Hours','total_images_gb_usage',
-                   venture, 1)
+        set_usage('OpenStack 10000 Memory GiB Hours', 'total_memory_mb_usage',
+            venture, 1024)
+        set_usage('OpenStack 10000 CPU Hours', 'total_vcpus_usage',
+            venture, 1)
+        set_usage('OpenStack 10000 Disk GiB Hours', 'total_local_gb_usage',
+            venture, 1)
+        set_usage('OpenStack 10000 Volume GiB Hours', 'total_volume_gb_usage',
+            venture, 1)
+        set_usage('OpenStack 10000 Images GiB Hours', 'total_images_gb_usage',
+            venture, 1)
 
 
 @plugin.register(chain='pricing', requires=['sync_ventures'])
 def openstack(**kwargs):
-    """Updates Openstack usage per Venture"""
+    """Updates OpenStack usage per Venture"""
     if settings.OPENSTACK_URL is None:
         return False, 'not configured.', kwargs
     tenants = collections.defaultdict(lambda: collections.defaultdict(dict))
@@ -62,8 +63,9 @@ def openstack(**kwargs):
         hour=0, minute=0, second=0, microsecond=0
     )
     start = end - datetime.timedelta(days=1)
+    ventures = {}
     for region in getattr(settings, 'OPENSTACK_REGIONS', ['']):
-        stack = Openstack(
+        stack = OpenStack(
             settings.OPENSTACK_URL,
             settings.OPENSTACK_USER,
             settings.OPENSTACK_PASS,
@@ -72,11 +74,10 @@ def openstack(**kwargs):
         for data in stack.simple_tenant_usage(start, end):
             tenants[data['tenant_id']][region].update(data)
     for url, query in getattr(settings, 'OPENSTACK_EXTRA_QUERIES', []):
-        ventures = {}
         if query == 'tenants':
             result = stack.query(query, url=url, limit=1000)
             for data in result['tenants']:
-                if data['enabled'] == True:
+                if data['enabled']:
                     venture = None
                     description = data.get('description')
                     if description:
