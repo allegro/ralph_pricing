@@ -11,6 +11,8 @@ from ralph_pricing.models import Device, DailyDevice
 
 
 def update_assets(data, date):
+    if not data['ralph_id']:
+        return False
     device, created = Device.objects.get_or_create(
         device_id=data['ralph_id'],
     )
