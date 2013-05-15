@@ -12,11 +12,8 @@ from ralph_pricing.models import Device, DailyDevice
 
 def update_assets(data, date):
     device, created = Device.objects.get_or_create(
-        device_id=data['ralph_id'],
+        asset_id=data['asset_id'],
     )
-    if not created:
-        device.device_id = data['ralph_id']
-    device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.save()
     daily, daily_created = DailyDevice.objects.get_or_create(
