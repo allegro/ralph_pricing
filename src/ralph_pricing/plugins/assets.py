@@ -12,7 +12,7 @@ from ralph_pricing.models import Device, DailyDevice
 
 def update_assets(data, date):
     device, created = Device.objects.get_or_create(
-        device_id=data['asset_id'],
+        asset_id=data['asset_id'],
     )
     if not created and data['ralph_id']:
         device.device_id = data['ralph_id']
