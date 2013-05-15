@@ -1,0 +1,64 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+from ralph.util import plugin, api_pricing
+from ralph_pricing.models import UsageType, DailyUsage, Device, Venture
+
+
+def update_usage(device, venture, usage_type, date, value):
+    if not value:
+        return
+    usage, created = DailyUsage.objects.get_or_create(
+        date=date,
+        type=usage_type,
+        pricing_device=device,
+    )
+    usage.pricing_venture = venture
+    usage.value = value
+    usage.save()
+
+
+def update(data, usages, date):
+    if data.get('device_id') is not None:
+        device, created = Device.objects.get_or_create(
+            device_id=data['device_id'],
+        )
+    else:
+        return
+    if data.get('venture_id') is not None:
+        venture, created = Venture.objects.get_or_create(
+            venture_id=data['venture_id'],
+        )
+    else:
+        venture = None
+    for key, usage in usages.iteritems():
+        update_usage(device, venture, usage, date, data.get(key))
+
+
+@plugin.register(chain='pricing', requires=['sync_devices'])
+def virtual_usages(**kwargs):
+    """Updates the virtual usages from Ralph."""
+
+    cpu_usage, created = UsageType.objects.get_or_create(
+        name="Virtual CPU cores",
+    )
+    memory_usage, created = UsageType.objects.get_or_create(
+        name="Virtual memory MB",
+    )
+    disk_usage, created = UsageType.objects.get_or_create(
+        name="Virtual disk MB",
+    )
+    date = kwargs['today']
+    usages = {
+        'virtual_cores': cpu_usage,
+        'virtual_memory': memory_usage,
+        'virtual_disk': disk_usage,
+    }
+    for data in api_pricing.get_virtual_usages():
+        update(data, usages, date)
+    return True, 'virtual usages updated', kwargs
+
