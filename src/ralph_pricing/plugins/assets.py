@@ -14,9 +14,6 @@ def update_assets(data, date):
     device, created = Device.objects.get_or_create(
         asset_id=data['asset_id'],
     )
-    if not created and data['ralph_id']:
-        device.device_id = data['ralph_id']
-    device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.save()
     daily, daily_created = DailyDevice.objects.get_or_create(
