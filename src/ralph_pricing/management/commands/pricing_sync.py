@@ -30,6 +30,9 @@ class Command(BaseCommand):
                 break
             name = plugin.highest_priority('pricing', to_run)
             tried.add(name)
-            if plugin.run('pricing', name, today=today):
+            print('Running {0}...'.format(name))
+            success, message, context = plugin.run('pricing', name, today=today)
+            print('Done: {0}'.format(message))
+            if success:
                 done.add(name)
 
