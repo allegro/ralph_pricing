@@ -49,7 +49,7 @@ class Command(BaseCommand):
                 run_only,
                 today=today,
             )
-            print('{1}: {0}'.format(message, 'Done' if success else 'Fail'))
+            print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
             return
         done = set()
         tried = set()
@@ -61,7 +61,7 @@ class Command(BaseCommand):
             tried.add(name)
             print('Running {0}...'.format(name))
             success, message, context = plugin.run('pricing', name, today=today)
-            print('{1}: {0}'.format(message, 'Done' if success else 'Fail'))
+            print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
             if success:
                 done.add(name)
 
