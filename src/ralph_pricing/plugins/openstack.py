@@ -34,12 +34,8 @@ def set_usages(venture, data, date):
         if key not in data:
             return
         usage_type, created = UsageType.objects.get_or_create(name=name)
-        try:
-            time = datetime.datetime.strptime(data['stop'], '%Y-%m-%d %H:%M:%S')
-        except ValueError:
-            time = datetime.datetime.strptime(data['stop'], '%Y-%m-%dT%H:%M:%S')
         usage, created = DailyUsage.objects.get_or_create(
-            date=time.date(),
+            date=date,
             type=usage_type,
             pricing_venture=venture,
         )
