@@ -68,12 +68,14 @@
 </table>
 {%     endblock %}
 {%   else %}
+{%     if got_query %}
 <div class="alert alert-error">
     <p><strong>Error!</strong> We are extremely sorry, but unfortunately,
     the calculation of this report could not be completed due to an error
     in the code. The people responsible for that will be severely punished.</p>
     <p>Thank you and have a nice day.</p>
 </div>
+{%     endif %}
 {%   endif %}
 {% endif %}
 </div></div>
