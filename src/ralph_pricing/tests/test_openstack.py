@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
 import mock
 
 from django.conf import settings
@@ -54,7 +55,6 @@ class TestOpenstack(TestCase):
         settings.OPENSTACK_URL = '/'
         settings.OPENSTACK_USER = 'test'
         settings.OPENSTACK_PASSWORD = 'test'
-        settings.OPENSTACK_EXTRA_QUERIES = [('/', 'tenants')]
 
         venture_1 = Venture(
             name='Test Venture1',
@@ -76,7 +76,7 @@ class TestOpenstack(TestCase):
         """ OpenStack usages Test Case """
         with mock.patch('ralph_pricing.plugins.openstack.OpenStack') as OpenStack:
             OpenStack.side_effect = MockOpenStack
-            openstack_runner()
+            openstack_runner(today=datetime.datetime.today())
             # usages venture1
             usage_venture1 = DailyUsage.objects.filter(
                 pricing_venture__symbol='test_venture1',
