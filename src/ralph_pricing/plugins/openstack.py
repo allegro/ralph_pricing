@@ -13,18 +13,18 @@ from django.conf import settings
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
-from ralph_pricing.openstack import OpenStack
+from ralph_pricing.openstack import OpenStack, Error
 
 
-class VentureDoesNotExistError(Exception):
+class VentureDoesNotExistError(Error):
     pass
 
 
-def set_usages(venture, data, date):
+def set_usages(venture_symbol, data, date):
     try:
-        venture = Venture.objects.get(symbol=venture)
+        venture = Venture.objects.get(symbol=venture_symbol)
     except Venture.DoesNotExist:
-        raise VentureDoesNotExistError('Venture: %s does not exist' % venture)
+        raise VentureDoesNotExistError('Venture: %s does not exist' % venture_symbol)
 
     def set_usage(name, key, venture, multiplier):
         if key not in data:
@@ -78,8 +78,8 @@ def openstack(**kwargs):
             tenants[data['tenant_id']][url].update(data)
     for tenant_id, regions in tenants.iteritems():
         for region, data in regions.iteritems():
-            venture = ventures.get(data['tenant_id'])
-            if venture:
-                set_usages(venture, data, date)
-    return True, 'Openstack usages ware saved', kwargs
+            venture_symbol = ventures.get(data['tenant_id'])
+            if venture_symbol:
+                set_usages(venture_symbol, data, date)
+    return True, 'Openstack usages were saved', kwargs
 
