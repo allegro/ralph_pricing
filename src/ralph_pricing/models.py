@@ -321,7 +321,12 @@ class DailyUsage(db.Model):
         ordering = ('pricing_device', 'type', 'date')
 
     def __unicode__(self):
-        return '{} ({}-{})'.format(self.pricing_device, self.start, self.end)
+        return '{0}/{1} ({2}) {3}'.format(
+            self.pricing_device,
+            self.type,
+            self.date,
+            self.value,
+        )
 
 
 class ExtraCostType(db.Model):

@@ -11,6 +11,8 @@ from ralph_pricing.models import Device, DailyDevice
 
 
 def update_assets(data, date):
+    if not data['ralph_id']:
+        return False
     device, created = Device.objects.get_or_create(
         device_id=data['ralph_id'],
     )
@@ -36,4 +38,3 @@ def sync_assets(**kwargs):
     date = kwargs['today']
     count = sum(update_assets(data, date) for data in get_assets())
     return True, '%d new devices' % count, kwargs
-
