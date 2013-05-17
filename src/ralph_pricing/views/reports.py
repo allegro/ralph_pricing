@@ -91,11 +91,14 @@ class Report(Base):
             if processing and job_id is not None and QUEUE_NAME:
                 connection = django_rq.get_connection(QUEUE_NAME)
                 job = Job.fetch(job_id, connection)
-                result = job.result
-                if result is not None:
-                    header, data = result
+                if job.is_finished:
+                    header, data = job.result
                     processing = False
                     cache.set(key, (processing, job_id, header, data))
+                elif job.is_failed:
+                    header, data = None, None
+                    processing = False
+                    cache.delete(key)
         else:
             if QUEUE_NAME:
                 queue = django_rq.get_queue(QUEUE_NAME)
