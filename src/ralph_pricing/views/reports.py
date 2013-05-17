@@ -52,11 +52,13 @@ class Report(Base):
         self.header = []
         self.form = None
         self.processing = False
+        self.got_query = False
 
     def get(self, *args, **kwargs):
         get = self.request.GET
         if get:
             self.form = self.Form(get)
+            self.got_query = True
         else:
             self.form = self.Form()
         if self.form.is_valid():
@@ -78,6 +80,7 @@ class Report(Base):
             'header': self.header,
             'section': self.section,
             'form': self.form,
+            'got_query': self.got_query,
         })
         return context
 
