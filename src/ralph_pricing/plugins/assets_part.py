@@ -11,9 +11,9 @@ from ralph_pricing.models import Device, DailyPart
 
 
 def update_assets_parts(data, date):
-    if not data['asset_id'] and date['ralph_id']:
+    if data['asset_id'] is None and date['ralph_id'] is None:
         return False
-    device, created = Device.objects.get_or_create(
+    device, created_device = Device.objects.get_or_create(
         device_id=data['ralph_id'],
     )
     daily, created = DailyPart.objects.get_or_create(
@@ -25,7 +25,7 @@ def update_assets_parts(data, date):
     daily.name = data['model']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
-    return created
+    return created_device
 
 
 @plugin.register(chain='pricing', requires=['sync_devices'])
