@@ -38,4 +38,3 @@ def sync_assets(**kwargs):
     date = kwargs['today']
     count = sum(update_assets(data, date) for data in get_assets())
     return True, '%d new devices' % count, kwargs
-
