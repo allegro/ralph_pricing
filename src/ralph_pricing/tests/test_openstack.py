@@ -17,6 +17,7 @@ from ralph_pricing.plugins.openstack import (
 )
 from ralph_pricing.tests.samples.openstack import (
     simple_tenant_usage_data,
+    tenants,
     tenants_data,
     tenants_usages_data,
 )
@@ -44,6 +45,9 @@ class MockOpenStack(object):
 
     def auth(self, *args, **kwargs):
         pass
+
+    def get_ventures(self):
+        return tenants
 
     def __getattr__(self, name):
         return mock.Mock()

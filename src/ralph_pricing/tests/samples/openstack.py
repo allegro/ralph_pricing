@@ -54,3 +54,7 @@ tenants_data = \
         u'description': 'fake description;'
     }
 ]}
+tenants = {
+    'e638ade19b0de826ee1391ee8e84dd7e': 'test_venture1',
+    'c6b791dae6baa644a71bed1a71615f2d': 'test_venture2'
+}

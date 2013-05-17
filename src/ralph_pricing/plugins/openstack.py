@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 
 import datetime
 import collections
-import re
 
 
 from django.conf import settings
@@ -15,9 +14,6 @@ from django.conf import settings
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
 from ralph_pricing.openstack import OpenStack
-
-
-VENTURE = re.compile('venture:(?P<venture>.*);')
 
 
 class VentureDoesNotExistError(Exception):
@@ -54,22 +50,6 @@ def set_usages(venture, data, date):
             venture, 1)
 
 
-def get_ventures(stack):
-    url = settings.OPENSTACK_TENANTS_URL
-    ventures = {}
-    result = stack.query('tenants', url=url, limit=1000)
-    for data in result['tenants']:
-        if data['enabled']:
-            venture = None
-            description = data.get('description')
-            if description:
-                result = re.match(VENTURE, description)
-                if result:
-                    venture = result.group('venture')
-            ventures[data['id']] = venture
-    return ventures
-
-
 @plugin.register(chain='pricing', requires=['sync_ventures'])
 def openstack(**kwargs):
     """Updates OpenStack usage per Venture"""
@@ -87,6 +67,7 @@ def openstack(**kwargs):
             settings.OPENSTACK_PASS,
             region=region,
         )
+        ventures.update(stack.get_ventures())
         for data in stack.simple_tenant_usage(start, end):
             tenants[data['tenant_id']][region].update(data)
     for url, query in getattr(settings, 'OPENSTACK_EXTRA_QUERIES', []):
@@ -95,7 +76,6 @@ def openstack(**kwargs):
                 end=end.strftime('%Y-%m-%dT%H:%M:%S'),
             ):
             tenants[data['tenant_id']][url].update(data)
-    ventures = get_ventures(stack)
     for tenant_id, regions in tenants.iteritems():
         for region, data in regions.iteritems():
             venture = ventures.get(data['tenant_id'])
