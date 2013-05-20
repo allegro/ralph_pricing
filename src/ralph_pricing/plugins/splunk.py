@@ -12,6 +12,7 @@ from django.conf import settings
 from ralph.util import plugin
 from ralph_pricing.splunk import Splunk
 from ralph_pricing.models import (
+    DailyDevice,
     DailyUsage,
     Device,
     SplunkName,
@@ -21,16 +22,18 @@ from ralph_pricing.models import (
 
 
 def set_device_usage(date, usage, usage_type, device):
+    daily_device = DailyDevice.objects.get(pricing_device=device)
     daily_usage, created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
-        pricing_device=device
+        pricing_device=device,
+        pricing_venture=daily_device.pricing_venture
     )
     daily_usage.value = usage
     daily_usage.save()
 
 
-def set_unknow_usage(date, usage, usage_type, splunk_venture):
+def set_unknown_usage(date, usage, usage_type, splunk_venture):
     daily_usage, created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
@@ -62,11 +65,11 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
                 set_device_usage(date, usage, usage_type, device[0])
             else:
                 SplunkName(splunk_name=host).save()
-                set_unknow_usage(date, usage, usage_type, splunk_venture)
+                set_unknown_usage(date, usage, usage_type, splunk_venture)
         else:
-            set_device_usage(date, usage, usage_type, splunk_pair.device)
+            set_device_usage(date, usage, usage_type, splunk_pair.pricing_device)
     else:
-        set_device_usage(date, usage, usage_type, splunk_pair.device)
+        set_device_usage(date, usage, usage_type, splunk_pair.pricing_device)
 
 
 @plugin.register(chain='pricing', requires=['sync_ventures', 'sync_devices'])

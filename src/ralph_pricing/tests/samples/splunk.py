@@ -22,6 +22,6 @@ hosts_usages_data = [
         u'source': u'syslog',
         u'host': u'test_host3',
         u'lastReceived': u'Fri 2013-05-17 07:27:02'
-    }
+    },
 ]
 
