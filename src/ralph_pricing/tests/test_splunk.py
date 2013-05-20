@@ -13,7 +13,7 @@ import mock
 from django.conf import settings
 from django.test import TestCase
 
-from ralph_pricing.models import DailyUsage, Venture, Device
+from ralph_pricing.models import DailyDevice, Device, DailyUsage, Venture
 from ralph_pricing.plugins.splunk import (
     splunk_usage as splunk_runner,
 )
@@ -49,10 +49,30 @@ class TestSplunkPluginTest(TestCase):
             symbol='splunk_unknown_usage'
         )
         self.splunk_venture.save()
+        venture1 = Venture(name='venture1', venture_id=111, symbol='venture1')
+        venture1.save()
+        venture2 = Venture(name='venture2', venture_id=222, symbol='venture2')
+        venture2.save()
+
         self.device1 = Device(name='test_host1', device_id=1)
         self.device1.save()
         self.device2 = Device(name='test_host2', device_id=2)
         self.device2.save()
+
+        daily_device1 = DailyDevice(
+            date=datetime.datetime.today(),
+            name='test_host1',
+            pricing_venture=venture1,
+            pricing_device=self.device1
+        )
+        daily_device1.save()
+        daily_device2 = DailyDevice(
+            date=datetime.datetime.today(),
+            name='test_host2',
+            pricing_venture=venture2,
+            pricing_device=self.device2,
+        )
+        daily_device2.save()
 
     def test_set_usages(self):
         """ OpenStack usages Test Case """
