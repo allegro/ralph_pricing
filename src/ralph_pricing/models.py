@@ -20,6 +20,10 @@ PRICE_PLACES = 6
 
 class Device(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255)
+    sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
+    barcode = db.CharField(
+        max_length=200, null=True, blank=True, unique=True, default=None
+    )
     device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
