@@ -39,6 +39,36 @@ def set_unknow_usage(date, usage, usage_type, splunk_venture):
     )
 
 
+def set_usages(date, usage, usage_type, host, splunk_venture):
+    try:
+        splunk_pair = SplunkName.objects.get(
+            splunk_name=host,
+            pricing_device__name=host
+        )
+    except SplunkName.DoesNotExist:
+        try:
+            splunk_pair = SplunkName.objects.get(
+                splunk_name=host,
+                pricing_device__isnull=False
+            )
+        except SplunkName.DoesNotExist:
+            device = Device.objects.filter(name=host)
+            if device:
+                splunk_pair = SplunkName(
+                    splunk_name=host,
+                    pricing_device=device[0]
+                )
+                splunk_pair.save()
+                set_device_usage(date, usage, usage_type, device[0])
+            else:
+                SplunkName(splunk_name=host).save()
+                set_unknow_usage(date, usage, usage_type, splunk_venture)
+        else:
+            set_device_usage(date, usage, usage_type, splunk_pair.device)
+    else:
+        set_device_usage(date, usage, usage_type, splunk_pair.device)
+
+
 @plugin.register(chain='pricing', requires=['sync_ventures', 'sync_devices'])
 def splunk_usage(**kwargs):
     """Updates Splunk usage per Venture"""
@@ -70,31 +100,5 @@ def splunk_usage(**kwargs):
         else:
             hosts[host] = mb
     for host, usage in hosts.iteritems():
-        try:
-            splunk_pair = SplunkName.objects.get(
-                splunk_name=host,
-                pricing_device__name=host
-            )
-        except SplunkName.DoesNotExist:
-            try:
-                splunk_pair = SplunkName.objects.get(
-                    splunk_name=host,
-                    pricing_device__isnull=False
-                )
-            except SplunkName.DoesNotExist:
-                device = Device.objects.filter(name=host)
-                if device:
-                    splunk_pair = SplunkName(
-                        splunk_name=host,
-                        pricing_device=device[0]
-                    )
-                    splunk_pair.save()
-                    set_device_usage(date, usage, usage_type, device[0])
-                else:
-                    SplunkName(splunk_name=host).save()
-                    set_unknow_usage(date, usage, usage_type, splunk_venture)
-            else:
-                set_device_usage(date, usage, usage_type, splunk_pair.device)
-        else:
-            set_device_usage(date, usage, usage_type, splunk_pair.device)
+        set_usages(date, usage, usage_type, host, splunk_venture)
     return True, 'done.', kwargs
