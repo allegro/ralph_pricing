@@ -9,54 +9,47 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
-from ralph_pricing.views.base import Base
+from django.utils.translation import ugettext_lazy as _
+
+from ralph_pricing.views.reports import Report, currency
 from ralph_pricing.models import Venture
 from ralph_pricing.menus import ventures_menu
 from ralph_pricing.models import DailyDevice
+from ralph_pricing.forms import DateRangeVentureForm
 
-class Devices(Base):
+
+class Devices(Report):
     template_name = 'ralph_pricing/devices.html'
+    Form = DateRangeVentureForm
+    section = 'devices'
 
-    def __init__(self, *args, **kwargs):
-        super(Devices, self).__init__(*args, **kwargs)
-        self.formset = None
-        self.venture = None
-        self.venture_id = None
-        self.devices = None
+    @staticmethod
+    def get_data(start, end, venture, **kwargs):
+        data = []
+        if venture:
+            devices = DailyDevice.objects.filter(pricing_venture=venture)
+            total_count = devices.count()
+            for i, device in enumerate(devices):
+                row = [
+                        device.name,
+                        device.pricing_device.sn,
+                        device.pricing_device.barcode,
+                        device.is_deprecated,
+                        currency(
+                            device.get_devices_price(start, end, venture)
+                        ),
+                    ]
+                progress = (100 * i) // total_count
+                yield progress, row
 
-    def init_args(self):
-        self.venture_id = self.kwargs.get('venture')
-        if self.venture_id is not None:
-            self.venture = get_object_or_404(Venture, id=self.venture_id)
-
-    def get(self, *args, **kwargs):
-        self.init_args()
-        if self.venture_id:
-            self.devices = get_list_or_404(
-                DailyDevice,
-                pricing_venture=self.venture_id
-            )
-
-
-
-
-
-
-
-
-
-        return super(Devices, self).get(*args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super(Devices, self).get_context_data(**kwargs)
-        context.update({
-            'section': 'devices',
-            'sidebar_items': ventures_menu(
-                '/pricing/devices',
-                self.venture_id
-            ),
-            'sidebar_selected': self.venture_id,
-            'formset': self.formset,
-            'devices': self.devices,
-        })
-        return context
+    @staticmethod
+    def get_header(**kwargs):
+        header = [
+            _("Device"),
+            _("SN"),
+            _("Barcode"),
+            _("Is deprecation"),
+            _("Quoted price"),
+            _("Components"),
+        ]
+        return header

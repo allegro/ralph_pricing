@@ -259,6 +259,17 @@ class DailyDevice(db.Model):
             parent_price / decimal.Decimal(self.parent.slots)
         )
 
+    def get_devices_price(self, start, end, venture):
+        days = (end - start).days + 1
+        query = DailyDevice.objects.filter(
+            pricing_venture=venture,
+            date__gte=start,
+            date__lte=end,
+        ).exclude(price=0)
+        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
+        count = query.count()
+        return price / days
+
 
 class UsageType(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)

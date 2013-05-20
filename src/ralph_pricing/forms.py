@@ -12,7 +12,7 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 from ralph.ui.widgets import DateWidget
 
-from ralph_pricing.models import ExtraCost, UsagePrice
+from ralph_pricing.models import ExtraCost, UsagePrice, Venture
 
 
 class ExtraCostForm(forms.ModelForm):
@@ -165,4 +165,10 @@ class DateRangeForm(forms.Form):
         initial=datetime.date.today,
     )
 
+
+class DateRangeVentureForm(DateRangeForm):
+    venture = forms.ModelChoiceField(
+        queryset=Venture.objects.all(),
+        empty_label=None
+    )
 
