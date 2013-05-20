@@ -6,7 +6,7 @@
 
 {% block extra_headers %}
 {{ block.super }}
-{% if processing %}
+{% if got_query and progress < 100 %}
 <meta http-equiv="refresh" content="5">
 {% endif %}
 {% endblock %}
@@ -38,16 +38,17 @@
 </div>
 <div class="clearfix"></div>
 
-{% if processing %}
+{% if got_query and progress < 100 %}
 {% block progress_bar %}
 <div class="well">
     <p>Calculating the report, please wait...</p>
     <div class="progress progress-striped active">
-        <div class="bar" style="width: 100%;"></div>
+        <div class="bar" style="width: {{ progress }}%;"></div>
     </div>
 </div>
 {% endblock %}
-{% else %}
+{% endif %}
+{% if progress > 0 %}
 {%   if header %}
 {%     block table %}
 <table class="table table-striped table-bordered table-condensed">
