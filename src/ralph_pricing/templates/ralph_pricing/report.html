@@ -36,10 +36,10 @@
 </div>
 </form>
 </div>
+<div class="clearfix"></div>
 
 {% if processing %}
 {% block progress_bar %}
-<div class="clearfix"></div>
 <div class="well">
     <p>Calculating the report, please wait...</p>
     <div class="progress progress-striped active">
@@ -48,7 +48,8 @@
 </div>
 {% endblock %}
 {% else %}
-{% block table %}
+{%   if header %}
+{%     block table %}
 <table class="table table-striped table-bordered table-condensed">
     <tr>
         {% for column in header %}
@@ -65,7 +66,17 @@
         </tr>
     {% endfor %}
 </table>
-{% endblock %}
+{%     endblock %}
+{%   else %}
+{%     if got_query %}
+<div class="alert alert-error">
+    <p><strong>Error!</strong> We are extremely sorry, but unfortunately,
+    the calculation of this report could not be completed due to an error
+    in the code. The people responsible for that will be severely punished.</p>
+    <p>Thank you and have a nice day.</p>
+</div>
+{%     endif %}
+{%   endif %}
 {% endif %}
 </div></div>
 {% endblock contentarea %}
