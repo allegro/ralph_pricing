@@ -73,7 +73,7 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
 
 
 @plugin.register(chain='pricing', requires=['sync_ventures', 'sync_devices'])
-def splunk_usage(**kwargs):
+def splunk(**kwargs):
     """Updates Splunk usage per Venture"""
     if not settings.SPLUNK_HOST:
         return False, "Not configured", kwargs

@@ -15,7 +15,7 @@ from django.test import TestCase
 
 from ralph_pricing.models import DailyDevice, Device, DailyUsage, Venture
 from ralph_pricing.plugins.splunk import (
-    splunk_usage as splunk_runner,
+    splunk as splunk_runner,
 )
 from ralph_pricing.tests.samples.splunk import hosts_usages_data
 
@@ -40,9 +40,6 @@ class MockSplunk(object):
 class TestSplunkPluginTest(TestCase):
     """ Splunk costs Test Case """
     def setUp(self):
-        settings.SPLUNK_HOST = 'test'
-        settings.SPLUNK_USER = 'test'
-        settings.SPLUNK_PASSWORD = 'test'
         self.splunk_venture = Venture(
             name='Splunk unknown usage',
             venture_id=666,
@@ -76,6 +73,10 @@ class TestSplunkPluginTest(TestCase):
 
     def test_set_usages(self):
         """ OpenStack usages Test Case """
+        # fake setting need to run plugin
+        settings.SPLUNK_HOST = 'test'
+        settings.SPLUNK_USER = 'test'
+        settings.SPLUNK_PASSWORD = 'test'
         with mock.patch('ralph_pricing.plugins.splunk.Splunk') as Splunk:
             Splunk.side_effect = MockSplunk
             splunk_runner(today=datetime.datetime.today())
@@ -87,4 +88,13 @@ class TestSplunkPluginTest(TestCase):
             self.assertEqual(usage_device1.value, 10318.234132)
             self.assertEqual(usage_device2.value, 1326.640829)
             self.assertEqual(usage_splunk_venture.value, 1048.363416)
+
+    def test_fail_plugin(self):
+            """ Testing not configured plugin """
+            with mock.patch('ralph_pricing.plugins.splunk.Splunk') as Splunk:
+                Splunk.side_effect = MockSplunk
+                status, message, arg = splunk_runner(
+                    today=datetime.datetime.today()
+                )
+                self.assertFalse(status)
 
