@@ -135,10 +135,10 @@ class Venture(MPTTModel):
         query = DailyDevice.objects.filter(pricing_device__is_virtual=False)
         query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
-        query = query.exclude(price=0)
-        query = query.exclude(is_deprecated=True)
         price = query.aggregate(db.Sum('price'))['price__sum'] or 0
         count = query.count()
+        query = query.exclude(price=0)
+        query = query.exclude(is_deprecated=True)
         price += self.get_blade_systems_price(query)
         price -= self.get_other_blade_systems_price(query)
         return count / days, price / days
