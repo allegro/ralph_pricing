@@ -43,7 +43,7 @@ class TestSplunkPluginTest(TestCase):
         self.splunk_venture = Venture(
             name='Splunk unknown usage',
             venture_id=666,
-            symbol='splunk_unknown_usage'
+            symbol='splunk_unknown_usage',
         )
         self.splunk_venture.save()
         venture1 = Venture(name='venture1', venture_id=111, symbol='venture1')
@@ -60,7 +60,7 @@ class TestSplunkPluginTest(TestCase):
             date=datetime.datetime.today(),
             name='test_host1',
             pricing_venture=venture1,
-            pricing_device=self.device1
+            pricing_device=self.device1,
         )
         daily_device1.save()
         daily_device2 = DailyDevice(
@@ -83,7 +83,7 @@ class TestSplunkPluginTest(TestCase):
             usage_device1 = DailyUsage.objects.get(pricing_device=self.device1)
             usage_device2 = DailyUsage.objects.get(pricing_device=self.device2)
             usage_splunk_venture = DailyUsage.objects.get(
-                pricing_venture=self.splunk_venture
+                pricing_venture=self.splunk_venture,
             )
             self.assertEqual(usage_device1.value, 10318.234132)
             self.assertEqual(usage_device2.value, 1326.640829)
@@ -94,7 +94,7 @@ class TestSplunkPluginTest(TestCase):
             with mock.patch('ralph_pricing.plugins.splunk.Splunk') as Splunk:
                 Splunk.side_effect = MockSplunk
                 status, message, arg = splunk_runner(
-                    today=datetime.datetime.today()
+                    today=datetime.datetime.today(),
                 )
                 self.assertFalse(status)
 

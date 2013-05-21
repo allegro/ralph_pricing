@@ -52,7 +52,7 @@ class Splunk(object):
         self.splunk = connect(
             host=self.host,
             username=self.username,
-            password=self.password
+            password=self.password,
         )
         self.job = None
         self._results = None
@@ -77,14 +77,15 @@ class Splunk(object):
             'doneProgress',
             'scanCount',
             'eventCount',
-            'resultCount')
+            'resultCount',
+        )
         progress = float(stats['doneProgress']) * 100
         if progress > 99.9:
             if stats['isDone'] == '1':
                 progress = 100.0
                 self._results = self.job.results(
                     output_mode='json',
-                    count=0
+                    count=0,
                 ).read()
                 self.job = None
             else:
