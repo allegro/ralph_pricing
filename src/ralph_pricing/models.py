@@ -164,7 +164,7 @@ class Venture(MPTTModel):
                     if price is not None:
                         price += decimal.Decimal(daily_count) * daily_price
         if type_.average:
-            count /= (end - start).days
+            count /= (end - start).days + 1
         return count, price
 
     def get_extra_costs(self, start, end, type_, descendants=False):
