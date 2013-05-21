@@ -38,7 +38,7 @@ def update_device(data, date):
     return created + parent_created
 
 
-@plugin.register(chain='pricing', requires=['sync_ventures'])
+@plugin.register(chain='pricing', requires=['ventures'])
 def devices(**kwargs):
     """Updates the devices from Ralph."""
 

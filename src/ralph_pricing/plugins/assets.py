@@ -31,7 +31,7 @@ def update_assets(data, date):
     return created
 
 
-@plugin.register(chain='pricing', requires=['sync_devices'])
+@plugin.register(chain='pricing', requires=['devices'])
 def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
 
