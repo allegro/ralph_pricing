@@ -47,15 +47,14 @@ class Device(db.Model):
         return self.name
 
     def get_device_price(self, start, end, venture):
-        days = (end - start).days + 1
         query = self.dailydevice_set.filter(
             pricing_device=self.device_id,
             pricing_venture=venture,
             date__gte=start,
             date__lte=end,
         ).exclude(price=0)
-        price = query.aggregate(Avg('price')) or 0
-        return price / days
+        price = query.aggregate(Avg('price'))
+        return price.get(price_avg) or 0
 
 
 class ParentDevice(Device):
