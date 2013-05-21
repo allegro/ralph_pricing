@@ -73,8 +73,8 @@
     date: 2013-01-02
     name: host01.dc1
     pricing_device: 1
-    price: 100.00
-    pricing_venture: 1
+    price: 200.00
+    pricing_venture: 2
     is_deprecated: False
 
 - model: ralph_pricing.DailyDevice
@@ -83,8 +83,8 @@
     date: 2013-01-03
     name: host01.dc1
     pricing_device: 1
-    price: 100.00
-    pricing_venture: 1
+    price: 200.00
+    pricing_venture: 2
     is_deprecated: False
 
 - model: ralph_pricing.DailyDevice
@@ -93,8 +93,8 @@
     date: 2013-01-04
     name: host01.dc1
     pricing_device: 1
-    price: 100.00
-    pricing_venture: 1
+    price: 200.00
+    pricing_venture: 2
     is_deprecated: False
 
 # Daily host2
@@ -104,7 +104,7 @@
     date: 2013-01-01
     name: host02.dc1
     pricing_device: 2
-    price: 50.00
+    price: 100.00
     pricing_venture: 1
     is_deprecated: False
 
@@ -114,8 +114,8 @@
     date: 2013-01-02
     name: host02.dc1
     pricing_device: 2
-    price: 50.00
-    pricing_venture: 2
+    price: 100.00
+    pricing_venture: 1
     is_deprecated: False
 
 - model: ralph_pricing.DailyDevice
@@ -124,8 +124,8 @@
     date: 2013-01-03
     name: host02.dc1
     pricing_device: 2
-    price: 50.00
-    pricing_venture: 2
+    price: 300.00
+    pricing_venture: 1
     is_deprecated: False
 
 - model: ralph_pricing.DailyDevice
@@ -134,8 +134,8 @@
     date: 2013-01-04
     name: host02.dc1
     pricing_device: 2
-    price: 50.00
-    pricing_venture: 2
+    price: 200.00
+    pricing_venture: 1
     is_deprecated: False
 
 # Daily host3
@@ -167,7 +167,7 @@
     pricing_device: 3
     price: 250.00
     pricing_venture: 1
-    is_deprecated: False
+    is_deprecated: True
 
 - model: ralph_pricing.DailyDevice
   pk: 12

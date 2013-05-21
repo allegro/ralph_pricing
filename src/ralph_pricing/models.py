@@ -49,13 +49,28 @@ class Device(db.Model):
 
     def get_device_price(self, start, end, venture):
         query = self.dailydevice_set.filter(
-            pricing_device=self.device_id,
+            pricing_device=self,
             pricing_venture=venture,
             date__gte=start,
             date__lte=end,
         ).exclude(price=0)
         price = query.aggregate(Avg('price'))
-        return price.get('price_avg') or 0
+        return price.get('price__avg') or 0
+
+    def get_deprecated_status(self, start, end, venture):
+        query = self.dailydevice_set.filter(
+            pricing_device=self,
+            pricing_venture=venture,
+            date__gte=start,
+            date__lte=end,
+        )
+        status = None
+        for device in query:
+            if not status:
+                status = device.is_deprecated
+            if status != device.is_deprecated:
+                return device.is_deprecated, device.date
+        return device.is_deprecated, None
 
 
 class ParentDevice(Device):

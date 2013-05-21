@@ -32,11 +32,41 @@ class TestDevices(TestCase):
         self.assertEqual(len(self.daily_host3), 4)
         self.assertEqual(len(self.daily_host4), 4)
 
+    def get_data(self, start_date, end_date, venture):
+        devices_list = [
+            item for percent, item in Devices.get_data(
+                start_date,
+                end_date,
+                venture,
+            )
+        ]
+        return devices_list
+
     def test_device(self):
+        venture = self.ventures.get(name='Infra')
         start_date = '2013-01-01'
         end_date = '2013-01-04'
-        venture = self.ventures.get(name='Infra')
-        devices_list = [
-            item for item in Devices.get_data(start_date, end_date, venture)
-        ]
+        devices_list = self.get_data(start_date, end_date, venture)
         self.assertEqual(len(devices_list), 4)
+        self.assertEqual(
+            devices_list,
+            [
+                [u'host01.dc1', u'1234-1234-1234-1234', u'2345-2345-2345-2345', False, u'200.00 PLN'],
+                [u'host02.dc1', u'2345-2345-2345-2345', u'3456-3456-3456-3456', False, u'175.00 PLN'],
+                [u'host03.dc1', u'3456-3456-3456-3456', u'4567-4567-4567-4567', False, u'250.00 PLN'],
+                [u'host04.dc1', u'4567-4567-4567-4567', u'5678-5678-5678-5678', False, u'50.00 PLN'],
+            ]
+        )
+
+        start_date = '2013-01-02'
+        end_date = '2013-01-04'
+        devices_list = self.get_data(start_date, end_date, venture)
+        self.assertEqual(len(devices_list), 3)
+        self.assertEqual(
+            devices_list,
+            [
+                [u'host02.dc1', u'2345-2345-2345-2345', u'3456-3456-3456-3456', False, u'200.00 PLN'],
+                [u'host03.dc1', u'3456-3456-3456-3456', u'4567-4567-4567-4567', False, u'250.00 PLN'],
+                [u'host04.dc1', u'4567-4567-4567-4567', u'5678-5678-5678-5678', False, u'50.00 PLN'],
+            ]
+        )
