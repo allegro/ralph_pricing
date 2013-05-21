@@ -26,14 +26,15 @@ class Devices(Report):
     def get_data(start, end, venture, **kwargs):
         if not venture:
             return
-        devices_ids = DailyDevice.objects.filter(
+        ids = DailyDevice.objects.filter(
             date__gte=start,
             date__lte=end,
             pricing_venture=venture,
         ).values_list('pricing_device', flat=True).distinct()
-        total_count = devices_ids.count()
+        devices_ids = list(set(ids))
+        total_count = len(devices_ids)
         for i, id in enumerate(devices_ids):
-            device = DailyDevice.objects.get(pricing_device=id)
+            device = DailyDevice.objects.filter(pricing_device=id)[0]
             row = [
                     device.name,
                     device.pricing_device.sn,

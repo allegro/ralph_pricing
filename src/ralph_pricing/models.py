@@ -9,6 +9,7 @@ import decimal
 from dateutil import rrule
 
 from django.db import models as db
+from django.db.models import Avg
 from django.utils.translation import ugettext_lazy as _
 
 from mptt.models import MPTTModel, TreeForeignKey
@@ -54,7 +55,7 @@ class Device(db.Model):
             date__lte=end,
         ).exclude(price=0)
         price = query.aggregate(Avg('price'))
-        return price.get(price_avg) or 0
+        return price.get('price_avg') or 0
 
 
 class ParentDevice(Device):
