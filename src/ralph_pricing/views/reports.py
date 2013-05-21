@@ -15,6 +15,8 @@ from ralph_pricing.views.base import Base
 from bob.csvutil import make_csv_response
 import django_rq
 from rq.job import Job
+from django.contrib import messages
+from django.core.cache.backends.dummy import DummyCache
 
 
 CACHE_NAME = 'reports'
@@ -51,7 +53,7 @@ class Report(Base):
         self.data = []
         self.header = []
         self.form = None
-        self.processing = False
+        self.progress = 0
         self.got_query = False
 
     def get(self, *args, **kwargs):
@@ -62,20 +64,26 @@ class Report(Base):
         else:
             self.form = self.Form()
         if self.form.is_valid():
-            self.processing, self.header, self.data = self._get_cached(
+            self.progress, self.header, self.data = self._get_cached(
                 **self.form.cleaned_data
             )
             if get.get('format', '').lower() == 'csv':
-                return make_csv_response(
-                    itertools.chain([self.header], self.data),
-                    '{}.csv'.format(self.section),
-                )
+                if self.progress == 100:
+                    return make_csv_response(
+                        itertools.chain([self.header], self.data),
+                        '{}.csv'.format(self.section),
+                    )
+                else:
+                    messages.warning(
+                        self.request,
+                        "Please wait for the report to finish calculating."
+                    )
         return super(Report, self).get(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(Report, self).get_context_data(**kwargs)
         context.update({
-            'processing': self.processing,
+            'progress': self.progress,
             'data': self.data,
             'header': self.header,
             'section': self.section,
@@ -87,44 +95,59 @@ class Report(Base):
 
     def _get_cached(self, **kwargs):
         cache = get_cache(CACHE_NAME)
+        if isinstance(cache, DummyCache):
+            # No caching or queues with dummy cache.
+            header, data = self._get_header_and_data(**kwargs)
+            return 100, header, data
         key = _get_cache_key(self.section, **kwargs)
         cached = cache.get(key)
         if cached is not None:
-            processing, job_id, header, data = cached
-            if processing and job_id is not None and QUEUE_NAME:
+            progress, job_id, header, data = cached
+            if progress < 100 and job_id is not None and QUEUE_NAME:
                 connection = django_rq.get_connection(QUEUE_NAME)
                 job = Job.fetch(job_id, connection)
                 if job.is_finished:
                     header, data = job.result
-                    processing = False
-                    cache.set(key, (processing, job_id, header, data))
+                    progress = 100
+                    cache.set(key, (progress, job_id, header, data))
                 elif job.is_failed:
                     header, data = None, None
-                    processing = False
+                    progress = 100
                     cache.delete(key)
         else:
             if QUEUE_NAME:
                 queue = django_rq.get_queue(QUEUE_NAME)
                 job = queue.enqueue(self._get_header_and_data, **kwargs)
-                processing = True
+                progress = 0
                 header = None
                 data = None
-                cache.set(key, (processing, job.id, None, None))
+                cache.set(key, (progress, job.id, header, data))
             else:
-                processing = True
-                cache.set(key, (processing, None, None, None))
+                progress = 0
+                cache.set(key, (progress, None, None, None))
                 header, data = self._get_header_and_data(**kwargs)
-                processing = False
-                cache.set(key, (processing, None, header, data))
-        return processing, header or [], data or []
+                progress = 100
+                cache.set(key, (progress, None, header, data))
+        return progress, header or [], data or []
 
     @classmethod
     def _get_header_and_data(cls, **kwargs):
-        header, data =  cls.get_header(**kwargs), cls.get_data(**kwargs)
         cache = get_cache(CACHE_NAME)
         key = _get_cache_key(cls.section, **kwargs)
-        # If the workers share the cache with the WWW instance, we save it now.
-        cache.set(key, (False, None, header, data))
+        cached = cache.get(key)
+        if cached is not None:
+            job_id = cached[1]
+        else:
+            job_id = None
+        header = cls.get_header(**kwargs)
+        data = []
+        last_progress = 0
+        for progress, row in cls.get_data(**kwargs):
+            data.append(row)
+            if job_id is not None and progress - last_progress > 5:
+                # Update progress in 5% increments
+                cache.set(key, (progress, job_id, header, data))
+                last_progress = progress
         return header, data
 
     @staticmethod
