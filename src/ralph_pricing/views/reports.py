@@ -16,7 +16,7 @@ from bob.csvutil import make_csv_response
 import django_rq
 from rq.job import Job
 from django.contrib import messages
-
+from django.core.cache.backends.dummy import DummyCache
 
 
 CACHE_NAME = 'reports'
@@ -95,6 +95,10 @@ class Report(Base):
 
     def _get_cached(self, **kwargs):
         cache = get_cache(CACHE_NAME)
+        if isinstance(cache, DummyCache):
+            # No caching or queues with dummy cache.
+            header, data = self._get_header_and_data(**kwargs)
+            return 100, header, data
         key = _get_cache_key(self.section, **kwargs)
         cached = cache.get(key)
         if cached is not None:
