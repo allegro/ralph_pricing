@@ -38,6 +38,8 @@ def physical_cores(**kwargs):
     usage_type, created = UsageType.objects.get_or_create(
         name="Physical CPU cores",
     )
+    usage_type.average = True
+    usage_type.save()
     date = kwargs['today']
     count = sum(
         update_cores(data, usage_type, date)
