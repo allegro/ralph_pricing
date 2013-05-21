@@ -50,7 +50,7 @@ def set_usages(venture_symbol, data, date):
             venture, 1)
 
 
-@plugin.register(chain='pricing', requires=['sync_ventures'])
+@plugin.register(chain='pricing', requires=['ventures'])
 def openstack(**kwargs):
     """Updates OpenStack usage per Venture"""
     if settings.OPENSTACK_URL is None:
