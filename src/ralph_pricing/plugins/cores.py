@@ -31,7 +31,7 @@ def update_cores(data, usage_type, date):
     return usage.value
 
 
-@plugin.register(chain='pricing', requires=['sync_devices'])
+@plugin.register(chain='pricing', requires=['devices'])
 def physical_cores(**kwargs):
     """Updates the physical cores from Ralph."""
 
