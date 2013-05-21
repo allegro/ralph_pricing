@@ -39,7 +39,7 @@ def update_device(data, date):
 
 
 @plugin.register(chain='pricing', requires=['sync_ventures'])
-def sync_devices(**kwargs):
+def devices(**kwargs):
     """Updates the devices from Ralph."""
 
     date = kwargs['today']
