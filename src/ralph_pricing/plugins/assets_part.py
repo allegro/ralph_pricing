@@ -29,7 +29,7 @@ def update_assets_parts(data, date):
 
 
 @plugin.register(chain='pricing', requires=['sync_devices'])
-def sync_assets(**kwargs):
+def parts(**kwargs):
     """Updates the devices from Ralph Assets."""
     date = kwargs['today']
     count = sum(update_assets_parts(data, date) for data in get_asset_parts())
