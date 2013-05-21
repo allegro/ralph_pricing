@@ -46,6 +46,17 @@ class Device(db.Model):
     def __unicode__(self):
         return self.name
 
+    def get_device_price(self, start, end, venture):
+        days = (end - start).days + 1
+        query = self.dailydevice_set.filter(
+            pricing_device=self.device_id,
+            pricing_venture=venture,
+            date__gte=start,
+            date__lte=end,
+        ).exclude(price=0)
+        price = query.aggregate(Avg('price')) or 0
+        return price / days
+
 
 class ParentDevice(Device):
     class Meta:
@@ -258,17 +269,6 @@ class DailyDevice(db.Model):
         return decimal.Decimal(self.pricing_device.slots) * (
             parent_price / decimal.Decimal(self.parent.slots)
         )
-
-    def get_devices_price(self, start, end, venture):
-        days = (end - start).days + 1
-        query = DailyDevice.objects.filter(
-            pricing_venture=venture,
-            date__gte=start,
-            date__lte=end,
-        ).exclude(price=0)
-        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
-        count = query.count()
-        return price / days
 
 
 class UsageType(db.Model):
