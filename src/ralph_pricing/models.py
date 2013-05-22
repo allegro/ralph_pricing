@@ -48,14 +48,15 @@ class Device(db.Model):
         return '{} - {}'.format(self.name, self.device_id)
 
     def get_device_price(self, start, end, venture):
+        days = (end - start).days + 1
         query = self.dailydevice_set.filter(
             pricing_device=self,
             pricing_venture=venture,
             date__gte=start,
             date__lte=end,
         ).exclude(price=0)
-        price = query.aggregate(Avg('price'))
-        return price.get('price__avg') or 0
+        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
+        return price / days
 
     def get_deprecated_status(self, start, end, venture):
         query = self.dailydevice_set.filter(

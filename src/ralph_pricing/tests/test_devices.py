@@ -44,8 +44,8 @@ class TestDevices(TestCase):
 
     def test_device(self):
         venture = self.ventures.get(name='Infra')
-        start_date = '2013-01-01'
-        end_date = '2013-01-04'
+        start_date = datetime.date(2013, 01, 01)
+        end_date = datetime.date(2013, 01, 04)
         devices_list = self.get_data(start_date, end_date, venture)
         self.assertEqual(len(devices_list), 4)
         self.assertEqual(
@@ -56,7 +56,7 @@ class TestDevices(TestCase):
                     u'1234-1234-1234-1234',
                     u'2345-2345-2345-2345',
                     u'2013-01-01: False',
-                    u'200.00 PLN',
+                    u'50.00 PLN',
                 ],
                 [
                     u'host02.dc1',
@@ -82,8 +82,8 @@ class TestDevices(TestCase):
             ]
         )
 
-        start_date = '2013-01-02'
-        end_date = '2013-01-04'
+        start_date = datetime.date(2013, 01, 02)
+        end_date = datetime.date(2013, 01, 04)
         devices_list = self.get_data(start_date, end_date, venture)
         self.assertEqual(len(devices_list), 3)
         self.assertEqual(
