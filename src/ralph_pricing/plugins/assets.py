@@ -28,13 +28,14 @@ def update_assets(data, date):
         pricing_device=device,
     )
     daily.price = data['price']
+    daily.deprecation_rate = data['deprecation_rate']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
     return created
 
 
-@plugin.register(chain='pricing', requires=['sync_devices'])
-def sync_assets(**kwargs):
+@plugin.register(chain='pricing', requires=['devices'])
+def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
 
     date = kwargs['today']

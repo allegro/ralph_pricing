@@ -28,7 +28,7 @@ def update_venture(data):
 
 
 @plugin.register(chain='pricing', requires=[])
-def sync_ventures(**kwargs):
+def ventures(**kwargs):
     """Updates the ventures from Ralph."""
 
     count = sum(update_venture(data) for data in api_pricing.get_ventures())

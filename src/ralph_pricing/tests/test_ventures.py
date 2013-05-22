@@ -66,20 +66,51 @@ class TestVentures(TestCase):
         )
         extra_cost.save()
         view = TopVentures()
-        data = view.get_data(day, day)
-        self.assertEqual(
+
+        data = [data for progress, data in view.get_data(day, day)]
+        self.assertEquals(
             data,
             [
-                [3, 'a', '', 2.0, '835 170.00 PLN', 32.0, '0.00 PLN', '65 535.00 PLN'],
+                [
+                    3,  # id
+                    'a',  # path
+                    '',  # department
+                    2.0,  # assets count
+                    '835 170.00 PLN', # assets price
+                    '0.00 PLN', # assets cost
+                    32.0, # usage count
+                    '0.00 PLN', # usage price
+                    '65 535.00 PLN', # extra cost
+                ],
             ],
         )
         view = AllVentures()
-        data = view.get_data(day, day)
-        self.assertEqual(
+        data = [data for progress, data in view.get_data(day, day)]
+        self.assertEquals(
             data,
             [
-                [3, 'a', '', 1.0, '1 337.00 PLN', 32.0, 'NO PRICE', '65 535.00 PLN'],
-                [2, 'a/b', '', 1.0, '833 833.00 PLN', 0, '0.00 PLN', '0.00 PLN'],
+                [
+                    3,
+                    'a',
+                    '',
+                    1.0,
+                    '1 337.00 PLN',
+                    '0.00 PLN',
+                    32.0,
+                    'NO PRICE',
+                    '65 535.00 PLN',
+                ],
+                [
+                    2,
+                    'a/b',
+                    '',
+                    1.0,
+                    '833 833.00 PLN',
+                    '0.00 PLN',
+                    0,
+                    '0.00 PLN',
+                    '0.00 PLN',
+                ],
             ],
         )
 

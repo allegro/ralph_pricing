@@ -7,24 +7,25 @@ from __future__ import unicode_literals
 
 import datetime
 import collections
+import logging
 
 
 from django.conf import settings
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
-from ralph_pricing.openstack import OpenStack, Error
+from ralph_pricing.openstack import OpenStack
 
 
-class VentureDoesNotExistError(Error):
-    pass
+logger = logging.getLogger(__name__)
 
 
 def set_usages(venture_symbol, data, date):
     try:
         venture = Venture.objects.get(symbol=venture_symbol)
     except Venture.DoesNotExist:
-        raise VentureDoesNotExistError('Venture: %s does not exist' % venture_symbol)
+        logger.error('Venture: %s does not exist' % venture_symbol)
+        return
 
     def set_usage(name, key, venture, multiplier):
         if key not in data:
@@ -50,11 +51,11 @@ def set_usages(venture_symbol, data, date):
             venture, 1)
 
 
-@plugin.register(chain='pricing', requires=['sync_ventures'])
+@plugin.register(chain='pricing', requires=['ventures'])
 def openstack(**kwargs):
     """Updates OpenStack usage per Venture"""
     if settings.OPENSTACK_URL is None:
-        return False, 'not configured.', kwargs
+        return False, 'Not configured.', kwargs
     tenants = collections.defaultdict(lambda: collections.defaultdict(dict))
     date = kwargs['today']
     end = date

@@ -26,7 +26,8 @@ class TestAssetPlugin(TestCase):
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
-            'barcode': '4321-4321-4321-4321'
+            'barcode': '4321-4321-4321-4321',
+            'deprecation_rate': 0,
         }
 
     def test_sync_asset_device(self):
