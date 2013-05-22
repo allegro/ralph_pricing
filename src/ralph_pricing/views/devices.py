@@ -26,12 +26,11 @@ class Devices(Report):
     def get_data(start, end, venture, **kwargs):
         if not venture:
             return
-        ids = DailyDevice.objects.filter(
+        devices_ids = DailyDevice.objects.filter(
             date__gte=start,
             date__lte=end,
             pricing_venture=venture,
-        ).values_list('pricing_device', flat=True).distinct()
-        devices_ids = list(set(ids))
+        ).values_list('pricing_device_id', flat=True).distinct()
         total_count = len(devices_ids)
         for i, id in enumerate(devices_ids):
             device = DailyDevice.objects.filter(pricing_device=id)[0]
@@ -40,9 +39,9 @@ class Devices(Report):
                     device.pricing_device.sn,
                     device.pricing_device.barcode,
                     device.pricing_device.get_deprecated_status(
-                            start,
-                            end,
-                            venture,
+                        start,
+                        end,
+                        venture,
                     ),
                     currency(
                         device.pricing_device.get_device_price(

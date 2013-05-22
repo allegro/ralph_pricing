@@ -49,7 +49,6 @@ class Device(db.Model):
     def get_device_price(self, start, end, venture):
         days = (end - start).days + 1
         query = self.dailydevice_set.filter(
-            pricing_device=self,
             pricing_venture=venture,
             date__gte=start,
             date__lte=end,
@@ -59,7 +58,6 @@ class Device(db.Model):
 
     def get_deprecated_status(self, start, end, venture):
         query = self.dailydevice_set.filter(
-            pricing_device=self,
             pricing_venture=venture,
             date__gte=start,
             date__lte=end,
@@ -270,7 +268,6 @@ class DailyDevice(db.Model):
         verbose_name = _("daily device")
         verbose_name_plural = _("daily devices")
         unique_together = ('date', 'pricing_device')
-        ordering = ('pricing_device', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)

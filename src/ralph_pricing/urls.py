@@ -58,7 +58,7 @@ urlpatterns = patterns(
     url(
         r'^devices/(?P<venture>\d+)/$',
         login_required(Devices.as_view()),
-        name='extra_costs',
+        name='devices',
     ),
 )
 
