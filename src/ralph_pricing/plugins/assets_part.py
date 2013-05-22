@@ -19,6 +19,9 @@ def update_assets_parts(data, date):
     daily, created = DailyPart.objects.get_or_create(
         date=date,
         asset_id=data['asset_id'],
+        defaults={
+            'pricing_device_id': device.id,
+        },
     )
     daily.price = data['price']
     daily.deprecation_rate = data['deprecation_rate']

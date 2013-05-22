@@ -25,6 +25,7 @@ class TestAssetPlugin(TestCase):
             'slots': 10.0,
             'price': 100,
             'is_deprecated': True,
+            'deprecation_rate': 0,
         }
 
 	def test_sync_asset_device(self):
