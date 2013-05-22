@@ -32,8 +32,8 @@ class Devices(Report):
             pricing_venture=venture,
         ).values_list('pricing_device_id', flat=True).distinct()
         total_count = len(devices_ids)
-        for i, id in enumerate(devices_ids):
-            device = Device.objects.get(id=id)
+        devices = Device.objects.filter(id__in=devices_ids)
+        for i, device in enumerate(devices):
             row = [
                 device.name,
                 device.sn,
