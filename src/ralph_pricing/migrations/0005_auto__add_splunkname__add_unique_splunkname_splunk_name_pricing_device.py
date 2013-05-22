@@ -8,6 +8,17 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'SplunkName'
+        db.create_table('ralph_pricing_splunkname', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('splunk_name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
+            ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Device'], null=True, on_delete=models.SET_NULL, blank=True)),
+        ))
+        db.send_create_signal('ralph_pricing', ['SplunkName'])
+
+        # Adding unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
+        db.create_unique('ralph_pricing_splunkname', ['splunk_name', 'pricing_device_id'])
+
         # Adding field 'Device.sn'
         db.add_column('ralph_pricing_device', 'sn',
                       self.gf('django.db.models.fields.CharField')(max_length=200, unique=True, null=True, blank=True),
@@ -20,6 +31,12 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Removing unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
+        db.delete_unique('ralph_pricing_splunkname', ['splunk_name', 'pricing_device_id'])
+
+        # Deleting model 'SplunkName'
+        db.delete_table('ralph_pricing_splunkname')
+
         # Deleting field 'Device.sn'
         db.delete_column('ralph_pricing_device', 'sn')
 
@@ -31,6 +48,7 @@ class Migration(SchemaMigration):
         'ralph_pricing.dailydevice': {
             'Meta': {'ordering': "(u'pricing_device', u'date')", 'unique_together': "((u'date', u'pricing_device'),)", 'object_name': 'DailyDevice'},
             'date': ('django.db.models.fields.DateField', [], {}),
+            'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -43,10 +61,11 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "(u'asset_id', u'pricing_device', u'date')", 'unique_together': "((u'date', u'asset_id'),)", 'object_name': 'DailyPart'},
             'asset_id': ('django.db.models.fields.IntegerField', [], {}),
             'date': ('django.db.models.fields.DateField', [], {}),
+            'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
+            'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Device']"})
         },
         'ralph_pricing.dailyusage': {
@@ -84,6 +103,12 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
         },
+        'ralph_pricing.splunkname': {
+            'Meta': {'unique_together': "((u'splunk_name', u'pricing_device'),)", 'object_name': 'SplunkName'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
+            'splunk_name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
+        },
         'ralph_pricing.usageprice': {
             'Meta': {'ordering': "(u'type', u'start')", 'unique_together': "[(u'start', u'type'), (u'end', u'type')]", 'object_name': 'UsagePrice'},
             'end': ('django.db.models.fields.DateField', [], {}),
@@ -94,8 +119,11 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.usagetype': {
             'Meta': {'object_name': 'UsageType'},
+            'average': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
+            'show_price_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         },
         'ralph_pricing.venture': {
             'Meta': {'object_name': 'Venture'},
