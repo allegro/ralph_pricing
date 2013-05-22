@@ -14,7 +14,7 @@ from django.test import TestCase
 
 from ralph_pricing.models import DailyUsage, Venture
 from ralph_pricing.plugins.hamster import (
-    hamster as hamster_runner
+    hamster as hamster_runner,
 )
 
 
