@@ -15,6 +15,7 @@ from splunklib.client import connect
 class Splunk(object):
     """Usage:
 
+    >>> import time
     >>> splunk = Splunk('splunk.host', 'splunk.user', '********')
     >>> splunk.start(earliest='-60m')
     >>> while splunk.progress < 100:
