@@ -46,12 +46,18 @@ def virtual_usages(**kwargs):
     cpu_usage, created = UsageType.objects.get_or_create(
         name="Virtual CPU cores",
     )
+    cpu_usage.average = True
+    cpu_usage.save()
     memory_usage, created = UsageType.objects.get_or_create(
         name="Virtual memory MB",
     )
+    memory_usage.average = True
+    memory_usage.save()
     disk_usage, created = UsageType.objects.get_or_create(
         name="Virtual disk MB",
     )
+    disk_usage.average = True
+    disk_usage.save()
     date = kwargs['today']
     usages = {
         'virtual_cores': cpu_usage,

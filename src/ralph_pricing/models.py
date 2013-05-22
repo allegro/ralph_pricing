@@ -40,7 +40,7 @@ class Device(db.Model):
         verbose_name_plural = _("devices")
 
     def __unicode__(self):
-        return self.name
+        return '{} - {}'.format(self.name, self.device_id)
 
 
 class ParentDevice(Device):
@@ -163,6 +163,8 @@ class Venture(MPTTModel):
                 else:
                     if price is not None:
                         price += decimal.Decimal(daily_count) * daily_price
+        if type_.average:
+            count /= (end - start).days + 1
         return count, price
 
     def get_extra_costs(self, start, end, type_, descendants=False):
@@ -260,6 +262,18 @@ class DailyDevice(db.Model):
 
 class UsageType(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
+    average = db.BooleanField(
+        verbose_name=_("Average the values over multiple days"),
+        default=False,
+    )
+    show_value_percentage = db.BooleanField(
+        verbose_name=_("Show percentage of value"),
+        default=False,
+    )
+    show_price_percentage = db.BooleanField(
+        verbose_name=_("Show percentage of price"),
+        default=False,
+    )
 
     class Meta:
         verbose_name = _("usage type")
@@ -371,3 +385,23 @@ class ExtraCost(db.Model):
             self.start,
             self.end,
         )
+
+
+class SplunkName(db.Model):
+    splunk_name = db.CharField(
+        verbose_name=_("Splunk name"),
+        max_length=255,
+        blank=False,
+        unique=True,
+    )
+    pricing_device = db.ForeignKey(
+        Device,
+        verbose_name=_("pricing device"),
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=db.SET_NULL,
+    )
+
+    class Meta:
+        unique_together = ("splunk_name", "pricing_device")

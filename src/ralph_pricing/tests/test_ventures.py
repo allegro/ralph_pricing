@@ -66,7 +66,7 @@ class TestVentures(TestCase):
         )
         extra_cost.save()
         view = TopVentures()
-        data = view.get_data(day, day)
+        data = [data for progress, data in view.get_data(day, day)]
         self.assertEquals(
             data,
             [
@@ -74,7 +74,7 @@ class TestVentures(TestCase):
             ],
         )
         view = AllVentures()
-        data = view.get_data(day, day)
+        data = [data for progress, data in view.get_data(day, day)]
         self.assertEquals(
             data,
             [
