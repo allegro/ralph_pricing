@@ -26,7 +26,7 @@ class Devices(Report):
     def get_data(start, end, venture, **kwargs):
         if not venture:
             return
-        devices_ids = DailyDevice.objects.filter(
+        devices_ids = self.dailydevice_set.filter(
             date__gte=start,
             date__lte=end,
             pricing_venture=venture,
@@ -35,22 +35,22 @@ class Devices(Report):
         for i, id in enumerate(devices_ids):
             device = DailyDevice.objects.filter(pricing_device=id)[0]
             row = [
-                    device.name,
-                    device.pricing_device.sn,
-                    device.pricing_device.barcode,
-                    device.pricing_device.get_deprecated_status(
+                device.name,
+                device.pricing_device.sn,
+                device.pricing_device.barcode,
+                device.pricing_device.get_deprecated_status(
+                    start,
+                    end,
+                    venture,
+                ),
+                currency(
+                    device.pricing_device.get_device_price(
                         start,
                         end,
                         venture,
                     ),
-                    currency(
-                        device.pricing_device.get_device_price(
-                            start,
-                            end,
-                            venture,
-                        ),
-                    ),
-                ]
+                ),
+            ]
             progress = (100 * i) // total_count
             yield progress, row
 
