@@ -39,7 +39,7 @@ def update(data, usages, date):
         update_usage(device, venture, usage, date, data.get(key))
 
 
-@plugin.register(chain='pricing', requires=['sync_devices'])
+@plugin.register(chain='pricing', requires=['devices'])
 def virtual_usages(**kwargs):
     """Updates the virtual usages from Ralph."""
 

@@ -44,7 +44,7 @@ def update(data, date):
     update_usage(device, venture, usage_name, date, size)
 
 
-@plugin.register(chain='pricing', requires=['sync_devices'])
+@plugin.register(chain='pricing', requires=['devices'])
 def shares(**kwargs):
     """Updates the disk share usages from Ralph."""
 
