@@ -26,6 +26,7 @@ def update_assets(data, date):
         pricing_device=device,
     )
     daily.price = data['price']
+    daily.deprecation_rate = data['deprecation_rate']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
     return created

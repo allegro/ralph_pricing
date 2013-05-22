@@ -19,9 +19,13 @@ def update_assets_parts(data, date):
     daily, created = DailyPart.objects.get_or_create(
         date=date,
         asset_id=data['asset_id'],
-        pricing_device_id=device.id,
-        price=data['price'],
+        defaults={
+            'pricing_device_id': device.id,
+        },
     )
+    daily.price = data['price']
+    daily.deprecation_rate = data['deprecation_rate']
+    daily.pricing_device_id = device.id
     daily.name = data['model']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
@@ -34,3 +38,4 @@ def parts(**kwargs):
     date = kwargs['today']
     count = sum(update_assets_parts(data, date) for data in get_asset_parts())
     return True, '%d new devices' % count, kwargs
+

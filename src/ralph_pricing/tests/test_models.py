@@ -129,10 +129,10 @@ class TestPrices(TestCase):
             pricing_venture=subventure,
         )
         other_daily.save()
-        count, price = venture.get_assets_count_price(day, day)
+        count, price, cost = venture.get_assets_count_price_cost(day, day)
         self.assertEquals(count, 1)
         self.assertEquals(price, decimal.Decimal('1337'))
-        count, price = venture.get_assets_count_price(day, day, True)
+        count, price, cost = venture.get_assets_count_price_cost(day, day, True)
         self.assertEquals(count, 2)
         self.assertEquals(price, decimal.Decimal('835170'))
 

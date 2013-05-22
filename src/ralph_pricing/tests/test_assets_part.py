@@ -9,7 +9,7 @@ import datetime
 
 from django.test import TestCase
 
-from ralph_pricing.models import Device, DailyPart
+from ralph_pricing.models import DailyPart
 from ralph_pricing.plugins.assets_part import update_assets_parts
 
 
@@ -25,6 +25,7 @@ class TestAssetPlugin(TestCase):
             'model': 'Noname SSD',
             'price': 130,
             'is_deprecated': True,
+            'deprecation_rate': 0,
         }
 
     def test_sync_asset_device_part(self):
