@@ -20,6 +20,8 @@ def update_assets(data, date):
         device.device_id = data['ralph_id']
     device.asset_id = data['asset_id']
     device.slots = data['slots']
+    device.sn = data['sn']
+    device.barcode = data['barcode']
     device.save()
     daily, daily_created = DailyDevice.objects.get_or_create(
         date=date,

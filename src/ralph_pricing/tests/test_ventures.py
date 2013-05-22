@@ -66,6 +66,7 @@ class TestVentures(TestCase):
         )
         extra_cost.save()
         view = TopVentures()
+
         data = [data for progress, data in view.get_data(day, day)]
         self.assertEquals(
             data,
@@ -112,5 +113,3 @@ class TestVentures(TestCase):
                 ],
             ],
         )
-
-

@@ -10,9 +10,11 @@ import datetime
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from ralph.ui.widgets import DateWidget
 
-from ralph_pricing.models import ExtraCost, UsagePrice
+from mptt.forms import TreeNodeChoiceField
+
+from ralph.ui.widgets import DateWidget
+from ralph_pricing.models import ExtraCost, UsagePrice, Venture
 
 
 class ExtraCostForm(forms.ModelForm):
@@ -166,3 +168,9 @@ class DateRangeForm(forms.Form):
     )
 
 
+class DateRangeVentureForm(DateRangeForm):
+    venture = TreeNodeChoiceField(
+        queryset=Venture.tree.all(),
+        level_indicator='|---',
+        empty_label="---",
+    )

@@ -14,6 +14,8 @@ def update_device(data, date):
         device_id=data['id'],
     )
     device.name = data['name']
+    device.sn = data['sn']
+    device.barcode = data['barcode']
     device.is_virtual = data['is_virtual']
     device.is_blade = data['is_blade']
     device.save()
