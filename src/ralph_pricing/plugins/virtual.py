@@ -39,19 +39,25 @@ def update(data, usages, date):
         update_usage(device, venture, usage, date, data.get(key))
 
 
-@plugin.register(chain='pricing', requires=['sync_devices'])
+@plugin.register(chain='pricing', requires=['devices'])
 def virtual_usages(**kwargs):
     """Updates the virtual usages from Ralph."""
 
     cpu_usage, created = UsageType.objects.get_or_create(
         name="Virtual CPU cores",
     )
+    cpu_usage.average = True
+    cpu_usage.save()
     memory_usage, created = UsageType.objects.get_or_create(
         name="Virtual memory MB",
     )
+    memory_usage.average = True
+    memory_usage.save()
     disk_usage, created = UsageType.objects.get_or_create(
         name="Virtual disk MB",
     )
+    disk_usage.average = True
+    disk_usage.save()
     date = kwargs['today']
     usages = {
         'virtual_cores': cpu_usage,

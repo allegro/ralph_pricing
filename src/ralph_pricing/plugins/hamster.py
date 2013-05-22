@@ -49,8 +49,8 @@ def set_hamster_usage(venture, capacity, usage_type, date):
     return created
 
 
-@plugin.register(chain='pricing', requires=['sync_ventures'])
-def hamster(**kwargs):
+@plugin.register(chain='pricing', requires=['ventures'])
+def hamster_usage(**kwargs):
     """Updates Hamster usage per Venture"""
     if not settings.HAMSTER_API_URL:
         return False, "Not configured", kwargs

@@ -15,6 +15,8 @@ def update_usage(device, venture, usage_name, date, value):
     usage_type, created = UsageType.objects.get_or_create(
         name=usage_name
     )
+    usage_type.average = True
+    usage_type.save()
     usage, created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
@@ -42,7 +44,7 @@ def update(data, date):
     update_usage(device, venture, usage_name, date, size)
 
 
-@plugin.register(chain='pricing', requires=['sync_devices'])
+@plugin.register(chain='pricing', requires=['devices'])
 def shares(**kwargs):
     """Updates the disk share usages from Ralph."""
 
