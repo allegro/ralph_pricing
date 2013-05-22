@@ -64,12 +64,13 @@ class Device(db.Model):
             date__gte=start,
             date__lte=end,
         )
-        statuses = [],
+        statuses = []
         last =  None
         for daily_device in query:
             status = daily_device.is_deprecated
             if status != last:
-                statuses = '%s: %s' % (daily_device.date, status)
+                data = '%s: %s' % (daily_device.date, status)
+                statuses.append(data)
             last = status
         return " ".join(statuses)
 
