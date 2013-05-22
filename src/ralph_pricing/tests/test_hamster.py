@@ -33,19 +33,19 @@ class TestHamster(TestCase):
         self.venture_1 = Venture(
             name='Test Venture1',
             symbol='test_venture1',
-            venture_id='1'
+            venture_id='1',
         )
         self.venture_1.save()
         self.venture_2 = Venture(
             name='Test Venture2',
             symbol='test_venture2',
-            venture_id='2'
+            venture_id='2',
         )
         self.venture_2.save()
         self.venture_3 = Venture(
             name='Test Venture3',
             symbol='test_venture3',
-            venture_id='3'
+            venture_id='3',
         )
         self.venture_3.save()
 
