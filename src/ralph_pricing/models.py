@@ -9,7 +9,6 @@ from decimal import Decimal as D
 from dateutil import rrule
 
 from django.db import models as db
-from django.db.models import Avg
 from django.utils.translation import ugettext_lazy as _
 
 from mptt.models import MPTTModel, TreeForeignKey
