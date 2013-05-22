@@ -32,22 +32,35 @@ def update_scaleme_usage(usage_types, date, url):
         ventures_capacity = get_ventures_capacities(date, url)
     except ResourceNotFound:
         # apache not found error
-        logger.error('Scaleme data for %r date not found' % date)
+        message = 'Scaleme data for %r not found' % date.strftime("%Y-%m-%d")
+        logger.error(message)
     else:
-        for venture_symbol, venture_usages in ventures_capacity.iteritems():
-            try:
-                venture = Venture.objects.get(symbol=venture_symbol)
-            except Venture.DoesNotExist:
-                pass
-            else:
-                for usage_name, usage_type in usage_types.iteritems():
-                    usage, created = DailyUsage.objects.get_or_create(
-                        date=date,
-                        type=usage_type,
-                        pricing_venture=venture,
-                    )
-                    usage.value = venture_usages[usage_name]
-                    usage.save()
+        if ventures_capacity:
+            counts = {'new': 0, 'updated': 0}
+            for venture_symbol, venture_usages in ventures_capacity.iteritems():
+                try:
+                    venture = Venture.objects.get(symbol=venture_symbol)
+                except Venture.DoesNotExist:
+                    logger.error('Venture %r does not exist from Scaleme data')
+                else:
+                    for usage_name, usage_type in usage_types.iteritems():
+                        usage, created = DailyUsage.objects.get_or_create(
+                            date=date,
+                            type=usage_type,
+                            pricing_venture=venture,
+                        )
+                        usage.value = venture_usages[usage_name]
+                        usage.save()
+                        if created:
+                            counts['new'] += 1
+                        else:
+                            counts['updated'] += 1
+            message = 'Scaleme ussages in Ventures: {} new, {} updated'.format(
+                counts['new'], counts['updated']
+            )
+        else:
+            message = 'Scaleme data for %r not found' % date.strftime("%Y-%m-%d")
+    return message
 
 
 @plugin.register(chain='pricing', requires=['ventures'])
@@ -67,5 +80,5 @@ def scaleme(**kwargs):
         'backend': usage_type_backend,
     }
     date = kwargs['today']
-    update_scaleme_usage(usage_types, date, url)
-    return True, 'Scaleme usages added to Ventures', kwargs
+    message = update_scaleme_usage(usage_types, date, url)
+    return True, message, kwargs
