@@ -22,7 +22,7 @@ class AllVentures(Report):
         ventures = Venture.objects.order_by('name')
         total_count = ventures.count()
         for i, venture in enumerate(ventures):
-            count, price = venture.get_assets_count_price(start, end)
+            count, price, cost = venture.get_assets_count_price_cost(start, end)
             path = '/'.join(
                 v.name for v in venture.get_ancestors(include_self=True),
             )
@@ -32,6 +32,7 @@ class AllVentures(Report):
                 venture.department,
                 count,
                 currency(price),
+                currency(cost),
             ]
             for usage_type in UsageType.objects.order_by('name'):
                 count, price = venture.get_usages_count_price(
@@ -61,6 +62,7 @@ class AllVentures(Report):
             _("Department"),
             _("Assets count"),
             _("Assets price"),
+            _("Assets cost"),
         ]
         for usage_type in UsageType.objects.order_by('name'):
             header.append(_("{} count").format(usage_type.name))
@@ -78,7 +80,7 @@ class TopVentures(AllVentures):
         ventures = Venture.objects.root_nodes().order_by('name')
         total_count = ventures.count()
         for i, venture in enumerate(ventures):
-            count, price = venture.get_assets_count_price(
+            count, price, cost = venture.get_assets_count_price_cost(
                 start,
                 end,
                 descendants=True,
@@ -89,6 +91,7 @@ class TopVentures(AllVentures):
                 venture.department,
                 count,
                 currency(price),
+                currency(cost),
             ]
             for usage_type in UsageType.objects.order_by('name'):
                 count, price = venture.get_usages_count_price(
