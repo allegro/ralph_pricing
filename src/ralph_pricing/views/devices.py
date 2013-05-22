@@ -39,13 +39,17 @@ class Devices(Report):
                     device.name,
                     device.pricing_device.sn,
                     device.pricing_device.barcode,
-                    device.is_deprecated,
+                    device.pricing_device.get_deprecated_status(
+                            start,
+                            end,
+                            venture,
+                    ),
                     currency(
                         device.pricing_device.get_device_price(
                             start,
                             end,
                             venture,
-                        )
+                        ),
                     ),
                 ]
             progress = (100 * i) // total_count

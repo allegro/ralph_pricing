@@ -64,13 +64,15 @@ class Device(db.Model):
             date__gte=start,
             date__lte=end,
         )
-        status = None
-        for device in query:
-            if not status:
-                status = device.is_deprecated
-            if status != device.is_deprecated:
-                return device.is_deprecated, device.date
-        return device.is_deprecated, None
+        statuses = [],
+        last =  None
+        for daily_device in query:
+            status = daily_device.is_deprecated
+            if status != last:
+                statuses = '%s: %s' % (daily_device.date, status)
+            last = status
+        import pdb; pdb.set_trace()
+        return " ".join(statuses)
 
 
 class ParentDevice(Device):
