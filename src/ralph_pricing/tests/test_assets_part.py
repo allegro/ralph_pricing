@@ -22,6 +22,7 @@ class TestAssetPlugin(TestCase):
         yield {
             'asset_id': 1123,
             'ralph_id': 113,
+            'asset_parent_id': 2354,
             'model': 'Noname SSD',
             'price': 130,
             'is_deprecated': True,
@@ -37,5 +38,6 @@ class TestAssetPlugin(TestCase):
         )
         part = DailyPart.objects.get(asset_id=1123)
         self.assertEqual(part.is_deprecated, True)
+        self.assertEqual(part.asset_parent_id, 2354)
         self.assertEqual(part.name, 'Noname SSD')
         self.assertEqual(part.price, 130)
