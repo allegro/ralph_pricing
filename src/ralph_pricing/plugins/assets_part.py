@@ -25,7 +25,6 @@ def update_assets_parts(data, date):
     )
     daily.price = data['price']
     daily.deprecation_rate = data['deprecation_rate']
-    daily.pricing_device_id = device.id
     daily.name = data['model']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
