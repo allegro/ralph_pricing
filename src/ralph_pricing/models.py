@@ -90,7 +90,13 @@ class Venture(MPTTModel):
             return query.filter(pricing_venture__in=ventures)
         return query.filter(pricing_venture=self)
 
-    def get_assets_count_price_cost(self, start, end, descendants=False):
+    def get_assets_count_price_cost(
+        self,
+        start,
+        end,
+        descendants=False,
+        zero_deprecated=True,
+    ):
         days = (end - start).days + 1
         query = DailyDevice.objects.filter(pricing_device__is_virtual=False)
         query = self._by_venture(query, descendants)
@@ -100,9 +106,15 @@ class Venture(MPTTModel):
         total_price = D('0')
         total_cost = D('0')
         for daily_device in query:
-            asset_price, asset_cost = daily_device.get_price_cost()
-            system_price, system_cost = daily_device.get_bladesystem_price_cost()
-            blades_price, blades_cost = daily_device.get_blades_price_cost()
+            asset_price, asset_cost = daily_device.get_price_cost(
+                zero_deprecated,
+            )
+            system_price, system_cost = daily_device.get_bladesystem_price_cost(
+                zero_deprecated,
+            )
+            blades_price, blades_cost = daily_device.get_blades_price_cost(
+                zero_deprecated,
+            )
             total_price += asset_price + system_price - blades_price
             total_cost += asset_cost + system_cost - blades_cost
             total_count += 1
@@ -173,8 +185,8 @@ class DailyPart(db.Model):
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
 
-    def get_price_cost(self):
-        if self.is_deprecated:
+    def get_price_cost(self, zero_deprecated=True):
+        if zero_deprecated and self.is_deprecated:
             return D('0'), D('0')
         total_cost = self.price * self.deprecation_rate / 36500
         return self.price, total_cost
@@ -231,31 +243,35 @@ class DailyDevice(db.Model):
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
 
-    def get_price_cost(self):
+    def get_price_cost(self, zero_deprecated=True):
         """
         Return the price and daily cost of the device on that day.
         This only includes the price of the asset itself, not the
         prices of its parents (in case of blade systems).
         """
 
-        if self.is_deprecated:
-            return D('0'), D('0')
         total_price = D('0')
         total_cost = D('0')
         # If the device has parts, sum them up
         for daily_part in self.pricing_device.dailypart_set.filter(
                 date=self.date,
             ):
-            price, cost= daily_part.get_price_cost()
+            price, cost = daily_part.get_price_cost()
             total_cost += price
             total_cost += cost
         # Otherwise just take the price and cost of the device
+        if zero_deprecated and self.is_deprecated:
+            return D('0'), D('0')
         if not total_price and not total_cost:
             total_price = self.price
             total_cost = self.price * self.deprecation_rate / 36500
         return total_price, total_cost
 
-    def get_bladesystem_price_cost(self, daily_parent=None):
+    def get_bladesystem_price_cost(
+        self,
+        zero_deprecated=True,
+        daily_parent=None,
+    ):
         """
         Return the fraction of the price and cost of the blade system
         containing this device.
@@ -277,7 +293,9 @@ class DailyDevice(db.Model):
             except DailyDevice.DoesNotExist:
                 pass
         if daily_parent and daily_parent.pricing_device.slots:
-            system_price, system_cost = daily_parent.get_price_cost()
+            system_price, system_cost = daily_parent.get_price_cost(
+                zero_deprecated,
+            )
             system_fraction = (
                 D(self.pricing_device.slots) /
                 D(daily_parent.pricing_device.slots)
@@ -286,7 +304,7 @@ class DailyDevice(db.Model):
             total_price += system_price * system_fraction
         return total_price, total_cost
 
-    def get_blades_price_cost(self):
+    def get_blades_price_cost(self, zero_deprecated=True):
         """
         Return the prices and costs that the blades contained in a blade
         system subtract from that blade system.
@@ -299,7 +317,10 @@ class DailyDevice(db.Model):
                     date=self.date,
                     pricing_device__is_blade=True,
                 ):
-                price, cost = blade.get_bladesystem_price_cost(self)
+                price, cost = blade.get_bladesystem_price_cost(
+                    zero_deprecated,
+                    self,
+                )
                 total_price += price
                 total_cost += cost
         return total_price, total_cost
