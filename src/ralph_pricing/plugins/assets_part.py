@@ -23,6 +23,7 @@ def update_assets_parts(data, date):
             'pricing_device_id': device.id,
         },
     )
+    daily.asset_parent_id = data['asset_parent_id']
     daily.price = data['price']
     daily.deprecation_rate = data['deprecation_rate']
     daily.pricing_device_id = device.id

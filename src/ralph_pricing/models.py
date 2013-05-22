@@ -35,6 +35,13 @@ class Device(db.Model):
         blank=True,
         default=None,
     )
+    asset_parent_id = db.IntegerField(
+        verbose_name=_("asset part id"),
+        unique=False,
+        null=True,
+        blank=True,
+        default=None,
+    )
     is_virtual = db.BooleanField(verbose_name=_("is virtual"), default=False)
     is_blade = db.BooleanField(verbose_name=_("is blade"), default=False)
     slots = db.FloatField(verbose_name=_("slots"), default=0)
