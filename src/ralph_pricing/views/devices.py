@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
 from ralph_pricing.menus import ventures_menu
-from ralph_pricing.models import DailyDevice
+from ralph_pricing.models import DailyDevice, Device
 from ralph_pricing.models import Venture
 from ralph_pricing.views.reports import Report, currency
 
@@ -26,25 +26,25 @@ class Devices(Report):
     def get_data(start, end, venture, **kwargs):
         if not venture:
             return
-        devices_ids = self.dailydevice_set.filter(
+        devices_ids = DailyDevice.objects.filter(
             date__gte=start,
             date__lte=end,
             pricing_venture=venture,
         ).values_list('pricing_device_id', flat=True).distinct()
         total_count = len(devices_ids)
         for i, id in enumerate(devices_ids):
-            device = DailyDevice.objects.filter(pricing_device=id)[0]
+            device = Device.objects.get(id=id)
             row = [
                 device.name,
-                device.pricing_device.sn,
-                device.pricing_device.barcode,
-                device.pricing_device.get_deprecated_status(
+                device.sn,
+                device.barcode,
+                device.get_deprecated_status(
                     start,
                     end,
                     venture,
                 ),
                 currency(
-                    device.pricing_device.get_device_price(
+                    device.get_device_price(
                         start,
                         end,
                         venture,
