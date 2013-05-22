@@ -19,6 +19,16 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
         db.create_unique('ralph_pricing_splunkname', ['splunk_name', 'pricing_device_id'])
 
+        # Adding field 'Device.sn'
+        db.add_column('ralph_pricing_device', 'sn',
+                      self.gf('django.db.models.fields.CharField')(max_length=200, unique=True, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Device.barcode'
+        db.add_column('ralph_pricing_device', 'barcode',
+                      self.gf('django.db.models.fields.CharField')(default=None, max_length=200, unique=True, null=True, blank=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
         # Removing unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
@@ -27,11 +37,18 @@ class Migration(SchemaMigration):
         # Deleting model 'SplunkName'
         db.delete_table('ralph_pricing_splunkname')
 
+        # Deleting field 'Device.sn'
+        db.delete_column('ralph_pricing_device', 'sn')
+
+        # Deleting field 'Device.barcode'
+        db.delete_column('ralph_pricing_device', 'barcode')
+
 
     models = {
         'ralph_pricing.dailydevice': {
             'Meta': {'ordering': "(u'pricing_device', u'date')", 'unique_together': "((u'date', u'pricing_device'),)", 'object_name': 'DailyDevice'},
             'date': ('django.db.models.fields.DateField', [], {}),
+            'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -44,10 +61,11 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "(u'asset_id', u'pricing_device', u'date')", 'unique_together': "((u'date', u'asset_id'),)", 'object_name': 'DailyPart'},
             'asset_id': ('django.db.models.fields.IntegerField', [], {}),
             'date': ('django.db.models.fields.DateField', [], {}),
+            'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
+            'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Device']"})
         },
         'ralph_pricing.dailyusage': {
@@ -62,12 +80,14 @@ class Migration(SchemaMigration):
         'ralph_pricing.device': {
             'Meta': {'object_name': 'Device'},
             'asset_id': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'barcode': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'device_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_blade': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_virtual': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'slots': ('django.db.models.fields.FloatField', [], {'default': '0'})
+            'slots': ('django.db.models.fields.FloatField', [], {'default': '0'}),
+            'sn': ('django.db.models.fields.CharField', [], {'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'})
         },
         'ralph_pricing.extracost': {
             'Meta': {'unique_together': "[(u'start', u'pricing_venture', u'type'), (u'end', u'pricing_venture', u'type')]", 'object_name': 'ExtraCost'},
