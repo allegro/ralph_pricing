@@ -72,6 +72,23 @@ class Device(db.Model):
             last = status
         return " ".join(statuses)
 
+    def get_daily_parts(self, start, end):
+        query = self.dailypart_set.filter(
+            date__gte=start,
+            date__lte=end,
+        )
+        components_ids = set(query.values_list('asset_id', flat=True))
+        components = []
+        for id in components_ids:
+            component = query.filter(asset_id=id)
+            sum = component.aggregate(db.Sum('price'))['price__sum'] or 0
+            components.append(
+                {
+                    'name': component[0].name,
+                    'price': sum / component.count(),
+                }
+            )
+        return components
 
 class ParentDevice(Device):
     class Meta:

@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
 from ralph_pricing.menus import ventures_menu
-from ralph_pricing.models import DailyDevice, Device
+from ralph_pricing.models import DailyDevice, Device, DailyPart
 from ralph_pricing.models import Venture
 from ralph_pricing.views.reports import Report, currency
 
@@ -34,6 +34,12 @@ class Devices(Report):
         total_count = len(devices_ids)
         devices = Device.objects.filter(id__in=devices_ids)
         for i, device in enumerate(devices):
+            # parts_ids = DailyPart.objects.filter(
+            #     date__gte=start,
+            #     date__lte=end,
+            #     pricing_device_id=device.id,
+            # ).values_list('id', flat=True).distinct()
+            # import pdb; pdb.set_trace()
             row = [
                 device.name,
                 device.sn,
@@ -49,6 +55,10 @@ class Devices(Report):
                         end,
                         venture,
                     ),
+                ),
+                device.get_daily_parts(
+                    start,
+                    end,
                 ),
             ]
             progress = (100 * i) // total_count
