@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import decimal
+from decimal import Decimal as D
 from dateutil import rrule
 
 from django.db import models as db
@@ -20,6 +20,10 @@ PRICE_PLACES = 6
 
 class Device(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255)
+    sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
+    barcode = db.CharField(
+        max_length=200, null=True, blank=True, unique=True, default=None
+    )
     device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
@@ -41,6 +45,32 @@ class Device(db.Model):
 
     def __unicode__(self):
         return '{} - {}'.format(self.name, self.device_id)
+
+    def get_device_price(self, start, end, venture):
+        days = (end - start).days + 1
+        query = self.dailydevice_set.filter(
+            pricing_venture=venture,
+            date__gte=start,
+            date__lte=end,
+        ).exclude(price=0)
+        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
+        return price / days
+
+    def get_deprecated_status(self, start, end, venture):
+        query = self.dailydevice_set.filter(
+            pricing_venture=venture,
+            date__gte=start,
+            date__lte=end,
+        )
+        statuses = []
+        last =  None
+        for daily_device in query:
+            status = daily_device.is_deprecated
+            if status != last:
+                data = '%s: %s' % (daily_device.date, status)
+                statuses.append(data)
+            last = status
+        return " ".join(statuses)
 
 
 class ParentDevice(Device):
@@ -90,62 +120,39 @@ class Venture(MPTTModel):
             return query.filter(pricing_venture__in=ventures)
         return query.filter(pricing_venture=self)
 
-    def get_blade_systems_price(self, query):
-        """The prices of the blade systems"""
-
-        price = decimal.Decimal('0')
-        for blade_server in query.filter(
-            pricing_device__is_blade=True,
-        ).exclude(
-            parent=None,
-        ).exclude(
-            pricing_device__slots=0,
-        ).exclude(
-            parent__slots=0,
-        ).select_related(
-            'pricing__device',
-            'parent',
-            'parent__pricing_device',
-        ):
-            price += blade_server.get_blade_system_price()
-        return price
-
-    def get_other_blade_systems_price(self, query):
-        """The prices of the blade systems added to other ventures"""
-
-        price = decimal.Decimal('0')
-        for blade_system in query.exclude(
-            pricing_device__slots=0,
-        ).select_related('pricing__device'):
-            for blade_server in blade_system.pricing_device.child_set.filter(
-                date=blade_system.date,
-                pricing_device__is_blade=True,
-            ).exclude(
-                pricing_device__slots=0,
-            ).select_related(
-                'pricing__device',
-                'parent',
-                'parent__pricing_device',
-            ):
-                price += blade_server.get_blade_system_price()
-        return price
-
-    def get_assets_count_price(self, start, end, descendants=False):
+    def get_assets_count_price_cost(
+        self,
+        start,
+        end,
+        descendants=False,
+        zero_deprecated=True,
+    ):
         days = (end - start).days + 1
         query = DailyDevice.objects.filter(pricing_device__is_virtual=False)
         query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
-        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
-        count = query.count()
-        query = query.exclude(price=0)
-        query = query.exclude(is_deprecated=True)
-        price += self.get_blade_systems_price(query)
-        price -= self.get_other_blade_systems_price(query)
-        return count / days, price / days
+        query = query.select_related('pricing_device', 'parent')
+        total_count = 0
+        total_price = D('0')
+        total_cost = D('0')
+        for daily_device in query:
+            asset_price, asset_cost = daily_device.get_price_cost(
+                zero_deprecated,
+            )
+            system_price, system_cost = daily_device.get_bladesystem_price_cost(
+                zero_deprecated,
+            )
+            blades_price, blades_cost = daily_device.get_blades_price_cost(
+                zero_deprecated,
+            )
+            total_price += asset_price + system_price - blades_price
+            total_cost += asset_cost + system_cost - blades_cost
+            total_count += 1
+        return total_count / days, total_price / days, total_cost
 
     def get_usages_count_price(self, start, end, type_, descendants=False):
         count = 0
-        price = decimal.Decimal('0')
+        price = D('0')
         query = DailyUsage.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
@@ -162,13 +169,13 @@ class Venture(MPTTModel):
                     price = None
                 else:
                     if price is not None:
-                        price += decimal.Decimal(daily_count) * daily_price
+                        price += D(daily_count) * daily_price
         if type_.average:
             count /= (end - start).days + 1
         return count, price
 
     def get_extra_costs(self, start, end, type_, descendants=False):
-        price = decimal.Decimal('0')
+        price = D('0')
         query = ExtraCost.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
@@ -186,6 +193,13 @@ class DailyPart(db.Model):
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
+        default=0,
+    )
+    deprecation_rate = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("deprecation rate"),
+        default=0,
     )
     is_deprecated = db.BooleanField(
         verbose_name=_("is deprecated"),
@@ -200,6 +214,12 @@ class DailyPart(db.Model):
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
+
+    def get_price_cost(self, zero_deprecated=True):
+        if zero_deprecated and self.is_deprecated:
+            return D('0'), D('0')
+        total_cost = self.price * self.deprecation_rate / 36500
+        return self.price, total_cost
 
 
 class DailyDevice(db.Model):
@@ -225,6 +245,12 @@ class DailyDevice(db.Model):
         verbose_name=_("price"),
         default=0,
     )
+    deprecation_rate = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("deprecation rate"),
+        default=0,
+    )
     pricing_venture = db.ForeignKey(
         Venture,
         verbose_name=_("venture"),
@@ -242,22 +268,91 @@ class DailyDevice(db.Model):
         verbose_name = _("daily device")
         verbose_name_plural = _("daily devices")
         unique_together = ('date', 'pricing_device')
-        ordering = ('pricing_device', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
 
-    def get_blade_system_price(self):
-        try:
-            parent_price = self.parent.dailydevice_set.get(
+    def get_price_cost(self, zero_deprecated=True):
+        """
+        Return the price and daily cost of the device on that day.
+        This only includes the price of the asset itself, not the
+        prices of its parents (in case of blade systems).
+        """
+
+        total_price = D('0')
+        total_cost = D('0')
+        # If the device has parts, sum them up
+        for daily_part in self.pricing_device.dailypart_set.filter(
                 date=self.date,
-                is_deprecated=False,
-            ).price
-        except DailyDevice.DoesNotExist:
-            return 0
-        return decimal.Decimal(self.pricing_device.slots) * (
-            parent_price / decimal.Decimal(self.parent.slots)
-        )
+            ):
+            price, cost = daily_part.get_price_cost()
+            total_cost += price
+            total_cost += cost
+        # Otherwise just take the price and cost of the device
+        if zero_deprecated and self.is_deprecated:
+            return D('0'), D('0')
+        if not total_price and not total_cost:
+            total_price = self.price
+            total_cost = self.price * self.deprecation_rate / 36500
+        return total_price, total_cost
+
+    def get_bladesystem_price_cost(
+        self,
+        zero_deprecated=True,
+        daily_parent=None,
+    ):
+        """
+        Return the fraction of the price and cost of the blade system
+        containing this device.
+        """
+
+        total_price = D('0')
+        total_cost = D('0')
+        if (
+            not self.pricing_device.is_blade or
+            not self.parent or
+            not self.pricing_device.slots
+        ):
+            return total_price, total_cost
+        if not daily_parent:
+            try:
+                daily_parent = self.parent.dailydevice_set.filter(
+                    date=self.date,
+                )
+            except DailyDevice.DoesNotExist:
+                pass
+        if daily_parent and daily_parent.pricing_device.slots:
+            system_price, system_cost = daily_parent.get_price_cost(
+                zero_deprecated,
+            )
+            system_fraction = (
+                D(self.pricing_device.slots) /
+                D(daily_parent.pricing_device.slots)
+            )
+            total_cost += system_cost * system_fraction
+            total_price += system_price * system_fraction
+        return total_price, total_cost
+
+    def get_blades_price_cost(self, zero_deprecated=True):
+        """
+        Return the prices and costs that the blades contained in a blade
+        system subtract from that blade system.
+        """
+
+        total_price = D('0')
+        total_cost = D('0')
+        if self.pricing_device.slots and not self.pricing_device.is_blade:
+            for blade in self.pricing_device.children_set.filter(
+                    date=self.date,
+                    pricing_device__is_blade=True,
+                ):
+                price, cost = blade.get_bladesystem_price_cost(
+                    zero_deprecated,
+                    self,
+                )
+                total_price += price
+                total_cost += cost
+        return total_price, total_cost
 
 
 class UsageType(db.Model):
