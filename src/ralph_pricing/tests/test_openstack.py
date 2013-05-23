@@ -55,11 +55,6 @@ class MockOpenStack(object):
 
 class TestOpenstack(TestCase):
     def setUp(self):
-        # fake setting need to run plugin
-        settings.OPENSTACK_URL = '/'
-        settings.OPENSTACK_USER = 'test'
-        settings.OPENSTACK_PASSWORD = 'test'
-
         venture_1 = Venture(
             name='Test Venture1',
             symbol='test_venture1',
@@ -78,9 +73,16 @@ class TestOpenstack(TestCase):
 
     def test_set_usages(self):
         """ OpenStack usages Test Case """
+         # fake setting need to run plugin
+        settings.OPENSTACK_URL = '/'
+        settings.OPENSTACK_USER = 'test'
+        settings.OPENSTACK_PASSWORD = 'test'
         with mock.patch('ralph_pricing.plugins.openstack.OpenStack') as OpenStack:
             OpenStack.side_effect = MockOpenStack
-            openstack_runner(today=datetime.datetime.today())
+            status, message, arg = openstack_runner(
+                today=datetime.datetime.today()
+            )
+            self.assertTrue(status)
             # usages venture1
             usage_venture1 = DailyUsage.objects.filter(
                 pricing_venture__symbol='test_venture1',
@@ -136,4 +138,15 @@ class TestOpenstack(TestCase):
                 pricing_venture__symbol='test_venture3',
             )
             self.assertEqual(len(usage_venture3), 0)
+
+    def test_fail_plugin(self):
+        """ Testing not configured plugin """
+        with mock.patch(
+            'ralph_pricing.plugins.openstack.OpenStack'
+        ) as OpenStack:
+            OpenStack.side_effect = MockOpenStack
+            status, message, arg = openstack_runner(
+                today=datetime.datetime.today()
+            )
+            self.assertFalse(status)
 
