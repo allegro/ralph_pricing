@@ -34,12 +34,6 @@ class Devices(Report):
         total_count = len(devices_ids)
         devices = Device.objects.filter(id__in=devices_ids)
         for i, device in enumerate(devices):
-            # parts_ids = DailyPart.objects.filter(
-            #     date__gte=start,
-            #     date__lte=end,
-            #     pricing_device_id=device.id,
-            # ).values_list('id', flat=True).distinct()
-            # import pdb; pdb.set_trace()
             row = [
                 device.name,
                 device.sn,
