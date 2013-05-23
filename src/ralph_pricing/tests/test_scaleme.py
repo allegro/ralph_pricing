@@ -35,24 +35,24 @@ class TestScaleme(TestCase):
         self.venture_1 = Venture(
             name='Test Venture1',
             symbol='test_venture1',
-            venture_id='1'
+            venture_id='1',
         )
         self.venture_1.save()
         self.venture_2 = Venture(
             name='Test Venture2',
             symbol='test_venture2',
-            venture_id='2'
+            venture_id='2',
         )
         self.venture_2.save()
         self.venture_3 = Venture(
             name='Test Venture3',
             symbol='test_venture3',
-            venture_id='3'
+            venture_id='3',
         )
         self.venture_3.save()
 
     def test_set_usages(self):
-        """ Scaleme usages Test Case """
+        """Scaleme usages Test Case"""
         settings.SCALEME_API_URL = "/"
         with mock.patch(
             'ralph_pricing.plugins.scaleme.get_ventures_capacities'
@@ -65,7 +65,7 @@ class TestScaleme(TestCase):
             usages = DailyUsage.objects.all()
             self.assertEqual(usages.count(), 4)
 
-            usage_beckend = UsageType.objects.get(
+            usage_backend = UsageType.objects.get(
                 name='Scaleme transforming image 1 event',
             )
             usage_cache = UsageType.objects.get(
@@ -73,36 +73,36 @@ class TestScaleme(TestCase):
             )
 
             usages_venture1 = DailyUsage.objects.filter(
-                pricing_venture=self.venture_1
+                pricing_venture=self.venture_1,
             )
             usages_venture2 = DailyUsage.objects.filter(
-                pricing_venture=self.venture_2
+                pricing_venture=self.venture_2,
             )
             usages_venture3 = DailyUsage.objects.filter(
-                pricing_venture=self.venture_3
+                pricing_venture=self.venture_3,
             )
 
             self.assertEqual(usages_venture1.count(), 2)
-            usage_beckend_venture1 = usages_venture1.filter(type=usage_beckend)
+            usage_backend_venture1 = usages_venture1.filter(type=usage_backend)
             usage_cache_venture1 = usages_venture1.filter(type=usage_cache)
-            self.assertEqual(usage_beckend_venture1[0].value, 987987)
+            self.assertEqual(usage_backend_venture1[0].value, 987987)
             self.assertEqual(usage_cache_venture1[0].value, 7878)
 
             self.assertEqual(usages_venture2.count(), 2)
-            usage_beckend_venture2 = usages_venture2.filter(type=usage_beckend)
+            usage_backend_venture2 = usages_venture2.filter(type=usage_backend)
             usage_cache_venture2 = usages_venture2.filter(type=usage_cache)
-            self.assertEqual(usage_beckend_venture2[0].value, 12346699)
+            self.assertEqual(usage_backend_venture2[0].value, 12346699)
             self.assertEqual(usage_cache_venture2[0].value, 666999)
 
             self.assertEqual(usages_venture3.count(), 0)
 
     def test_fail_plugin(self):
-        """ Testing not configured plugin """
+        """Testing not configured plugin"""
         with mock.patch(
             'ralph_pricing.plugins.scaleme.get_ventures_capacities'
         ) as get_ventures_capacities:
             get_ventures_capacities.side_effect = mock_get_ventures_capacities
             status, message, args = scaleme_runner(
-                today=datetime.datetime.today()
+                today=datetime.datetime.today(),
             )
             self.assertFalse(status)

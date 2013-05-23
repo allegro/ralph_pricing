@@ -70,10 +70,10 @@ def scaleme(**kwargs):
         return False, "Not configured.", kwargs
     url = settings.SCALEME_API_URL
     usage_type_backend, created = UsageType.objects.get_or_create(
-        name='Scaleme transforming image 1 event',
+        name='Scaleme transforming an image 10000 events',
     )
     usage_type_cache, created = UsageType.objects.get_or_create(
-        name='Scaleme image from cache 1 event',
+        name='Scaleme serving image from cache 10000 events',
     )
     usage_types = {
         'cache': usage_type_cache,
