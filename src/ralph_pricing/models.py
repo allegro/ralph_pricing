@@ -91,6 +91,30 @@ class Device(db.Model):
             )
         return components
 
+    def get_daily_usage(self, start, end):
+        days = (end - start).days + 1
+        query = self.dailyusage_set.filter(
+            date__gte=start,
+            date__lte=end,
+        )
+        usage_ids = set(query.values_list('pricing_device', flat=True))
+        usage = []
+        for id in usage_ids:
+            usages = query.filter(pricing_device=id)
+            sum = usages.aggregate(db.Sum('value'))['value__sum'] or 0
+            if usages[0].type.average:
+                value = sum / days
+            else:
+                value = sum / query.count()
+            usage.append(
+                {
+                    'name': usages[0].type.name,
+                    'value': value,
+                }
+            )
+        return usage
+
+
 class ParentDevice(Device):
     class Meta:
         proxy = True
