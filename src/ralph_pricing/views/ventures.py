@@ -20,9 +20,13 @@ class AllVentures(Report):
     @staticmethod
     def get_data(start, end, **kwargs):
         ventures = Venture.objects.order_by('name')
-        total_count = ventures.count()
+        total_count = ventures.count() + 1  # additional step for post-process
         data = []
+        totals = {}
+        values = []
         for i, venture in enumerate(ventures):
+            values_row = {}
+            values.append(values_row)
             count, price, cost = venture.get_assets_count_price_cost(start, end)
             path = '/'.join(
                 v.name for v in venture.get_ancestors(include_self=True),
@@ -35,6 +39,7 @@ class AllVentures(Report):
                 currency(price),
                 currency(cost),
             ]
+            column = len(row)
             for usage_type in UsageType.objects.order_by('name'):
                 count, price = venture.get_usages_count_price(
                     start,
@@ -42,10 +47,22 @@ class AllVentures(Report):
                     usage_type,
                 )
                 row.append(count)
+                column += 1
+                if usage_type.show_value_percentage:
+                    row.append('')
+                    totals[column] = totals.get(column, 0) + count
+                    values_row[column] = count
+                    column += 1
                 if price is None:
                     row.append('NO PRICE')
                 else:
                     row.append(currency(price))
+                column += 1
+                if usage_type.show_price_percentage:
+                    row.append('')
+                    totals[column] = totals.get(column, 0) + count
+                    values_row[column] = price
+                    column += 1
             for extra_cost_type in ExtraCostType.objects.order_by('name'):
                 row.append(currency(venture.get_extra_costs(
                     start,
@@ -54,7 +71,14 @@ class AllVentures(Report):
                 )))
             progress = (100 * i) // total_count
             data.append(row)
-            yield progress, data
+            yield min(progress, 99), data
+        for row, values_row in zip(data, values):
+            for column, total in totals.iteritems():
+                if total:
+                    row[column] = '{:.2f}%'.format(
+                        100 * values_row[column] / total,
+                    )
+        yield 100, data
 
     @staticmethod
     def get_header(**kwargs):
@@ -68,7 +92,11 @@ class AllVentures(Report):
         ]
         for usage_type in UsageType.objects.order_by('name'):
             header.append(_("{} count").format(usage_type.name))
+            if usage_type.show_value_percentage:
+                header.append(_("{} count %").format(usage_type.name))
             header.append(_("{} price").format(usage_type.name))
+            if usage_type.show_price_percentage:
+                header.append(_("{} price %").format(usage_type.name))
         for extra_cost_type in ExtraCostType.objects.order_by('name'):
             header.append(extra_cost_type.name)
         return header
@@ -80,9 +108,13 @@ class TopVentures(AllVentures):
     @staticmethod
     def get_data(start, end):
         ventures = Venture.objects.root_nodes().order_by('name')
-        total_count = ventures.count()
+        total_count = ventures.count() + 1  # additional step for post-process
         data = []
+        totals = {}
+        values = []
         for i, venture in enumerate(ventures):
+            values_row = {}
+            values.append(values_row)
             count, price, cost = venture.get_assets_count_price_cost(
                 start,
                 end,
@@ -96,6 +128,7 @@ class TopVentures(AllVentures):
                 currency(price),
                 currency(cost),
             ]
+            column = len(row)
             for usage_type in UsageType.objects.order_by('name'):
                 count, price = venture.get_usages_count_price(
                     start,
@@ -104,7 +137,19 @@ class TopVentures(AllVentures):
                     descendants=True,
                 )
                 row.append(count)
+                column += 1
+                if usage_type.show_value_percentage:
+                    row.append('')
+                    totals[column] = totals.get(column, 0) + count
+                    values_row[column] = count
+                    column += 1
                 row.append(currency(price))
+                column += 1
+                if usage_type.show_price_percentage:
+                    row.append('')
+                    totals[column] = totals.get(column, 0) + price
+                    values_row[column] = price
+                    column += 1
             for extra_cost_type in ExtraCostType.objects.order_by('name'):
                 row.append(currency(venture.get_extra_costs(
                     start,
@@ -114,5 +159,12 @@ class TopVentures(AllVentures):
                 )))
             progress = (100 * i) // total_count
             data.append(row)
-            yield progress, data
+            yield min(progress, 99), data
+        for row, values_row in zip(data, values):
+            for column, total in totals.iteritems():
+                if total:
+                    row[column] = '{:.2f}%'.format(
+                        100 * values_row[column] / total,
+                    )
+        yield 100, data
 
