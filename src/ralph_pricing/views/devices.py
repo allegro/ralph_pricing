@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
 from ralph_pricing.menus import ventures_menu
-from ralph_pricing.models import DailyDevice, Device
+from ralph_pricing.models import DailyDevice, Device, DailyPart
 from ralph_pricing.models import Venture
 from ralph_pricing.views.reports import Report, currency
 
@@ -50,6 +50,10 @@ class Devices(Report):
                         end,
                         venture,
                     ),
+                ),
+                device.get_daily_parts(
+                    start,
+                    end,
                 ),
             ]
             progress = (100 * i) // total_count
