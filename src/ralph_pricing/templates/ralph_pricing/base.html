@@ -16,7 +16,7 @@
     <div class="row-fluid"><div class="span12">
         {% block header %}
         <p></p>
-        {%   main_menu mainmenu_items section title="Ralph Pricing" search=search_url %}
+        {% main_menu mainmenu_items section title="Ralph Pricing" title_url=home_url %}
         {% endblock %}
     </div>
     {%   if messages %}
@@ -47,7 +47,7 @@
     <div class="row-fluid"><div class="span12">
         {% block footer %}
         <p></p>
-        {%   main_menu footer_items section white=1 %}
+        {% main_menu footer_items section white=1 %}
         {% endblock %}
     </div>
 </div>

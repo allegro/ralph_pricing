@@ -6,11 +6,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 
-from django.conf import settings
-from django.views.generic import TemplateView
 from bob.menu import MenuItem
+from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import TemplateView
 
+
+from ralph_pricing import VERSION
 
 
 MAIN_MENU = [
@@ -53,7 +56,11 @@ class Base(TemplateView):
         footer_items = []
         if self.request.user.is_staff:
             footer_items.append(
-                MenuItem('Admin', fugue_icon='fugue-toolbox', href='/admin'))
+                MenuItem(
+                    'Admin',
+                    fugue_icon='fugue-toolbox',
+                    href='/admin/ralph_pricing')
+            )
         footer_items.append(
             MenuItem(
                 'logout',
@@ -62,12 +69,24 @@ class Base(TemplateView):
                 href=settings.LOGOUT_URL,
             )
         )
+        footer_items.append(
+            MenuItem(
+                'Ralph',
+                fugue_icon='fugue-home',
+                href=reverse('search'),
+            )
+        )
+        footer_items.append(
+            MenuItem(
+                "Version %s" % '.'.join((str(part) for part in VERSION)),
+                fugue_icon='fugue-document-number',
+            )
+        )
 
         context.update({
             'mainmenu_items': MAIN_MENU,
             'footer_items': footer_items,
+            'home_url': reverse('home'),
         })
         return context
-
-
 
