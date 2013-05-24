@@ -73,6 +73,7 @@ class Device(db.Model):
         return " ".join(statuses)
 
     def get_daily_parts(self, start, end):
+        days = (end - start).days + 1
         query = self.dailypart_set.filter(
             date__gte=start,
             date__lte=end,
@@ -85,7 +86,7 @@ class Device(db.Model):
             components.append(
                 {
                     'name': component[0].name,
-                    'price': sum / component.count(),
+                    'price': sum / days,
                 }
             )
         return components
