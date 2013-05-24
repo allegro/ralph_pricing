@@ -140,10 +140,8 @@ class Report(Base):
         else:
             job_id = None
         header = cls.get_header(**kwargs)
-        data = []
         last_progress = 0
-        for progress, row in cls.get_data(**kwargs):
-            data.append(row)
+        for progress, data in cls.get_data(**kwargs):
             if job_id is not None and progress - last_progress > 5:
                 # Update progress in 5% increments
                 cache.set(key, (progress, job_id, header, data))

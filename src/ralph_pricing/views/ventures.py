@@ -21,6 +21,7 @@ class AllVentures(Report):
     def get_data(start, end, **kwargs):
         ventures = Venture.objects.order_by('name')
         total_count = ventures.count()
+        data = []
         for i, venture in enumerate(ventures):
             count, price, cost = venture.get_assets_count_price_cost(start, end)
             path = '/'.join(
@@ -52,7 +53,8 @@ class AllVentures(Report):
                     extra_cost_type,
                 )))
             progress = (100 * i) // total_count
-            yield progress, row
+            data.append(row)
+            yield progress, data
 
     @staticmethod
     def get_header(**kwargs):
@@ -79,6 +81,7 @@ class TopVentures(AllVentures):
     def get_data(start, end):
         ventures = Venture.objects.root_nodes().order_by('name')
         total_count = ventures.count()
+        data = []
         for i, venture in enumerate(ventures):
             count, price, cost = venture.get_assets_count_price_cost(
                 start,
@@ -110,5 +113,6 @@ class TopVentures(AllVentures):
                     descendants=True,
                 )))
             progress = (100 * i) // total_count
-            yield progress, row
+            data.append(row)
+            yield progress, data
 
