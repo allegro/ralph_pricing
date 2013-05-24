@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import datetime
 
+from decimal import Decimal
 from django.test import TestCase
 
 from ralph_pricing.models import Device, Venture, DailyDevice
@@ -56,6 +57,16 @@ class TestDevices(TestCase):
                     u'2345-2345-2345-2345',
                     u'2013-01-01: False',
                     u'50.00 PLN',
+                    [
+                        {
+                            u'price': Decimal('175.000000'),
+                            u'name': u'hdd-0001',
+                        },
+                        {
+                            u'price': Decimal('100.000000'),
+                            u'name': u'ram-0001',
+                        },
+                    ],
                 ],
                 [
                     u'host02.dc1',
@@ -63,6 +74,7 @@ class TestDevices(TestCase):
                     u'3456-3456-3456-3456',
                     u'2013-01-01: False',
                     u'175.00 PLN',
+                    [],
                 ],
                 [
                     u'host03.dc1',
@@ -70,6 +82,7 @@ class TestDevices(TestCase):
                     u'4567-4567-4567-4567',
                     u'2013-01-01: False 2013-01-03: True 2013-01-04: False',
                     u'250.00 PLN',
+                    [],
                 ],
                 [
                     u'host04.dc1',
@@ -77,6 +90,7 @@ class TestDevices(TestCase):
                     u'5678-5678-5678-5678',
                     u'2013-01-01: False',
                     u'50.00 PLN',
+                    [],
                 ],
             ]
         )
@@ -94,6 +108,7 @@ class TestDevices(TestCase):
                     u'3456-3456-3456-3456',
                     u'2013-01-02: False',
                     u'200.00 PLN',
+                    [],
                 ],
                 [
                     u'host03.dc1',
@@ -101,6 +116,7 @@ class TestDevices(TestCase):
                     u'4567-4567-4567-4567',
                     u'2013-01-02: False 2013-01-03: True 2013-01-04: False',
                     u'250.00 PLN',
+                    [],
                 ],
                 [
                     u'host04.dc1',
@@ -108,6 +124,7 @@ class TestDevices(TestCase):
                     u'5678-5678-5678-5678',
                     u'2013-01-02: False',
                     u'50.00 PLN',
+                    [],
                 ],
             ]
         )
