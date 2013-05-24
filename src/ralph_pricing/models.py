@@ -99,8 +99,8 @@ class Device(db.Model):
         )
         usage_ids = set(query.values_list('pricing_device', flat=True))
         usage = []
-        for id in usage_ids:
-            usages = query.filter(pricing_device=id)
+        usages = query.filter(pricing_device__in=usage_ids)
+        if usages:
             sum_ = usages.aggregate(db.Sum('value'))['value__sum'] or 0
             value = sum_ / days if usages[0].type.average else sum_
             usage.append(
