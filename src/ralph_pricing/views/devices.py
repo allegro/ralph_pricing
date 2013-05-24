@@ -33,6 +33,7 @@ class Devices(Report):
         ).values_list('pricing_device_id', flat=True).distinct()
         total_count = len(devices_ids)
         devices = Device.objects.filter(id__in=devices_ids)
+        data = []
         for i, device in enumerate(devices):
             row = [
                 device.name,
@@ -52,7 +53,8 @@ class Devices(Report):
                 ),
             ]
             progress = (100 * i) // total_count
-            yield progress, row
+            data.append(row)
+            yield progress, data
 
     @staticmethod
     def get_header(**kwargs):

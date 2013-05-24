@@ -33,13 +33,12 @@ class TestDevices(TestCase):
         self.assertEqual(len(self.daily_host4), 4)
 
     def get_data(self, start_date, end_date, venture):
-        devices_list = [
-            item for percent, item in Devices.get_data(
-                start_date,
-                end_date,
-                venture,
-            )
-        ]
+        for percent, devices_list in Devices.get_data(
+            start_date,
+            end_date,
+            venture,
+        ):
+            pass
         return devices_list
 
     def test_device(self):
