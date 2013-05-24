@@ -23,10 +23,10 @@ def ventures_menu(href='', selected=None):
                 name='{}'.format(venture.id),
                 subitems=[],
                 fugue_icon='fugue-store-medium',
-                indent = ' ',
+                indent=' ',
                 href='{}/{}/'.format(href, venture.id),
-                collapsed = True,
-                collapsible = True,
+                collapsed=True,
+                collapsible=True,
             )
             item.parent = parent
             items.append(item)

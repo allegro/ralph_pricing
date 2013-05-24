@@ -542,3 +542,4 @@ class SplunkName(db.Model):
 
     class Meta:
         unique_together = ("splunk_name", "pricing_device")
+
