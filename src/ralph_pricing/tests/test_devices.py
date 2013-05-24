@@ -71,7 +71,7 @@ class TestDevices(TestCase):
                         {
                             u'name': u'DiskShare',
                             u'value': 350.0,
-                        }
+                        },
                     ],
                 ],
                 [
@@ -85,7 +85,7 @@ class TestDevices(TestCase):
                         {
                             u'name': u'DiskShare2',
                             u'value': 325.0,
-                        }
+                        },
                     ],
                 ],
                 [
@@ -127,7 +127,7 @@ class TestDevices(TestCase):
                         {
                             u'name': u'DiskShare2',
                             u'value': 287.5,
-                        }
+                        },
                     ],
                 ],
                 [

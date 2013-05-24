@@ -82,11 +82,11 @@ class Device(db.Model):
         components = []
         for id in components_ids:
             component = query.filter(asset_id=id)
-            sum = component.aggregate(db.Sum('price'))['price__sum'] or 0
+            sum_ = component.aggregate(db.Sum('price'))['price__sum'] or 0
             components.append(
                 {
                     'name': component[0].name,
-                    'price': sum / days,
+                    'price': sum_ / days,
                 }
             )
         return components
@@ -101,11 +101,8 @@ class Device(db.Model):
         usage = []
         for id in usage_ids:
             usages = query.filter(pricing_device=id)
-            sum = usages.aggregate(db.Sum('value'))['value__sum'] or 0
-            if usages[0].type.average:
-                value = sum / days
-            else:
-                value = sum / query.count()
+            sum_ = usages.aggregate(db.Sum('value'))['value__sum'] or 0
+            value = sum_ / days if usages[0].type.average else sum_
             usage.append(
                 {
                     'name': usages[0].type.name,

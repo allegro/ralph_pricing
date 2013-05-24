@@ -42,7 +42,7 @@ class Devices(Report):
                 device.get_deprecated_status(start, end, venture),
                 currency(device.get_device_price(start, end, venture)),
                 device.get_daily_parts(start, end),
-                device.get_daily_usage(start, end)
+                device.get_daily_usage(start, end),
             ]
             progress = (100 * i) // total_count
             data.append(row)
