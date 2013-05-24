@@ -66,10 +66,10 @@ class TestScaleme(TestCase):
             self.assertEqual(usages.count(), 4)
 
             usage_backend = UsageType.objects.get(
-                name='Scaleme transforming image 1 event',
+                name='Scaleme transforming an image 10000 events',
             )
             usage_cache = UsageType.objects.get(
-                name='Scaleme image from cache 1 event',
+                name='Scaleme serving image from cache 10000 events',
             )
 
             usages_venture1 = DailyUsage.objects.filter(
