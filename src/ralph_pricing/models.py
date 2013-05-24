@@ -20,6 +20,10 @@ PRICE_PLACES = 6
 
 class Device(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255)
+    sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
+    barcode = db.CharField(
+        max_length=200, null=True, blank=True, unique=True, default=None
+    )
     device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
@@ -41,6 +45,32 @@ class Device(db.Model):
 
     def __unicode__(self):
         return '{} - {}'.format(self.name, self.device_id)
+
+    def get_device_price(self, start, end, venture):
+        days = (end - start).days + 1
+        query = self.dailydevice_set.filter(
+            pricing_venture=venture,
+            date__gte=start,
+            date__lte=end,
+        ).exclude(price=0)
+        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
+        return price / days
+
+    def get_deprecated_status(self, start, end, venture):
+        query = self.dailydevice_set.filter(
+            pricing_venture=venture,
+            date__gte=start,
+            date__lte=end,
+        )
+        statuses = []
+        last =  None
+        for daily_device in query:
+            status = daily_device.is_deprecated
+            if status != last:
+                data = '%s: %s' % (daily_device.date, status)
+                statuses.append(data)
+            last = status
+        return " ".join(statuses)
 
 
 class ParentDevice(Device):
@@ -238,7 +268,6 @@ class DailyDevice(db.Model):
         verbose_name = _("daily device")
         verbose_name_plural = _("daily devices")
         unique_together = ('date', 'pricing_device')
-        ordering = ('pricing_device', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.name, self.date)
