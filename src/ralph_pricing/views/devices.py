@@ -41,7 +41,7 @@ class Devices(Report):
             for col in range(cols):
                 try:
                     part_name = parts[col].get('name', '')
-                    part_price = parts[col].get('price', '')
+                    part_price = currency(parts[col].get('price', 0))
                 except IndexError:
                     part_name, part_price = '', ''
                 try:
@@ -55,8 +55,8 @@ class Devices(Report):
                     device.name if col == 0 else '',
                     device.sn if col == 0 else '',
                     device.barcode if col == 0 else '',
-                    status if col != 0 else '',
-                    price if col != 0 else '',
+                    status if col == 0 else '',
+                    price if col == 0 else '',
                     part_name,
                     part_price,
                     usage_name,
