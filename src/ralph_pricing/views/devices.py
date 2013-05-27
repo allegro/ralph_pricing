@@ -38,7 +38,6 @@ class Devices(Report):
             parts = device.get_daily_parts(start, end)
             usages = device.get_daily_usage(start, end)
             cols = len(parts) if len(parts) > len(usages) else len(usages)
-
             for col in range(cols):
                 try:
                     part_name = parts[col].get('name', '')
@@ -50,7 +49,6 @@ class Devices(Report):
                     usage_value = usages[col].get('value', '')
                 except IndexError:
                     usage_name, usage_value = '', ''
-
                 status = device.get_deprecated_status(start, end, venture)
                 price = currency(device.get_device_price(start, end, venture))
                 row = [
