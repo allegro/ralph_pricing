@@ -59,7 +59,8 @@ class Base(TemplateView):
                 MenuItem(
                     'Admin',
                     fugue_icon='fugue-toolbox',
-                    href='/admin/ralph_pricing')
+                    href='/admin/ralph_pricing',
+                ),
             )
         footer_items.append(
             MenuItem(
