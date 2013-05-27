@@ -25,6 +25,7 @@ if CACHE_NAME not in settings.CACHES:
 QUEUE_NAME = 'reports'
 if QUEUE_NAME not in settings.RQ_QUEUES:
     QUEUE_NAME = None
+TIMEOUT = getattr(settings, 'PRICING_REPORTS_TIMEOUT', 4 * 3600)  # 4 hours
 
 
 def currency(value):
@@ -117,7 +118,11 @@ class Report(Base):
         else:
             if QUEUE_NAME:
                 queue = django_rq.get_queue(QUEUE_NAME)
-                job = queue.enqueue(self._get_header_and_data, **kwargs)
+                job = queue.enqueue_call(
+                    func=self._get_header_and_data,
+                    kwargs=kwargs,
+                    timeout=TIMEOUT,
+                )
                 progress = 0
                 header = None
                 data = None
