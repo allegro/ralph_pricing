@@ -35,17 +35,37 @@ class Devices(Report):
         devices = Device.objects.filter(id__in=devices_ids)
         data = []
         for i, device in enumerate(devices):
-            row = [
-                device.name,
-                device.sn,
-                device.barcode,
-                device.get_deprecated_status(start, end, venture),
-                currency(device.get_device_price(start, end, venture)),
-                device.get_daily_parts(start, end),
-                device.get_daily_usage(start, end),
-            ]
+            parts = device.get_daily_parts(start, end)
+            usages = device.get_daily_usage(start, end)
+            cols = len(parts) if len(parts) > len(usages) else len(usages)
+
+            for col in range(cols):
+                try:
+                    part_name = parts[col].get('name', '')
+                    part_price = parts[col].get('price', '')
+                except IndexError:
+                    part_name, part_price = '', ''
+                try:
+                    usage_name = usages[col].get('name', '')
+                    usage_value = usages[col].get('value', '')
+                except IndexError:
+                    usage_name, usage_value = '', ''
+
+                status = device.get_deprecated_status(start, end, venture)
+                price = currency(device.get_device_price(start, end, venture))
+                row = [
+                    device.name if col == 0 else '',
+                    device.sn if col == 0 else '',
+                    device.barcode if col == 0 else '',
+                    status if col != 0 else '',
+                    price if col != 0 else '',
+                    part_name,
+                    part_price,
+                    usage_name,
+                    usage_value,
+                ]
+                data.append(row)
             progress = (100 * i) // total_count
-            data.append(row)
             yield progress, data
 
     @staticmethod
@@ -56,7 +76,9 @@ class Devices(Report):
             _("Barcode"),
             _("Is deprecation"),
             _("Quoted price"),
-            _("Components"),
-            _("Usages"),
+            _("Component name"),
+            _("Component price"),
+            _("Usage name"),
+            _("Usage value"),
         ]
         return header
