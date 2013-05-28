@@ -183,7 +183,6 @@ class Venture(MPTTModel):
             total_price += asset_price + system_price - blades_price
             total_cost += asset_cost + system_cost - blades_cost
             total_count += 1
-
         return total_count / days, total_price / days, total_cost
 
     def get_usages_count_price(self, start, end, type_, descendants=False):
