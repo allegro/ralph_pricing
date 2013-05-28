@@ -35,6 +35,11 @@ class Devices(Report):
         devices = Device.objects.filter(id__in=devices_ids)
         data = []
         for i, device in enumerate(devices):
+            count, price, cost = venture.get_assets_count_price_cost(
+                start,
+                end,
+                device_id=device.id,
+            )
             parts = device.get_daily_parts(start, end)
             usages = device.get_daily_usage(start, end)
             cols = len(parts) if len(parts) > len(usages) else len(usages)
@@ -50,13 +55,12 @@ class Devices(Report):
                 except IndexError:
                     usage_name, usage_value = '', ''
                 status = device.get_deprecated_status(start, end, venture)
-                price = currency(device.get_device_price(start, end, venture))
                 row = [
                     device.name if col == 0 else '',
                     device.sn if col == 0 else '',
                     device.barcode if col == 0 else '',
                     status if col == 0 else '',
-                    price if col == 0 else '',
+                    currency(price) if col == 0 else currency(0),
                     part_name,
                     part_price,
                     usage_name,

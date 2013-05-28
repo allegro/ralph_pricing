@@ -46,15 +46,6 @@ class Device(db.Model):
     def __unicode__(self):
         return '{} - {}'.format(self.name, self.device_id)
 
-    def get_device_price(self, start, end, venture):
-        days = (end - start).days + 1
-        query = self.dailydevice_set.filter(
-            pricing_venture=venture,
-            date__gte=start,
-            date__lte=end,
-        ).exclude(price=0)
-        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
-        return price / days
 
     def get_deprecated_status(self, start, end, venture):
         query = self.dailydevice_set.filter(
@@ -165,15 +156,20 @@ class Venture(MPTTModel):
         end,
         descendants=False,
         zero_deprecated=True,
+        device_id=False,
     ):
         days = (end - start).days + 1
         query = DailyDevice.objects.filter(pricing_device__is_virtual=False)
-        query = self._by_venture(query, descendants)
+        if device_id:
+            query = query.filter(pricing_device_id=device_id)
+        else:
+            query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
         query = query.select_related('pricing_device', 'parent')
         total_count = 0
         total_price = D('0')
         total_cost = D('0')
+        data = []
         for daily_device in query:
             asset_price, asset_cost = daily_device.get_price_cost(
                 zero_deprecated,
@@ -187,6 +183,7 @@ class Venture(MPTTModel):
             total_price += asset_price + system_price - blades_price
             total_cost += asset_cost + system_cost - blades_cost
             total_count += 1
+
         return total_count / days, total_price / days, total_cost
 
     def get_usages_count_price(self, start, end, type_, descendants=False):
