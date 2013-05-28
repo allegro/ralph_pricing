@@ -169,7 +169,6 @@ class Venture(MPTTModel):
         total_count = 0
         total_price = D('0')
         total_cost = D('0')
-        data = []
         for daily_device in query:
             asset_price, asset_cost = daily_device.get_price_cost(
                 zero_deprecated,
