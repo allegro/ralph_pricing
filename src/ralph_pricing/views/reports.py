@@ -145,7 +145,6 @@ class Report(Base):
         else:
             job_id = None
         header = cls.get_header(**kwargs)
-        data = []
         last_progress = 0
         data = []
         for progress, data in cls.get_data(**kwargs):
