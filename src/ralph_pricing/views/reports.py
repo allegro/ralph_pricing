@@ -146,6 +146,7 @@ class Report(Base):
             job_id = None
         header = cls.get_header(**kwargs)
         last_progress = 0
+        data = []
         for progress, data in cls.get_data(**kwargs):
             if job_id is not None and progress - last_progress > 5:
                 # Update progress in 5% increments
