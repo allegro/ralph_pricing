@@ -60,7 +60,7 @@ class Devices(Report):
                     device.sn if col == 0 else '',
                     device.barcode if col == 0 else '',
                     status if col == 0 else '',
-                    currency(price) if col == 0 else currency(0),
+                    currency(price) if col == 0 else '',
                     part_name,
                     part_price,
                     usage_name,
