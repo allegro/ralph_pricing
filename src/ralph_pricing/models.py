@@ -320,7 +320,7 @@ class DailyDevice(db.Model):
                 date=self.date,
             ):
             price, cost = daily_part.get_price_cost()
-            total_cost += price
+            total_price += price
             total_cost += cost
         # Otherwise just take the price and cost of the device
         if zero_deprecated and self.is_deprecated:
