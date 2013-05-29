@@ -65,20 +65,26 @@ class Report(Base):
         else:
             self.form = self.Form()
         if self.form.is_valid():
-            self.progress, self.header, self.data = self._get_cached(
-                **self.form.cleaned_data
-            )
-            if get.get('format', '').lower() == 'csv':
-                if self.progress == 100:
-                    return make_csv_response(
-                        itertools.chain([self.header], self.data),
-                        '{}.csv'.format(self.section),
-                    )
-                else:
-                    messages.warning(
-                        self.request,
-                        "Please wait for the report to finish calculating."
-                    )
+            if 'clear' in get:
+                self.progress = 0
+                self.got_query = False
+                self._clear_cache(**self.form.cleaned_data)
+                messages.success(self.request, "Cache cleared for this report.")
+            else:
+                self.progress, self.header, self.data = self._get_cached(
+                    **self.form.cleaned_data
+                )
+                if get.get('format', '').lower() == 'csv':
+                    if self.progress == 100:
+                        return make_csv_response(
+                            itertools.chain([self.header], self.data),
+                            '{}.csv'.format(self.section),
+                        )
+                    else:
+                        messages.warning(
+                            self.request,
+                            "Please wait for the report to finish calculating.",
+                        )
         return super(Report, self).get(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -93,6 +99,10 @@ class Report(Base):
         })
         return context
 
+    def _clear_cache(self, **kwargs):
+        cache = get_cache(CACHE_NAME)
+        key = _get_cache_key(self.section, **kwargs)
+        cache.set(key, None)
 
     def _get_cached(self, **kwargs):
         cache = get_cache(CACHE_NAME)
