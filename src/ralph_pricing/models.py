@@ -244,6 +244,7 @@ class DailyPart(db.Model):
             date__gte=start,
             date__lte=end,
         )
+        import pdb; pdb.set_trace()
         total_price, total_cost = 0, 0
         for daily in query:
             price, cost = self.get_price_cost()
