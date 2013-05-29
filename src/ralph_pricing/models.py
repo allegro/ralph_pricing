@@ -63,24 +63,6 @@ class Device(db.Model):
             last = status
         return " ".join(statuses)
 
-    def get_daily_parts(self, start, end):
-        days = (end - start).days + 1
-        query = self.dailypart_set.filter(
-            date__gte=start,
-            date__lte=end,
-        )
-        components_ids = set(query.values_list('asset_id', flat=True))
-        components = []
-        for id in components_ids:
-            component = query.filter(asset_id=id)
-            sum_ = component.aggregate(db.Sum('price'))['price__sum'] or 0
-            components.append(
-                {
-                    'name': component[0].name,
-                    'price': sum_ / days,
-                }
-            )
-        return components
 
     def get_daily_usage(self, start, end):
         days = (end - start).days + 1
@@ -254,6 +236,20 @@ class DailyPart(db.Model):
             return D('0'), D('0')
         total_cost = self.price * self.deprecation_rate / 36500
         return self.price, total_cost
+
+    def get_daily_price_cost(self, id, start, end):
+        days = (end - start).days + 1
+        query = DailyPart.objects.filter(
+            id=id,
+            date__gte=start,
+            date__lte=end,
+        )
+        total_price, total_cost = 0, 0
+        for daily in query:
+            price, cost = self.get_price_cost()
+            total_price += price
+            total_cost += cost
+        return query[0].name, self.price / days, total_cost / days
 
 
 class DailyDevice(db.Model):
