@@ -125,13 +125,13 @@ class Venture(MPTTModel):
         verbose_name=_("Business segment"),
         max_length=75,
         blank=True,
-        default=""
+        default="",
     )
     pricing_center = db.CharField(
         verbose_name=_("Pricing center"),
         max_length=75,
         blank=True,
-        default=""
+        default="",
     )
 
     class Meta:
