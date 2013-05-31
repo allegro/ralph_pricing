@@ -121,6 +121,18 @@ class Venture(MPTTModel):
         blank=True,
         default="",
     )
+    business_segment = db.TextField(
+        verbose_name=_("Business segment"),
+        max_length=75,
+        blank=True,
+        default=""
+    )
+    pricing_center = db.CharField(
+        verbose_name=_("Pricing center"),
+        max_length=75,
+        blank=True,
+        default=""
+    )
 
     class Meta:
         verbose_name = _("venture")
