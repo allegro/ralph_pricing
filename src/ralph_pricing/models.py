@@ -85,16 +85,16 @@ class Device(db.Model):
     def get_daily_parts(self, start, end):
         days = (end - start).days + 1
         ids = self.dailypart_set.filter(
+            pricing_device=self.id,
             date__gte=start,
             date__lte=end,
         ).values_list('asset_id', flat=True)
         parts = []
-        for id in set(ids):
-            part = self.dailypart_set.filter(asset_id=id)[0]
-            price, cost = part.get_daily_price_cost(start, end)
+        for asset_id in set(ids):
+            price, cost = get_daily_price_cost(asset_id, self, start, end)
             parts.append(
                 {
-                    'name': part.name,
+                    'name': self.dailypart_set.filter(asset_id=asset_id)[0].name,
                     'price': price,
                     'cost': cost,
                 }
@@ -254,19 +254,21 @@ class DailyPart(db.Model):
         total_cost = self.price * self.deprecation_rate / 36500
         return self.price, total_cost
 
-    def get_daily_price_cost(self, start, end):
-        days = (end - start).days + 1
-        query = DailyPart.objects.filter(
-            id=self.id,
-            date__gte=start,
-            date__lte=end,
-        )
-        total_price, total_cost = 0, 0
-        for daily in query:
-            price, cost = self.get_price_cost()
-            total_price += price
-            total_cost += cost
-        return self.price / days, total_cost / days
+
+def get_daily_price_cost(asset_id, device, start, end):
+    days = (end - start).days + 1
+    query = DailyPart.objects.filter(
+        asset_id=asset_id,
+        pricing_device=device,
+        date__gte=start,
+        date__lte=end,
+    )
+    total_price, total_cost = 0, 0
+    for daily in query:
+        price, cost = daily.get_price_cost()
+        total_price += price
+        total_cost += cost
+    return total_price / days, total_cost / days
 
 
 class DailyDevice(db.Model):
