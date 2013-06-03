@@ -22,10 +22,12 @@ class Devices(Report):
     Form = DateRangeVentureForm
     section = 'devices'
 
+
     @staticmethod
     def get_data(start, end, venture, **kwargs):
         if not venture:
             return
+
         devices_ids = DailyDevice.objects.filter(
             date__gte=start,
             date__lte=end,
@@ -35,29 +37,47 @@ class Devices(Report):
         devices = Device.objects.filter(id__in=devices_ids)
         data = []
         for i, device in enumerate(devices):
-            row = [
-                device.name,
-                device.sn,
-                device.barcode,
-                device.get_deprecated_status(
-                    start,
-                    end,
-                    venture,
-                ),
-                currency(
-                    device.get_device_price(
-                        start,
-                        end,
-                        venture,
-                    ),
-                ),
-                device.get_daily_parts(
-                    start,
-                    end,
-                ),
-            ]
+            count, price, cost = venture.get_assets_count_price_cost(
+                start,
+                end,
+                device_id=device.id,
+            )
+            parts_name, part_price, part_cost = DailyPart().get_daily_price_cost(
+                device.id,
+                start,
+                end,
+            )
+            parts = device.get_daily_parts(start, end)
+            usages = device.get_daily_usage(start, end)
+            cols = len(parts) if len(parts) > len(usages) else len(usages)
+            for col in range(cols):
+                try:
+                    part_name = parts[col].get('name', '')
+                    part_price = currency(parts[col].get('price', 0))
+                    part_cost = currency(parts[col].get('cost', 0))
+                except IndexError:
+                    part_name, part_price = '', ''
+                try:
+                    usage_name = usages[col].get('name', '')
+                    usage_value = currency(usages[col].get('value', ''))
+                except IndexError:
+                    usage_name, usage_value = '', ''
+                status = device.get_deprecated_status(start, end, venture)
+                row = [
+                    device.name if col == 0 else '',
+                    device.sn if col == 0 else '',
+                    device.barcode if col == 0 else '',
+                    status if col == 0 else '',
+                    currency(price) if col == 0 else '',
+                    currency(cost) if col == 0 else '',
+                    part_name,
+                    part_price,
+                    part_cost,
+                    usage_name,
+                    usage_value,
+                ]
+                data.append(row)
             progress = (100 * i) // total_count
-            data.append(row)
             yield progress, data
 
     @staticmethod
@@ -67,7 +87,12 @@ class Devices(Report):
             _("SN"),
             _("Barcode"),
             _("Is deprecation"),
-            _("Quoted price"),
-            _("Components"),
+            _("Asset price"),
+            _("Asset cost"),
+            _("Component name"),
+            _("Component price"),
+            _("Component cost"),
+            _("Usage name"),
+            _("Usage value"),
         ]
         return header
