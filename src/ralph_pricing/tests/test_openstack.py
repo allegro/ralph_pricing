@@ -55,17 +55,17 @@ class MockOpenStack(object):
 
 class TestOpenstack(TestCase):
     def setUp(self):
-        venture_1 = Venture(
+        Venture(
             name='Test Venture1',
             symbol='test_venture1',
             venture_id='1'
         ).save()
-        venture_2 = Venture(
+        Venture(
             name='Test Venture2',
             symbol='test_venture2',
             venture_id='2'
         ).save()
-        venture_3 = Venture(
+        Venture(
             name='Test Venture3',
             symbol='test_venture3',
             venture_id='3'
@@ -77,7 +77,9 @@ class TestOpenstack(TestCase):
         settings.OPENSTACK_URL = '/'
         settings.OPENSTACK_USER = 'test'
         settings.OPENSTACK_PASSWORD = 'test'
-        with mock.patch('ralph_pricing.plugins.openstack.OpenStack') as OpenStack:
+        with mock.patch(
+            'ralph_pricing.plugins.openstack.OpenStack'
+        ) as OpenStack:
             OpenStack.side_effect = MockOpenStack
             status, message, arg = openstack_runner(
                 today=datetime.datetime.today()

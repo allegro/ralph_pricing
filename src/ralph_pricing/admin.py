@@ -25,6 +25,7 @@ class DailyDeviceInline(admin.TabularInline):
 class DailyPartInline(admin.TabularInline):
     model = models.DailyPart
 
+
 class DailyUsageInline(admin.TabularInline):
     model = models.DailyUsage
 

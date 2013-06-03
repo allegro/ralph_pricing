@@ -69,7 +69,9 @@ class Report(Base):
                 self.progress = 0
                 self.got_query = False
                 self._clear_cache(**self.form.cleaned_data)
-                messages.success(self.request, "Cache cleared for this report.")
+                messages.success(
+                    self.request, "Cache cleared for this report.",
+                )
             else:
                 self.progress, self.header, self.data = self._get_cached(
                     **self.form.cleaned_data

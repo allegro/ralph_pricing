@@ -27,7 +27,9 @@ class AllVentures(Report):
         for i, venture in enumerate(ventures):
             values_row = {}
             values.append(values_row)
-            count, price, cost = venture.get_assets_count_price_cost(start, end)
+            count, price, cost = venture.get_assets_count_price_cost(
+                start, end,
+            )
             path = '/'.join(
                 v.name for v in venture.get_ancestors(include_self=True),
             )

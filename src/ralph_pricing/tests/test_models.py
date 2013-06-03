@@ -30,7 +30,7 @@ class TestModels(TestCase):
         device = models.Device(device_id=2)
         device.save()
         part = models.DailyPart(
-            asset_id =4,
+            asset_id=4,
             pricing_device=device,
             date=datetime.date(2013, 4, 25),
             name='ziew',
@@ -96,6 +96,7 @@ class TestModels(TestCase):
         self.assertEquals(cost.price, 3)
         self.assertEquals(cost.pricing_venture, venture)
 
+
 class TestPrices(TestCase):
     def test_asset_count_price(self):
         day = datetime.date(2013, 4, 25)
@@ -132,7 +133,9 @@ class TestPrices(TestCase):
         count, price, cost = venture.get_assets_count_price_cost(day, day)
         self.assertEquals(count, 1)
         self.assertEquals(price, decimal.Decimal('1337'))
-        count, price, cost = venture.get_assets_count_price_cost(day, day, True)
+        count, price, cost = venture.get_assets_count_price_cost(
+            day, day, True,
+        )
         self.assertEquals(count, 2)
         self.assertEquals(price, decimal.Decimal('835170'))
 

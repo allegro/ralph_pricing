@@ -59,7 +59,9 @@ def update_scaleme_usage(usage_types, date, url):
                 counts['new'], counts['updated']
             )
         else:
-            message = 'Scaleme data for %r not found' % date.strftime("%Y-%m-%d")
+            message = 'Scaleme data for %r not found' % date.strftime(
+                "%Y-%m-%d"
+            )
     return message
 
 
