@@ -65,4 +65,3 @@ def hamster(**kwargs):
         for venture in ventures
     )
     return True, '%d new Hamster usage added in Ventures' % count, kwargs
-

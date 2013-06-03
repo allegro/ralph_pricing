@@ -67,4 +67,3 @@ def virtual_usages(**kwargs):
     for data in api_pricing.get_virtual_usages():
         update(data, usages, date)
     return True, 'virtual usages updated', kwargs
-

@@ -37,4 +37,3 @@ def parts(**kwargs):
     date = kwargs['today']
     count = sum(update_assets_parts(data, date) for data in get_asset_parts())
     return True, '%d new devices' % count, kwargs
-

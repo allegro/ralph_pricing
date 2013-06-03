@@ -61,4 +61,3 @@ urlpatterns = patterns(
         name='devices',
     ),
 )
-

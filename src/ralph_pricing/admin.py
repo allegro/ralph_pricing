@@ -25,6 +25,7 @@ class DailyDeviceInline(admin.TabularInline):
 class DailyPartInline(admin.TabularInline):
     model = models.DailyPart
 
+
 class DailyUsageInline(admin.TabularInline):
     model = models.DailyUsage
 
@@ -60,4 +61,3 @@ class ExtraCostTypeAdmin(ModelAdmin):
 @register(models.SplunkName)
 class SplunkNameAdmin(ModelAdmin):
     list_display = ('splunk_name', 'pricing_device')
-

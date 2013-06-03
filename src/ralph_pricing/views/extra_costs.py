@@ -67,5 +67,3 @@ class ExtraCosts(Base):
             'formset': self.formset,
         })
         return context
-
-
