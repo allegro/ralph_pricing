@@ -85,7 +85,8 @@ class Report(Base):
                     else:
                         messages.warning(
                             self.request,
-                            "Please wait for the report to finish calculating.",
+                            "Please wait for the report "
+                            "to finish calculating.",
                         )
         return super(Report, self).get(*args, **kwargs)
 
