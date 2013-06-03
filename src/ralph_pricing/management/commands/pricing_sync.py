@@ -34,7 +34,6 @@ class Command(BaseCommand):
         ),
     )
 
-
     def handle(self, today, run_only, *args, **options):
         from ralph_pricing import plugins  # noqa
         if today:
@@ -60,8 +59,9 @@ class Command(BaseCommand):
             name = plugin.highest_priority('pricing', to_run)
             tried.add(name)
             print('Running {0}...'.format(name))
-            success, message, context = plugin.run('pricing', name, today=today)
+            success, message, context = plugin.run(
+                'pricing', name, today=today,
+            )
             print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
             if success:
                 done.add(name)
-

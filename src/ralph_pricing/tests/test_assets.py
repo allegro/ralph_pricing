@@ -34,6 +34,7 @@ class TestAssetPlugin(TestCase):
         count = sum(
             update_assets(data, self.today) for data in self.get_asset()
         )
+        self.assertEqual(count, 1)
         device = Device.objects.get(device_id=13342)
         self.assertEqual(device.device_id, 13342)
         self.assertEqual(device.asset_id, 1123)
@@ -45,6 +46,7 @@ class TestAssetPlugin(TestCase):
         count = sum(
             update_assets(data, self.today) for data in self.get_asset()
         )
+        self.assertEqual(count, 1)
         daily = DailyDevice.objects.get(date=self.today)
         self.assertEqual(daily.is_deprecated, True)
         self.assertEqual(daily.price, 100)
