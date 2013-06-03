@@ -170,7 +170,7 @@ class Venture(MPTTModel):
             asset_price, asset_cost = daily_device.get_price_cost(
                 zero_deprecated,
             )
-            system_price, system_cost = daily_device.get_bladesystem_price_cost(
+            system_price, system_cost = daily_device.get_bladesystem_price_cost(  # noqa
                 zero_deprecated,
             )
             blades_price, blades_cost = daily_device.get_blades_price_cost(
@@ -531,4 +531,3 @@ class SplunkName(db.Model):
 
     class Meta:
         unique_together = ("splunk_name", "pricing_device")
-

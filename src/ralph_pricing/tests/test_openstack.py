@@ -151,4 +151,3 @@ class TestOpenstack(TestCase):
                 today=datetime.datetime.today()
             )
             self.assertFalse(status)
-

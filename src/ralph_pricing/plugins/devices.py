@@ -49,4 +49,3 @@ def devices(**kwargs):
         update_device(data, date) for data in api_pricing.get_devices()
     )
     return True, '%d new devices' % count, kwargs
-

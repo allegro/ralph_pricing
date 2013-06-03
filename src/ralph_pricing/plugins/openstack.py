@@ -105,4 +105,3 @@ def openstack(**kwargs):
             if venture_symbol:
                 set_usages(venture_symbol, data, date)
     return True, 'Openstack usages were saved', kwargs
-

@@ -65,4 +65,3 @@ class Command(BaseCommand):
             print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
             if success:
                 done.add(name)
-

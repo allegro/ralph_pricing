@@ -16,4 +16,3 @@ class Home(Base):
         context.update({
         })
         return context
-

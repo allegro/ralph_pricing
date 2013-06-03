@@ -169,4 +169,3 @@ class TopVentures(AllVentures):
                         100 * values_row[column] / total,
                     )
         yield 100, data
-

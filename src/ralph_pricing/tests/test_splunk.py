@@ -97,4 +97,3 @@ class TestSplunkPluginTest(TestCase):
                     today=datetime.datetime.today(),
                 )
                 self.assertFalse(status)
-

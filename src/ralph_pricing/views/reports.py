@@ -184,4 +184,3 @@ class Report(Base):
         Make sure it's a static method.
         """
         return []
-

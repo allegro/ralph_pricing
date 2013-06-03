@@ -99,4 +99,3 @@ class Splunk(object):
         if not self._results and self.progress < 100.0:
             raise ValueError("Report still in progress.")
         return json.loads(self._results)
-

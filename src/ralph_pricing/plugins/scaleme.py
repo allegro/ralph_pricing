@@ -37,7 +37,7 @@ def update_scaleme_usage(usage_types, date, url):
     else:
         if ventures_capacity:
             counts = {'new': 0, 'updated': 0}
-            for venture_symbol, venture_usages in ventures_capacity.iteritems():
+            for venture_symbol, venture_usages in ventures_capacity.iteritems():  # noqa
                 try:
                     venture = Venture.objects.get(symbol=venture_symbol)
                 except Venture.DoesNotExist:

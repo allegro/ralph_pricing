@@ -46,4 +46,3 @@ def physical_cores(**kwargs):
         for data in api_pricing.get_physical_cores()
     )
     return True, '%d total physical cores' % count, kwargs
-

@@ -70,5 +70,3 @@ class Usages(Base):
             'formset': self.formset,
         })
         return context
-
-
