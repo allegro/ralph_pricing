@@ -27,7 +27,6 @@ class Devices(Report):
     def get_data(start, end, venture, **kwargs):
         if not venture:
             return
-
         devices_ids = DailyDevice.objects.filter(
             date__gte=start,
             date__lte=end,
@@ -42,11 +41,6 @@ class Devices(Report):
                 end,
                 device_id=device.id,
             )
-            parts_name, part_price, part_cost = DailyPart().get_daily_price_cost(
-                device.id,
-                start,
-                end,
-            )
             parts = device.get_daily_parts(start, end)
             usages = device.get_daily_usage(start, end)
             cols = len(parts) if len(parts) > len(usages) else len(usages)
@@ -56,7 +50,7 @@ class Devices(Report):
                     part_price = currency(parts[col].get('price', 0))
                     part_cost = currency(parts[col].get('cost', 0))
                 except IndexError:
-                    part_name, part_price = '', ''
+                    part_name, part_price, part_cost = '', '', ''
                 try:
                     usage_name = usages[col].get('name', '')
                     usage_value = currency(usages[col].get('value', ''))

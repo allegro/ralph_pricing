@@ -46,7 +46,6 @@ class Device(db.Model):
     def __unicode__(self):
         return '{} - {}'.format(self.name, self.device_id)
 
-
     def get_deprecated_status(self, start, end, venture):
         query = self.dailydevice_set.filter(
             pricing_venture=venture,
@@ -62,7 +61,6 @@ class Device(db.Model):
                 statuses.append(data)
             last = status
         return " ".join(statuses)
-
 
     def get_daily_usage(self, start, end):
         days = (end - start).days + 1
@@ -83,6 +81,25 @@ class Device(db.Model):
                 }
             )
         return usage
+
+    def get_daily_parts(self, start, end):
+        days = (end - start).days + 1
+        ids = self.dailypart_set.filter(
+            date__gte=start,
+            date__lte=end,
+        ).values_list('asset_id', flat=True)
+        parts = []
+        for id in set(ids):
+            part = self.dailypart_set.filter(asset_id=id)[0]
+            price, cost = part.get_daily_price_cost(start, end)
+            parts.append(
+                {
+                    'name': part.name,
+                    'price': price,
+                    'cost': cost,
+                }
+            )
+        return parts
 
 
 class ParentDevice(Device):
@@ -237,20 +254,19 @@ class DailyPart(db.Model):
         total_cost = self.price * self.deprecation_rate / 36500
         return self.price, total_cost
 
-    def get_daily_price_cost(self, id, start, end):
+    def get_daily_price_cost(self, start, end):
         days = (end - start).days + 1
         query = DailyPart.objects.filter(
-            id=id,
+            id=self.id,
             date__gte=start,
             date__lte=end,
         )
-        import pdb; pdb.set_trace()
         total_price, total_cost = 0, 0
         for daily in query:
             price, cost = self.get_price_cost()
             total_price += price
             total_cost += cost
-        return query[0].name, self.price / days, total_cost / days
+        return self.price / days, total_cost / days
 
 
 class DailyDevice(db.Model):
