@@ -341,7 +341,8 @@ class DailyDevice(db.Model):
         if (
             not self.pricing_device.is_blade or
             not self.parent or
-            not self.pricing_device.slots
+            not self.pricing_device.slots or
+            self.is_deprecated
         ):
             return total_price, total_cost
         if not daily_parent:
