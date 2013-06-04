@@ -139,8 +139,8 @@ class Venture(MPTTModel):
         blank=True,
         default="",
     )
-    pricing_center = db.CharField(
-        verbose_name=_("Pricing center"),
+    profit_center = db.CharField(
+        verbose_name=_("Profit center"),
         max_length=75,
         blank=True,
         default="",
