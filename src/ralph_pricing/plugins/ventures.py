@@ -17,7 +17,7 @@ def update_venture(data):
     venture.department = data['department']
     venture.symbol = data['symbol']
     venture.business_segment = data['business_segment']
-    venture.pricing_center = data['pricing_center']
+    venture.profit_center = data['profit_center']
     if data.get('parent_id'):
         parent, parent_created = Venture.objects.get_or_create(
             venture_id=data['parent_id'],
