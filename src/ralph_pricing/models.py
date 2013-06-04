@@ -46,16 +46,6 @@ class Device(db.Model):
     def __unicode__(self):
         return '{} - {}'.format(self.name, self.device_id)
 
-    def get_device_price(self, start, end, venture):
-        days = (end - start).days + 1
-        query = self.dailydevice_set.filter(
-            pricing_venture=venture,
-            date__gte=start,
-            date__lte=end,
-        ).exclude(price=0)
-        price = query.aggregate(db.Sum('price'))['price__sum'] or 0
-        return price / days
-
     def get_deprecated_status(self, start, end, venture):
         query = self.dailydevice_set.filter(
             pricing_venture=venture,
@@ -72,24 +62,45 @@ class Device(db.Model):
             last = status
         return " ".join(statuses)
 
-    def get_daily_parts(self, start, end):
+    def get_daily_usage(self, start, end):
         days = (end - start).days + 1
-        query = self.dailypart_set.filter(
+        query = self.dailyusage_set.filter(
             date__gte=start,
             date__lte=end,
         )
-        components_ids = set(query.values_list('asset_id', flat=True))
-        components = []
-        for id in components_ids:
-            component = query.filter(asset_id=id)
-            sum = component.aggregate(db.Sum('price'))['price__sum'] or 0
-            components.append(
+        usage_ids = set(query.values_list('pricing_device', flat=True))
+        usage = []
+        usages = query.filter(pricing_device__in=usage_ids)
+        if usages:
+            sum_ = usages.aggregate(db.Sum('value'))['value__sum'] or 0
+            value = sum_ / days if usages[0].type.average else sum_
+            usage.append(
                 {
-                    'name': component[0].name,
-                    'price': sum / days,
+                    'name': usages[0].type.name,
+                    'value': value,
                 }
             )
-        return components
+        return usage
+
+    def get_daily_parts(self, start, end):
+        days = (end - start).days + 1
+        ids = self.dailypart_set.filter(
+            pricing_device=self.id,
+            date__gte=start,
+            date__lte=end,
+        ).values_list('asset_id', flat=True)
+        parts = []
+        for asset_id in set(ids):
+            price, cost = get_daily_price_cost(asset_id, self, start, end)
+            parts.append(
+                {
+                    'name': self.dailypart_set.filter(asset_id=asset_id)[0].name,
+                    'price': price,
+                    'cost': cost,
+                }
+            )
+        return parts
+
 
 
 class ParentDevice(Device):
@@ -157,10 +168,14 @@ class Venture(MPTTModel):
         end,
         descendants=False,
         zero_deprecated=True,
+        device_id=False,
     ):
         days = (end - start).days + 1
         query = DailyDevice.objects.filter(pricing_device__is_virtual=False)
-        query = self._by_venture(query, descendants)
+        if device_id:
+            query = query.filter(pricing_device_id=device_id)
+        else:
+            query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
         query = query.select_related('pricing_device', 'parent')
         total_count = 0
@@ -214,6 +229,23 @@ class Venture(MPTTModel):
             price += query.aggregate(db.Sum('price'))['price__sum'] or 0
         return price
 
+    def get_extracost_details(self, start, end):
+        extracost = ExtraCost.objects.filter(
+            start__gte=start,
+            end__lte=end,
+            pricing_venture=self,
+        )
+        return extracost
+
+    def get_daily_usage(self, start, end):
+        usage = self.dailyusage_set.filter(
+            date__gte=start,
+            date__lte=end,
+            pricing_venture=self,
+            pricing_device=None,
+        )
+        return usage
+
 
 class DailyPart(db.Model):
     date = db.DateField()
@@ -251,6 +283,22 @@ class DailyPart(db.Model):
             return D('0'), D('0')
         total_cost = self.price * self.deprecation_rate / 36500
         return self.price, total_cost
+
+
+def get_daily_price_cost(asset_id, device, start, end):
+    days = (end - start).days + 1
+    query = DailyPart.objects.filter(
+        asset_id=asset_id,
+        pricing_device=device,
+        date__gte=start,
+        date__lte=end,
+    )
+    total_price, total_cost = 0, 0
+    for daily in query:
+        price, cost = daily.get_price_cost()
+        total_price += price
+        total_cost += cost
+    return total_price / days, total_cost
 
 
 class DailyDevice(db.Model):
@@ -505,7 +553,7 @@ class ExtraCost(db.Model):
         ]
 
     def __unicode__(self):
-        return '{}/{} ({}-{})'.format(
+        return '{}/{} ({} - {})'.format(
             self.pricing_venture,
             self.type,
             self.start,
