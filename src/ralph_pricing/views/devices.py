@@ -5,17 +5,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import itertools
+
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
-from ralph_pricing.menus import ventures_menu
-from ralph_pricing.models import (
-    DailyDevice,
-    DailyPart,
-    Device,
-    Venture,
-)
-
+from ralph_pricing.models import DailyDevice, Device
 from ralph_pricing.views.reports import Report, currency
 
 
@@ -52,19 +47,19 @@ class Devices(Report):
                 '',
             ]
             data.append(row)
-        for usage in venture.get_daily_usage(start,end):
+        for usage in venture.get_daily_usages(start, end):
             row = [
-                '{} (Venture Usage)'.format(usage.type),
+                '',
+                '',
+                usage['name'],
+                '',
+                '',
+                currency(usage['price']),
                 '',
                 '',
                 '',
                 '',
-                currency(usage.value),
-                '',
-                '',
-                '',
-                '',
-                '',
+                usage['count'],
             ]
             data.append(row)
         for i, device in enumerate(devices):
@@ -73,36 +68,42 @@ class Devices(Report):
                 end,
                 device_id=device.id,
             )
-            parts = device.get_daily_parts(start, end)
-            usages = device.get_daily_usage(start, end)
-            cols = len(parts) if len(parts) > len(usages) else len(usages)
-            for col in range(cols):
-                try:
-                    part_name = parts[col].get('name', '')
-                    part_price = currency(parts[col].get('price', 0))
-                    part_cost = currency(parts[col].get('cost', 0))
-                except IndexError:
-                    part_name, part_price, part_cost = '', '', ''
-                try:
-                    usage_name = usages[col].get('name', '')
-                    usage_value = currency(usages[col].get('value', ''))
-                except IndexError:
-                    usage_name, usage_value = '', ''
-                status = device.get_deprecated_status(start, end, venture)
-                row = [
-                    device.name if col == 0 else '',
-                    device.sn if col == 0 else '',
-                    device.barcode if col == 0 else '',
-                    status if col == 0 else '',
-                    currency(price) if col == 0 else '',
-                    currency(cost) if col == 0 else '',
-                    part_name,
-                    part_price,
-                    part_cost,
-                    usage_name,
-                    usage_value,
-                ]
-                data.append(row)
+            data.append([
+                device.name,
+                '',
+                '',
+                device.sn,
+                device.barcode,
+                device.get_deprecated_status(start, end, venture),
+                currency(price),
+                currency(cost),
+                '',
+            ])
+            for part in device.get_daily_parts(start, end):
+                data.append([
+                    '',
+                    part['name'],
+                    '',
+                    '',
+                    '',
+                    part.get('deprecation', ''),
+                    currency(part['price']),
+                    currency(part['cost']),
+                    '',
+                ])
+
+            for usage in device.get_daily_usages(start, end):
+                data.append([
+                    '',
+                    '',
+                    usage['name'],
+                    '',
+                    '',
+                    '',
+                    '',
+                    currency(usage['price']),
+                    usage['count'],
+                ])
             progress = (100 * i) // total_count
             yield progress, data
 
@@ -110,15 +111,13 @@ class Devices(Report):
     def get_header(**kwargs):
         header = [
             _("Device"),
+            _("Component name"),
+            _("Usage name"),
             _("SN"),
             _("Barcode"),
-            _("Is deprecation"),
-            _("Asset price"),
-            _("Asset cost"),
-            _("Component name"),
-            _("Component price"),
-            _("Component cost"),
-            _("Usage name"),
-            _("Usage value"),
+            _("Deprecation"),
+            _("Price"),
+            _("Cost"),
+            _("Usage count"),
         ]
         return header

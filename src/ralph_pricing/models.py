@@ -18,6 +18,32 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
+def get_usages_count_price(query, start, end):
+    days = (end - start).days + 1
+    count = 0
+    price = D(0)
+    for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+        daily_count = 0
+        for usage in query.filter(date=day):
+            daily_count = usage.value
+            if usage.type.average:
+                count += daily_count / days
+            else:
+                count += daily_count
+            count += daily_count
+            try:
+                daily_price = usage.type.get_price_at(day)
+            except (
+                UsagePrice.DoesNotExist,
+                UsagePrice.MultipleObjectsReturned,
+            ):
+                price = None
+            else:
+                if price is not None:
+                    price += D(daily_count) * daily_price
+    return count, price
+
+
 class Device(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255)
     sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
@@ -62,28 +88,22 @@ class Device(db.Model):
             last = status
         return " ".join(statuses)
 
-    def get_daily_usage(self, start, end):
-        days = (end - start).days + 1
-        query = self.dailyusage_set.filter(
-            date__gte=start,
-            date__lte=end,
-        )
-        usage_ids = set(query.values_list('pricing_device', flat=True))
-        usage = []
-        usages = query.filter(pricing_device__in=usage_ids)
-        if usages:
-            sum_ = usages.aggregate(db.Sum('value'))['value__sum'] or 0
-            value = sum_ / days if usages[0].type.average else sum_
-            usage.append(
-                {
-                    'name': usages[0].type.name,
-                    'value': value,
-                }
+    def get_daily_usages(self, start, end):
+        query = DailyUsage.objects.filter(pricing_device=self)
+        for type_ in UsageType.objects.all():
+            count, price = get_usages_count_price(
+                query.filter(type=type_),
+                start,
+                end,
             )
-        return usage
+            if count or price:
+                yield {
+                    'name': type_.name,
+                    'count': count,
+                    'price': price,
+                }
 
     def get_daily_parts(self, start, end):
-        days = (end - start).days + 1
         ids = self.dailypart_set.filter(
             pricing_device=self.id,
             date__gte=start,
@@ -196,37 +216,20 @@ class Venture(MPTTModel):
             total_count += 1
         return total_count / days, total_price / days, total_cost
 
-    def get_usages_count_price(self, start, end, type_, descendants=False):
-        count = 0
-        price = D('0')
-        query = DailyUsage.objects.filter(type=type_)
+    def get_usages_count_price(self, start, end, type_, descendants=False, query=None):
+        if query is None:
+            query = DailyUsage.objects
+        query = query.filter(type=type_)
         query = self._by_venture(query, descendants)
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            query = query.filter(date=day)
-            daily_count = query.aggregate(db.Sum('value'))['value__sum'] or 0
-            count += daily_count
-            if count:
-                try:
-                    daily_price = type_.get_price_at(day)
-                except (
-                    UsagePrice.DoesNotExist,
-                    UsagePrice.MultipleObjectsReturned,
-                ):
-                    price = None
-                else:
-                    if price is not None:
-                        price += D(daily_count) * daily_price
-        if type_.average:
-            count /= (end - start).days + 1
-        return count, price
+        return get_usages_count_price(query, start, end)
 
     def get_extra_costs(self, start, end, type_, descendants=False):
         price = D('0')
         query = ExtraCost.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            query = query.filter(start__lte=day, end__gte=day)
-            price += query.aggregate(db.Sum('price'))['price__sum'] or 0
+            extras = query.filter(start__lte=day, end__gte=day)
+            price += extras.aggregate(db.Sum('price'))['price__sum'] or 0
         return price
 
     def get_extracost_details(self, start, end):
@@ -237,15 +240,21 @@ class Venture(MPTTModel):
         )
         return extracost
 
-    def get_daily_usage(self, start, end):
-        usage = self.dailyusage_set.filter(
-            date__gte=start,
-            date__lte=end,
-            pricing_venture=self,
-            pricing_device=None,
-        )
-        return usage
-
+    def get_daily_usages(self, start, end):
+        query = DailyUsage.objects.filter(pricing_device=None)
+        query = self._by_venture(query, descendants=False)
+        for type_ in UsageType.objects.all():
+            count, price = get_usages_count_price(
+                query.filter(type=type_),
+                start,
+                end,
+            )
+            if count or price:
+                yield {
+                    'name': type_.name,
+                    'count': count,
+                    'price': price,
+                }
 
 class DailyPart(db.Model):
     date = db.DateField()
