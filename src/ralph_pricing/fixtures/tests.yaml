@@ -19,6 +19,53 @@
     level: 0
     tree_id: 133
 
+# UsageType
+- model: ralph_pricing.UsageType
+  pk: 1
+  fields:
+    name: DiskShare
+    average: True
+    show_value_percentage: False
+    show_price_percentage: False
+
+- model: ralph_pricing.UsageType
+  pk: 2
+  fields:
+    name: DiskShare2
+    average: False
+    show_value_percentage: False
+    show_price_percentage: False
+
+# ExtraCostType
+- model: ralph_pricing.ExtraCostType
+  pk: 1
+  fields:
+    name: ExtraCost1
+
+- model: ralph_pricing.ExtraCostType
+  pk: 2
+  fields:
+    name: ExtraCost2
+
+# Extra cost
+- model: ralph_pricing.ExtraCost
+  pk: 1
+  fields:
+    start: 2013-01-01
+    end: 2013-01-04
+    type: 1
+    price: 100
+    pricing_venture: 1
+
+- model: ralph_pricing.ExtraCost
+  pk: 2
+  fields:
+    start: 2013-01-01
+    end: 2013-01-04
+    type: 2
+    price: 200
+    pricing_venture: 1
+
 # Devices
 - model: ralph_pricing.Device
   pk: 1
@@ -308,3 +355,131 @@
     price: 100.00
     deprecation_rate: 123.45
     is_deprecated: False
+
+# DailyUsage host01
+- model: ralph_pricing.DailyUsage
+  pk: 1
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    pricing_device: 1
+    value: 400
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 2
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    pricing_device: 1
+    value: 400
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 3
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    pricing_device: 1
+    value: 400
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 4
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    pricing_device: 1
+    value: 200
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 5
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    pricing_device: 2
+    value: 400
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 6
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    pricing_device: 2
+    value: 400
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 7
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    pricing_device: 2
+    value: 175
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 8
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 9
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 10
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 11
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 12
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 13
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 14
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 16
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    value: 100
+    type: 1
