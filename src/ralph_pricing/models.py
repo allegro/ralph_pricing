@@ -280,7 +280,7 @@ def get_daily_price_cost(asset_id, device, start, end):
         price, cost = daily.get_price_cost()
         total_price += price
         total_cost += cost
-    return total_price / days, total_cost / days
+    return total_price / days, total_cost
 
 
 class DailyDevice(db.Model):
@@ -535,13 +535,20 @@ class ExtraCost(db.Model):
         ]
 
     def __unicode__(self):
-        return '{}/{} ({}-{})'.format(
+        return '{}/{} ({} - {})'.format(
             self.pricing_venture,
             self.type,
             self.start,
             self.end,
         )
 
+def get_extracost_venture(venture, start, end):
+    extracost = ExtraCost.objects.filter(
+        start__gte=start,
+        end__lte=end,
+        pricing_venture=venture,
+    )
+    return extracost
 
 class SplunkName(db.Model):
     splunk_name = db.CharField(

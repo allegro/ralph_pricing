@@ -12,8 +12,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
 from ralph_pricing.menus import ventures_menu
-from ralph_pricing.models import DailyDevice, Device, DailyPart
-from ralph_pricing.models import Venture
+from ralph_pricing.models import (
+    DailyDevice,
+    DailyPart,
+    Device,
+    Venture,
+    get_extracost_venture,
+)
 from ralph_pricing.views.reports import Report, currency
 
 
@@ -35,6 +40,21 @@ class Devices(Report):
         total_count = len(devices_ids)
         devices = Device.objects.filter(id__in=devices_ids)
         data = []
+        for extracost in get_extracost_venture(venture, start, end):
+            row = [
+                '{} (Extra Cost)'.format(extracost.type.name),
+                '',
+                '',
+                'start {} - end {}'.format(extracost.start, extracost.end),
+                '',
+                currency(extracost.price),
+                '',
+                '',
+                '',
+                '',
+                '',
+            ]
+            data.append(row)
         for i, device in enumerate(devices):
             count, price, cost = venture.get_assets_count_price_cost(
                 start,
