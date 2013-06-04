@@ -90,4 +90,3 @@ class Base(TemplateView):
             'home_url': reverse('home'),
         })
         return context
-

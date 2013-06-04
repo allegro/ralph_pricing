@@ -58,7 +58,9 @@ class OpenStack(object):
                     if not region or endpoint['region'] == region:
                         admin_url = endpoint['adminURL']
                 if not admin_url:
-                    raise Error('Service "keystone" not available for this region')
+                    raise Error(
+                        'Service "keystone" not available for this region'
+                    )
         auth_token = auth_replay['access']['token']['id']
         return admin_url, public_url, auth_token
 

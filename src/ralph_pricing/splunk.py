@@ -21,11 +21,11 @@ class Splunk(object):
     >>> while splunk.progress < 100:
     ...    time.sleep(60)
     >>> splunk.results
-    [{u'MBytes': u'123.386241', u'sourcetype': u'splunk_kp', u'percent': u'5.48',
-     u'source': u'/opt/kp/log/csFront.log', u'host': u'hostname1', u'lastReceived':
-     u'Thu 2012-06-07 12:00:34'}, {u'MBytes': u'40.942306',
-     u'sourcetype': u'splunk_istore', u'percent': u'1.82',
-     u'source': u'/tmp/istoreapi_webapi_traffic.log',
+    [{u'MBytes': u'123.386241', u'sourcetype': u'splunk_kp',
+     u'percent': u'5.48', u'source': u'/opt/kp/log/csFront.log',
+     u'host': u'hostname1', u'lastReceived':u'Thu 2012-06-07 12:00:34'},
+     {u'MBytes': u'40.942306', u'sourcetype': u'splunk_istore',
+     u'percent': u'1.82', u'source': u'/tmp/istoreapi_webapi_traffic.log',
      u'host': u'hostname2', u'lastReceived': u'Thu 2012-06-07 12:00:34'}, ...]
     """
 
@@ -99,4 +99,3 @@ class Splunk(object):
         if not self._results and self.progress < 100.0:
             raise ValueError("Report still in progress.")
         return json.loads(self._results)
-

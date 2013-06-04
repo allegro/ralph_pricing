@@ -37,7 +37,7 @@ def update_scaleme_usage(usage_types, date, url):
     else:
         if ventures_capacity:
             counts = {'new': 0, 'updated': 0}
-            for venture_symbol, venture_usages in ventures_capacity.iteritems():
+            for venture_symbol, venture_usages in ventures_capacity.iteritems():  # noqa
                 try:
                     venture = Venture.objects.get(symbol=venture_symbol)
                 except Venture.DoesNotExist:
@@ -59,7 +59,9 @@ def update_scaleme_usage(usage_types, date, url):
                 counts['new'], counts['updated']
             )
         else:
-            message = 'Scaleme data for %r not found' % date.strftime("%Y-%m-%d")
+            message = 'Scaleme data for %r not found' % date.strftime(
+                "%Y-%m-%d"
+            )
     return message
 
 
