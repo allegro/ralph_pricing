@@ -36,6 +36,36 @@
     show_value_percentage: False
     show_price_percentage: False
 
+# ExtraCostType
+- model: ralph_pricing.ExtraCostType
+  pk: 1
+  fields:
+    name: ExtraCost1
+
+- model: ralph_pricing.ExtraCostType
+  pk: 2
+  fields:
+    name: ExtraCost2
+
+# Extra cost
+- model: ralph_pricing.ExtraCost
+  pk: 1
+  fields:
+    start: 2013-01-01
+    end: 2013-01-04
+    type: 1
+    price: 100
+    pricing_venture: 1
+
+- model: ralph_pricing.ExtraCost
+  pk: 2
+  fields:
+    start: 2013-01-01
+    end: 2013-01-04
+    type: 2
+    price: 200
+    pricing_venture: 1
+
 # Devices
 - model: ralph_pricing.Device
   pk: 1
@@ -389,3 +419,67 @@
     pricing_device: 2
     value: 175
     type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 8
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 9
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 10
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 11
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_pricing.DailyUsage
+  pk: 12
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 13
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 14
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_pricing.DailyUsage
+  pk: 16
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    value: 100
+    type: 1
