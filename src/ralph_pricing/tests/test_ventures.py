@@ -76,11 +76,11 @@ class TestVentures(TestCase):
                     'a',  # path
                     '',  # department
                     2.0,  # assets count
-                    '835 170.00 PLN', # assets price
-                    '0.00 PLN', # assets cost
-                    32.0, # usage count
-                    '0.00 PLN', # usage price
-                    '65 535.00 PLN', # extra cost
+                    '835 170.00 PLN',  # assets price
+                    '0.00 PLN',  # assets cost
+                    32.0,  # usage count
+                    '0.00 PLN',  # usage price
+                    '65 535.00 PLN',  # extra cost
                 ],
             ],
         )

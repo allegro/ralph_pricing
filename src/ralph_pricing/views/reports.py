@@ -69,7 +69,9 @@ class Report(Base):
                 self.progress = 0
                 self.got_query = False
                 self._clear_cache(**self.form.cleaned_data)
-                messages.success(self.request, "Cache cleared for this report.")
+                messages.success(
+                    self.request, "Cache cleared for this report.",
+                )
             else:
                 self.progress, self.header, self.data = self._get_cached(
                     **self.form.cleaned_data
@@ -83,7 +85,8 @@ class Report(Base):
                     else:
                         messages.warning(
                             self.request,
-                            "Please wait for the report to finish calculating.",
+                            "Please wait for the report "
+                            "to finish calculating.",
                         )
         return super(Report, self).get(*args, **kwargs)
 
@@ -181,4 +184,3 @@ class Report(Base):
         Make sure it's a static method.
         """
         return []
-

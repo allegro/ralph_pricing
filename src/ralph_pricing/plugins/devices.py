@@ -32,7 +32,7 @@ def update_device(data, date):
         parent_created = False
     if data.get('venture_id') is not None:
         venture, venture_created = Venture.objects.get_or_create(
-            venture_id = data['venture_id'],
+            venture_id=data['venture_id'],
         )
         daily.pricing_venture = venture
     daily.name = data['name']
@@ -45,6 +45,7 @@ def devices(**kwargs):
     """Updates the devices from Ralph."""
 
     date = kwargs['today']
-    count = sum(update_device(data, date) for data in api_pricing.get_devices())
+    count = sum(
+        update_device(data, date) for data in api_pricing.get_devices()
+    )
     return True, '%d new devices' % count, kwargs
-

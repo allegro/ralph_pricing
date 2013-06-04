@@ -5,9 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, get_list_or_404
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
@@ -18,6 +15,7 @@ from ralph_pricing.models import (
     Device,
     Venture,
 )
+
 from ralph_pricing.views.reports import Report, currency
 
 

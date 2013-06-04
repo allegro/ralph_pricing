@@ -36,6 +36,7 @@ class TestAssetPlugin(TestCase):
             ) for data in self.get_asset_part()
         )
         part = DailyPart.objects.get(asset_id=1123)
+        self.assertEqual(count, 1)
         self.assertEqual(part.is_deprecated, True)
         self.assertEqual(part.name, 'Noname SSD')
         self.assertEqual(part.price, 130)

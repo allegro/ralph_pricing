@@ -53,7 +53,7 @@ class Device(db.Model):
             date__lte=end,
         )
         statuses = []
-        last =  None
+        last = None
         for daily_device in query:
             status = daily_device.is_deprecated
             if status != last:
@@ -100,6 +100,7 @@ class Device(db.Model):
                 }
             )
         return parts
+
 
 
 class ParentDevice(Device):
@@ -184,7 +185,7 @@ class Venture(MPTTModel):
             asset_price, asset_cost = daily_device.get_price_cost(
                 zero_deprecated,
             )
-            system_price, system_cost = daily_device.get_bladesystem_price_cost(
+            system_price, system_cost = daily_device.get_bladesystem_price_cost(  # noqa
                 zero_deprecated,
             )
             blades_price, blades_cost = daily_device.get_blades_price_cost(
@@ -362,7 +363,7 @@ class DailyDevice(db.Model):
         # If the device has parts, sum them up
         for daily_part in self.pricing_device.dailypart_set.filter(
                 date=self.date,
-            ):
+        ):
             price, cost = daily_part.get_price_cost()
             total_price += price
             total_cost += cost
@@ -423,7 +424,7 @@ class DailyDevice(db.Model):
             for blade in self.pricing_device.children_set.filter(
                     date=self.date,
                     pricing_device__is_blade=True,
-                ):
+            ):
                 price, cost = blade.get_bladesystem_price_cost(
                     zero_deprecated,
                     self,
@@ -529,7 +530,7 @@ class ExtraCostType(db.Model):
         return self.name
 
     def get_cost_at(self, date):
-        return 1 # XXX
+        return 1  # XXX
 
 
 class ExtraCost(db.Model):
@@ -578,4 +579,3 @@ class SplunkName(db.Model):
 
     class Meta:
         unique_together = ("splunk_name", "pricing_device")
-

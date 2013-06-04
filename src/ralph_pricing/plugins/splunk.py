@@ -75,7 +75,9 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
                 SplunkName(splunk_name=host).save()
                 set_unknown_usage(date, usage, usage_type, splunk_venture)
         else:
-            set_device_usage(date, usage, usage_type, splunk_pair.pricing_device)
+            set_device_usage(
+                date, usage, usage_type, splunk_pair.pricing_device,
+            )
     else:
         set_device_usage(date, usage, usage_type, splunk_pair.pricing_device)
 
