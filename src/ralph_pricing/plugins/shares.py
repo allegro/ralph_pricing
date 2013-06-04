@@ -52,4 +52,3 @@ def shares(**kwargs):
     for data in api_pricing.get_shares():
         update(data, date)
     return True, 'disk share usages updated', kwargs
-

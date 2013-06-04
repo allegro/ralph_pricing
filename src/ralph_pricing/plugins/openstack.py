@@ -39,16 +39,36 @@ def set_usages(venture_symbol, data, date):
         usage.value = data[key] / multiplier
         usage.save()
     if venture:
-        set_usage('OpenStack 10000 Memory GiB Hours', 'total_memory_mb_usage',
-            venture, 1024,)
-        set_usage('OpenStack 10000 CPU Hours', 'total_vcpus_usage',
-            venture, 1)
-        set_usage('OpenStack 10000 Disk GiB Hours', 'total_local_gb_usage',
-            venture, 1)
-        set_usage('OpenStack 10000 Volume GiB Hours', 'total_volume_gb_usage',
-            venture, 1)
-        set_usage('OpenStack 10000 Images GiB Hours', 'total_images_gb_usage',
-            venture, 1)
+        set_usage(
+            'OpenStack 10000 Memory GiB Hours',
+            'total_memory_mb_usage',
+            venture,
+            1024,
+        )
+        set_usage(
+            'OpenStack 10000 CPU Hours',
+            'total_vcpus_usage',
+            venture,
+            1,
+        )
+        set_usage(
+            'OpenStack 10000 Disk GiB Hours',
+            'total_local_gb_usage',
+            venture,
+            1,
+        )
+        set_usage(
+            'OpenStack 10000 Volume GiB Hours',
+            'total_volume_gb_usage',
+            venture,
+            1,
+        )
+        set_usage(
+            'OpenStack 10000 Images GiB Hours',
+            'total_images_gb_usage',
+            venture,
+            1,
+        )
 
 
 @plugin.register(chain='pricing', requires=['ventures'])
@@ -72,10 +92,12 @@ def openstack(**kwargs):
         for data in stack.simple_tenant_usage(start, end):
             tenants[data['tenant_id']][region].update(data)
     for url, query in getattr(settings, 'OPENSTACK_EXTRA_QUERIES', []):
-        for data in stack.query(query, url=url,
-                start=start.strftime('%Y-%m-%dT%H:%M:%S'),
-                end=end.strftime('%Y-%m-%dT%H:%M:%S'),
-            ):
+        for data in stack.query(
+            query,
+            url=url,
+            start=start.strftime('%Y-%m-%dT%H:%M:%S'),
+            end=end.strftime('%Y-%m-%dT%H:%M:%S'),
+        ):
             tenants[data['tenant_id']][url].update(data)
     for tenant_id, regions in tenants.iteritems():
         for region, data in regions.iteritems():
@@ -83,4 +105,3 @@ def openstack(**kwargs):
             if venture_symbol:
                 set_usages(venture_symbol, data, date)
     return True, 'Openstack usages were saved', kwargs
-
