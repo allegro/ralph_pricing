@@ -17,7 +17,6 @@ from ralph_pricing.models import (
     DailyPart,
     Device,
     Venture,
-    get_extracost_venture,
 )
 from ralph_pricing.views.reports import Report, currency
 
@@ -40,14 +39,29 @@ class Devices(Report):
         total_count = len(devices_ids)
         devices = Device.objects.filter(id__in=devices_ids)
         data = []
-        for extracost in get_extracost_venture(venture, start, end):
+        for extracost in venture.get_extracost_details(start, end):
             row = [
                 '{} (Extra Cost)'.format(extracost.type.name),
                 '',
                 '',
-                'start {} - end {}'.format(extracost.start, extracost.end),
+                '{} - {}'.format(extracost.start, extracost.end),
                 '',
                 currency(extracost.price),
+                '',
+                '',
+                '',
+                '',
+                '',
+            ]
+            data.append(row)
+        for usage in venture.get_daily_usage(start,end):
+            row = [
+                '{} (Venture Usage)'.format(usage.type),
+                '',
+                '',
+                '',
+                '',
+                currency(usage.value),
                 '',
                 '',
                 '',

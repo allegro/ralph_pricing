@@ -228,6 +228,23 @@ class Venture(MPTTModel):
             price += query.aggregate(db.Sum('price'))['price__sum'] or 0
         return price
 
+    def get_extracost_details(self, start, end):
+        extracost = ExtraCost.objects.filter(
+            start__gte=start,
+            end__lte=end,
+            pricing_venture=self,
+        )
+        return extracost
+
+    def get_daily_usage(self, start, end):
+        usage = self.dailyusage_set.filter(
+            date__gte=start,
+            date__lte=end,
+            pricing_venture=self,
+            pricing_device=None,
+        )
+        return usage
+
 
 class DailyPart(db.Model):
     date = db.DateField()
@@ -542,13 +559,6 @@ class ExtraCost(db.Model):
             self.end,
         )
 
-def get_extracost_venture(venture, start, end):
-    extracost = ExtraCost.objects.filter(
-        start__gte=start,
-        end__lte=end,
-        pricing_venture=venture,
-    )
-    return extracost
 
 class SplunkName(db.Model):
     splunk_name = db.CharField(
