@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import itertools
+
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
@@ -16,6 +18,7 @@ class Devices(Report):
     template_name = 'ralph_pricing/devices.html'
     Form = DateRangeVentureForm
     section = 'devices'
+
 
     @staticmethod
     def get_data(start, end, venture, **kwargs):
@@ -29,40 +32,92 @@ class Devices(Report):
         total_count = len(devices_ids)
         devices = Device.objects.filter(id__in=devices_ids)
         data = []
-        for i, device in enumerate(devices):
+        for extracost in venture.get_extracost_details(start, end):
             row = [
+                '{} (Extra Cost)'.format(extracost.type.name),
+                '',
+                '',
+                '{} - {}'.format(extracost.start, extracost.end),
+                '',
+                currency(extracost.price),
+                '',
+                '',
+                '',
+                '',
+                '',
+            ]
+            data.append(row)
+        for usage in venture.get_daily_usages(start, end):
+            row = [
+                '',
+                '',
+                usage['name'],
+                '',
+                '',
+                currency(usage['price']),
+                '',
+                '',
+                '',
+                '',
+                usage['count'],
+            ]
+            data.append(row)
+        for i, device in enumerate(devices):
+            count, price, cost = venture.get_assets_count_price_cost(
+                start,
+                end,
+                device_id=device.id,
+            )
+            data.append([
                 device.name,
+                '',
+                '',
                 device.sn,
                 device.barcode,
-                device.get_deprecated_status(
-                    start,
-                    end,
-                    venture,
-                ),
-                currency(
-                    device.get_device_price(
-                        start,
-                        end,
-                        venture,
-                    ),
-                ),
-                device.get_daily_parts(
-                    start,
-                    end,
-                ),
-            ]
+                device.get_deprecated_status(start, end, venture),
+                currency(price),
+                currency(cost),
+                '',
+            ])
+            for part in device.get_daily_parts(start, end):
+                data.append([
+                    '',
+                    part['name'],
+                    '',
+                    '',
+                    '',
+                    part.get('deprecation', ''),
+                    currency(part['price']),
+                    currency(part['cost']),
+                    '',
+                ])
+
+            for usage in device.get_daily_usages(start, end):
+                data.append([
+                    '',
+                    '',
+                    usage['name'],
+                    '',
+                    '',
+                    '',
+                    '',
+                    currency(usage['price']),
+                    usage['count'],
+                ])
             progress = (100 * i) // total_count
-            data.append(row)
             yield progress, data
 
     @staticmethod
     def get_header(**kwargs):
         header = [
             _("Device"),
+            _("Component name"),
+            _("Usage name"),
             _("SN"),
             _("Barcode"),
-            _("Is deprecation"),
-            _("Quoted price"),
-            _("Components"),
+            _("Deprecation"),
+            _("Price"),
+            _("Cost"),
+            _("Usage count"),
         ]
         return header
