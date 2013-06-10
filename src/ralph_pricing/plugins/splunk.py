@@ -97,9 +97,9 @@ def splunk(**kwargs):
     )
     date = kwargs['today']
     splunk = Splunk()
-    day_ago = (date - datetime.date.today()).days
-    earliest = '{}d@d'.format(day_ago - 1)
-    latest = '{}d@d'.format(day_ago) if day_ago != 0 else 'now'
+    days_ago = (date - datetime.date.today()).days
+    earliest = '{}d@d'.format(days_ago - 1)
+    latest = '{}d@d'.format(days_ago) if days_ago != 0 else 'now'
     splunk.start(earliest=earliest, latest=latest)
     percent = splunk.progress
     while percent < 100:
