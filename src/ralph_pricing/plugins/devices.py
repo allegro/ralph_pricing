@@ -19,6 +19,7 @@ def update_device(data, date):
     device.is_virtual = data['is_virtual']
     device.is_blade = data['is_blade']
     device.save()
+
     daily, daily_created = DailyDevice.objects.get_or_create(
         date=date,
         pricing_device=device,
@@ -49,3 +50,4 @@ def devices(**kwargs):
         update_device(data, date) for data in api_pricing.get_devices()
     )
     return True, '%d new devices' % count, kwargs
+
