@@ -38,11 +38,7 @@ def update(data, usages, date):
     for key, usage in usages.iteritems():
         update_usage(device, venture, usage, date, data.get(key))
 
-
-@plugin.register(chain='pricing', requires=['devices'])
-def virtual_usages(**kwargs):
-    """Updates the virtual usages from Ralph."""
-
+def get_usages():
     cpu_usage, created = UsageType.objects.get_or_create(
         name="Virtual CPU cores",
     )
@@ -58,12 +54,20 @@ def virtual_usages(**kwargs):
     )
     disk_usage.average = True
     disk_usage.save()
-    date = kwargs['today']
     usages = {
         'virtual_cores': cpu_usage,
         'virtual_memory': memory_usage,
         'virtual_disk': disk_usage,
     }
+    return usages
+
+
+@plugin.register(chain='pricing', requires=['devices'])
+def virtual_usages(**kwargs):
+    """Updates the virtual usages from Ralph."""
+
+    date = kwargs['today']
+    usages = get_usages()
     for data in api_pricing.get_virtual_usages():
         update(data, usages, date)
     return True, 'virtual usages updated', kwargs
