@@ -30,19 +30,23 @@ def update_cores(data, usage_type, date):
     usage.save()
     return usage.value
 
-
-@plugin.register(chain='pricing', requires=['devices'])
-def physical_cores(**kwargs):
-    """Updates the physical cores from Ralph."""
-
+def get_usage():
     usage_type, created = UsageType.objects.get_or_create(
         name="Physical CPU cores",
     )
     usage_type.average = True
     usage_type.save()
+    return usage_type
+
+
+@plugin.register(chain='pricing', requires=['devices'])
+def physical_cores(**kwargs):
+    """Updates the physical cores from Ralph."""
+
     date = kwargs['today']
+    usage = get_usage()
     count = sum(
-        update_cores(data, usage_type, date)
+        update_cores(data, usage, date)
         for data in api_pricing.get_physical_cores()
     )
     return True, '%d total physical cores' % count, kwargs
