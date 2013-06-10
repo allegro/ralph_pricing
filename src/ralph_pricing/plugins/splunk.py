@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
 import time
 
 from django.conf import settings
@@ -72,7 +73,7 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
                 splunk_pair.save()
                 set_device_usage(date, usage, usage_type, device[0])
             else:
-                SplunkName(splunk_name=host).save()
+                SplunkName.objects.get_or_create(splunk_name=host)
                 set_unknown_usage(date, usage, usage_type, splunk_venture)
         else:
             set_device_usage(
@@ -96,7 +97,10 @@ def splunk(**kwargs):
     )
     date = kwargs['today']
     splunk = Splunk()
-    splunk.start()
+    day_ago = (date - datetime.date.today()).days
+    earliest = '{}d@d'.format(day_ago - 1)
+    latest = '{}d@d'.format(day_ago) if day_ago != 0 else 'now'
+    splunk.start(earliest=earliest, latest=latest)
     percent = splunk.progress
     while percent < 100:
         print(percent)
