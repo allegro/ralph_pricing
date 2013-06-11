@@ -19,10 +19,10 @@ from django.contrib import messages
 from django.core.cache.backends.dummy import DummyCache
 
 
-CACHE_NAME = 'reports'
+CACHE_NAME = 'reports_pricing'
 if CACHE_NAME not in settings.CACHES:
     CACHE_NAME = 'default'
-QUEUE_NAME = 'reports'
+QUEUE_NAME = 'reports_pricing'
 if QUEUE_NAME not in settings.RQ_QUEUES:
     QUEUE_NAME = None
 TIMEOUT = getattr(settings, 'PRICING_REPORTS_TIMEOUT', 4 * 3600)  # 4 hours
