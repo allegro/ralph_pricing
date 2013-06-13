@@ -16,6 +16,7 @@ class AllVentures(Report):
     template_name = 'ralph_pricing/ventures.html'
     Form = DateRangeForm
     section = 'all-ventures'
+    report_name = _('All Ventures Report')
 
     @staticmethod
     def get_data(start, end, **kwargs):
@@ -110,6 +111,7 @@ class AllVentures(Report):
 
 class TopVentures(AllVentures):
     section = 'top-ventures'
+    report_name = _('Top Ventures Report')
 
     @staticmethod
     def get_data(start, end):
