@@ -13,6 +13,7 @@
 
 {% block contentarea %}
 <div class="row-fluid main-body"><div class="span12">
+{% if report_name %}<h1>{{ report_name }}</h1>{% endif %}
 <form class="form form-inline daterange-form">
 <div class="form-actions">
     {% for f in form %}
@@ -42,7 +43,6 @@
 </form>
 </div>
 <div class="clearfix"></div>
-
 {% if got_query and progress < 100 %}
 {% block progress_bar %}
 <div class="well">
