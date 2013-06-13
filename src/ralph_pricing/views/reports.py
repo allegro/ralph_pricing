@@ -48,6 +48,7 @@ class Report(Base):
     template_name = None
     Form = None
     section = ''
+    report_name = ''
 
     def __init__(self, *args, **kwargs):
         super(Report, self).__init__(*args, **kwargs)
@@ -97,6 +98,7 @@ class Report(Base):
             'data': self.data,
             'header': self.header,
             'section': self.section,
+            'report_name': self.report_name,
             'form': self.form,
             'got_query': self.got_query,
         })
