@@ -120,7 +120,6 @@ class Device(db.Model):
         return parts
 
 
-
 class ParentDevice(Device):
     class Meta:
         proxy = True
@@ -253,6 +252,7 @@ class Venture(MPTTModel):
                     'count': count,
                     'price': price,
                 }
+
 
 class DailyPart(db.Model):
     date = db.DateField()
