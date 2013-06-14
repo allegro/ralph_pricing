@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
+
 from ralph.util import plugin, api_pricing
 from ralph_pricing.models import DailyUsage, UsageType, Venture, UsagePrice
 
@@ -24,17 +26,20 @@ def update_extra_cost(data, date):
         date=date,
         type=usage_type,
     )
-    price, created = UsagePrice.objects.get_or_create(
-        type=usage_type,
-        price=data['cost'],
-        start=data['start'],
-        end=data['end'],
-    )
+    try:
+        price, created = UsagePrice.objects.get_or_create(
+            type=usage_type,
+            price=data['cost'],
+            start=data['start'],
+            end=data['end'] if data['end'] else datetime.date(2048, 10, 24),
+        )
+    except:
+        import pdb; pdb.set_trace()
     return daily_created
 
 
 @plugin.register(chain='pricing', requires=[])
-def ekstra_cost(**kwargs):
+def extra_cost(**kwargs):
 
     date = kwargs['today']
     count = sum(
