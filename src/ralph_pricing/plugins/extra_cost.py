@@ -26,15 +26,12 @@ def update_extra_cost(data, date):
         date=date,
         type=usage_type,
     )
-    try:
-        price, created = UsagePrice.objects.get_or_create(
-            type=usage_type,
-            price=data['cost'],
-            start=data['start'],
-            end=data['end'] if data['end'] else datetime.date(2048, 10, 24),
-        )
-    except:
-        import pdb; pdb.set_trace()
+    price, created = UsagePrice.objects.get_or_create(
+        type=usage_type,
+        price=data['cost'],
+        start=data['start'],
+        end=data['end'] if data['end'] else datetime.date(2048, 10, 24),
+    )
     return daily_created
 
 
