@@ -22,9 +22,10 @@ def update_extra_cost(data, date):
         start=data['start'],
         end=data['end'] if data['end'] else datetime.date(2048, 10, 24),
         type=cost_type,
-        price=decimal.Decimal(data['cost'] / 30.5),
         pricing_venture=venture,
     )
+    extracost.price = decimal.Decimal(data['cost'] / 30.5),
+    extracost.save()
     return created
 
 
