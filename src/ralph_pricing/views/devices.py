@@ -44,7 +44,6 @@ class Devices(Report):
                 '',
                 '',
                 '',
-                '',
             ]
             data.append(row)
         for usage in venture.get_daily_usages(start, end):
@@ -54,11 +53,9 @@ class Devices(Report):
                 usage['name'],
                 '',
                 '',
+                '',
+                '',
                 currency(usage['price']),
-                '',
-                '',
-                '',
-                '',
                 usage['count'],
             ]
             data.append(row)
