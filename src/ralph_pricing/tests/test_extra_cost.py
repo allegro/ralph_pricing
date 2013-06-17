@@ -9,7 +9,7 @@ import datetime
 
 from django.test import TestCase
 
-from ralph_pricing.models import UsageType, DailyUsage, Venture
+from ralph_pricing.models import ExtraCostType, ExtraCost, Venture
 from ralph_pricing.plugins.extra_cost import update_extra_cost
 
 
@@ -33,8 +33,9 @@ class TestAssetPlugin(TestCase):
             update_extra_cost(data, self.date) for data in self.get_extra_cost()
         )
         self.assertEqual(count, 1)
-        usage_type = UsageType.objects.get(name='extracost_1')
-        daily = DailyUsage.objects.get(type=usage_type)
+        usage_type = ExtraCostType.objects.get(name='extracost_1')
+
+        extra_cost = ExtraCost.objects.get(type=usage_type)
         venture = Venture.objects.get(name='Venture1')
-        self.assertEqual(daily.pricing_venture, venture)
-        self.assertEqual(daily.type.get_price_at(self.date), 100)
+        self.assertEqual(extra_cost.pricing_venture, venture)
+        self.assertEqual(extra_cost.price, 100)

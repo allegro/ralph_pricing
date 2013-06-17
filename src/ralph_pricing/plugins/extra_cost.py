@@ -8,31 +8,25 @@ from __future__ import unicode_literals
 import datetime
 
 from ralph.util import plugin, api_pricing
-from ralph_pricing.models import DailyUsage, UsageType, Venture, UsagePrice
+from ralph_pricing.models import ExtraCost, ExtraCostType, Venture
 
 
 def update_extra_cost(data, date):
-    usage_type, created = UsageType.objects.get_or_create(
-        name=data['type'],
-    )
+    cost_type, created = ExtraCostType.objects.get_or_create(name=data['type'])
     venture, created = Venture.objects.get_or_create(
         venture_id=data['venture_id'],
     )
     if created:
         venture.name = data['venture']
         venture.save()
-    daily, daily_created = DailyUsage.objects.get_or_create(
-        pricing_venture=venture,
-        date=date,
-        type=usage_type,
-    )
-    price, created = UsagePrice.objects.get_or_create(
-        type=usage_type,
-        price=data['cost'],
+    extracost, created = ExtraCost.objects.get_or_create(
         start=data['start'],
         end=data['end'] if data['end'] else datetime.date(2048, 10, 24),
+        type=cost_type,
+        price=data['cost'],
+        pricing_venture=venture,
     )
-    return daily_created
+    return created
 
 
 @plugin.register(chain='pricing', requires=[])
