@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
+import decimal
 
 from django.test import TestCase
 
@@ -38,4 +39,4 @@ class TestAssetPlugin(TestCase):
         extra_cost = ExtraCost.objects.get(type=usage_type)
         venture = Venture.objects.get(name='Venture1')
         self.assertEqual(extra_cost.pricing_venture, venture)
-        self.assertEqual(extra_cost.price, 100)
+        self.assertEqual(extra_cost.price, decimal.Decimal('3.278689'))
