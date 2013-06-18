@@ -13,6 +13,8 @@ from ralph_pricing.models import ExtraCost, ExtraCostType, Venture
 
 
 def update_extra_cost(data, date):
+    if data['cost']:
+        return False  # False = 0 in sum function
     cost_type, created = ExtraCostType.objects.get_or_create(name=data['type'])
     venture, created = Venture.objects.get_or_create(
         venture_id=data['venture_id'],

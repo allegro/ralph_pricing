@@ -35,7 +35,6 @@ class TestExtraCostPlugin(TestCase):
         )
         self.assertEqual(count, 1)
         usage_type = ExtraCostType.objects.get(name='extracost_1')
-
         extra_cost = ExtraCost.objects.get(type=usage_type)
         venture = Venture.objects.get(name='Venture1')
         self.assertEqual(extra_cost.pricing_venture, venture)
