@@ -30,7 +30,7 @@ def update_extra_cost(data, date):
 
 
 @plugin.register(chain='pricing', requires=['never run'])
-def extra_cost(**kwargs):
+def extracost(**kwargs):
 
     date = kwargs['today']
     count = sum(

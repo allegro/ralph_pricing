@@ -75,6 +75,8 @@ class TestVentures(TestCase):
                     3,  # id
                     'a',  # path
                     '',  # department
+                    '',  # business segment
+                    '',  # Profit center
                     2.0,  # assets count
                     '835 170.00 PLN',  # assets price
                     '0.00 PLN',  # assets cost
@@ -94,6 +96,8 @@ class TestVentures(TestCase):
                     3,
                     'a',
                     '',
+                    '',
+                    '',
                     1.0,
                     '1 337.00 PLN',
                     '0.00 PLN',
@@ -104,6 +108,8 @@ class TestVentures(TestCase):
                 [
                     2,
                     'a/b',
+                    '',
+                    '',
                     '',
                     1.0,
                     '833 833.00 PLN',

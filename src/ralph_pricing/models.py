@@ -30,7 +30,6 @@ def get_usages_count_price(query, start, end):
                 count += daily_count / days
             else:
                 count += daily_count
-            count += daily_count
             try:
                 daily_price = usage.type.get_price_at(day)
             except (
@@ -112,7 +111,9 @@ class Device(db.Model):
             price, cost = get_daily_price_cost(asset_id, self, start, end)
             parts.append(
                 {
-                    'name': self.dailypart_set.filter(asset_id=asset_id)[0].name,
+                    'name': self.dailypart_set.filter(
+                        asset_id=asset_id
+                    )[0].name,
                     'price': price,
                     'cost': cost,
                 }
@@ -213,11 +214,14 @@ class Venture(MPTTModel):
             total_count += 1
         return total_count / days, total_price / days, total_cost
 
-    def get_usages_count_price(self, start, end, type_, descendants=False, query=None):
+    def get_usages_count_price(
+        self, start, end, type_, descendants=False, query=None
+    ):
         if query is None:
             query = DailyUsage.objects
         query = query.filter(type=type_)
         query = self._by_venture(query, descendants)
+        query = query.filter(date__gte=start, date__lte=end)
         return get_usages_count_price(query, start, end)
 
     def get_extra_costs(self, start, end, type_, descendants=False):

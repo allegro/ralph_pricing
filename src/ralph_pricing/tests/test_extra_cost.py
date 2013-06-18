@@ -14,7 +14,7 @@ from ralph_pricing.models import ExtraCostType, ExtraCost, Venture
 from ralph_pricing.plugins.extra_cost import update_extra_cost
 
 
-class TestAssetPlugin(TestCase):
+class TestExtraCostPlugin(TestCase):
     def setUp(self):
         self.date = datetime.date(2013, 01, 04)
 
