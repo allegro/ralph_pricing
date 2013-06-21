@@ -14,7 +14,7 @@ from ralph_pricing.models import ExtraCostType, ExtraCost, Venture
 from ralph_pricing.plugins.extra_cost import update_extra_cost
 
 
-class TestAssetPlugin(TestCase):
+class TestExtraCostPlugin(TestCase):
     def setUp(self):
         self.date = datetime.date(2013, 01, 04)
 
@@ -35,7 +35,6 @@ class TestAssetPlugin(TestCase):
         )
         self.assertEqual(count, 1)
         usage_type = ExtraCostType.objects.get(name='extracost_1')
-
         extra_cost = ExtraCost.objects.get(type=usage_type)
         venture = Venture.objects.get(name='Venture1')
         self.assertEqual(extra_cost.pricing_venture, venture)

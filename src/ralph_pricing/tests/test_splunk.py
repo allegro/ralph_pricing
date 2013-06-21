@@ -79,7 +79,7 @@ class TestSplunkPluginTest(TestCase):
         settings.SPLUNK_PASSWORD = 'test'
         with mock.patch('ralph_pricing.plugins.splunk.Splunk') as Splunk:
             Splunk.side_effect = MockSplunk
-            splunk_runner(today=datetime.datetime.today())
+            splunk_runner(today=datetime.date.today())
             usage_device1 = DailyUsage.objects.get(pricing_device=self.device1)
             usage_device2 = DailyUsage.objects.get(pricing_device=self.device2)
             usage_splunk_venture = DailyUsage.objects.get(
