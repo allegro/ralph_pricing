@@ -5,19 +5,30 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.db import commit_on_success
+
 from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
 from ralph_pricing.models import Device, DailyDevice
 
-
+@commit_on_success
 def update_assets(data, date):
     if not data['ralph_id']:
         return False
+    try:
+        old_device = Device.objects.exclude(
+            device_id=data['device_id'],
+        ).get(
+            asset_id=data['asset_id'],
+        )
+    except Device.DoesNotExist:
+        pass
+    else:
+        old_device.asset_id = None
+        old_device.save()
     device, created = Device.objects.get_or_create(
         device_id=data['ralph_id'],
     )
-    if not created:
-        device.device_id = data['ralph_id']
     device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.sn = data['sn']
