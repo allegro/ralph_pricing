@@ -17,7 +17,8 @@
 <form class="form form-inline daterange-form">
 <div class="form-actions">
     {% for f in form %}
-        <div style="display:inline-block; vertical-align:top" class="control-group {% if f.errors %}error{% endif %}" >
+        <div style="display:inline-block; " class="control-group {% if f.errors %}error{% endif %}" >
+            {{ f.label }}
             {{ f }}
             {% if f.errors %}
                 <span class="help-block">

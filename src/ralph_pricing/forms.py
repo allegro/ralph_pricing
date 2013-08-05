@@ -156,15 +156,19 @@ class DateRangeForm(forms.Form):
         widget=DateWidget(
             attrs={'class': 'input-small'},
         ),
-        label='Start date',
+        label='',
         initial=lambda: datetime.date.today() - datetime.timedelta(days=30),
     )
     end = forms.DateField(
         widget=DateWidget(
             attrs={'class': 'input-small'},
         ),
-        label='End date',
+        label='',
         initial=datetime.date.today,
+    )
+    show_in_ralph = forms.BooleanField(
+        required=False,
+        label='Only show in Ralph: ',
     )
 
 
