@@ -55,7 +55,7 @@ class UsageTypeAdmin(ModelAdmin):
 
 @register(models.ExtraCostType)
 class ExtraCostTypeAdmin(ModelAdmin):
-    pass
+    inlines = [ExtraCostInline]
 
 
 @register(models.SplunkName)
