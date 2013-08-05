@@ -168,7 +168,7 @@ class DateRangeForm(forms.Form):
     )
     show_in_ralph = forms.BooleanField(
         required=False,
-        label='Only show in Ralph: ',
+        label=_("Show only active"),
     )
 
 
