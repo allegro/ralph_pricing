@@ -13,7 +13,7 @@ from ralph_pricing.forms import DateRangeForm
 
 
 class AllVentures(Report):
-    template_name = 'ralph_pricing/ventures.html'
+    template_name = 'ralph_pricing/ventures_all.html'
     Form = DateRangeForm
     section = 'all-ventures'
     report_name = _('All Ventures Report')
@@ -110,6 +110,7 @@ class AllVentures(Report):
 
 
 class TopVentures(AllVentures):
+    template_name = 'ralph_pricing/ventures_top.html'
     section = 'top-ventures'
     report_name = _('Top Ventures Report')
 
