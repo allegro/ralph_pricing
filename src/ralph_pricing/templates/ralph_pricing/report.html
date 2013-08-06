@@ -13,7 +13,11 @@
 
 {% block contentarea %}
 <div class="row-fluid main-body"><div class="span12">
-{% if report_name %}<h1>{{ report_name }}</h1>{% endif %}
+    <div class="well well-small">
+        {% if report_name %}<h4>{{ report_name }}</h4>{% endif %}
+        {% block description %}
+        {% endblock %}
+    </div>
 <form class="form form-inline daterange-form">
 <div class="form-actions">
     {% for f in form %}
