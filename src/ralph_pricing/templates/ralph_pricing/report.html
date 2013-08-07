@@ -21,8 +21,14 @@
 <form class="form form-inline daterange-form">
 <div class="form-actions">
     {% for f in form %}
-        <div style="display:inline-block; vertical-align:top" class="control-group {% if f.errors %}error{% endif %}" >
-            {{ f }}
+        <div style="display:inline-block; vertica-align:top" class="control-group {% if f.errors %}error{% endif %}" >
+            {% if f.label %}
+                <label>
+                    <span style="vertical-align:middle; display:inline-block;">{{ f.label }}</span>&nbsp;{{ f }}
+                </label>
+            {% else %}
+                {{ f }}
+            {% endif %}
             {% if f.errors %}
                 <span class="help-block">
                     {% for e in f.errors %}{{ e }}{% endfor %}
