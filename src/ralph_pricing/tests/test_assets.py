@@ -52,3 +52,50 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(daily.price, 100)
         self.assertEqual(daily.pricing_device_id, 1)
         self.assertEqual(daily.date, self.today)
+
+    def test_sync_asset_device_without_ralph_id(self):
+        data = yield {
+            'asset_id': 1123,
+            'ralph_id': None,
+            'slots': 10.0,
+            'price': 100,
+            'is_deprecated': True,
+            'sn': '1234-1234-1234-1234',
+            'barcode': '4321-4321-4321-4321',
+            'deprecation_rate': 0,
+        }
+        count = sum(update_assets(item, self.today) for item in data)
+        self.assertFalse(count > 0)
+
+    def test_sync_asset_device_update(self):
+        data = yield {
+            'asset_id': 1123,
+            'ralph_id': 123,
+            'slots': 10.0,
+            'price': 100,
+            'is_deprecated': True,
+            'sn': '1234-1234-1234-1234',
+            'barcode': '4321-4321-4321-4321',
+            'deprecation_rate': 0,
+        }
+        count = sum(update_assets(item, self.today) for item in data)
+        self.assertFalse(count == 1)
+        device = Device.objects.get(device_id=123)
+        self.assertEqual(device.sn, '1234-1234-1234-1234')
+
+        data = yield {
+            'asset_id': 1123,
+            'ralph_id': 123,
+            'slots': 10.0,
+            'price': 100,
+            'is_deprecated': True,
+            'sn': '5555-5555-5555-5555',
+            'barcode': '4321-4321-4321-4321',
+            'deprecation_rate': 0,
+        }
+        device = Device.objects.get(device_id=123)
+        self.assertEqual(device.sn, '5555-5555-5555-5555')
+
+
+
+
