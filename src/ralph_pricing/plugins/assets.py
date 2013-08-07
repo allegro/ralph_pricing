@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.db import commit_on_success
+from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
@@ -18,7 +18,7 @@ def update_assets(data, date):
         return False
     try:
         old_device = Device.objects.exclude(
-            device_id=data['device_id'],
+            device_id=data['ralph_id'],
         ).get(
             asset_id=data['asset_id'],
         )
