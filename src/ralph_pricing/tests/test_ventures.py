@@ -11,9 +11,21 @@ from django.test import TestCase
 
 from ralph_pricing import models
 from ralph_pricing.views.ventures import AllVentures, TopVentures
+from ralph.business.models import Venture
 
 
 class TestVentures(TestCase):
+    def setUp(self):
+        ralphVenture = Venture(id=3, name='a', show_in_ralph=True)
+        ralphVenture.save()
+        ralphSubVenture = Venture(
+            id=2,
+            parent=ralphVenture,
+            name='b',
+            show_in_ralph=True,
+        )
+        ralphSubVenture.save()
+
     def test_ventures_all(self):
         day = datetime.date(2013, 4, 25)
         venture = models.Venture(venture_id=3, name='a')
@@ -66,7 +78,7 @@ class TestVentures(TestCase):
         )
         extra_cost.save()
         view = TopVentures()
-        for progress, data in view.get_data(day, day):
+        for progress, data in view.get_data(day, day, show_in_ralph=True):
             pass
         self.assertEquals(
             data,
@@ -74,6 +86,7 @@ class TestVentures(TestCase):
                 [
                     3,  # id
                     'a',  # path
+                    True, # show_in_ralph
                     '',  # department
                     '',  # business segment
                     '',  # Profit center
@@ -87,7 +100,7 @@ class TestVentures(TestCase):
             ],
         )
         view = AllVentures()
-        for progress, data in view.get_data(day, day):
+        for progress, data in view.get_data(day, day, show_in_ralph=True):
             pass
         self.assertEquals(
             data,
@@ -95,6 +108,7 @@ class TestVentures(TestCase):
                 [
                     3,
                     'a',
+                    True, # show_in_ralph
                     '',
                     '',
                     '',
@@ -108,6 +122,7 @@ class TestVentures(TestCase):
                 [
                     2,
                     'a/b',
+                    True, # show_in_ralph
                     '',
                     '',
                     '',
