@@ -5,15 +5,18 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
+
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.reports import Report, currency
 from ralph_pricing.models import UsageType, ExtraCostType, Venture
+from ralph.business.models import Venture as ralph_venture
 from ralph_pricing.forms import DateRangeForm
 
 
 class AllVentures(Report):
-    template_name = 'ralph_pricing/ventures.html'
+    template_name = 'ralph_pricing/ventures_all.html'
     Form = DateRangeForm
     section = 'all-ventures'
     report_name = _('All Ventures Report')
@@ -26,6 +29,11 @@ class AllVentures(Report):
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
+            show_in_ralph = ralph_venture.objects.get(
+                id=venture.venture_id
+            ).show_in_ralph
+            if kwargs['show_in_ralph'] and not show_in_ralph:
+                continue
             values_row = {}
             values.append(values_row)
             count, price, cost = venture.get_assets_count_price_cost(
@@ -37,6 +45,7 @@ class AllVentures(Report):
             row = [
                 venture.venture_id,
                 path,
+                show_in_ralph,
                 venture.department,
                 venture.business_segment,
                 venture.profit_center,
@@ -90,6 +99,7 @@ class AllVentures(Report):
         header = [
             _("ID"),
             _("Venture"),
+            _("Active at %s" % datetime.date.today()),
             _("Department"),
             _("Business segment"),
             _("Profit center"),
@@ -110,17 +120,23 @@ class AllVentures(Report):
 
 
 class TopVentures(AllVentures):
+    template_name = 'ralph_pricing/ventures_top.html'
     section = 'top-ventures'
     report_name = _('Top Ventures Report')
 
     @staticmethod
-    def get_data(start, end):
+    def get_data(start, end, **kwargs):
         ventures = Venture.objects.root_nodes().order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
         data = []
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
+            show_in_ralph = ralph_venture.objects.get(
+                id=venture.venture_id
+            ).show_in_ralph
+            if kwargs['show_in_ralph'] and not show_in_ralph:
+                continue
             values_row = {}
             values.append(values_row)
             count, price, cost = venture.get_assets_count_price_cost(
@@ -131,6 +147,7 @@ class TopVentures(AllVentures):
             row = [
                 venture.venture_id,
                 venture.name,
+                ralph_venture.objects.get(id=venture.venture_id).show_in_ralph,
                 venture.department,
                 venture.business_segment,
                 venture.profit_center,

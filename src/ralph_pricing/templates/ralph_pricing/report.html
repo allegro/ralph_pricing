@@ -13,12 +13,22 @@
 
 {% block contentarea %}
 <div class="row-fluid main-body"><div class="span12">
-{% if report_name %}<h1>{{ report_name }}</h1>{% endif %}
+    <div class="well well-small">
+        {% if report_name %}<h4>{{ report_name }}</h4>{% endif %}
+        {% block description %}
+        {% endblock %}
+    </div>
 <form class="form form-inline daterange-form">
 <div class="form-actions">
     {% for f in form %}
-        <div style="display:inline-block; vertical-align:top" class="control-group {% if f.errors %}error{% endif %}" >
-            {{ f }}
+        <div style="display:inline-block; vertica-align:top" class="control-group {% if f.errors %}error{% endif %}" >
+            {% if f.label %}
+                <label>
+                    <span style="vertical-align:middle; display:inline-block;">{{ f.label }}</span>&nbsp;{{ f }}
+                </label>
+            {% else %}
+                {{ f }}
+            {% endif %}
             {% if f.errors %}
                 <span class="help-block">
                     {% for e in f.errors %}{{ e }}{% endfor %}
