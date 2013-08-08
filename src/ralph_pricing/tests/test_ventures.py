@@ -78,7 +78,7 @@ class TestVentures(TestCase):
         )
         extra_cost.save()
         view = TopVentures()
-        for progress, data in view.get_data(day, day, active_only=True):
+        for progress, data in view.get_data(day, day, show_in_ralph=True):
             pass
         self.assertEquals(
             data,
@@ -100,7 +100,7 @@ class TestVentures(TestCase):
             ],
         )
         view = AllVentures()
-        for progress, data in view.get_data(day, day, active_only=True):
+        for progress, data in view.get_data(day, day, show_in_ralph=True):
             pass
         self.assertEquals(
             data,

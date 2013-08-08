@@ -22,18 +22,17 @@ class AllVentures(Report):
     report_name = _('All Ventures Report')
 
     @staticmethod
-    def get_data(start, end, active_only=False, **kwargs):
+    def get_data(start, end, show_in_ralph=False, **kwargs):
         ventures = Venture.objects.order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
         data = []
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
-            show_in_ralph = ralph_venture.objects.get(
+            show_venture = ralph_venture.objects.get(
                 id=venture.venture_id
             ).show_in_ralph
-            show = kwargs.get('show_in_ralph') or active_only
-            if show and not show_in_ralph:
+            if show_in_ralph and not show_venture:
                 continue
             values_row = {}
             values.append(values_row)
@@ -126,18 +125,17 @@ class TopVentures(AllVentures):
     report_name = _('Top Ventures Report')
 
     @staticmethod
-    def get_data(start, end, active_only=False, **kwargs):
+    def get_data(start, end, show_in_ralph=False, **kwargs):
         ventures = Venture.objects.root_nodes().order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
         data = []
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
-            show_in_ralph = ralph_venture.objects.get(
+            show_venture = ralph_venture.objects.get(
                 id=venture.venture_id
             ).show_in_ralph
-            show = kwargs.get('show_in_ralph') or active_only
-            if show and not show_in_ralph:
+            if show_in_ralph and not show_venture:
                 continue
             values_row = {}
             values.append(values_row)
