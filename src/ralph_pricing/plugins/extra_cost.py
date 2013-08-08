@@ -25,15 +25,15 @@ def update_extra_cost(data, date):
         end=data['end'] if data['end'] else datetime.date(2048, 10, 24),
         type=cost_type,
         pricing_venture=venture,
+        defaults={'price': decimal.Decimal('0')},
     )
-    extracost.price = decimal.Decimal(data['cost'] / 30.5),
+    extracost.price = decimal.Decimal(data['cost'] / 30.5)
     extracost.save()
     return created
 
 
 @plugin.register(chain='pricing', requires=['never run'])
 def extracost(**kwargs):
-
     date = kwargs['today']
     count = sum(
         update_extra_cost(data, date) for data in api_pricing.get_extra_cost()
