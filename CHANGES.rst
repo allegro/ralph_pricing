@@ -4,7 +4,7 @@ Change Log
 1.2.6
 ~~~~~
 
-Released on 08.08.2013
+Released on August 08, 2013
 
 * Added "show only active" option in the reports
 * Added short descriptions to reports templates
