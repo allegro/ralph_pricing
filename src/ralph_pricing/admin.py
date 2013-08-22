@@ -32,6 +32,9 @@ class DailyUsageInline(admin.TabularInline):
 
 @register(models.Device)
 class DeviceAdmin(ModelAdmin):
+    list_display = ('name', 'sn', 'barcode')
+    list_filter = ('is_virtual', 'is_blade')
+    search_fields = ('name', 'sn', 'barcode')
     inlines = [DailyDeviceInline, DailyPartInline, DailyUsageInline]
 
 
@@ -41,6 +44,10 @@ class ExtraCostInline(admin.TabularInline):
 
 @register(models.Venture)
 class VentureAdmin(ModelAdmin):
+    list_display = ('name', 'department', 'venture_id', 'business_segment',
+                    'profit_center')
+    list_filter = ('department', 'business_segment', 'profit_center')
+    search_fields = ('name', 'venture_id', 'symbol')
     inlines = [ExtraCostInline]
 
 
@@ -50,14 +57,19 @@ class UsagePriceInline(admin.TabularInline):
 
 @register(models.UsageType)
 class UsageTypeAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
     inlines = [UsagePriceInline]
 
 
 @register(models.ExtraCostType)
 class ExtraCostTypeAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
     inlines = [ExtraCostInline]
 
 
 @register(models.SplunkName)
 class SplunkNameAdmin(ModelAdmin):
     list_display = ('splunk_name', 'pricing_device')
+    search_fields = ('splunk_name',)
