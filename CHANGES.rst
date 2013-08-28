@@ -1,6 +1,12 @@
 Change Log
 ----------
 
+1.2.7
+~~~~~
+
+* Added search boxes, filters and additional columns in admin.
+
+
 1.2.6
 ~~~~~
 
@@ -11,8 +17,8 @@ Released on August 08, 2013
 * Fixed assets plugin - IntegrityError protection, added new tests
 * Show extra costs in the extra costs types admin
 
+
 1.0.0
 ~~~~~
-
 
 * initial release
