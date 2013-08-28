@@ -38,6 +38,7 @@ def update(data, usages, date):
     for key, usage in usages.iteritems():
         update_usage(device, venture, usage, date, data.get(key))
 
+
 def get_usages():
     cpu_usage, created = UsageType.objects.get_or_create(
         name="Virtual CPU cores",

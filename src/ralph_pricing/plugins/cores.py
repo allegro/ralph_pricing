@@ -30,6 +30,7 @@ def update_cores(data, usage_type, date):
     usage.save()
     return usage.value
 
+
 def get_usage():
     usage_type, created = UsageType.objects.get_or_create(
         name="Physical CPU cores",

@@ -31,7 +31,8 @@ class TestExtraCostPlugin(TestCase):
 
     def test_sync_extra_cost(self):
         count = sum(
-            update_extra_cost(data, self.date) for data in self.get_extra_cost()
+            update_extra_cost(data, self.date)
+            for data in self.get_extra_cost()
         )
         self.assertEqual(count, 1)
         usage_type = ExtraCostType.objects.get(name='extracost_1')

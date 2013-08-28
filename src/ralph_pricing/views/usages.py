@@ -18,7 +18,6 @@ from ralph_pricing.views.base import Base
 class Usages(Base):
     template_name = 'ralph_pricing/usages.html'
 
-
     def __init__(self, *args, **kwargs):
         super(Usages, self).__init__(*args, **kwargs)
         self.formset = None

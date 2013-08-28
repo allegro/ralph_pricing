@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 
 import datetime
 
-from decimal import Decimal
 from django.test import TestCase
 
 from ralph_pricing.models import Device, Venture, DailyDevice

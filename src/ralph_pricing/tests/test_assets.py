@@ -95,7 +95,3 @@ class TestAssetPlugin(TestCase):
         }
         device = Device.objects.get(device_id=123)
         self.assertEqual(device.sn, '5555-5555-5555-5555')
-
-
-
-

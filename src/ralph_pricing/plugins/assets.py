@@ -11,6 +11,7 @@ from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
 from ralph_pricing.models import Device, DailyDevice
 
+
 @commit_on_success
 def update_assets(data, date):
     created = False
