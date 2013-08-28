@@ -5,8 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import itertools
-
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm

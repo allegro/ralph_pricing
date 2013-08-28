@@ -84,18 +84,18 @@ class TestVentures(TestCase):
             data,
             [
                 [
-                    3,  # id
-                    'a',  # path
-                    True, # show_in_ralph
-                    '',  # department
-                    '',  # business segment
-                    '',  # Profit center
-                    2.0,  # assets count
+                    3,                 # id
+                    'a',               # path
+                    True,              # show_in_ralph
+                    '',                # department
+                    '',                # business segment
+                    '',                # Profit center
+                    2.0,               # assets count
                     '835 170.00 PLN',  # assets price
-                    '0.00 PLN',  # assets cost
-                    32.0,  # usage count
-                    '0.00 PLN',  # usage price
-                    '65 535.00 PLN',  # extra cost
+                    '0.00 PLN',        # assets cost
+                    32.0,              # usage count
+                    '0.00 PLN',        # usage price
+                    '65 535.00 PLN',   # extra cost
                 ],
             ],
         )
@@ -108,7 +108,7 @@ class TestVentures(TestCase):
                 [
                     3,
                     'a',
-                    True, # show_in_ralph
+                    True,  # show_in_ralph
                     '',
                     '',
                     '',
@@ -122,7 +122,7 @@ class TestVentures(TestCase):
                 [
                     2,
                     'a/b',
-                    True, # show_in_ralph
+                    True,  # show_in_ralph
                     '',
                     '',
                     '',
