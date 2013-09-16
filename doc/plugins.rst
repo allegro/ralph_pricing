@@ -79,7 +79,7 @@ then you can use the command::
 
     (ralph)$ ralph pricing_sync --run-only=openstack
 
-to pull in the billing information for OpenStack tennants.
+to pull in the billing information for OpenStack tenants.
 OpenStack plugin save five usages:
 
 - CPU Hours,
