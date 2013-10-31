@@ -5,6 +5,7 @@ Change Log
 ~~~~~
 
 * Added search boxes, filters and additional columns in admin.
+* Fixed corner-case bug related to calculation of bladesystems costs.
 
 
 1.2.6
