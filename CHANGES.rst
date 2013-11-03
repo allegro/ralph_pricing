@@ -3,6 +3,7 @@ Change Log
 
 1.2.7
 ~~~~~
+Released on November 03, 2013
 
 * Added search boxes, filters and additional columns in admin.
 
