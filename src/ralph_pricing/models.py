@@ -447,6 +447,10 @@ class DailyDevice(db.Model):
 
 class UsageType(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
+    symbol = db.CharField(verbose_name=_("symbol"),
+        max_length=255,
+        default="",
+    )
     average = db.BooleanField(
         verbose_name=_("Average the values over multiple days"),
         default=False,
@@ -495,7 +499,7 @@ class UsagePrice(db.Model):
 
 
 class DailyUsage(db.Model):
-    date = db.DateField()
+    date = db.DateTimeField()
     pricing_venture = db.ForeignKey(
         Venture,
         verbose_name=_("venture"),
@@ -513,6 +517,7 @@ class DailyUsage(db.Model):
         on_delete=db.SET_NULL,
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
+    total = db.FloatField(verbose_name=_("total usage"), default=0)
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
 
     class Meta:
