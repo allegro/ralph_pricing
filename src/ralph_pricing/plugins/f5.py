@@ -1,10 +1,19 @@
 import datetime
+import logging
 
 from pycontrol import pycontrol
 from django.conf import settings
 
 from ralph.util import plugin
-from ralph_pricing.models import UsageType, Venture, DailyUsage
+from ralph_pricing.models import (
+    UsageType,
+    Venture,
+    DailyUsage,
+    Device,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 wsdls = [
@@ -36,7 +45,6 @@ def get_f5_usages(host):
         vservs = lb_vs.get_list()
         if not vservs:
             continue
-        profiles = lb_vs.get_profile(vservs)
         stats = lb_vs.get_statistics(vservs)
         time = datetime.datetime(
             year=stats[1].year,
@@ -47,12 +55,12 @@ def get_f5_usages(host):
             second=stats[1].second,
         )
         stats = stats[0]
-        zippd = zip(vservs, profiles, stats)
+        zippd = zip(vservs, stats)
         statistics += zippd
     return statistics, time
 
 
-def _set_usage(symbol, venture, value, total, time):
+def _set_usage(symbol, venture, device, value, total, time):
     usage_type, created = UsageType.objects.get_or_create(
         name=symbol,  # temporary value, should be set up afterwards to something human friendly
         symbol=symbol,
@@ -64,10 +72,11 @@ def _set_usage(symbol, venture, value, total, time):
     )
     usage.value = value
     usage.total = total
+    usage.pricing_device = device
     usage.save()
 
 
-def _get_last_usage(symbol, venture):
+def _get_last_usage(symbol, venture, device):
     try:
         usage_type = UsageType.objects.get(symbol=symbol)
     except UsageType.DoesNotExist:
@@ -75,6 +84,7 @@ def _get_last_usage(symbol, venture):
     last_usage = DailyUsage.objects.filter(
         type=usage_type,
         pricing_venture=venture,
+        pricing_device=device,
     ).order_by("-date")
     if last_usage:
         return last_usage[0].total
@@ -82,73 +92,67 @@ def _get_last_usage(symbol, venture):
 
 
 def save_usages(usages):
-    for usage in usages.itervalues():
-        old_normal = _get_last_usage(
-            'f5_packages_normal',
-            usage['venture'],
-        )
-        new_normal = usage['throughput_normal'] - old_normal
-        _set_usage(
-            'f5_packages_normal',
-            usage['venture'],
-            new_normal,
-            usage['throughput_normal'],
-            usage['time'],
-        )
-
-        old_performance = _get_last_usage(
-            'f5_packages_performance',
-            usage['venture'],
-        )
-        new_performance = usage['throughput_performance'] - old_performance
-        _set_usage(
-            'f5_packages_performance',
-            usage['venture'],
-            new_performance,
-            usage['throughput_performance'],
-            usage['time'],
-        )
-
-
-def parse_usages(usages, time):
-    vent_usage = {}
-    for vserv in usages:
-        vserv_name = vserv[0]
+    for venture_symbol, usage in usages['usages'].iteritems():
         try:
-            venture = Venture.objects.get(symbol=vserv_name.split("-")[0])
-            if venture.symbol not in vent_usage:
-                vent_usage[venture.symbol] = {
-                    'throughput_performance': 0,
-                    'throughput_normal': 0,
-                    'ssl_trans': 0,
-                    'venture': venture,
-                    'time': time,
-                }
+            venture = Venture.objects.get(symbol=venture_symbol)
         except Venture.DoesNotExist:
             continue
-        throughput = 0
-        for stat in vserv[2][1]:
-            if stat.type in (
-                'STATISTIC_CLIENT_SIDE_PACKETS_IN',
-                'STATISTIC_CLIENT_SIDE_PACKETS_OUT',
-            ):
-                throughput += stat.value.low + stat.value.high
-                # adding because its bitwise high-order and low-order number
-        is_performance = False
-        for profile in vserv[1]:
-            if profile.profile_name == 'fastL4':
-                is_performance = True
-        if is_performance:
-            vent_usage[venture.symbol]['throughput_performance'] += throughput
-        else:
-            vent_usage[venture.symbol]['throughput_normal'] += throughput
-    return vent_usage
+        old_cpu = _get_last_usage(
+            'f5_cpu_usage',
+            venture,
+            usages['device'],
+        )
+        new_cpu = usage - old_cpu
+        _set_usage(
+            'f5_cpu_usage',
+            venture,
+            usages['device'],
+            new_cpu,
+            usage,
+            usages['time'],
+        )
 
 
-@plugin.register(chain='pricing', requires=['ping', 'http'])
+def get_f5_hostnames():
+    return settings.F5_HOSTNAMES
+
+
+def get_percentage_usage(date):
+    """
+    This function will return per-venture daily percentage usage of f5 device.
+    """
+    pass
+
+def parse_usages(usages, time, device):
+    ret = {
+        'device': device,
+        'time': time
+    }
+    usage = {}
+    for u in usages:
+        vserv_name = u[0]
+        try:
+            venture_symbol = vserv_name.split("/")[2].split("-")[0]
+        except IndexError:
+            continue
+        cpu = filter(
+            lambda s: s.type == "STATISTIC_VIRTUAL_SERVER_TOTAL_CPU_CYCLES",
+            u[1][1],
+        )[0]
+        total_usage = cpu.value.low + (cpu.value.high << 32) # bit high and low order
+        usage[venture_symbol] = usage.get(venture_symbol, 0) + abs(total_usage)
+    ret['usages'] = usage
+    return ret
+
+
+@plugin.register(chain='pricing', requires=['ventures'])
 def f5(**kwargs):
-    host = 'f5-1a.te2'
-    usages, time = get_f5_usages(host)
-    usages_parsed = parse_usages(usages, time)
-    save_usages(usages_parsed)
+    for host in get_f5_hostnames():
+        try:
+            device = Device.objects.get(name=host)
+            usages, time = get_f5_usages(host)
+            usages_parsed = parse_usages(usages, time, device)
+            save_usages(usages_parsed)
+        except Exception, e:
+            logger.exception("Error while getting F5 usages: {}".format(host))
     return True, 'F5 Usages saved', kwargs

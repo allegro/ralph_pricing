@@ -523,7 +523,7 @@ class DailyUsage(db.Model):
     class Meta:
         verbose_name = _("daily usage")
         verbose_name_plural = _("daily usages")
-        unique_together = ('date', 'pricing_device', 'type')
+        unique_together = ('date', 'pricing_device', 'type', 'pricing_venture')
         ordering = ('pricing_device', 'type', 'date')
 
     def __unicode__(self):
