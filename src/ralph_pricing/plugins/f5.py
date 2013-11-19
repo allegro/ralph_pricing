@@ -62,7 +62,7 @@ def get_f5_usages(host):
 
 def _set_usage(symbol, venture, device, value, total, time):
     usage_type, created = UsageType.objects.get_or_create(
-        name=symbol,  # temporary value, should be set up afterwards to something human friendly
+        name=symbol,  # should be edited in admin later
         symbol=symbol,
     )
     usage, created = DailyUsage.objects.get_or_create(
@@ -117,12 +117,6 @@ def get_f5_hostnames():
     return settings.F5_HOSTNAMES
 
 
-def get_percentage_usage(date):
-    """
-    This function will return per-venture daily percentage usage of f5 device.
-    """
-    pass
-
 def parse_usages(usages, time, device):
     ret = {
         'device': device,
@@ -139,7 +133,7 @@ def parse_usages(usages, time, device):
             lambda s: s.type == "STATISTIC_VIRTUAL_SERVER_TOTAL_CPU_CYCLES",
             u[1][1],
         )[0]
-        total_usage = cpu.value.low + (cpu.value.high << 32) # bit high and low order
+        total_usage = cpu.value.low + (cpu.value.high << 32)  # bit high and low order
         usage[venture_symbol] = usage.get(venture_symbol, 0) + abs(total_usage)
     ret['usages'] = usage
     return ret
