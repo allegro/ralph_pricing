@@ -34,7 +34,6 @@ setup(
         'ralph>=1.2.2',
         'ralph_assets>=1.0.0',
         'django-mptt==0.5.5',
-        'pycontrol==2.1',
     ],
     entry_points={
         'console_scripts': [
