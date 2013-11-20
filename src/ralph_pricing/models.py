@@ -406,7 +406,7 @@ class DailyDevice(db.Model):
             return total_price, total_cost
         if not daily_parent:
             try:
-                daily_parent = self.parent.dailydevice_set.filter(
+                daily_parent = self.parent.dailydevice_set.get(
                     date=self.date,
                 )
             except DailyDevice.DoesNotExist:
@@ -432,16 +432,21 @@ class DailyDevice(db.Model):
         total_price = D('0')
         total_cost = D('0')
         if self.pricing_device.slots and not self.pricing_device.is_blade:
-            for blade in self.pricing_device.children_set.filter(
-                    date=self.date,
-                    pricing_device__is_blade=True,
-            ):
-                price, cost = blade.get_bladesystem_price_cost(
-                    zero_deprecated,
-                    self,
+            try:
+               blades = self.pricing_device.children_set.filter(
+                        date=self.date,
+                        pricing_device__is_blade=True,
                 )
-                total_price += price
-                total_cost += cost
+            except AttributeError:
+                pass
+            else:
+                for blade in blades:
+                    price, cost = blade.get_bladesystem_price_cost(
+                        zero_deprecated,
+                        self,
+                    )
+                    total_price += price
+                    total_cost += cost
         return total_price, total_cost
 
 

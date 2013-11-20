@@ -5,8 +5,10 @@ Change Log
 
 1.2.7
 ~~~~~
+Released on November 03, 2013
 
 * Added search boxes, filters and additional columns in admin.
+* Fixed corner-case bug related to calculation of bladesystems costs.
 
 
 1.2.6

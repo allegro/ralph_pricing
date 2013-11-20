@@ -23,15 +23,19 @@ class AllVentures(Report):
 
     @staticmethod
     def get_data(start, end, show_in_ralph=False, **kwargs):
+        # 'show_in_ralph' == 'show only active' checkbox in gui
         ventures = Venture.objects.order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
         data = []
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
-            show_venture = ralph_venture.objects.get(
-                id=venture.venture_id
-            ).show_in_ralph
+            try:
+                show_venture = ralph_venture.objects.get(
+                    id=venture.venture_id,
+                ).show_in_ralph
+            except ralph_venture.DoesNotExist:
+                show_venture = False
             if show_in_ralph and not show_venture:
                 continue
             values_row = {}
@@ -45,7 +49,7 @@ class AllVentures(Report):
             row = [
                 venture.venture_id,
                 path,
-                show_in_ralph,
+                show_venture,
                 venture.department,
                 venture.business_segment,
                 venture.profit_center,
@@ -126,15 +130,19 @@ class TopVentures(AllVentures):
 
     @staticmethod
     def get_data(start, end, show_in_ralph=False, **kwargs):
+        # 'show_in_ralph' == 'show only active' checkbox in gui
         ventures = Venture.objects.root_nodes().order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
         data = []
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
-            show_venture = ralph_venture.objects.get(
-                id=venture.venture_id
-            ).show_in_ralph
+            try:
+                show_venture = ralph_venture.objects.get(
+                    id=venture.venture_id
+                ).show_in_ralph
+            except ralph_venture.DoesNotExist:
+                show_venture = False
             if show_in_ralph and not show_venture:
                 continue
             values_row = {}
@@ -147,7 +155,7 @@ class TopVentures(AllVentures):
             row = [
                 venture.venture_id,
                 venture.name,
-                ralph_venture.objects.get(id=venture.venture_id).show_in_ralph,
+                show_venture,
                 venture.department,
                 venture.business_segment,
                 venture.profit_center,
