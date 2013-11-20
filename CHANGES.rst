@@ -1,6 +1,8 @@
 Change Log
 ----------
 
+* F5 devices billing
+
 1.2.7
 ~~~~~
 Released on November 03, 2013
