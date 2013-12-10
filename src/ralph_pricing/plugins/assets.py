@@ -49,8 +49,8 @@ def update_assets(data, date):
         pricing_device=device,
     )
     daily.price = data['price']
-    # this situation can not happen practically, deprecation cannot by None
-    # resolving problem is in progress
+    # This situation can not happen, depreciation rate cannot be None.
+    # Solving this problem is in progress
     daily.deprecation_rate = \
         data['deprecation_rate'] if data['deprecation_rate'] else 0
     daily.is_deprecated = data['is_deprecated']
