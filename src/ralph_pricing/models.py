@@ -60,6 +60,11 @@ class Device(db.Model):
     )
     is_virtual = db.BooleanField(verbose_name=_("is virtual"), default=False)
     is_blade = db.BooleanField(verbose_name=_("is blade"), default=False)
+    power_consumption = db.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+    )
     slots = db.FloatField(verbose_name=_("slots"), default=0)
 
     class Meta:

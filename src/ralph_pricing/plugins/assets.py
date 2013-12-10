@@ -36,6 +36,7 @@ def update_assets(data, date):
         device.device_id = data['ralph_id']
     device.asset_id = data['asset_id']
     device.slots = data['slots']
+    device.power_consumption = data['power_consumption']
     device.sn = data['sn']
     device.barcode = data['barcode']
     device.save()
@@ -44,7 +45,10 @@ def update_assets(data, date):
         pricing_device=device,
     )
     daily.price = data['price']
-    daily.deprecation_rate = data['deprecation_rate']
+    # this situation can not happen practically, deprecation cannot by None
+    # resolving problem is in progress
+    daily.deprecation_rate = \
+        data['deprecation_rate'] if data['deprecation_rate'] else 0
     daily.is_deprecated = data['is_deprecated']
     daily.save()
     return created
@@ -55,5 +59,5 @@ def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
 
     date = kwargs['today']
-    count = sum(update_assets(data, date) for data in get_assets())
+    count = sum(update_assets(data, date) for data in get_assets(date))
     return True, '%d new devices' % count, kwargs

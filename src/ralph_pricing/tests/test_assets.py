@@ -23,6 +23,7 @@ class TestAssetPlugin(TestCase):
             'asset_id': 1123,
             'ralph_id': 13342,
             'slots': 10.0,
+            'power_consumption': 1000,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
@@ -39,6 +40,7 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(device.device_id, 13342)
         self.assertEqual(device.asset_id, 1123)
         self.assertEqual(device.slots, 10.0)
+        self.assertEqual(device.power_consumption, 1000)
         self.assertEqual(device.sn, '1234-1234-1234-1234')
         self.assertEqual(device.barcode, '4321-4321-4321-4321')
 
@@ -58,6 +60,7 @@ class TestAssetPlugin(TestCase):
             'asset_id': 1123,
             'ralph_id': None,
             'slots': 10.0,
+            'power_consumption': 1000,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
@@ -72,6 +75,7 @@ class TestAssetPlugin(TestCase):
             'asset_id': 1123,
             'ralph_id': 123,
             'slots': 10.0,
+            'power_consumption': 1000,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
@@ -87,6 +91,7 @@ class TestAssetPlugin(TestCase):
             'asset_id': 1123,
             'ralph_id': 123,
             'slots': 10.0,
+            'power_consumption': 1000,
             'price': 100,
             'is_deprecated': True,
             'sn': '5555-5555-5555-5555',
