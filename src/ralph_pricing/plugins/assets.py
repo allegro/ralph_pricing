@@ -14,6 +14,10 @@ from ralph_pricing.models import Device, DailyDevice
 
 @commit_on_success
 def update_assets(data, date):
+    """
+        Used by assets plugin. Update pricing device model according to the
+        relevant rules.
+    """
     created = False
     if not data['ralph_id']:
         return False
