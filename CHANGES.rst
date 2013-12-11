@@ -1,11 +1,19 @@
 Change Log
 ----------
 
+1.2.8
+~~~~~
+Released on December 11, 2013
+
+* F5 devices billing added.
+
+
 1.2.7
 ~~~~~
 Released on November 03, 2013
 
 * Added search boxes, filters and additional columns in admin.
+* Fixed corner-case bug related to calculation of bladesystems costs.
 
 
 1.2.6
