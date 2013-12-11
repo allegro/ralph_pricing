@@ -7,6 +7,7 @@ Released on December 11, 2013
 
 * F5 devices billing added.
 
+
 1.2.7
 ~~~~~
 Released on November 03, 2013
