@@ -82,6 +82,7 @@ class TestDevices(TestCase):
                 u'',
                 u'0.00 PLN',
                 100.0,
+                u'',
             ],
             [
                 u'',
@@ -93,6 +94,7 @@ class TestDevices(TestCase):
                 u'',
                 u'0.00 PLN',
                 400.0,
+                u'',
             ],
             [
                 u'host01.dc1',
@@ -104,6 +106,7 @@ class TestDevices(TestCase):
                 u'275.00 PLN',
                 u'3.72 PLN',
                 u'',
+                u'0 kWh',
             ],
             [
                 u'',
@@ -114,6 +117,7 @@ class TestDevices(TestCase):
                 u'',
                 '175.00 PLN',
                 u'2.37 PLN',
+                u'',
                 u'',
             ],
             [
@@ -126,6 +130,7 @@ class TestDevices(TestCase):
                 u'100.00 PLN',
                 u'1.35 PLN',
                 u'',
+                u'',
             ],
             [
                 u'',
@@ -137,6 +142,7 @@ class TestDevices(TestCase):
                 u'',
                 u'0.00 PLN',
                 350.0,
+                u'',
             ],
             [
                 u'host02.dc1',
@@ -148,6 +154,7 @@ class TestDevices(TestCase):
                 u'175.00 PLN',
                 u'0.00 PLN',
                 u'',
+                u'0 kWh',
             ],
             [
                 u'',
@@ -159,6 +166,7 @@ class TestDevices(TestCase):
                 u'',
                 u'0.00 PLN',
                 975.0,
+                u'',
             ],
             [
                 u'host03.dc1',
@@ -170,6 +178,7 @@ class TestDevices(TestCase):
                 u'187.50 PLN',
                 u'0.00 PLN',
                 u'',
+                u'0 kWh',
             ],
             [
                 u'host04.dc1',
@@ -180,7 +189,8 @@ class TestDevices(TestCase):
                 u'2013-01-01: False',
                 u'50.00 PLN',
                 u'0.00 PLN',
-                u''
+                u'',
+                u'0 kWh',
             ],
         ]
 
@@ -203,6 +213,7 @@ class TestDevices(TestCase):
                 u'',
                 u'0.00 PLN',
                 100.0,
+                u'',
             ],
             [
                 u'',
@@ -214,6 +225,7 @@ class TestDevices(TestCase):
                 u'',
                 u'0.00 PLN',
                 300.0,
+                u'',
             ],
             [
                 u'host02.dc1',
@@ -225,6 +237,7 @@ class TestDevices(TestCase):
                 u'200.00 PLN',
                 u'0.00 PLN',
                 u'',
+                u'0 kWh',
             ],
             [
                 u'',
@@ -236,6 +249,7 @@ class TestDevices(TestCase):
                 u'',
                 u'0.00 PLN',
                 575.0,
+                u'',
             ],
             [
                 u'host03.dc1',
@@ -247,6 +261,7 @@ class TestDevices(TestCase):
                 u'166.67 PLN',
                 u'0.00 PLN',
                 u'',
+                u'0 kWh',
             ],
             [
                 u'host04.dc1',
@@ -258,6 +273,7 @@ class TestDevices(TestCase):
                 u'50.00 PLN',
                 u'0.00 PLN',
                 u'',
+                u'0 kWh',
             ],
         ]
         i = 0
