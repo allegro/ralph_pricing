@@ -1,7 +1,10 @@
 Change Log
 ----------
 
-* F5 devices billing
+1.2.8
+~~~~~
+Released on December 11, 2013
+* F5 devices billing added.
 
 1.2.7
 ~~~~~
