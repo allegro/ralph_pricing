@@ -55,5 +55,5 @@ def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
 
     date = kwargs['today']
-    count = sum(update_assets(data, date) for data in get_assets())
+    count = sum(update_assets(data, date) for data in get_assets(date))
     return True, '%d new devices' % count, kwargs
