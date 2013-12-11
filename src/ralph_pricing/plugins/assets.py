@@ -15,8 +15,8 @@ from ralph_pricing.models import Device, DailyDevice
 @commit_on_success
 def update_assets(data, date):
     """
-        Used by assets plugin. Update pricing device model according to the
-        relevant rules.
+    Used by assets plugin. Update pricing device model according to the
+    relevant rules.
     """
     created = False
     if not data['ralph_id']:
@@ -51,8 +51,10 @@ def update_assets(data, date):
     daily.price = data['price']
     # This situation can not happen, depreciation rate cannot be None.
     # Solving this problem is in progress
-    daily.deprecation_rate = \
-        data['deprecation_rate'] if data['deprecation_rate'] else 0
+    if daily.deprecation_rate is not None:
+        daily.deprecation_rate = data['deprecation_rate']
+    else:
+        daily.deprecation_rate = 0
     daily.is_deprecated = data['is_deprecated']
     daily.save()
     return created
