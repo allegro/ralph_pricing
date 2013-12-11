@@ -33,6 +33,10 @@ def currency(value):
 
     return '{:,.2f} {}'.format(value or 0, settings.CURRENCY).replace(',', ' ')
 
+def power_consumption(value):
+    """Formats power consumption as string according to the settings."""
+
+    return '{:,} {}'.format(value or 0, settings.POWER_CONSUMPTION_UNIT).replace(',', ' ')
 
 def _get_cache_key(section, **kwargs):
     return b'{}?{}'.format(section, urllib.urlencode(kwargs))

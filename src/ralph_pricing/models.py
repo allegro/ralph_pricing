@@ -45,7 +45,7 @@ def get_usages_count_price(query, start, end):
 
 class Device(db.Model):
     """
-    Pricing device model contain data downloaded from devices and assets.
+    Pricing device model contains data downloaded from devices and assets.
     """
     name = db.CharField(verbose_name=_("name"), max_length=255)
     sn = db.CharField(max_length=200, null=True, blank=True)
