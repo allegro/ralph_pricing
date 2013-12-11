@@ -14,6 +14,7 @@ from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
 
+
 class Command(BaseCommand):
     """Check for the devices in the database that are parts of blade systems,
     but have no 'slots' set. Try to fix this information with the use of
@@ -54,13 +55,13 @@ class Command(BaseCommand):
 
     def _get_broken_count(self):
         """Return the number of currently slotless blade devices."""
-        self.cur.execute(self.COUNT_QUERY);
+        self.cur.execute(self.COUNT_QUERY)
         return self.cur.fetchall()[0][0]
 
     def handle(self, commit, **kwargs):
         """Perform the query and print out some stats."""
         before_count = self._get_broken_count()
-        self.cur.execute(self.FIX_QUERY);
+        self.cur.execute(self.FIX_QUERY)
         after_count = self._get_broken_count()
         fixed_count = before_count - after_count
 
@@ -74,6 +75,6 @@ Left: {after_count}
             transaction.commit_unless_managed()
         else:
             print(
-                """Use this command with --commit switch to commit the fix to database.""")
-
-        
+                "Use this command with --commit switch to commit the fix to"
+                " database."
+            )

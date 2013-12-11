@@ -44,6 +44,9 @@ def get_usages_count_price(query, start, end):
 
 
 class Device(db.Model):
+    """
+    Pricing device model contains data downloaded from devices and assets.
+    """
     name = db.CharField(verbose_name=_("name"), max_length=255)
     sn = db.CharField(max_length=200, null=True, blank=True)
     barcode = db.CharField(max_length=200, null=True, blank=True, default=None)
@@ -61,6 +64,11 @@ class Device(db.Model):
     is_virtual = db.BooleanField(verbose_name=_("is virtual"), default=False)
     is_blade = db.BooleanField(verbose_name=_("is blade"), default=False)
     slots = db.FloatField(verbose_name=_("slots"), default=0)
+    power_consumption = db.IntegerField(
+        null=True,
+        blank=True,
+        default=0,
+    )
 
     class Meta:
         verbose_name = _("device")
@@ -433,9 +441,9 @@ class DailyDevice(db.Model):
         total_cost = D('0')
         if self.pricing_device.slots and not self.pricing_device.is_blade:
             try:
-               blades = self.pricing_device.children_set.filter(
-                        date=self.date,
-                        pricing_device__is_blade=True,
+                blades = self.pricing_device.children_set.filter(
+                    date=self.date,
+                    pricing_device__is_blade=True,
                 )
             except AttributeError:
                 pass
@@ -452,7 +460,8 @@ class DailyDevice(db.Model):
 
 class UsageType(db.Model):
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
-    symbol = db.CharField(verbose_name=_("symbol"),
+    symbol = db.CharField(
+        verbose_name=_("symbol"),
         max_length=255,
         default="",
     )

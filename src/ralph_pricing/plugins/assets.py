@@ -14,6 +14,10 @@ from ralph_pricing.models import Device, DailyDevice
 
 @commit_on_success
 def update_assets(data, date):
+    """
+    Used by assets plugin. Update pricing device model according to the
+    relevant rules.
+    """
     created = False
     if not data['ralph_id']:
         return False
@@ -36,6 +40,7 @@ def update_assets(data, date):
         device.device_id = data['ralph_id']
     device.asset_id = data['asset_id']
     device.slots = data['slots']
+    device.power_consumption = data['power_consumption']
     device.sn = data['sn']
     device.barcode = data['barcode']
     device.save()
@@ -44,7 +49,12 @@ def update_assets(data, date):
         pricing_device=device,
     )
     daily.price = data['price']
-    daily.deprecation_rate = data['deprecation_rate']
+    # This situation can not happen, depreciation rate cannot be None.
+    # Solving this problem is in progress
+    if daily.deprecation_rate:
+        daily.deprecation_rate = data['deprecation_rate']
+    else:
+        daily.deprecation_rate = 0
     daily.is_deprecated = data['is_deprecated']
     daily.save()
     return created
@@ -55,5 +65,5 @@ def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
 
     date = kwargs['today']
-    count = sum(update_assets(data, date) for data in get_assets())
+    count = sum(update_assets(data, date) for data in get_assets(date))
     return True, '%d new devices' % count, kwargs

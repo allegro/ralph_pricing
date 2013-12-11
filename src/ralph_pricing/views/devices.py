@@ -9,10 +9,15 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
 from ralph_pricing.models import DailyDevice, Device
-from ralph_pricing.views.reports import Report, currency
+from ralph_pricing.views.reports import Report, currency, power_consumption
 
 
 class Devices(Report):
+    '''
+    Devices raport class for building devices reports. Contains hard coded
+    label for columns. This class is sent to a queue in order to generate
+    report
+    '''
     template_name = 'ralph_pricing/devices.html'
     Form = DateRangeVentureForm
     section = 'devices'
@@ -20,6 +25,16 @@ class Devices(Report):
 
     @staticmethod
     def get_data(start, end, venture, **kwargs):
+        '''
+        Build and return list of lists contains full data for devices raport.
+        Additional return a progress like a total count of rows in raport
+
+        :param datetime.date start: Start date of the interval for the report
+        :param datetime.date end: End date of the interval for the report
+        :param class venture: Venture pricing model
+        :returns tuple: progress and list of lists contains report data
+        :rtype tuple:
+        '''
         if not venture:
             return
         devices_ids = DailyDevice.objects.filter(
@@ -55,6 +70,7 @@ class Devices(Report):
                 '',
                 currency(usage['price']),
                 usage['count'],
+                '',
             ]
             data.append(row)
         for i, device in enumerate(devices):
@@ -73,7 +89,9 @@ class Devices(Report):
                 currency(price),
                 currency(cost),
                 '',
+                power_consumption(device.power_consumption),
             ])
+
             for part in device.get_daily_parts(start, end):
                 data.append([
                     '',
@@ -84,6 +102,7 @@ class Devices(Report):
                     part.get('deprecation', ''),
                     currency(part['price']),
                     currency(part['cost']),
+                    '',
                     '',
                 ])
 
@@ -98,12 +117,20 @@ class Devices(Report):
                     '',
                     currency(usage['price']),
                     usage['count'],
+                    '',
                 ])
             progress = (100 * i) // total_count
             yield progress, data
 
     @staticmethod
     def get_header(**kwargs):
+        '''
+        Contains hard coded label names for devices report
+
+        :returns list: label names for devices report
+        :rtype list:
+        '''
+        print (str(kwargs))
         header = [
             _("Device"),
             _("Component name"),
@@ -114,5 +141,6 @@ class Devices(Report):
             _("Price"),
             _("Cost"),
             _("Usage count"),
+            _("Power consumption"),
         ]
         return header
