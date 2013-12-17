@@ -23,7 +23,7 @@ class VentureNotDefinedError(Exception):
 
 class DefinedVentureDoesNotExist(Exception):
     '''
-        Exception raised when there is no venture for the defined symbol  
+        Exception raised when there is no venture for the defined symbol
     '''
     pass
 
@@ -81,7 +81,7 @@ def powerconsumption(**kwargs):
         try:
             count += set_usages(device, kwargs['today'])
         except DefinedVentureDoesNotExist:
-            logger.error('Venture: %s does not exist' % venture_symbol)
+            logger.error('Venture does not exist')
         except VentureNotDefinedError:
             logger.error(
                 'Venture: device have no any information about venture'

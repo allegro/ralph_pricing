@@ -29,6 +29,7 @@ class TestAssetPlugin(TestCase):
             'sn': '1234-1234-1234-1234',
             'barcode': '4321-4321-4321-4321',
             'deprecation_rate': 0,
+            'venture_symbol': 'test_venture_symbol',
         }
 
     def test_sync_asset_device(self):

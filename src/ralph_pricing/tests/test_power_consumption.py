@@ -11,9 +11,9 @@ import logging
 
 from django.test import TestCase
 
-from ralph_pricing.models import Device, UsageType, DailyUsage, Venture
+from ralph_pricing.models import Device, DailyUsage, Venture
 from ralph.util import plugin
-from ralph_pricing import plugins 
+from ralph_pricing import plugins # noqa
 from ralph_pricing.plugins.power_consumption import (
     set_usages,
     VentureNotDefinedError,
@@ -51,7 +51,7 @@ class TestPowerConsumption(TestCase):
         )
 
     def test_create_many_daily_usage_imprints_of_power_consumption_(self):
-        self._create_ventures_and_devices(2) 
+        self._create_ventures_and_devices(2)
 
         success, message, context = plugin.run(
             'pricing',
@@ -64,7 +64,6 @@ class TestPowerConsumption(TestCase):
     def _create_ventures_and_devices(self, count):
         for i in xrange(count):
             symbol = 'test_venture_symbol_{0}'.format(i)
-            name = 'test_venture_{0}'.format(i)
             self._create_venture(i, symbol)
             self._create_device(i, symbol)
 
@@ -79,7 +78,7 @@ class TestPowerConsumption(TestCase):
                        venture_symbol='test_venture_symbol',
                        power_consumption=10):
         Device(
-            device_id = device_id,
+            device_id=device_id,
             venture_symbol=venture_symbol,
             power_consumption=power_consumption,
         ).save()
