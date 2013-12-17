@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.forms import DateRangeVentureForm
 from ralph_pricing.models import DailyDevice, Device
-from ralph_pricing.views.reports import Report, currency, power_consumption
+from ralph_pricing.views.reports import Report, currency
 
 
 class Devices(Report):
@@ -56,7 +56,6 @@ class Devices(Report):
                 '',
                 '',
                 '',
-                '',
             ]
             data.append(row)
         for usage in venture.get_daily_usages(start, end):
@@ -70,7 +69,6 @@ class Devices(Report):
                 '',
                 currency(usage['price']),
                 usage['count'],
-                '',
             ]
             data.append(row)
         for i, device in enumerate(devices):
@@ -89,7 +87,6 @@ class Devices(Report):
                 currency(price),
                 currency(cost),
                 '',
-                power_consumption(device.power_consumption),
             ])
 
             for part in device.get_daily_parts(start, end):
@@ -102,7 +99,6 @@ class Devices(Report):
                     part.get('deprecation', ''),
                     currency(part['price']),
                     currency(part['cost']),
-                    '',
                     '',
                 ])
 
@@ -117,7 +113,6 @@ class Devices(Report):
                     '',
                     currency(usage['price']),
                     usage['count'],
-                    '',
                 ])
             progress = (100 * i) // total_count
             yield progress, data
@@ -141,6 +136,5 @@ class Devices(Report):
             _("Price"),
             _("Cost"),
             _("Usage count"),
-            _("Power consumption"),
         ]
         return header

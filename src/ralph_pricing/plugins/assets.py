@@ -18,6 +18,9 @@ def update_assets(data, date):
     Used by assets plugin. Update pricing device model according to the
     relevant rules.
     """
+    if not data['venture_symbol']:
+        return False
+
     created = False
     if not data['ralph_id']:
         return False
@@ -41,6 +44,7 @@ def update_assets(data, date):
     device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.power_consumption = data['power_consumption']
+    device.venture_symbol = data['venture_symbol']
     device.sn = data['sn']
     device.barcode = data['barcode']
     device.save()
@@ -51,7 +55,7 @@ def update_assets(data, date):
     daily.price = data['price']
     # This situation can not happen, depreciation rate cannot be None.
     # Solving this problem is in progress
-    if daily.deprecation_rate:
+    if data['deprecation_rate']:
         daily.deprecation_rate = data['deprecation_rate']
     else:
         daily.deprecation_rate = 0

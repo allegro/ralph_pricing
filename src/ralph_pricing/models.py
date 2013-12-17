@@ -69,6 +69,12 @@ class Device(db.Model):
         blank=True,
         default=0,
     )
+    venture_symbol = db.CharField(
+        verbose_name=_("symbol"),
+        max_length=32,
+        blank=True,
+        default="",
+    )
 
     class Meta:
         verbose_name = _("device")
