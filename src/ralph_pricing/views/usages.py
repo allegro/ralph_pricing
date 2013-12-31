@@ -5,14 +5,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django import forms
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
 from ralph_pricing.forms import UsagesFormSet
 from ralph_pricing.menus import usages_menu
-from ralph_pricing.models import UsageType, Warehouse
+from ralph_pricing.models import UsageType
 from ralph_pricing.views.base import Base
 
 

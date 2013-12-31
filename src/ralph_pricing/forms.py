@@ -89,7 +89,7 @@ class UsagePriceForm(forms.ModelForm):
     class Meta:
         model = UsagePrice
 
-        fields = 'warehouse', 'price', 'cost','start', 'end'
+        fields = 'warehouse', 'price', 'cost', 'start', 'end'
         widgets = {
             'start': DateWidget(attrs={'class': 'input-small'}),
             'end': DateWidget(attrs={'class': 'input-small'}),
@@ -118,22 +118,22 @@ class UsagesBaseFormSet(forms.models.BaseModelFormSet):
             if not start or not end:
                 continue
             for other_start, other_end, other_warehouse in dates:
-                if (other_start <= start <= other_end 
-                    and other_warehouse == warehouse):
+                if (other_start <= start <= other_end
+                        and other_warehouse == warehouse):
                     form._errors['start'] = form.error_class([
                         _("Start date overlaps with an existing extra "
                             "cost of the same type and warehouse."),
                     ])
                     break
                 if (other_start <= end <= other_end
-                    and other_warehouse == warehouse):
+                        and other_warehouse == warehouse):
                     form._errors['end'] = form.error_class([
                         _("End date overlaps with an existing extra "
                             "cost of the same type and warehouse."),
                     ])
                     break
                 if (start <= other_start <= end
-                    and other_warehouse == warehouse):
+                        and other_warehouse == warehouse):
                     form._errors['start'] = form.error_class([
                         _("A start date of an existing extra cost of "
                             "the same type and warehouse overlaps with "
@@ -141,7 +141,7 @@ class UsagesBaseFormSet(forms.models.BaseModelFormSet):
                     ])
                     break
                 if (start <= other_end <= end
-                    and other_warehouse == warehouse):
+                        and other_warehouse == warehouse):
                     form._errors['start'] = form.error_class([
                         _("An end date of an existing extra cost of "
                             "the same type and warehouse overlaps with "
@@ -160,11 +160,16 @@ UsagesFormSet = forms.models.modelformset_factory(
 )
 
 
+def get_choices_for_date_range_form():
+    choices = ((0, '----'),)
+    for warehouse in Warehouse.objects.all():
+        choices = choices + ((warehouse.id, warehouse.name),)
+    return choices
+
+
 class DateRangeForm(forms.Form):
     warehouse = forms.ChoiceField(
-        # Create list of warehouses with first element (0, ----)
-        choices=((0, '----'),) + tuple((warehouse.id, warehouse.name)
-            for warehouse in Warehouse.objects.all())
+        choices=get_choices_for_date_range_form()
     )
     start = forms.DateField(
         widget=DateWidget(

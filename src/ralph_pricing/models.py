@@ -519,7 +519,11 @@ class UsageType(db.Model):
         return self.name
 
     def get_price_at(self, date, warehouse):
-        return self.usageprice_set.get(start__lte=date, end__gte=date, warehouse=warehouse).price
+        return self.usageprice_set.get(
+            start__lte=date,
+            end__gte=date,
+            warehouse=warehouse
+        ).price
 
 
 class UsagePrice(db.Model):
@@ -537,7 +541,12 @@ class UsagePrice(db.Model):
     )
     start = db.DateField()
     end = db.DateField()
-    warehouse = db.ForeignKey(Warehouse, null=True, blank=True, on_delete=db.PROTECT)
+    warehouse = db.ForeignKey(
+        Warehouse,
+        null=True,
+        blank=True,
+        on_delete=db.PROTECT
+    )
 
     class Meta:
         verbose_name = _("usage price")
@@ -555,7 +564,7 @@ class UsagePrice(db.Model):
             self.type,
             self.start,
             self.end,
-    )
+        )
 
 
 class DailyUsage(db.Model):
