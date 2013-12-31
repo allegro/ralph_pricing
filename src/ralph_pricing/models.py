@@ -10,6 +10,12 @@ from dateutil import rrule
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from lck.django.common.models import (
+    EditorTrackable,
+    Named,
+    TimeTrackable,
+    WithConcurrentGetOrCreate,
+)
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -18,7 +24,7 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
-def get_usages_count_price(query, start, end):
+def get_usages_count_price(query, start, end, warehouse):
     days = (end - start).days + 1
     count = 0
     price = D(0)
@@ -31,7 +37,7 @@ def get_usages_count_price(query, start, end):
             else:
                 count += daily_count
             try:
-                daily_price = usage.type.get_price_at(day)
+                daily_price = usage.type.get_price_at(day, warehouse)
             except (
                 UsagePrice.DoesNotExist,
                 UsagePrice.MultipleObjectsReturned,
@@ -41,6 +47,12 @@ def get_usages_count_price(query, start, end):
                 if price is not None:
                     price += D(daily_count) * daily_price
     return count, price
+
+
+class Warehouse(TimeTrackable, EditorTrackable, Named,
+                WithConcurrentGetOrCreate):
+    def __unicode__(self):
+        return self.name
 
 
 class Device(db.Model):
@@ -75,6 +87,7 @@ class Device(db.Model):
         blank=True,
         default="",
     )
+    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
 
     class Meta:
         verbose_name = _("device")
@@ -228,15 +241,25 @@ class Venture(MPTTModel):
             total_count += 1
         return total_count / days, total_price / days, total_cost
 
-    def get_usages_count_price(
-        self, start, end, type_, descendants=False, query=None
-    ):
+    def get_usages_count_price(self,
+                               start,
+                               end,
+                               type_,
+                               warehouse=None,
+                               descendants=False,
+                               query=None):
         if query is None:
             query = DailyUsage.objects
         query = query.filter(type=type_)
         query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
-        return get_usages_count_price(query, start, end)
+
+        if warehouse:
+            query = query.filter(warehouse=warehouse)
+        else:
+            warehouse = None
+
+        return get_usages_count_price(query, start, end, warehouse)
 
     def get_extra_costs(self, start, end, type_, descendants=False):
         price = D('0')
@@ -483,6 +506,10 @@ class UsageType(db.Model):
         verbose_name=_("Show percentage of price"),
         default=False,
     )
+    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
+    by_warehouse = db.BooleanField(
+        default=False,
+    )
 
     class Meta:
         verbose_name = _("usage type")
@@ -491,8 +518,8 @@ class UsageType(db.Model):
     def __unicode__(self):
         return self.name
 
-    def get_price_at(self, date):
-        return self.usageprice_set.get(start__lte=date, end__gte=date).price
+    def get_price_at(self, date, warehouse):
+        return self.usageprice_set.get(start__lte=date, end__gte=date, warehouse=warehouse).price
 
 
 class UsagePrice(db.Model):
@@ -502,20 +529,33 @@ class UsagePrice(db.Model):
         decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
     )
+    cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        default=0.00,
+        verbose_name=_("cost"),
+    )
     start = db.DateField()
     end = db.DateField()
+    warehouse = db.ForeignKey(Warehouse, null=True, blank=True, on_delete=db.PROTECT)
 
     class Meta:
         verbose_name = _("usage price")
         verbose_name_plural = _("usage prices")
+
         unique_together = [
-            ('start', 'type'),
-            ('end', 'type'),
+            ('warehouse', 'start', 'type'),
+            ('warehouse', 'end', 'type'),
         ]
-        ordering = ('type', 'start')
+        ordering = ('type', '-start')
 
     def __unicode__(self):
-        return '{} ({}-{})'.format(self.type, self.start, self.end)
+        return '{}-{} ({}-{})'.format(
+            self.warehouse,
+            self.type,
+            self.start,
+            self.end,
+    )
 
 
 class DailyUsage(db.Model):
@@ -539,6 +579,7 @@ class DailyUsage(db.Model):
     value = db.FloatField(verbose_name=_("value"), default=0)
     total = db.FloatField(verbose_name=_("total usage"), default=0)
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
+    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
 
     class Meta:
         verbose_name = _("daily usage")

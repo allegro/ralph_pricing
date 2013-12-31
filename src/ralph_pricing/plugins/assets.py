@@ -9,7 +9,7 @@ from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
-from ralph_pricing.models import Device, DailyDevice
+from ralph_pricing.models import Device, DailyDevice, Warehouse
 
 
 @commit_on_success
@@ -19,6 +19,11 @@ def update_assets(data, date):
     relevant rules.
     """
     if not data['venture_symbol']:
+        return False
+
+    try:
+        warehouse = Warehouse.objects.get(id=data['warehouse_id'])
+    except Warehouse.DoesNotExist:
         return False
 
     created = False
@@ -47,6 +52,7 @@ def update_assets(data, date):
     device.venture_symbol = data['venture_symbol']
     device.sn = data['sn']
     device.barcode = data['barcode']
+    device.warehouse = warehouse
     device.save()
     daily, daily_created = DailyDevice.objects.get_or_create(
         date=date,

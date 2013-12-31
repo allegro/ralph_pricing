@@ -49,17 +49,18 @@ def set_usages(device, date):
         raise DefinedVentureDoesNotExist()
 
     usage_type, created = UsageType.objects.get_or_create(
-        name='Power consumption (kWh)'
+        name='Power consumption (kWh)',
+        by_warehouse=True,
     )
 
     usage, created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
         pricing_venture=venture,
+        warehouse=device.warehouse,
     )
 
-    # kWh is the unit for power consumption
-    usage.value = device.power_consumption * 24
+    usage.value += device.power_consumption
     usage.save()
 
     return True
