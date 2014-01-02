@@ -72,6 +72,8 @@ def update_assets(data, date, usage_type):
         )
         daily.pricing_venture = venture
     daily.price = data['price']
+    if not data['deprecation_rate']:
+        data['deprecation_rate'] = 0.00
     daily.deprecation_rate = data['deprecation_rate']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
