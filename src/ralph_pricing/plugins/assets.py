@@ -9,14 +9,30 @@ from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
-from ralph_pricing.models import Device, DailyDevice
+from ralph_pricing.models import (
+    Device,
+    DailyDevice,
+    Venture,
+    DailyUsage,
+    UsageType
+)
 
 
 @commit_on_success
-def update_assets(data, date):
+def update_assets(data, date, usage_type):
+    """
+    Updates single asset.
+
+    Creates asset (Device object for backward compatibility) if not exists,
+    then creates daily snapshot of this device. At the end daily snapshot of
+    cores count is created.
+    """
     created = False
     if not data['ralph_id']:
         return False
+
+    # clear previous asset assignments
+    # (only if current device_is != previous device_id)
     try:
         old_device = Device.objects.exclude(
             device_id=data['ralph_id'],
@@ -28,32 +44,66 @@ def update_assets(data, date):
     else:
         old_device.asset_id = None
         old_device.save()
+
+    # get or create asset
     try:
-        device = Device.objects.get(device_id=data['ralph_id'])
+        device = Device.objects.get(asset_id=data['asset_id'])
     except Device.DoesNotExist:
         created = True
         device = Device()
         device.device_id = data['ralph_id']
+
+    # device info
     device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.sn = data['sn']
     device.barcode = data['barcode']
+    device.is_blade = data['is_blade']
     device.save()
+
+    # daily device 'snapshot'
     daily, daily_created = DailyDevice.objects.get_or_create(
-        date=date,
-        pricing_device=device,
-    )
+            date=date,
+            pricing_device=device,
+        )
+    if data.get('venture_id') is not None:
+        venture, venture_created = Venture.objects.get_or_create(
+            venture_id=data['venture_id'],
+        )
+        daily.pricing_venture = venture
     daily.price = data['price']
     daily.deprecation_rate = data['deprecation_rate']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
+
+    # cores count
+    usage, usage_created = DailyUsage.objects.get_or_create(
+        date=date,
+        type=usage_type,
+        pricing_device=device,
+    )
+    if data.get('venture_id') is not None:
+        usage.pricing_venture = daily.pricing_venture
+    usage.value = data['cores_count']
+    usage.save()
+
     return created
 
 
-@plugin.register(chain='pricing', requires=['devices'])
+def get_usage():
+    # save physical cpu cores usage type if not created
+    usage_type, created = UsageType.objects.get_or_create(
+        name="Physical CPU cores",
+    )
+    usage_type.average = True
+    usage_type.save()
+    return usage_type
+
+
+@plugin.register(chain='pricing', requires=['ventures'])
 def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
-
+    usage = get_usage()
     date = kwargs['today']
-    count = sum(update_assets(data, date) for data in get_assets(date))
+    count = sum(update_assets(data, date, usage) for data in get_assets(date))
     return True, '%d new devices' % count, kwargs

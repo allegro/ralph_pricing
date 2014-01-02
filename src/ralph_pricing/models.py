@@ -340,6 +340,7 @@ class DailyDevice(db.Model):
         decimal_places=PRICE_PLACES,
         verbose_name=_("deprecation rate"),
         default=0,
+        null=True,
     )
     pricing_venture = db.ForeignKey(
         Venture,

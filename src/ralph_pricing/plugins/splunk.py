@@ -83,7 +83,7 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
         set_device_usage(date, usage, usage_type, splunk_pair.pricing_device)
 
 
-@plugin.register(chain='pricing', requires=['ventures', 'devices'])
+@plugin.register(chain='pricing', requires=['ventures'])
 def splunk(**kwargs):
     """Updates Splunk usage per Venture"""
     if not settings.SPLUNK_HOST:

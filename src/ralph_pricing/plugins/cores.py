@@ -40,7 +40,8 @@ def get_usage():
     return usage_type
 
 
-@plugin.register(chain='pricing', requires=['devices'])
+# cores info update moved to assets plugin
+@plugin.register(chain='pricing', requires=['never run'])
 def physical_cores(**kwargs):
     """Updates the physical cores from Ralph."""
 
