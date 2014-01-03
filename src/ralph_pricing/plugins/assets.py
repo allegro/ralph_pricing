@@ -14,7 +14,7 @@ from ralph_pricing.models import (
     DailyDevice,
     Venture,
     DailyUsage,
-    UsageType
+    UsageType,
 )
 
 
