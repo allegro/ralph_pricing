@@ -65,9 +65,9 @@ def update_assets(data, date, usage_type):
 
     # daily device 'snapshot'
     daily, daily_created = DailyDevice.objects.get_or_create(
-            date=date,
-            pricing_device=device,
-        )
+        date=date,
+        pricing_device=device,
+    )
     if data.get('venture_id') is not None:
         venture, venture_created = Venture.objects.get_or_create(
             venture_id=data['venture_id'],
