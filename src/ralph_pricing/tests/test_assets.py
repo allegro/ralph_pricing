@@ -68,7 +68,6 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(daily.is_deprecated, True)
         self.assertEqual(daily.price, 100)
         self.assertEqual(daily.pricing_device_id, 1)
-        self.assertEqual(daily.date, self.today)
 
     def test_sync_asset_dailyusage(self):
         count = sum(
@@ -83,7 +82,6 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(usage.value, 8)
         self.assertEqual(usage.pricing_device_id, 1)
         self.assertEqual(usage.type, self.usage_type)
-        self.assertEqual(usage.date.date(), self.today)
 
     def test_sync_asset_device_without_ralph_id(self):
         data = yield {
