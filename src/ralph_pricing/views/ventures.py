@@ -22,7 +22,12 @@ class AllVentures(Report):
     report_name = _('All Ventures Report')
 
     @staticmethod
-    def get_data(warehouse, start, end, show_in_ralph=False, **kwargs):
+    def get_data(warehouse,
+                 start,
+                 end,
+                 show_in_ralph=False,
+                 forecast=False,
+                 **kwargs):
         # 'show_in_ralph' == 'show only active' checkbox in gui
         ventures = Venture.objects.order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
@@ -31,6 +36,9 @@ class AllVentures(Report):
         values = []
 
         for i, venture in enumerate(ventures):
+            if venture.name != 'istore_prod':
+                continue
+
             try:
                 show_venture = ralph_venture.objects.get(
                     id=venture.venture_id,
@@ -65,6 +73,7 @@ class AllVentures(Report):
                     end,
                     usage_type,
                     int(warehouse) if usage_type.by_warehouse else None,
+                    forecast=forecast,
                 )
                 row.append(count)
                 column += 1
@@ -131,7 +140,12 @@ class TopVentures(AllVentures):
     report_name = _('Top Ventures Report')
 
     @staticmethod
-    def get_data(warehouse, start, end, show_in_ralph=False, **kwargs):
+    def get_data(warehouse,
+                 start,
+                 end,
+                 show_in_ralph=False,
+                 forecast=False,
+                 **kwargs):
         # 'show_in_ralph' == 'show only active' checkbox in gui
         ventures = Venture.objects.root_nodes().order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
@@ -174,6 +188,7 @@ class TopVentures(AllVentures):
                     end,
                     usage_type,
                     warehouse=warehouse,
+                    forecast=forecast,
                     descendants=True,
                 )
                 row.append(count)

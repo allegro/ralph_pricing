@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 from decimal import Decimal as D
 from dateutil import rrule
+from lck.cache import memoize
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
@@ -24,7 +25,22 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
-def get_usages_count_price(query, start, end, warehouse):
+def get_usages_count_price(query,
+                           start,
+                           end,
+                           warehouse_id=None,
+                           forecast=False):
+    '''
+    Generate count and price from te DayliUsage query
+
+    :param object query: DailyUsage query
+    :param datetime start: Start of the time interval
+    :param datetime end: End of the time interval
+    :param integer warehouse_id: Warehouse id or None
+    :param boolean forecast: Information about use forecast or real price
+    :returns tuple: count and price
+    :rtype tuple:
+    '''
     days = (end - start).days + 1
     count = 0
     price = D(0)
@@ -37,7 +53,11 @@ def get_usages_count_price(query, start, end, warehouse):
             else:
                 count += daily_count
             try:
-                daily_price = usage.type.get_price_at(day, warehouse)
+                daily_price = usage.type.get_price_at(
+                    day,
+                    warehouse_id,
+                    forecast,
+                )
             except (
                 UsagePrice.DoesNotExist,
                 UsagePrice.MultipleObjectsReturned,
@@ -51,6 +71,10 @@ def get_usages_count_price(query, start, end, warehouse):
 
 class Warehouse(TimeTrackable, EditorTrackable, Named,
                 WithConcurrentGetOrCreate):
+    """
+    Pricing warehouse model contains name and id from assets and own create
+    and modified date
+    """
     def __unicode__(self):
         return self.name
 
@@ -245,23 +269,51 @@ class Venture(MPTTModel):
                                start,
                                end,
                                type_,
-                               warehouse=None,
+                               warehouse_id=None,
+                               forecast=False,
                                descendants=False,
                                query=None):
+        '''
+        The filter part of get count and price single type of usage
+
+        :param datetime start: Start of the time interval
+        :param datetime end: End of the time interval
+        :param object type_: UsageType object for whitch price and 
+                             count will be returned
+        :param integer warehouse_id: Warehouse id or None
+        :param object query: DailyUsage query
+        :param boolean forecast: Information about use forecast or real price
+        :returns tuple: count and price
+        :rtype tuple:
+        '''
         if query is None:
             query = DailyUsage.objects
         query = query.filter(type=type_)
         query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
 
-        if warehouse:
-            query = query.filter(warehouse=warehouse)
-        else:
-            warehouse = None
+        if warehouse_id:
+            query = query.filter(warehouse=warehouse_id)
 
-        return get_usages_count_price(query, start, end, warehouse)
+        return get_usages_count_price(
+            query,
+            start,
+            end,
+            warehouse_id,
+            forecast,
+        )
 
     def get_extra_costs(self, start, end, type_, descendants=False):
+        '''
+        The filter part of get count and price single type of usage
+
+        :param datetime start: Start of the time interval
+        :param datetime end: End of the time interval
+        :param object type_: UsageType object for whitch price and 
+                             count will be returned
+        :returns decimal: price
+        :rtype decimal:
+        '''
         price = D('0')
         query = ExtraCost.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
@@ -510,6 +562,9 @@ class UsageType(db.Model):
     by_warehouse = db.BooleanField(
         default=False,
     )
+    by_cost = db.BooleanField(
+        default=False,
+    )
 
     class Meta:
         verbose_name = _("usage type")
@@ -518,12 +573,64 @@ class UsageType(db.Model):
     def __unicode__(self):
         return self.name
 
-    def get_price_at(self, date, warehouse):
-        return self.usageprice_set.get(
+    @memoize
+    def _get_price_from_cost(self, cost, start, end, warehouse_id):
+        '''
+        Get price from cost for given date and warehouse 
+
+        :param decimal cost: Cost for given time interval
+        :param datetime start: Start of the time interval
+        :param datetime end: End of the time interval
+        :param integer warehouse_id: warehouse id or None
+        :returns decimal: price
+        :rtype decimal:
+        '''
+        dailyusages = DailyUsage.objects.filter(
+            date__gte=start,
+            date__lte=end,
+            type=self.id,
+            warehouse_id=warehouse_id,
+        )
+
+        total_usage = D(0)
+        for usage in dailyusages:
+            total_usage += D(usage.value)
+
+        delta = end-start
+        return D(cost/total_usage/(delta.days+1))
+
+    @memoize
+    def get_price_at(self, date, warehouse_id, forecast):
+        '''
+        Get price for the specified warehouse for the given day
+
+        :param datetime date: Day for which the price will be returned
+        :param integer warehouse_id: warehouse id or None
+        :param boolean forecast: Information about use forecast or real price
+        :returns decimal: price
+        :rtype decimal:
+        '''
+        usageprice = self.usageprice_set.get(
             start__lte=date,
             end__gte=date,
-            warehouse=warehouse
-        ).price
+            warehouse=warehouse_id
+        )
+        if forecast:
+            price = usageprice.forecast_price 
+            cost = usageprice.forecast_cost
+        else:
+            price = usageprice.price
+            cost = usageprice.cost
+
+        if not price and cost:
+            return self._get_price_from_cost(
+                cost,
+                usageprice.start,
+                usageprice.end,
+                warehouse_id,
+            )
+        else:
+            return price
 
 
 class UsagePrice(db.Model):
@@ -532,12 +639,25 @@ class UsagePrice(db.Model):
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
+        default=0,
+    )
+    forecast_price = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("forecast price"),
+        default=0,
     )
     cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         default=0.00,
         verbose_name=_("cost"),
+    )
+    forecast_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        default=0.00,
+        verbose_name=_("forecast cost"),
     )
     start = db.DateField()
     end = db.DateField()

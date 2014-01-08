@@ -13,9 +13,16 @@
     <thead>
         <tr>
             <th width="16"></th>
+            {% if by_warehouse %}
             <th width="20">Warehouse</th>
+            {% endif %}
+            {% if not by_cost %}
+            <th width="*">Forecast price</th>
             <th width="*">Price</th>
+            {% else %}
+            <th width="*">Forecast cost</th>
             <th width="*">Cost</th>
+            {% endif %}
             <th width="*">Start</th>
             <th width="*">End</th>
             <th width="20">Del</th>
@@ -29,12 +36,23 @@
                 {% for f in form.hidden_fields %}{{ f }}{% endfor %}
             </td>
             {% for f in form.visible_fields %}
+            {% if by_cost and f.name == 'price' %}
+            <td style="display:none"> {{ f }} </td>
+            {% elif by_cost and f.name == 'forecast_price' %}
+            <td style="display:none"> {{ f }} </td>
+            {% elif not by_cost and f.name == 'cost' %}
+            <td style="display:none"> {{ f }} </td>
+            {% elif not by_cost and f.name == 'forecast_cost' %}
+            <td style="display:none"> {{ f }} </td>
+            {% elif not by_cost and f.name == 'warehouse' %}
+            {% else %}
             <td class="control-group {{ f.css_classes }} {% if f.errors %}error{% endif %}" style="vertical-align:middle;text-align:center">
                 {{ f }}
                 {% for e in f.errors %}
                     <div class="help-block">{{ e }}</div>
                 {% endfor %}
             </td>
+            {% endif %}
             {% endfor %}
         </tr>
         {% endfor %}

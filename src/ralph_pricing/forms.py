@@ -86,16 +86,34 @@ ExtraCostFormSet = forms.models.modelformset_factory(
 
 
 class UsagePriceForm(forms.ModelForm):
+    '''
+    Used by factory to create UsagesFormSet. Contain baisc form infromation
+    used to setting price for each type of usage
+    '''
     class Meta:
         model = UsagePrice
 
-        fields = 'warehouse', 'price', 'cost', 'start', 'end'
+        fields = [
+            'warehouse',
+            'forecast_price',
+            'price',
+            'forecast_cost',
+            'cost',
+            'start',
+            'end',
+        ]
         widgets = {
             'start': DateWidget(attrs={'class': 'input-small'}),
             'end': DateWidget(attrs={'class': 'input-small'}),
         }
 
     def clean_end(self):
+        '''
+        Test if end date is later or equal to the start date
+
+        :returns string: the end of the time interval
+        :rtype string:
+        '''
         start = self.cleaned_data['start']
         end = self.cleaned_data['end']
         if start > end:
@@ -106,6 +124,10 @@ class UsagePriceForm(forms.ModelForm):
 
 
 class UsagesBaseFormSet(forms.models.BaseModelFormSet):
+    '''
+    Used by factory to create UsagesFormSet. Contains rules to validate
+    unique and correct data for each type of usage
+    '''
     def clean(self):
         if any(self.errors):
             return
@@ -117,6 +139,7 @@ class UsagesBaseFormSet(forms.models.BaseModelFormSet):
             warehouse = form.cleaned_data.get('warehouse')
             if not start or not end:
                 continue
+
             for other_start, other_end, other_warehouse in dates:
                 if (other_start <= start <= other_end
                         and other_warehouse == warehouse):
@@ -161,13 +184,22 @@ UsagesFormSet = forms.models.modelformset_factory(
 
 
 def get_choices_for_date_range_form():
-    choices = ((0, '----'),)
+    '''
+    Create set of fields contains name and id for each warehouse
+
+    :returns tuple: tuple of tuples contains name and if for each warehouse
+    :rtype tuple:
+    '''
+    choices = ()
     for warehouse in Warehouse.objects.all():
         choices = choices + ((warehouse.id, warehouse.name),)
     return choices
 
 
 class DateRangeForm(forms.Form):
+    '''
+    Form schema. Used to generate venture raports
+    '''
     warehouse = forms.ChoiceField(
         choices=get_choices_for_date_range_form()
     )
@@ -188,6 +220,10 @@ class DateRangeForm(forms.Form):
     show_in_ralph = forms.BooleanField(
         required=False,
         label=_("Show only active"),
+    )
+    forecast = forms.BooleanField(
+        required=False,
+        label=_("forecast"),
     )
 
 

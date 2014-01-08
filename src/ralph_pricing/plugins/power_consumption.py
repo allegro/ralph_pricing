@@ -49,7 +49,7 @@ def set_usages(device, date):
         raise DefinedVentureDoesNotExist()
 
     usage_type, created = UsageType.objects.get_or_create(
-        name='Power consumption (kWh)',
+        name='Power consumption',
         by_warehouse=True,
     )
 
