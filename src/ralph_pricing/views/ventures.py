@@ -11,7 +11,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.reports import Report, currency
 from ralph_pricing.models import UsageType, ExtraCostType, Venture
-from ralph.business.models import Venture as ralph_venture
 from ralph_pricing.forms import DateRangeForm
 
 
@@ -30,13 +29,7 @@ class AllVentures(Report):
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
-            try:
-                show_venture = ralph_venture.objects.get(
-                    id=venture.venture_id,
-                ).show_in_ralph
-            except ralph_venture.DoesNotExist:
-                show_venture = False
-            if show_in_ralph and not show_venture:
+            if show_in_ralph and not venture.is_active:
                 continue
             values_row = {}
             values.append(values_row)
@@ -49,7 +42,7 @@ class AllVentures(Report):
             row = [
                 venture.venture_id,
                 path,
-                show_venture,
+                venture.is_active,
                 venture.department,
                 venture.business_segment,
                 venture.profit_center,
@@ -137,13 +130,7 @@ class TopVentures(AllVentures):
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
-            try:
-                show_venture = ralph_venture.objects.get(
-                    id=venture.venture_id
-                ).show_in_ralph
-            except ralph_venture.DoesNotExist:
-                show_venture = False
-            if show_in_ralph and not show_venture:
+            if show_in_ralph and not venture.is_active:
                 continue
             values_row = {}
             values.append(values_row)
@@ -155,7 +142,7 @@ class TopVentures(AllVentures):
             row = [
                 venture.venture_id,
                 venture.name,
-                show_venture,
+                venture.is_active,
                 venture.department,
                 venture.business_segment,
                 venture.profit_center,

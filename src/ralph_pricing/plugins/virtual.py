@@ -63,7 +63,8 @@ def get_usages():
     return usages
 
 
-@plugin.register(chain='pricing', requires=['devices'])
+# virtual usages requires assets plugin to get proper devices
+@plugin.register(chain='pricing', requires=['assets'])
 def virtual_usages(**kwargs):
     """Updates the virtual usages from Ralph."""
 
