@@ -281,7 +281,7 @@ class Venture(MPTTModel):
 
         :param datetime start: Start of the time interval
         :param datetime end: End of the time interval
-        :param object type_: UsageType object for whitch price and 
+        :param object type_: UsageType object for whitch price and
                              count will be returned
         :param integer warehouse_id: Warehouse id or None
         :param object query: DailyUsage query
@@ -313,7 +313,7 @@ class Venture(MPTTModel):
 
         :param datetime start: Start of the time interval
         :param datetime end: End of the time interval
-        :param object type_: UsageType object for whitch price and 
+        :param object type_: UsageType object for whitch price and
                              count will be returned
         :returns decimal: price
         :rtype decimal:
@@ -586,7 +586,7 @@ class UsageType(db.Model):
     @memoize
     def _get_price_from_cost(self, cost, usage, warehouse_id):
         '''
-        Get price from cost for given date and warehouse 
+        Get price from cost for given date and warehouse
 
         :param decimal cost: Cost for given time interval
         :param object usage: Usage object
