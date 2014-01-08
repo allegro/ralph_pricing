@@ -88,7 +88,7 @@ ExtraCostFormSet = forms.models.modelformset_factory(
 class UsagePriceForm(forms.ModelForm):
     '''
     Used by factory to create UsagesFormSet. Contain baisc form infromation
-    used to setting price for each type of usage
+    like fields and widgets
     '''
     class Meta:
         model = UsagePrice
@@ -102,6 +102,7 @@ class UsagePriceForm(forms.ModelForm):
             'start',
             'end',
         ]
+
         widgets = {
             'start': DateWidget(attrs={'class': 'input-small'}),
             'end': DateWidget(attrs={'class': 'input-small'}),
@@ -223,7 +224,7 @@ class DateRangeForm(forms.Form):
     )
     forecast = forms.BooleanField(
         required=False,
-        label=_("forecast"),
+        label=_("Forecast"),
     )
 
 

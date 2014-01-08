@@ -178,6 +178,9 @@ class ParentDevice(Device):
 
 
 class Venture(MPTTModel):
+    """
+    Venture device model contains asset ventures.
+    """
     venture_id = db.IntegerField()
     name = db.CharField(
         verbose_name=_("name"),
@@ -283,6 +286,7 @@ class Venture(MPTTModel):
         :param integer warehouse_id: Warehouse id or None
         :param object query: DailyUsage query
         :param boolean forecast: Information about use forecast or real price
+        :param boolean descendants: If true, children price will be count
         :returns tuple: count and price
         :rtype tuple:
         '''
@@ -402,6 +406,9 @@ def get_daily_price_cost(asset_id, device, start, end):
 
 
 class DailyDevice(db.Model):
+    """
+    Model for daily imprint of device
+    """
     date = db.DateField()
     name = db.CharField(verbose_name=_("name"), max_length=255)
     pricing_device = db.ForeignKey(
@@ -540,6 +547,9 @@ class DailyDevice(db.Model):
 
 
 class UsageType(db.Model):
+    """
+    Model contains usage types
+    """
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
     symbol = db.CharField(
         verbose_name=_("symbol"),
@@ -574,30 +584,26 @@ class UsageType(db.Model):
         return self.name
 
     @memoize
-    def _get_price_from_cost(self, cost, start, end, warehouse_id):
+    def _get_price_from_cost(self, cost, usage, warehouse_id):
         '''
         Get price from cost for given date and warehouse 
 
         :param decimal cost: Cost for given time interval
-        :param datetime start: Start of the time interval
-        :param datetime end: End of the time interval
+        :param object usage: Usage object
         :param integer warehouse_id: warehouse id or None
         :returns decimal: price
         :rtype decimal:
         '''
         dailyusages = DailyUsage.objects.filter(
-            date__gte=start,
-            date__lte=end,
+            date__gte=usage.start,
+            date__lte=usage.end,
             type=self.id,
             warehouse_id=warehouse_id,
         )
 
-        total_usage = D(0)
-        for usage in dailyusages:
-            total_usage += D(usage.value)
+        total_usage = sum([D(dailyusage.value) for dailyusage in dailyusages])
 
-        delta = end-start
-        return D(cost/total_usage/(delta.days+1))
+        return D(cost/total_usage/((usage.end-usage.start).days+1))
 
     @memoize
     def get_price_at(self, date, warehouse_id, forecast):
@@ -610,23 +616,19 @@ class UsageType(db.Model):
         :returns decimal: price
         :rtype decimal:
         '''
-        usageprice = self.usageprice_set.get(
+        usage = self.usageprice_set.get(
             start__lte=date,
             end__gte=date,
-            warehouse=warehouse_id
+            warehouse=warehouse_id,
         )
-        if forecast:
-            price = usageprice.forecast_price 
-            cost = usageprice.forecast_cost
-        else:
-            price = usageprice.price
-            cost = usageprice.cost
+
+        price = usage.forecast_price if forecast else usage.price
+        cost = usage.forecast_cost if forecast else usage.cost
 
         if not price and cost:
             return self._get_price_from_cost(
                 cost,
-                usageprice.start,
-                usageprice.end,
+                usage,
                 warehouse_id,
             )
         else:
@@ -634,6 +636,9 @@ class UsageType(db.Model):
 
 
 class UsagePrice(db.Model):
+    """
+    Model contains usages price information
+    """
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
     price = db.DecimalField(
         max_digits=PRICE_DIGITS,
@@ -665,7 +670,7 @@ class UsagePrice(db.Model):
         Warehouse,
         null=True,
         blank=True,
-        on_delete=db.PROTECT
+        on_delete=db.PROTECT,
     )
 
     class Meta:
@@ -688,6 +693,10 @@ class UsagePrice(db.Model):
 
 
 class DailyUsage(db.Model):
+    """
+    DailyUsage model contains daily usage information for each
+    usage
+    """
     date = db.DateTimeField()
     pricing_venture = db.ForeignKey(
         Venture,

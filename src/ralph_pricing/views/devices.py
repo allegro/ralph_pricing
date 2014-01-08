@@ -125,7 +125,6 @@ class Devices(Report):
         :returns list: label names for devices report
         :rtype list:
         '''
-        print (str(kwargs))
         header = [
             _("Device"),
             _("Component name"),

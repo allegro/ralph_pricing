@@ -16,6 +16,9 @@ from ralph_pricing.forms import DateRangeForm
 
 
 class AllVentures(Report):
+    '''
+        Reports for all ventures
+    '''
     template_name = 'ralph_pricing/ventures_all.html'
     Form = DateRangeForm
     section = 'all-ventures'
@@ -28,6 +31,17 @@ class AllVentures(Report):
                  show_in_ralph=False,
                  forecast=False,
                  **kwargs):
+        '''
+            Generate raport for all ventures
+
+            :param integer warehouse: Id warehouse for which is generate report
+            :param datetime start: Start of the time interval
+            :param datetime end: End of the time interval
+            :param boolean show_in_ralph: if true, show only active ventures
+            :param boolean forecast: if true, generate forecast raport
+            :returns list: List of lists with report data and percent progress
+            :rtype list:
+        '''
         # 'show_in_ralph' == 'show only active' checkbox in gui
         ventures = Venture.objects.order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
@@ -135,6 +149,9 @@ class AllVentures(Report):
 
 
 class TopVentures(AllVentures):
+    '''
+        Reports for top ventures
+    '''
     template_name = 'ralph_pricing/ventures_top.html'
     section = 'top-ventures'
     report_name = _('Top Ventures Report')
@@ -146,6 +163,17 @@ class TopVentures(AllVentures):
                  show_in_ralph=False,
                  forecast=False,
                  **kwargs):
+        '''
+            Generate raport for top ventures
+
+            :param integer warehouse: Id warehouse for which is generate report
+            :param datetime start: Start of the time interval
+            :param datetime end: End of the time interval
+            :param boolean show_in_ralph: if true, show only active ventures
+            :param boolean forecast: if true, generate forecast raport
+            :returns list: List of lists with report data and percent progress
+            :rtype list:
+        '''
         # 'show_in_ralph' == 'show only active' checkbox in gui
         ventures = Venture.objects.root_nodes().order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
@@ -181,13 +209,11 @@ class TopVentures(AllVentures):
             ]
             column = len(row)
             for usage_type in UsageType.objects.order_by('name'):
-                if usage_type.by_warehouse:
-                    warehouse = 0
                 count, price = venture.get_usages_count_price(
                     start,
                     end,
                     usage_type,
-                    warehouse=warehouse,
+                    int(warehouse) if usage_type.by_warehouse else None,
                     forecast=forecast,
                     descendants=True,
                 )

@@ -12,6 +12,7 @@
 <table class="table table-striped table-bordered details-dns table-condensed">
     <thead>
         <tr>
+            <!--Yes, i know... so so sorry but it is the simplest way to do this-->
             <th width="16"></th>
             {% if by_warehouse %}
             <th width="20">Warehouse</th>
@@ -36,6 +37,7 @@
                 {% for f in form.hidden_fields %}{{ f }}{% endfor %}
             </td>
             {% for f in form.visible_fields %}
+            <!--Yes, i know... so so sorry but it is the simplest way to do this-->
             {% if by_cost and f.name == 'price' %}
             <td style="display:none"> {{ f }} </td>
             {% elif by_cost and f.name == 'forecast_price' %}

@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
+
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
@@ -12,23 +14,53 @@ from ralph_assets.api_pricing import get_assets
 from ralph_pricing.models import Device, DailyDevice, Warehouse
 
 
+logger = logging.getLogger(__name__)
+
+
+class RalphIdNotDefinedError(Exception):
+    '''
+        Exception raised when ralph id is not defined in given data
+    '''
+    pass
+
+
+class VentureSymbolNotDefinedError(Exception):
+    '''
+        Exception raised when venture symbol is not defined in given data
+    '''
+    pass
+
+
+class WarehouseDoesNotExistError(Exception):
+    '''
+        Exception raised when warehouse id do not exist in pricing database
+    '''
+    pass
+
+
 @commit_on_success
 def update_assets(data, date):
     """
     Used by assets plugin. Update pricing device model according to the
     relevant rules.
+
+    :param dict data: Data from assets pricing api
+    :param datetime date: Day for which report will be generated
+
+    :returns boolean: count of new created devices
+    :rtype boolean:
     """
     if not data['venture_symbol']:
-        return False
+        raise VentureSymbolNotDefinedError()
 
     try:
         warehouse = Warehouse.objects.get(id=data['warehouse_id'])
     except Warehouse.DoesNotExist:
-        return False
+        raise WarehouseDoesNotExistError()
 
     created = False
     if not data['ralph_id']:
-        return False
+        raise RalphIdNotDefinedError()
     try:
         old_device = Device.objects.exclude(
             device_id=data['ralph_id'],
@@ -74,5 +106,16 @@ def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
 
     date = kwargs['today']
-    count = sum(update_assets(data, date) for data in get_assets(date))
+    count = 0
+    for data in get_assets(date):
+        try:
+            update_assets(data, date)
+            count += 1
+        except RalphIdNotDefinedError:
+            logger.error('Data from asset do not contains ralph_id')
+        except VentureSymbolNotDefinedError:
+            logger.error('Data from asset do not contains venture_symbol')
+        except WarehouseDoesNotExistError:
+            logger.error('Given warehouse do not exist. You need to run '
+                         'warehouse plugin first')
     return True, '%d new devices' % count, kwargs
