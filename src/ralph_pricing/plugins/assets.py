@@ -26,6 +26,8 @@ def update_assets(data, date, usage_type):
     Creates asset (Device object for backward compatibility) if not exists,
     then creates daily snapshot of this device. At the end daily snapshot of
     cores count is created.
+
+    Only assets with assigned devices are processed!
     """
     created = False
     if not data['ralph_id']:
@@ -72,6 +74,7 @@ def update_assets(data, date, usage_type):
         )
         daily.pricing_venture = venture
     daily.price = data['price']
+    # TODO: remove when #92 merged
     if not data['deprecation_rate']:
         data['deprecation_rate'] = 0.00
     daily.deprecation_rate = data['deprecation_rate']
@@ -79,20 +82,24 @@ def update_assets(data, date, usage_type):
     daily.save()
 
     # cores count
+    update_cores(data, date, daily.pricing_venture, usage_type, device)
+
+    return created
+
+
+def update_cores(data, date, venture, usage_type, device):
     usage, usage_created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
         pricing_device=device,
     )
     if data.get('venture_id') is not None:
-        usage.pricing_venture = daily.pricing_venture
+        usage.pricing_venture = venture
     usage.value = data['cores_count']
     usage.save()
 
-    return created
 
-
-def get_usage():
+def get_core_usage():
     # save physical cpu cores usage type if not created
     usage_type, created = UsageType.objects.get_or_create(
         name="Physical CPU cores",
@@ -105,7 +112,7 @@ def get_usage():
 @plugin.register(chain='pricing', requires=['ventures'])
 def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
-    usage = get_usage()
+    usage = get_core_usage()
     date = kwargs['today']
     count = sum(update_assets(data, date, usage) for data in get_assets(date))
     return True, '%d new devices' % count, kwargs
