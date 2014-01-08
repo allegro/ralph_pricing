@@ -11,56 +11,35 @@ from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
 from ralph_assets.api_pricing import get_assets
-from ralph_pricing.models import Device, DailyDevice, Warehouse
-
-
-logger = logging.getLogger(__name__)
-
-
-class RalphIdNotDefinedError(Exception):
-    '''
-        Exception raised when ralph id is not defined in given data
-    '''
-    pass
-
-
-class VentureSymbolNotDefinedError(Exception):
-    '''
-        Exception raised when venture symbol is not defined in given data
-    '''
-    pass
-
-
-class WarehouseDoesNotExistError(Exception):
-    '''
-        Exception raised when warehouse id do not exist in pricing database
-    '''
-    pass
+from ralph_pricing.models import (
+    Device,
+    DailyDevice,
+    Venture,
+    DailyUsage,
+    UsageType,
+)
 
 
 @commit_on_success
-def update_assets(data, date):
+def update_assets(data, date, usage_type):
     """
-    Used by assets plugin. Update pricing device model according to the
-    relevant rules.
+    Updates single asset.
 
-    :param dict data: Data from assets pricing api
-    :param datetime date: Day for which report will be generated
+    Creates asset (Device object for backward compatibility) if not exists,
+    then creates daily snapshot of this device. At the end daily snapshot of
+    cores count is created.
 
-    :returns boolean: count of new created devices
-    :rtype boolean:
+    Only assets with assigned devices are processed!
     """
-    if not data['venture_symbol']:
-        raise VentureSymbolNotDefinedError()
-
-    try:
-        warehouse = Warehouse.objects.get(id=data['warehouse_id'])
-    except Warehouse.DoesNotExist:
-        raise WarehouseDoesNotExistError()
-
     created = False
     if not data['ralph_id']:
-        raise RalphIdNotDefinedError()
+        return False
+
+    if not data['warehouse_id']:
+        warehouse = Warehouse.objects.get(id=data['warehouse_id'])
+
+    # clear previous asset assignments
+    # (only if current device_is != previous device_id)
     try:
         old_device = Device.objects.exclude(
             device_id=data['ralph_id'],
@@ -72,12 +51,16 @@ def update_assets(data, date):
     else:
         old_device.asset_id = None
         old_device.save()
+
+    # get or create asset
     try:
-        device = Device.objects.get(device_id=data['ralph_id'])
+        device = Device.objects.get(asset_id=data['asset_id'])
     except Device.DoesNotExist:
         created = True
         device = Device()
         device.device_id = data['ralph_id']
+
+    # device info
     device.asset_id = data['asset_id']
     device.slots = data['slots']
     device.power_consumption = data['power_consumption']
@@ -85,37 +68,59 @@ def update_assets(data, date):
     device.sn = data['sn']
     device.barcode = data['barcode']
     device.warehouse = warehouse
+    device.is_blade = data['is_blade']
     device.save()
+
+    # daily device 'snapshot'
     daily, daily_created = DailyDevice.objects.get_or_create(
         date=date,
         pricing_device=device,
     )
+    if data.get('venture_id') is not None:
+        venture, venture_created = Venture.objects.get_or_create(
+            venture_id=data['venture_id'],
+        )
+        daily.pricing_venture = venture
     daily.price = data['price']
-    # This situation can not happen, depreciation rate cannot be None.
-    # Solving this problem is in progress
+    # TODO: remove when #92 merged
     if not data['deprecation_rate']:
         data['deprecation_rate'] = 0.00
     daily.deprecation_rate = data['deprecation_rate']
     daily.is_deprecated = data['is_deprecated']
     daily.save()
+
+    # cores count
+    update_cores(data, date, daily.pricing_venture, usage_type, device)
+
     return created
 
 
-@plugin.register(chain='pricing', requires=['devices'])
+def update_cores(data, date, venture, usage_type, device):
+    usage, usage_created = DailyUsage.objects.get_or_create(
+        date=date,
+        type=usage_type,
+        pricing_device=device,
+    )
+    if data.get('venture_id') is not None:
+        usage.pricing_venture = venture
+    usage.value = data['cores_count']
+    usage.save()
+
+
+def get_core_usage():
+    # save physical cpu cores usage type if not created
+    usage_type, created = UsageType.objects.get_or_create(
+        name="Physical CPU cores",
+    )
+    usage_type.average = True
+    usage_type.save()
+    return usage_type
+
+
+@plugin.register(chain='pricing', requires=['ventures'])
 def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
-
+    usage = get_core_usage()
     date = kwargs['today']
-    count = 0
-    for data in get_assets(date):
-        try:
-            update_assets(data, date)
-            count += 1
-        except RalphIdNotDefinedError:
-            logger.error('Data from asset do not contains ralph_id')
-        except VentureSymbolNotDefinedError:
-            logger.error('Data from asset do not contains venture_symbol')
-        except WarehouseDoesNotExistError:
-            logger.error('Given warehouse do not exist. You need to run '
-                         'warehouse plugin first')
+    count = sum(update_assets(data, date, usage) for data in get_assets(date))
     return True, '%d new devices' % count, kwargs

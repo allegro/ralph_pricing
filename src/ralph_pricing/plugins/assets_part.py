@@ -31,7 +31,7 @@ def update_assets_parts(data, date):
     return created_device
 
 
-@plugin.register(chain='pricing', requires=['devices'])
+@plugin.register(chain='pricing', requires=['assets'])
 def parts(**kwargs):
     """Updates the devices from Ralph Assets."""
     date = kwargs['today']

@@ -217,6 +217,10 @@ class Venture(MPTTModel):
         blank=True,
         default="",
     )
+    is_active = db.BooleanField(
+        verbose_name=_("Is active"),
+        default=False,
+    )
 
     class Meta:
         verbose_name = _("venture")
