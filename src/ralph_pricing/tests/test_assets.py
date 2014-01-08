@@ -36,7 +36,7 @@ class TestAssetPlugin(TestCase):
             'deprecation_rate': 0,
             'is_blade': True,
             'venture_id': 12,
-            'cores_count': 8
+            'cores_count': 8,
         }
 
     def test_sync_asset_device(self):
@@ -44,7 +44,7 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.usage_type
+                self.usage_type,
             ) for data in self.get_asset()
         )
         self.assertEqual(count, 1)
@@ -60,7 +60,7 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.usage_type
+                self.usage_type,
             ) for data in self.get_asset()
         )
         self.assertEqual(count, 1)
@@ -75,7 +75,7 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.usage_type
+                self.usage_type,
             ) for data in self.get_asset()
         )
         self.assertEqual(count, 1)
