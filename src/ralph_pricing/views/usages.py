@@ -61,8 +61,12 @@ class Usages(Base):
     def get_context_data(self, **kwargs):
         context = super(Usages, self).get_context_data(**kwargs)
 
+        if self.usage_type:
+            by_warehouse = self.usage_type.by_warehouse
+        else:
+            by_warehouse = None
+
         by_cost = self.usage_type.by_cost if self.usage_type else None
-        by_whouse = self.usage_type.by_whouse if self.usage_type else None
 
         context.update({
             'section': 'usages',
@@ -72,7 +76,7 @@ class Usages(Base):
             ),
             'sidebar_selected': self.usage_type_name,
             'by_cost': by_cost,
-            'by_warehouse': by_whouse,
+            'by_warehouse': by_warehouse,
             'formset': self.formset,
         })
         return context

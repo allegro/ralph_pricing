@@ -30,7 +30,6 @@ def update_warehouses(data):
 
     warehouse = Warehouse.objects.get_or_create(id=data['warehouse_id'])[0]
     warehouse.name = data['warehouse_name']
-    print (warehouse.name)
     warehouse.save()
     return True
 

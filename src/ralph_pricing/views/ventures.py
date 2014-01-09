@@ -24,12 +24,14 @@ class AllVentures(Report):
     report_name = _('All Ventures Report')
 
     @staticmethod
-    def get_data(warehouse,
-                 start,
-                 end,
-                 show_in_ralph=False,
-                 forecast=False,
-                 **kwargs):
+    def get_data(
+        warehouse,
+        start,
+        end,
+        show_in_ralph=False,
+        forecast=False,
+        **kwargs
+    ):
         '''
             Generate raport for all ventures
 
@@ -151,12 +153,14 @@ class TopVentures(AllVentures):
     report_name = _('Top Ventures Report')
 
     @staticmethod
-    def get_data(warehouse,
-                 start,
-                 end,
-                 show_in_ralph=False,
-                 forecast=False,
-                 **kwargs):
+    def get_data(
+        warehouse,
+        start,
+        end,
+        show_in_ralph=False,
+        forecast=False,
+        **kwargs
+    ):
         '''
             Generate raport for top ventures
 

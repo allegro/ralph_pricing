@@ -25,11 +25,13 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
-def get_usages_count_price(query,
-                           start,
-                           end,
-                           warehouse_id=None,
-                           forecast=False):
+def get_usages_count_price(
+    query,
+    start,
+    end,
+    warehouse_id=None,
+    forecast=False
+):
     '''
     Generate count and price from te DayliUsage query
 
@@ -100,18 +102,6 @@ class Device(db.Model):
     is_virtual = db.BooleanField(verbose_name=_("is virtual"), default=False)
     is_blade = db.BooleanField(verbose_name=_("is blade"), default=False)
     slots = db.FloatField(verbose_name=_("slots"), default=0)
-    power_consumption = db.IntegerField(
-        null=True,
-        blank=True,
-        default=0,
-    )
-    venture_symbol = db.CharField(
-        verbose_name=_("symbol"),
-        max_length=32,
-        blank=True,
-        default="",
-    )
-    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
 
     class Meta:
         verbose_name = _("device")
@@ -452,6 +442,13 @@ class DailyDevice(db.Model):
     is_deprecated = db.BooleanField(
         verbose_name=_("is deprecated"),
         default=False,
+    )
+    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
+    power_consumption = db.IntegerField(
+        verbose_name=_('power consumption'),
+        null=True,
+        blank=True,
+        default=0,
     )
 
     class Meta:

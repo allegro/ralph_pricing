@@ -17,6 +17,7 @@ from ralph_pricing.models import (
     Venture,
     DailyUsage,
     UsageType,
+    Warehouse,
 )
 
 
@@ -36,7 +37,9 @@ def update_assets(data, date, usage_type):
         return False
 
     if not data['warehouse_id']:
-        warehouse = Warehouse.objects.get(id=data['warehouse_id'])
+        return False
+
+    warehouse = Warehouse.objects.get(id=data['warehouse_id'])
 
     # clear previous asset assignments
     # (only if current device_is != previous device_id)
@@ -63,8 +66,6 @@ def update_assets(data, date, usage_type):
     # device info
     device.asset_id = data['asset_id']
     device.slots = data['slots']
-    device.power_consumption = data['power_consumption']
-    device.venture_symbol = data['venture_symbol']
     device.sn = data['sn']
     device.barcode = data['barcode']
     device.warehouse = warehouse
@@ -87,6 +88,8 @@ def update_assets(data, date, usage_type):
         data['deprecation_rate'] = 0.00
     daily.deprecation_rate = data['deprecation_rate']
     daily.is_deprecated = data['is_deprecated']
+    daily.warehouse = warehouse
+    daily.power_consumption = data['power_consumption']
     daily.save()
 
     # cores count
@@ -117,7 +120,7 @@ def get_core_usage():
     return usage_type
 
 
-@plugin.register(chain='pricing', requires=['ventures'])
+@plugin.register(chain='pricing', requires=['ventures', 'warehouse'])
 def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
     usage = get_core_usage()

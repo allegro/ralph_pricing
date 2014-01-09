@@ -6,18 +6,18 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
-from mock import MagicMock
 import logging
 
+from mock import MagicMock
 from django.test import TestCase
 
 from ralph_pricing.models import Device, DailyUsage, Venture
 from ralph.util import plugin
 from ralph_pricing import plugins  # noqa
 from ralph_pricing.plugins.power_consumption import (
+    DefinedVentureDoesNotExist,
     set_usages,
     VentureNotDefinedError,
-    DefinedVentureDoesNotExist,
 )
 
 

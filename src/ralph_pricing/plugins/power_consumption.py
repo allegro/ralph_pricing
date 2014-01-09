@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import logging
 
 from ralph.util import plugin
-from ralph_pricing.models import UsageType, Device, DailyUsage, Venture
+from ralph_pricing.models import DailyUsage, DailyDevice, UsageType, Venture
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class DefinedVentureDoesNotExist(Exception):
     pass
 
 
-def set_usages(device, date):
+def set_usages(daily_device, date):
     '''
         Create daily usage for single device
 
@@ -37,36 +37,26 @@ def set_usages(device, date):
         :returns boolean: Information for counting true/false processed devices
         :rtype boolean:
     '''
-    venture_symbol = device.venture_symbol
-    # This condition must disappear when assets will contains information
-    # about devices!
-    if not venture_symbol:
-        raise VentureNotDefinedError()
-
-    try:
-        venture = Venture.objects.get(symbol=venture_symbol)
-    except Venture.DoesNotExist:
-        raise DefinedVentureDoesNotExist()
-
     usage_type, created = UsageType.objects.get_or_create(
         name='Power consumption',
         by_warehouse=True,
+        by_cost=True,
     )
 
     usage, created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
-        pricing_venture=venture,
-        warehouse=device.warehouse,
+        pricing_venture=daily_device.pricing_venture,
+        warehouse=daily_device.warehouse,
     )
 
-    usage.value += device.power_consumption
+    usage.value += daily_device.power_consumption
     usage.save()
 
     return True
 
 
-@plugin.register(chain='pricing', requires=['today'])
+@plugin.register(chain='pricing', requires=['assets'])
 def powerconsumption(**kwargs):
     '''
         Create daily usage imprint of power consumption.
@@ -78,7 +68,7 @@ def powerconsumption(**kwargs):
         return False, 'Not configured.', kwargs
 
     count = 0
-    for device in Device.objects.all():
+    for device in DailyDevice.objects.filter(date=kwargs['today']):
         try:
             count += set_usages(device, kwargs['today'])
         except DefinedVentureDoesNotExist:

@@ -184,25 +184,10 @@ UsagesFormSet = forms.models.modelformset_factory(
 )
 
 
-def get_choices_for_date_range_form():
-    '''
-    Create set of fields contains name and id for each warehouse
-
-    :returns tuple: tuple of tuples contains name and if for each warehouse
-    :rtype tuple:
-    '''
-    choices = ()
-    for warehouse in Warehouse.objects.all():
-        choices = choices + ((warehouse.id, warehouse.name),)
-    return choices
-
-
 class DateRangeForm(forms.Form):
-    '''
-    Form schema. Used to generate venture raports
-    '''
+    '''Form schema. Used to generate venture raports'''
     warehouse = forms.ChoiceField(
-        choices=get_choices_for_date_range_form()
+        choices=[(wh.id, wh.name) for wh in Warehouse.objects.all()]
     )
     start = forms.DateField(
         widget=DateWidget(
