@@ -49,11 +49,7 @@ class AllVentures(Report):
         data = []
         totals = {}
         values = []
-
         for i, venture in enumerate(ventures):
-            if venture.name != 'istore_prod':
-                continue
-
             if show_in_ralph and not venture.is_active:
                 continue
 
@@ -82,7 +78,7 @@ class AllVentures(Report):
                     start,
                     end,
                     usage_type,
-                    int(warehouse) if usage_type.by_warehouse else None,
+                    warehouse.id if usage_type.by_warehouse else None,
                     forecast=forecast,
                 )
                 row.append(count)
@@ -205,7 +201,7 @@ class TopVentures(AllVentures):
                     start,
                     end,
                     usage_type,
-                    int(warehouse) if usage_type.by_warehouse else None,
+                    warehouse.id if usage_type.by_warehouse else None,
                     forecast=forecast,
                     descendants=True,
                 )

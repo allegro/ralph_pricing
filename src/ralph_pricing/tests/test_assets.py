@@ -17,11 +17,19 @@ class TestAssetPlugin(TestCase):
     def setUp(self):
         self.today = datetime.date.today()
 
-        self.usage_type, created = UsageType.objects.get_or_create(
+        self.core_usage_type, created = UsageType.objects.get_or_create(
             name="Physical CPU cores",
         )
-        self.usage_type.average = True
-        self.usage_type.save()
+        self.core_usage_type.average = True
+        self.core_usage_type.save()
+
+        self.power_consumption_usage_type, created = \
+            UsageType.objects.get_or_create(
+                name="Power consumption",
+                by_warehouse=True,
+                by_cost=True,
+            )
+        self.power_consumption_usage_type.save()
 
     def get_asset(self):
         """Simulated api result"""
@@ -38,6 +46,7 @@ class TestAssetPlugin(TestCase):
             'is_blade': True,
             'venture_id': 12,
             'cores_count': 8,
+            'warehouse_id': 1
         }
 
     def test_sync_asset_device(self):
@@ -45,7 +54,8 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.usage_type,
+                self.core_usage_type,
+                self.power_consumption_usage_type,
             ) for data in self.get_asset()
         )
         self.assertEqual(count, 1)
@@ -53,7 +63,7 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(device.device_id, 13342)
         self.assertEqual(device.asset_id, 1123)
         self.assertEqual(device.slots, 10.0)
-        self.assertEqual(device.power_consumption, 1000)
+
         self.assertEqual(device.sn, '1234-1234-1234-1234')
         self.assertEqual(device.barcode, '4321-4321-4321-4321')
 
@@ -62,7 +72,8 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.usage_type,
+                self.core_usage_type,
+                self.power_consumption_usage_type,
             ) for data in self.get_asset()
         )
         self.assertEqual(count, 1)
@@ -70,20 +81,46 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(daily.is_deprecated, True)
         self.assertEqual(daily.price, 100)
         self.assertEqual(daily.pricing_device_id, 1)
+        # self.assertEqual(daily.power_consumption, 1000)
+        # self.assertEqual(daily.warehouse_id, 1)
 
-    def test_sync_asset_dailyusage(self):
+    def test_sync_asset_dailyusage_core(self):
         count = sum(
             update_assets(
                 data,
                 self.today,
-                self.usage_type,
+                self.core_usage_type,
+                self.power_consumption_usage_type,
             ) for data in self.get_asset()
         )
         self.assertEqual(count, 1)
-        usage = DailyUsage.objects.get(date=self.today)
+        usage = DailyUsage.objects.get(
+            date=self.today,
+            type=self.core_usage_type,
+        )
         self.assertEqual(usage.value, 8)
         self.assertEqual(usage.pricing_device_id, 1)
-        self.assertEqual(usage.type, self.usage_type)
+        self.assertEqual(usage.warehouse_id, None)
+        self.assertEqual(usage.type, self.core_usage_type)
+
+    def test_sync_asset_dailyusage_power_consumption(self):
+        count = sum(
+            update_assets(
+                data,
+                self.today,
+                self.core_usage_type,
+                self.power_consumption_usage_type,
+            ) for data in self.get_asset()
+        )
+        self.assertEqual(count, 1)
+        usage = DailyUsage.objects.get(
+            date=self.today,
+            type=self.power_consumption_usage_type,
+        )
+        self.assertEqual(usage.value, 1000)
+        self.assertEqual(usage.pricing_device_id, 1)
+        self.assertEqual(usage.warehouse_id, 1)
+        self.assertEqual(usage.type, self.power_consumption_usage_type)
 
     def test_sync_asset_device_without_ralph_id(self):
         data = yield {
@@ -98,7 +135,12 @@ class TestAssetPlugin(TestCase):
             'deprecation_rate': 0,
         }
         count = sum(
-            update_assets(item, self.today, self.usage_type) for item in data
+            update_assets(
+                item,
+                self.today,
+                self.core_usage_type,
+                self.power_consumption_usage_type,
+            ) for item in data
         )
         self.assertFalse(count > 0)
 
@@ -115,7 +157,12 @@ class TestAssetPlugin(TestCase):
             'deprecation_rate': 0,
         }
         count = sum(
-            update_assets(item, self.today, self.usage_type) for item in data
+            update_assets(
+                item,
+                self.today,
+                self.core_usage_type,
+                self.power_consumption_usage_type,
+            ) for item in data
         )
         self.assertFalse(count == 1)
         device = Device.objects.get(device_id=123)

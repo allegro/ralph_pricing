@@ -22,7 +22,7 @@ from ralph_pricing.models import (
 
 
 @commit_on_success
-def update_assets(data, date, usage_type):
+def update_assets(data, date, core_usage_type, power_consumption_usage_type):
     """
     Updates single asset.
 
@@ -39,7 +39,9 @@ def update_assets(data, date, usage_type):
     if not data['warehouse_id']:
         return False
 
-    warehouse = Warehouse.objects.get(id=data['warehouse_id'])
+    warehouse, warehouse_created = Warehouse.objects.get_or_create(
+        id=data['warehouse_id'],
+    )
 
     # clear previous asset assignments
     # (only if current device_is != previous device_id)
@@ -68,7 +70,6 @@ def update_assets(data, date, usage_type):
     device.slots = data['slots']
     device.sn = data['sn']
     device.barcode = data['barcode']
-    device.warehouse = warehouse
     device.is_blade = data['is_blade']
     device.save()
 
@@ -88,25 +89,42 @@ def update_assets(data, date, usage_type):
         data['deprecation_rate'] = 0.00
     daily.deprecation_rate = data['deprecation_rate']
     daily.is_deprecated = data['is_deprecated']
-    daily.warehouse = warehouse
-    daily.power_consumption = data['power_consumption']
     daily.save()
 
-    # cores count
-    update_cores(data, date, daily.pricing_venture, usage_type, device)
+    # cores count usage
+    update_usage(
+        data['cores_count'],
+        date,
+        daily.pricing_venture,
+        warehouse,
+        core_usage_type,
+        device,
+    )
+
+    # power consumption usage
+    update_usage(
+        data['power_consumption'],
+        date,
+        daily.pricing_venture,
+        warehouse,
+        power_consumption_usage_type,
+        device,
+    )
 
     return created
 
 
-def update_cores(data, date, venture, usage_type, device):
+def update_usage(value, date, venture, warehouse, usage_type, device):
     usage, usage_created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
         pricing_device=device,
     )
-    if data.get('venture_id') is not None:
+    if venture is not None:
         usage.pricing_venture = venture
-    usage.value = data['cores_count']
+    if usage_type.by_warehouse and warehouse is not None:
+        usage.warehouse = warehouse
+    usage.value = value
     usage.save()
 
 
@@ -120,10 +138,29 @@ def get_core_usage():
     return usage_type
 
 
+def get_power_consumption_usage():
+    usage_type, created = UsageType.objects.get_or_create(
+        name="Power consumption",
+        by_warehouse=True,
+        by_cost=True,
+    )
+    return usage_type
+
+
 @plugin.register(chain='pricing', requires=['ventures', 'warehouse'])
 def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
-    usage = get_core_usage()
+    core_usage_type = get_core_usage()
+    power_consumption_usage_type = get_power_consumption_usage()
+
     date = kwargs['today']
-    count = sum(update_assets(data, date, usage) for data in get_assets(date))
+    count = sum(
+        update_assets(
+            data,
+            date,
+            core_usage_type,
+            power_consumption_usage_type,
+        )
+        for data in get_assets(date)
+    )
     return True, '%d new devices' % count, kwargs

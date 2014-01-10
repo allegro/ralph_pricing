@@ -23,11 +23,6 @@ def update_warehouses(data):
         :returns boolean: Information for counting true processed warehouses
         :rtype boolean:
     '''
-    # impossible! warehouse_name is needed but one of warehouse have no name
-    # in asset model
-    if not data['warehouse_name']:
-        data['warehouse_name'] = '(empty)'
-
     warehouse = Warehouse.objects.get_or_create(id=data['warehouse_id'])[0]
     warehouse.name = data['warehouse_name']
     warehouse.save()

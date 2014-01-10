@@ -186,8 +186,9 @@ UsagesFormSet = forms.models.modelformset_factory(
 
 class DateRangeForm(forms.Form):
     '''Form schema. Used to generate venture raports'''
-    warehouse = forms.ChoiceField(
-        choices=[(wh.id, wh.name) for wh in Warehouse.objects.all()]
+    warehouse = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Warehouse.objects.all()
     )
     start = forms.DateField(
         widget=DateWidget(

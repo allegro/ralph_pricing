@@ -57,6 +57,10 @@ class TestReportVentures(TestCase):
         )
         other_daily.save()
 
+        # warehouse
+        self.warehouse = models.Warehouse(name='Warehouse1')
+        self.warehouse.save()
+
         # usages
         usage_type = models.UsageType(name='waciki')
         usage_type.save()
@@ -67,6 +71,21 @@ class TestReportVentures(TestCase):
             pricing_venture=venture,
         )
         daily_usage.save()
+
+        # usages by warehouse
+        warehouse_usage_type = models.UsageType(
+            name='waciki2',
+            by_warehouse=True
+        )
+        warehouse_usage_type.save()
+        daily_warehouse_usage = models.DailyUsage(
+            type=warehouse_usage_type,
+            value=120,
+            date=day,
+            pricing_venture=venture,
+            warehouse=self.warehouse
+        )
+        daily_warehouse_usage.save()
 
         # extra costs
         extra_cost_type = models.ExtraCostType(name='waciki')
@@ -83,7 +102,12 @@ class TestReportVentures(TestCase):
     def test_top_ventures(self):
         view = TopVentures()
         day = self.day
-        for progress, data in view.get_data(day, day, show_in_ralph=False):
+        for progress, data in view.get_data(
+            self.warehouse,
+            day,
+            day,
+            show_in_ralph=False,
+        ):
             pass
         self.assertEquals(
             data,
@@ -100,6 +124,8 @@ class TestReportVentures(TestCase):
                     '0.00 PLN',        # assets cost
                     32.0,              # usage count
                     '0.00 PLN',        # usage price
+                    120.0,             # warehouse usage cost
+                    '0.00 PLN',        # warehouse usage price
                     '65 535.00 PLN',   # extra cost
                 ],
             ],
@@ -108,7 +134,60 @@ class TestReportVentures(TestCase):
     def test_all_ventures(self):
         view = AllVentures()
         day = self.day
-        for progress, data in view.get_data(day, day, show_in_ralph=False):
+        for progress, data in view.get_data(
+            self.warehouse,
+            day,
+            day,
+            show_in_ralph=False,
+        ):
+            pass
+        self.assertEquals(
+            data,
+            [
+                [
+                    3,                  # id
+                    'a',                # path (venture)
+                    True,               # show_in_ralph
+                    '',                 # department
+                    '',                 # business segment
+                    '',                 # profit center
+                    1.0,                # assets count
+                    '1 337.00 PLN',     # assets price
+                    '0.00 PLN',         # assets cost
+                    32.0,               # usage count
+                    'NO PRICE',         # usage price
+                    120.0,              # warehouse usage count
+                    'NO PRICE',         # usage price
+                    '65 535.00 PLN',    # extra cost
+                ],
+                [
+                    2,
+                    'a/b',
+                    False,  # show_in_ralph
+                    '',
+                    '',
+                    '',
+                    1.0,
+                    '833 833.00 PLN',
+                    '0.00 PLN',
+                    0,
+                    '0.00 PLN',
+                    0,
+                    '0.00 PLN',
+                    '0.00 PLN',
+                ],
+            ],
+        )
+
+    def test_all_ventures_active(self):
+        view = AllVentures()
+        day = self.day
+        for progress, data in view.get_data(
+            self.warehouse,
+            day,
+            day,
+            show_in_ralph=True
+        ):
             pass
         self.assertEquals(
             data,
@@ -125,44 +204,7 @@ class TestReportVentures(TestCase):
                     '0.00 PLN',
                     32.0,
                     'NO PRICE',
-                    '65 535.00 PLN',
-                ],
-                [
-                    2,
-                    'a/b',
-                    False,  # show_in_ralph
-                    '',
-                    '',
-                    '',
-                    1.0,
-                    '833 833.00 PLN',
-                    '0.00 PLN',
-                    0,
-                    '0.00 PLN',
-                    '0.00 PLN',
-                ],
-            ],
-        )
-
-    def test_all_ventures_active(self):
-        view = AllVentures()
-        day = self.day
-        for progress, data in view.get_data(day, day, show_in_ralph=True):
-            pass
-        self.assertEquals(
-            data,
-            [
-                [
-                    3,
-                    'a',
-                    True,  # show_in_ralph
-                    '',
-                    '',
-                    '',
-                    1.0,
-                    '1 337.00 PLN',
-                    '0.00 PLN',
-                    32.0,
+                    120.0,
                     'NO PRICE',
                     '65 535.00 PLN',
                 ],
