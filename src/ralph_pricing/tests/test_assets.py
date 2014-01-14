@@ -9,7 +9,13 @@ import datetime
 
 from django.test import TestCase
 
-from ralph_pricing.models import Device, DailyDevice, DailyUsage, UsageType
+from ralph_pricing.models import (
+    Device,
+    DailyDevice,
+    DailyUsage,
+    UsageType,
+    Warehouse,
+)
 from ralph_pricing.plugins.assets import update_assets
 
 
@@ -31,7 +37,12 @@ class TestAssetPlugin(TestCase):
             )
         self.power_consumption_usage_type.save()
 
-    def get_asset(self):
+        self.warehouse, created = Warehouse.objects.get_or_create(
+            name="Sample warehouse"
+        )
+        self.warehouse.save()
+
+    def _get_asset(self):
         """Simulated api result"""
         yield {
             'asset_id': 1123,
@@ -46,7 +57,7 @@ class TestAssetPlugin(TestCase):
             'is_blade': True,
             'venture_id': 12,
             'cores_count': 8,
-            'warehouse_id': 1
+            'warehouse_id': self.warehouse.id,
         }
 
     def test_sync_asset_device(self):
@@ -56,7 +67,7 @@ class TestAssetPlugin(TestCase):
                 self.today,
                 self.core_usage_type,
                 self.power_consumption_usage_type,
-            ) for data in self.get_asset()
+            ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
         device = Device.objects.get(device_id=13342)
@@ -74,15 +85,13 @@ class TestAssetPlugin(TestCase):
                 self.today,
                 self.core_usage_type,
                 self.power_consumption_usage_type,
-            ) for data in self.get_asset()
+            ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
         daily = DailyDevice.objects.get(date=self.today)
         self.assertEqual(daily.is_deprecated, True)
         self.assertEqual(daily.price, 100)
         self.assertEqual(daily.pricing_device_id, 1)
-        # self.assertEqual(daily.power_consumption, 1000)
-        # self.assertEqual(daily.warehouse_id, 1)
 
     def test_sync_asset_dailyusage_core(self):
         count = sum(
@@ -91,7 +100,7 @@ class TestAssetPlugin(TestCase):
                 self.today,
                 self.core_usage_type,
                 self.power_consumption_usage_type,
-            ) for data in self.get_asset()
+            ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
         usage = DailyUsage.objects.get(
@@ -110,7 +119,7 @@ class TestAssetPlugin(TestCase):
                 self.today,
                 self.core_usage_type,
                 self.power_consumption_usage_type,
-            ) for data in self.get_asset()
+            ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
         usage = DailyUsage.objects.get(
@@ -119,7 +128,7 @@ class TestAssetPlugin(TestCase):
         )
         self.assertEqual(usage.value, 1000)
         self.assertEqual(usage.pricing_device_id, 1)
-        self.assertEqual(usage.warehouse_id, 1)
+        self.assertEqual(usage.warehouse_id, self.warehouse.id)
         self.assertEqual(usage.type, self.power_consumption_usage_type)
 
     def test_sync_asset_device_without_ralph_id(self):

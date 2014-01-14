@@ -75,7 +75,7 @@ class TestReportVentures(TestCase):
         # usages by warehouse
         warehouse_usage_type = models.UsageType(
             name='waciki2',
-            by_warehouse=True
+            by_warehouse=True,
         )
         warehouse_usage_type.save()
         daily_warehouse_usage = models.DailyUsage(
@@ -83,7 +83,7 @@ class TestReportVentures(TestCase):
             value=120,
             date=day,
             pricing_venture=venture,
-            warehouse=self.warehouse
+            warehouse=self.warehouse,
         )
         daily_warehouse_usage.save()
 
@@ -186,7 +186,7 @@ class TestReportVentures(TestCase):
             self.warehouse,
             day,
             day,
-            show_in_ralph=True
+            show_in_ralph=True,
         ):
             pass
         self.assertEquals(

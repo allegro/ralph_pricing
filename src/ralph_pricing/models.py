@@ -562,7 +562,6 @@ class UsageType(db.Model):
         verbose_name=_("Show percentage of price"),
         default=False,
     )
-    # warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
     by_warehouse = db.BooleanField(
         default=False,
     )
