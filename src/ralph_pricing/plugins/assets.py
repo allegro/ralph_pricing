@@ -142,7 +142,7 @@ def get_core_usage():
     """Creates physical cpu cores usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
         name="Physical CPU cores",
-        average = True,
+        average=True,
     )
     usage_type.save()
     return usage_type
