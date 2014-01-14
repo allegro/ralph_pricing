@@ -576,7 +576,7 @@ class UsageType(db.Model):
     def __unicode__(self):
         return self.name
 
-    # @memoize
+    @memoize
     def _get_price_from_cost(self, cost, usage, warehouse_id):
         '''
         Get price from cost for given date and warehouse
@@ -598,7 +598,6 @@ class UsageType(db.Model):
 
         return D(cost/total_usage/((usage.end-usage.start).days+1))
 
-    # @memoize # causes wrong test results
     def get_price_at(self, date, warehouse_id, forecast):
         '''
         Get price for the specified warehouse for the given day
