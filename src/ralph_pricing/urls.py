@@ -39,6 +39,7 @@ urlpatterns = patterns(
         r'^usages/(?P<usage>[^/]+)/$',
         login_required(Usages.as_view()),
         name='usages',
+        kwargs={'type': 'price'},
     ),
     url(
         r'^all-ventures/$',

@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from mptt.forms import TreeNodeChoiceField
 
 from ralph.ui.widgets import DateWidget
-from ralph_pricing.models import ExtraCost, UsagePrice, Venture
+from ralph_pricing.models import ExtraCost, UsagePrice, Venture, Warehouse
 
 
 class ExtraCostForm(forms.ModelForm):
@@ -86,15 +86,35 @@ ExtraCostFormSet = forms.models.modelformset_factory(
 
 
 class UsagePriceForm(forms.ModelForm):
+    '''
+    Used by factory to create UsagesFormSet. Contain baisc form infromation
+    like fields and widgets
+    '''
     class Meta:
         model = UsagePrice
-        fields = 'price', 'start', 'end'
+
+        fields = [
+            'warehouse',
+            'forecast_price',
+            'price',
+            'forecast_cost',
+            'cost',
+            'start',
+            'end',
+        ]
+
         widgets = {
             'start': DateWidget(attrs={'class': 'input-small'}),
             'end': DateWidget(attrs={'class': 'input-small'}),
         }
 
     def clean_end(self):
+        '''
+        Test if end date is later or equal to the start date
+
+        :returns string: the end of the time interval
+        :rtype string:
+        '''
         start = self.cleaned_data['start']
         end = self.cleaned_data['end']
         if start > end:
@@ -105,6 +125,10 @@ class UsagePriceForm(forms.ModelForm):
 
 
 class UsagesBaseFormSet(forms.models.BaseModelFormSet):
+    '''
+    Used by factory to create UsagesFormSet. Contains rules to validate
+    unique and correct data for each type of usage
+    '''
     def clean(self):
         if any(self.errors):
             return
@@ -113,35 +137,44 @@ class UsagesBaseFormSet(forms.models.BaseModelFormSet):
             form = self.forms[i]
             start = form.cleaned_data.get('start')
             end = form.cleaned_data.get('end')
+            warehouse = form.cleaned_data.get('warehouse')
             if not start or not end:
                 continue
-            for other_start, other_end in dates:
-                if other_start <= start <= other_end:
+
+            for other_start, other_end, other_warehouse in dates:
+                if (other_start <= start <= other_end
+                        and other_warehouse == warehouse):
                     form._errors['start'] = form.error_class([
                         _("Start date overlaps with an existing extra "
-                            "cost of the same type."),
+                            "cost of the same type and warehouse."),
                     ])
                     break
-                if other_start <= end <= other_end:
+                if (other_start <= end <= other_end
+                        and other_warehouse == warehouse):
                     form._errors['end'] = form.error_class([
                         _("End date overlaps with an existing extra "
-                            "cost of the same type."),
+                            "cost of the same type and warehouse."),
                     ])
                     break
-                if start <= other_start <= end:
+                if (start <= other_start <= end
+                        and other_warehouse == warehouse):
                     form._errors['start'] = form.error_class([
                         _("A start date of an existing extra cost of "
-                            "the same type overlaps with this time span."),
+                            "the same type and warehouse overlaps with "
+                            "this time span."),
                     ])
                     break
-                if start <= other_end <= end:
+                if (start <= other_end <= end
+                        and other_warehouse == warehouse):
                     form._errors['start'] = form.error_class([
                         _("An end date of an existing extra cost of "
-                            "the same type overlaps with this time span."),
+                            "the same type and warehouse overlaps with "
+                            "this time span."),
                     ])
                     break
             else:
-                dates.append((start, end))
+                dates.append((start, end, warehouse))
+
 
 UsagesFormSet = forms.models.modelformset_factory(
     UsagePrice,
@@ -152,6 +185,11 @@ UsagesFormSet = forms.models.modelformset_factory(
 
 
 class DateRangeForm(forms.Form):
+    '''Form schema. Used to generate venture raports'''
+    warehouse = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Warehouse.objects.all(),
+    )
     start = forms.DateField(
         widget=DateWidget(
             attrs={'class': 'input-small'},
@@ -169,6 +207,10 @@ class DateRangeForm(forms.Form):
     show_in_ralph = forms.BooleanField(
         required=False,
         label=_("Show only active"),
+    )
+    forecast = forms.BooleanField(
+        required=False,
+        label=_("Forecast"),
     )
 
 
