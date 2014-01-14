@@ -24,12 +24,6 @@ MAIN_MENU = [
         view_name='all_ventures',
     ),
     MenuItem(
-        _("Top ventures"),
-        name='top-ventures',
-        fugue_icon='fugue-store',
-        view_name='top_ventures',
-    ),
-    MenuItem(
         _("Devices"),
         name='devices',
         fugue_icon='fugue-wooden-box',

@@ -12,7 +12,7 @@ from ralph_pricing.views.devices import Devices
 from ralph_pricing.views.extra_costs import ExtraCosts
 from ralph_pricing.views.home import Home
 from ralph_pricing.views.usages import Usages
-from ralph_pricing.views.ventures import AllVentures, TopVentures
+from ralph_pricing.views.ventures import AllVentures
 
 
 urlpatterns = patterns(
@@ -45,11 +45,6 @@ urlpatterns = patterns(
         r'^all-ventures/$',
         login_required(AllVentures.as_view()),
         name='all_ventures',
-    ),
-    url(
-        r'^top-ventures/$',
-        login_required(TopVentures.as_view()),
-        name='top_ventures',
     ),
     url(
         r'^devices/$',
