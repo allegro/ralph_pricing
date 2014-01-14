@@ -443,13 +443,6 @@ class DailyDevice(db.Model):
         verbose_name=_("is deprecated"),
         default=False,
     )
-    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
-    power_consumption = db.IntegerField(
-        verbose_name=_('power consumption'),
-        null=True,
-        blank=True,
-        default=0,
-    )
 
     class Meta:
         verbose_name = _("daily device")
@@ -569,7 +562,6 @@ class UsageType(db.Model):
         verbose_name=_("Show percentage of price"),
         default=False,
     )
-    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
     by_warehouse = db.BooleanField(
         default=False,
     )
@@ -606,7 +598,6 @@ class UsageType(db.Model):
 
         return D(cost/total_usage/((usage.end-usage.start).days+1))
 
-    @memoize
     def get_price_at(self, date, warehouse_id, forecast):
         '''
         Get price for the specified warehouse for the given day
