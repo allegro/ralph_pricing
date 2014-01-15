@@ -24,6 +24,10 @@ class AllVentures(Report):
     report_name = _('All Ventures Report')
 
     @staticmethod
+    def _get_visible_usage_types():
+        return UsageType.objects.exclude(show_in_report=False).order_by('name')
+
+    @staticmethod
     def get_data(
         warehouse,
         start,
@@ -73,7 +77,7 @@ class AllVentures(Report):
                 currency(cost),
             ]
             column = len(row)
-            for usage_type in UsageType.objects.order_by('name'):
+            for usage_type in AllVentures._get_visible_usage_types():
                 count, price = venture.get_usages_count_price(
                     start,
                     end,
@@ -128,7 +132,7 @@ class AllVentures(Report):
             _("Assets price"),
             _("Assets cost"),
         ]
-        for usage_type in UsageType.objects.order_by('name'):
+        for usage_type in AllVentures._get_visible_usage_types():
             header.append(_("{} count").format(usage_type.name))
             if usage_type.show_value_percentage:
                 header.append(_("{} count %").format(usage_type.name))
