@@ -595,8 +595,9 @@ class UsageType(db.Model):
         )
 
         total_usage = sum([D(dailyusage.value) for dailyusage in dailyusages])
-
-        return D(cost/total_usage/((usage.end-usage.start).days+1))
+        if total_usage == 0:
+            return 0
+        return D(cost / total_usage / ((usage.end - usage.start).days + 1))
 
     def get_price_at(self, date, warehouse_id, forecast):
         '''
