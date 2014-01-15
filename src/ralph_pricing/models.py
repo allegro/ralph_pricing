@@ -716,6 +716,12 @@ class DailyUsage(db.Model):
     total = db.FloatField(verbose_name=_("total usage"), default=0)
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
     warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
+    remarks = db.TextField(
+        verbose_name=_("Remarks"),
+        help_text=_("Additional information."),
+        blank=True,
+        default="",
+    )
 
     class Meta:
         verbose_name = _("daily usage")

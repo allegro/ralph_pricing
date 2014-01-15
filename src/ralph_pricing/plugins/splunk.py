@@ -11,76 +11,60 @@ import time
 from django.conf import settings
 
 from ralph.util import plugin
+from ralph.util.api_pricing import get_device_by_name
 from ralph_pricing.splunk import Splunk
 from ralph_pricing.models import (
-    DailyDevice,
     DailyUsage,
     Device,
-    SplunkName,
     UsageType,
     Venture,
 )
 
 
-def set_device_usage(date, usage, usage_type, device):
-    try:
-        daily_device = DailyDevice.objects.get(
-            pricing_device=device,
-            date=date,
-        )
-    except DailyDevice.DoesNotExist:
-        venture = None
-    else:
-        venture = daily_device.pricing_venture
-    daily_usage, created = DailyUsage.objects.get_or_create(
-        date=date,
-        type=usage_type,
-        pricing_device=device,
-        pricing_venture=venture,
-    )
-    daily_usage.value = usage
-    daily_usage.save()
-
-
-def set_unknown_usage(date, usage, usage_type, splunk_venture):
-    daily_usage, created = DailyUsage.objects.get_or_create(
-        date=date,
-        type=usage_type,
-        pricing_venture=splunk_venture,
-        value=usage,
-    )
+class VentureIdNone(Exception):
+    pass
 
 
 def set_usages(date, usage, usage_type, host, splunk_venture):
+    device_info = get_device_by_name(host)
+    device_id = device_info.get('device_id')
+    venture_id = device_info.get('venture_id')
+
+    # device
     try:
-        splunk_pair = SplunkName.objects.get(
-            splunk_name=host,
-            pricing_device__name=host,
+        device = device_id and Device.objects.get(device_id=device_id)
+    except Device.DoesNotExist:
+        device = None
+
+    # venture
+    try:
+        if venture_id is None:
+            raise VentureIdNone()
+        venture = Venture.objects.get(venture_id=venture_id)
+    except (VentureIdNone, Venture.DoesNotExist):
+        venture = splunk_venture
+
+    # save device information if found in pricing
+    if device is not None:
+        daily_usage, created = DailyUsage.objects.get_or_create(
+            date=date,
+            type=usage_type,
+            pricing_device=device,
+            pricing_venture=venture,
         )
-    except SplunkName.DoesNotExist:
-        try:
-            splunk_pair = SplunkName.objects.get(
-                splunk_name=host,
-                pricing_device__isnull=False,
-            )
-        except SplunkName.DoesNotExist:
-            device = Device.objects.filter(name=host)
-            if device:
-                splunk_pair = SplunkName(
-                    splunk_name=host,
-                    pricing_device=device[0],
-                )
-                splunk_pair.save()
-                set_device_usage(date, usage, usage_type, device[0])
-            else:
-                SplunkName.objects.get_or_create(splunk_name=host)
-                set_unknown_usage(date, usage, usage_type, splunk_venture)
-        else:
-            set_device_usage(
-                date, usage, usage_type, splunk_pair.pricing_device,
-            )
+        daily_usage.remarks = host
     else:
-        set_device_usage(date, usage, usage_type, splunk_pair.pricing_device)
+        # if device not found in pricing, try to find DailyUsage by adding
+        # remarks as filter - in case of DailyUsage, remark should always be
+        # hostname (grouping by hostname in main plugin)
+        daily_usage, created = DailyUsage.objects.get_or_create(
+            date=date,
+            type=usage_type,
+            pricing_venture=venture,
+            remarks=host,
+        )
+    daily_usage.value = usage
+    daily_usage.save()
 
 
 @plugin.register(chain='pricing', requires=['ventures'])
