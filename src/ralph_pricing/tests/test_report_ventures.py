@@ -18,11 +18,11 @@ class TestReportVentures(TestCase):
         self.day = day = datetime.date(2013, 4, 25)
 
         # ventures
-        venture = models.Venture(venture_id=3, name='a', is_active=True)
-        venture.save()
+        self.venture = models.Venture(venture_id=3, name='a', is_active=True)
+        self.venture.save()
         subventure = models.Venture(
             venture_id=2,
-            parent=venture,
+            parent=self.venture,
             name='b',
             is_active=False,
         )
@@ -39,7 +39,7 @@ class TestReportVentures(TestCase):
             date=day,
             name='ziew',
             price='1337',
-            pricing_venture=venture,
+            pricing_venture=self.venture,
         )
         daily.save()
 
@@ -68,7 +68,7 @@ class TestReportVentures(TestCase):
             type=usage_type,
             value=32,
             date=day,
-            pricing_venture=venture,
+            pricing_venture=self.venture,
         )
         daily_usage.save()
 
@@ -82,7 +82,7 @@ class TestReportVentures(TestCase):
             type=warehouse_usage_type,
             value=120,
             date=day,
-            pricing_venture=venture,
+            pricing_venture=self.venture,
             warehouse=self.warehouse,
         )
         daily_warehouse_usage.save()
@@ -91,7 +91,7 @@ class TestReportVentures(TestCase):
         extra_cost_type = models.ExtraCostType(name='waciki')
         extra_cost_type.save()
         extra_cost = models.ExtraCost(
-            pricing_venture=venture,
+            pricing_venture=self.venture,
             start=day,
             end=day,
             type=extra_cost_type,
@@ -189,6 +189,54 @@ class TestReportVentures(TestCase):
             show_in_ralph=True,
         ):
             pass
+        self.assertEquals(
+            data,
+            [
+                [
+                    3,
+                    'a',
+                    True,  # show_in_ralph
+                    '',
+                    '',
+                    '',
+                    1.0,
+                    '1 337.00 PLN',
+                    '0.00 PLN',
+                    32.0,
+                    'NO PRICE',
+                    120.0,
+                    'NO PRICE',
+                    '65 535.00 PLN',
+                ],
+            ],
+        )
+
+    def test_hidden_columns(self):
+        view = AllVentures()
+        day = self.day
+
+        # save hidden usage type
+        hidden_usage_type = models.UsageType(
+            name='hidden in report',
+            show_in_report=False,
+        )
+        hidden_usage_type.save()
+        daily_usage = models.DailyUsage(
+            type=hidden_usage_type,
+            value=32,
+            date=day,
+            pricing_venture=self.venture,
+        )
+        daily_usage.save()
+
+        for progress, data in view.get_data(
+            self.warehouse,
+            day,
+            day,
+            show_in_ralph=True,
+        ):
+            pass
+        # hidden usage type columns should not appear in report
         self.assertEquals(
             data,
             [

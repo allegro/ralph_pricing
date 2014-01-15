@@ -549,6 +549,7 @@ class UsageType(db.Model):
         verbose_name=_("symbol"),
         max_length=255,
         default="",
+        blank=True,
     )
     average = db.BooleanField(
         verbose_name=_("Average the values over multiple days"),
@@ -567,6 +568,10 @@ class UsageType(db.Model):
     )
     by_cost = db.BooleanField(
         default=False,
+    )
+    show_in_report = db.BooleanField(
+        verbose_name=_("Show usage type in report"),
+        default=True,
     )
 
     class Meta:
