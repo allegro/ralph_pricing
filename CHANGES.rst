@@ -5,12 +5,19 @@ Change Log
 ~~~~~
 
 * Changes in the architecture. Now devices are taken by asset plugin from assets
+
 * Remove device and cores plugin (This this is a role of asset plugin)
+
 * DailyUsage contains warehouse field
+
 * Added version of usage type price based on cost
+
 * Added price or cost per warehouse
+
 * Now venture reports are generated per warehouse (only colums with flag by_warehouse are different between reports)
+
 * Added forecast prices and costs and possibility to generate forecast reports
+
 * Added cost to price converter used by 'get_assets_count_price_cost' method
 
 
