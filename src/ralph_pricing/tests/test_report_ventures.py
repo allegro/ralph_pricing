@@ -10,7 +10,7 @@ import datetime
 from django.test import TestCase
 
 from ralph_pricing import models
-from ralph_pricing.views.ventures import AllVentures, TopVentures
+from ralph_pricing.views.ventures import AllVentures
 
 
 class TestReportVentures(TestCase):
@@ -98,38 +98,6 @@ class TestReportVentures(TestCase):
             price='65535',
         )
         extra_cost.save()
-
-    def test_top_ventures(self):
-        view = TopVentures()
-        day = self.day
-        for progress, data in view.get_data(
-            self.warehouse,
-            day,
-            day,
-            show_in_ralph=False,
-        ):
-            pass
-        self.assertEquals(
-            data,
-            [
-                [
-                    3,                 # id
-                    'a',               # path
-                    True,              # show_in_ralph
-                    '',                # department
-                    '',                # business segment
-                    '',                # Profit center
-                    2.0,               # assets count
-                    '835 170.00 PLN',  # assets price
-                    '0.00 PLN',        # assets cost
-                    32.0,              # usage count
-                    '0.00 PLN',        # usage price
-                    120.0,             # warehouse usage cost
-                    '0.00 PLN',        # warehouse usage price
-                    '65 535.00 PLN',   # extra cost
-                ],
-            ],
-        )
 
     def test_all_ventures(self):
         view = AllVentures()
