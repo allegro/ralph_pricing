@@ -115,7 +115,6 @@ class UsagePriceForm(forms.ModelForm):
             )
         return self.cleaned_data['warehouse']
 
-
     def clean_end(self):
         '''
         Test if end date is later or equal to the start date
