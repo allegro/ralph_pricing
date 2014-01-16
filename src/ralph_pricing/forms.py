@@ -108,6 +108,14 @@ class UsagePriceForm(forms.ModelForm):
             'end': DateWidget(attrs={'class': 'input-small'}),
         }
 
+    def clean_warehouse(self):
+        if self.cleaned_data['warehouse'] is None:
+            raise forms.ValidationError(
+                _("You must chose warehouse."),
+            )
+        return self.cleaned_data['warehouse']
+
+
     def clean_end(self):
         '''
         Test if end date is later or equal to the start date
