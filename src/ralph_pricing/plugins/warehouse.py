@@ -23,6 +23,11 @@ def update_warehouses(data):
         :returns boolean: Information for counting true processed warehouses
         :rtype boolean:
     '''
+
+    # It must be. if we try set empty string, plugin doesn't work
+    if data['warehouse_name'] == '':
+        data['warehouse_name'] = '-'
+
     warehouse = Warehouse.objects.get_or_create(id=data['warehouse_id'])[0]
     warehouse.name = data['warehouse_name']
     warehouse.save()
