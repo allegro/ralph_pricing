@@ -111,7 +111,7 @@ class UsagePriceForm(forms.ModelForm):
     def clean_warehouse(self):
         if self.cleaned_data['warehouse'] is None:
             raise forms.ValidationError(
-                _("You must chose warehouse."),
+                _("You must choose warehouse."),
             )
         return self.cleaned_data['warehouse']
 
