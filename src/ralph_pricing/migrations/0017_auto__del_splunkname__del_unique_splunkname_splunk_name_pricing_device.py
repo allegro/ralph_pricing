@@ -8,6 +8,12 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Removing unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
+        db.delete_unique('ralph_pricing_splunkname', ['splunk_name', 'pricing_device_id'])
+
+        # Deleting model 'SplunkName'
+        db.delete_table('ralph_pricing_splunkname')
+
         # Adding field 'DailyUsage.remarks'
         db.add_column('ralph_pricing_dailyusage', 'remarks',
                       self.gf('django.db.models.fields.TextField')(default=u'', blank=True),
@@ -15,6 +21,17 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Adding model 'SplunkName'
+        db.create_table('ralph_pricing_splunkname', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('splunk_name', self.gf('django.db.models.fields.CharField')(max_length=255, unique=True)),
+            ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Device'], null=True, on_delete=models.SET_NULL, blank=True)),
+        ))
+        db.send_create_signal('ralph_pricing', ['SplunkName'])
+
+        # Adding unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
+        db.create_unique('ralph_pricing_splunkname', ['splunk_name', 'pricing_device_id'])
+
         # Deleting field 'DailyUsage.remarks'
         db.delete_column('ralph_pricing_dailyusage', 'remarks')
 
@@ -130,12 +147,6 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ExtraCostType'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
-        },
-        'ralph_pricing.splunkname': {
-            'Meta': {'unique_together': "((u'splunk_name', u'pricing_device'),)", 'object_name': 'SplunkName'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'splunk_name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
         },
         'ralph_pricing.usageprice': {
             'Meta': {'ordering': "(u'type', u'-start')", 'unique_together': "[(u'warehouse', u'start', u'type'), (u'warehouse', u'end', u'type')]", 'object_name': 'UsagePrice'},

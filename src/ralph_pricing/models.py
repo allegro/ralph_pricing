@@ -778,23 +778,3 @@ class ExtraCost(db.Model):
             self.start,
             self.end,
         )
-
-
-class SplunkName(db.Model):
-    splunk_name = db.CharField(
-        verbose_name=_("Splunk name"),
-        max_length=255,
-        blank=False,
-        unique=True,
-    )
-    pricing_device = db.ForeignKey(
-        Device,
-        verbose_name=_("pricing device"),
-        null=True,
-        blank=True,
-        default=None,
-        on_delete=db.SET_NULL,
-    )
-
-    class Meta:
-        unique_together = ("splunk_name", "pricing_device")
