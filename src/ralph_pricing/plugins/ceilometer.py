@@ -54,6 +54,8 @@ def get_ceilometer_usages(client, tenants, date=None):
         'cpu',
         'network.outgoing.bytes',
         'network.incoming.bytes',
+        'disk.write.requests',
+        'disk.read.requests',
     ]
     statistics = {}
     for tenant in tenants:

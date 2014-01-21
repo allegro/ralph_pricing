@@ -87,10 +87,15 @@ class TestCeilometer(TestCase):
             cpu = mock.MagicMock(unit="unit", sum=1234)
             neti = mock.MagicMock(unit="unit", sum=2345)
             neto = mock.MagicMock(unit="unit", sum=3456)
+            diskr = mock.MagicMock(unit="unit", sum=5678)
+            diskw = mock.MagicMock(unit="unit", sum=4567)
+
             meters = {
                 'cpu': cpu,
                 'network.outgoing.bytes': neto,
                 'network.incoming.bytes': neti,
+                'disk.write.requests': diskw,
+                'disk.read.requests': diskr,
             }
             correct_query = [
                 {
@@ -123,6 +128,8 @@ class TestCeilometer(TestCase):
                 u'cpu': 1234,
                 u'network.incoming.bytes': 2345,
                 u'network.outgoing.bytes': 3456,
+                u'disk.write.requests': 4567,
+                u'disk.read.requests': 5678,
             }
         }
         self.assertEqual(res, correct_res)
@@ -139,9 +146,11 @@ class TestCeilometer(TestCase):
                 u'cpu': 1234,
                 u'network.incoming.bytes': 2345,
                 u'network.outgoing.bytes': 3456,
+                u'disk.write.requests': 4567,
+                u'disk.read.requests': 5678,
             }
         }
         date = datetime.date(2014, 1, 21)
         ceilometer.save_ceilometer_usages(usages, date)
         usages = DailyUsage.objects.filter(pricing_venture=v)
-        self.assertEqual(3, usages.count())
+        self.assertEqual(5, usages.count())
