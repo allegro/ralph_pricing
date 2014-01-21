@@ -35,7 +35,6 @@ setup(
         'ralph_assets>=1.3.0',
         'django-mptt==0.5.5',
         'python-ceilometerclient==1.0.8',
-        'python-keystoneclient==0.4.2',
     ],
     entry_points={
         'console_scripts': [
