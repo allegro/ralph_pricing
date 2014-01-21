@@ -6,10 +6,12 @@ from __future__ import unicode_literals
 
 import datetime
 import logging
+import json
+
+import requests
 
 from django.conf import settings
 from ceilometerclient.client import get_client
-from keystoneclient.client import Client
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
@@ -18,10 +20,29 @@ from ralph_pricing.models import UsageType, Venture, DailyUsage
 logger = logging.getLogger('ralph')
 
 
-def get_tenants(client):
-    tenants = [
-        ('4d9d8413547c4626a0a1bb9feca988cb', "whatever;agito"),
-    ]
+def get_tenants(site):
+    """
+    For some reason keystoneclient forcibly use admin endpoint.
+    """
+    data = {
+        "auth": {
+            "passwordCredentials": {
+                "username": site['OS_USERNAME'],
+                "password": site['OS_PASSWORD'],
+            }
+        }
+    }
+    headers = {'content-type': 'application/json'}
+    token_url = site['OS_AUTH_URL'] + "/tokens"
+    token = requests.post(token_url, data=json.dumps(data), headers=headers)
+    token = json.loads(str(token.content))['access']['token']['id']
+    headers_tenant = {
+        'X-Auth-Token': token,
+        'content-type': 'application/json',
+    }
+    tenants_url = site['OS_AUTH_URL'] + "/tenants"
+    tenants = requests.get(tenants_url, headers=headers_tenant)
+    tenants = json.loads(str(tenants.content))['tenants']
     return tenants
 
 
@@ -36,14 +57,20 @@ def get_ceilometer_usages(client, tenants, date=None):
     ]
     statistics = {}
     for tenant in tenants:
-        tenant_venture = tenant[1].split(";")[1]
+        try:
+            tenant_venture = tenant['description'].split(";")[1]
+        except (ValueError, IndexError):
+            logger.error(
+                "Tenant malformed: {}".format(str(tenant))
+            )
+            continue
         statistics[tenant_venture] = {}
         for meter in meters:
             query = [
                 {
                     'field': 'project_id',
                     'op': 'eq',
-                    'value': tenant[0],
+                    'value': tenant['id'],
                 },
                 {
                     "field": "timestamp",
@@ -57,18 +84,26 @@ def get_ceilometer_usages(client, tenants, date=None):
                 },
             ]
             logger.debug(
-                "[CEILOMETER] stats {}-{} tenant: {} metric: {}".format(
+                "stats {}-{} tenant: {} metric: {}".format(
                     yesterday.isoformat(),
                     today.isoformat(),
                     tenant_venture,
                     meter,
                 )
             )
-            stats = client.statistics.list(meter_name=meter, q=query)[0]
+            try:
+                stats = client.statistics.list(meter_name=meter, q=query)[0]
+            except IndexError:
+                logger.warning(
+                    "No statistics for tenant {}".format(
+                        tenant['id']
+                    )
+                )
+                continue
             if not meter in statistics[tenant_venture]:
                 statistics[tenant_venture][meter] = 0
             statistics[tenant_venture][meter] += stats.sum
-            logger.debug("[CEILOMETER] {}:{}:{}{}".format(
+            logger.debug("{}:{}:{}{}".format(
                 tenant_venture,
                 meter,
                 stats.sum,
@@ -92,13 +127,14 @@ def save_ceilometer_usages(usages, date):
         )
         usage.value = value
         usage.save()
+        logger.info("Usages saved {}:{}".format(venture, value))
 
     for venture_symbol, usages in usages.iteritems():
         try:
             venture = Venture.objects.get(symbol=venture_symbol)
         except Venture.DoesNotExist:
             logger.error(
-                "[CEILOMETER] Venture with symbol {} does not exist".format(
+                "Venture with symbol {} does not exist".format(
                     venture_symbol,
                 )
             )
@@ -109,20 +145,14 @@ def save_ceilometer_usages(usages, date):
 
 @plugin.register(chain='pricing', requires=['ventures'])
 def ceilometer(**kwargs):
-    logger.info("[CEILOMETER] start {}".format(
+    logger.info("start {}".format(
         datetime.datetime.now().isoformat(),
     ))
     for site in settings.OPENSTACK_SITES:
-        logger.info("[CEILOMETER] site {}".format(
+        logger.info("site {}".format(
             site['OS_METERING_URL'],
         ))
-        keystone_client = Client(
-            username=site['OS_USERNAME'],
-            password=site['OS_PASSWORD'],
-            tenant_name=site['OS_TENANT_NAME'],
-            auth_url=site['OS_AUTH_URL'],
-        )
-        tenants = get_tenants(keystone_client)
+        tenants = get_tenants(site)
         ceilo_client = get_client(
             "2",
             ceilometer_url=site['OS_METERING_URL'],
@@ -137,3 +167,4 @@ def ceilometer(**kwargs):
             date=kwargs['today'],
         )
         save_ceilometer_usages(stats, date=kwargs['today'])
+    return True, 'ceilometer usages saved', kwargs
