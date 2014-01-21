@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import datetime
 import time
+import logging
 
 from django.conf import settings
 
@@ -20,6 +21,8 @@ from ralph_pricing.models import (
     Venture,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class VentureIdNone(Exception):
     pass
@@ -29,6 +32,9 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
     device_info = get_device_by_name(host)
     device_id = device_info.get('device_id')
     venture_id = device_info.get('venture_id')
+
+    if device_id is None:
+        logger.warning('Device with host %s not found in ralph', host)
 
     # device
     try:
@@ -42,6 +48,8 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
             raise VentureIdNone()
         venture = Venture.objects.get(venture_id=venture_id)
     except (VentureIdNone, Venture.DoesNotExist):
+        logger.warning(
+            'Device with host %s attached to splunk unknown venture', host)
         venture = splunk_venture
 
     # save device information if found in pricing
@@ -67,7 +75,7 @@ def set_usages(date, usage, usage_type, host, splunk_venture):
     daily_usage.save()
 
 
-@plugin.register(chain='pricing', requires=['ventures'])
+@plugin.register(chain='pricing', requires=['ventures', 'assets'])
 def splunk(**kwargs):
     """Updates Splunk usage per Venture"""
     if not settings.SPLUNK_HOST:
