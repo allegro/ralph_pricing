@@ -67,9 +67,3 @@ class ExtraCostTypeAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [ExtraCostInline]
-
-
-@register(models.SplunkName)
-class SplunkNameAdmin(ModelAdmin):
-    list_display = ('splunk_name', 'pricing_device')
-    search_fields = ('splunk_name',)
