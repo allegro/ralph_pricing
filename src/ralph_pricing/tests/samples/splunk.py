@@ -24,4 +24,3 @@ hosts_usages_data = [
         u'lastReceived': u'Fri 2013-05-17 07:27:02',
     },
 ]
-

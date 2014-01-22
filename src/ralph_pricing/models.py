@@ -7,9 +7,16 @@ from __future__ import unicode_literals
 
 from decimal import Decimal as D
 from dateutil import rrule
+from lck.cache import memoize
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from lck.django.common.models import (
+    EditorTrackable,
+    Named,
+    TimeTrackable,
+    WithConcurrentGetOrCreate,
+)
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -18,7 +25,24 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
-def get_usages_count_price(query, start, end):
+def get_usages_count_price(
+    query,
+    start,
+    end,
+    warehouse_id=None,
+    forecast=False
+):
+    '''
+    Generate count and price from te DayliUsage query
+
+    :param object query: DailyUsage query
+    :param datetime start: Start of the time interval
+    :param datetime end: End of the time interval
+    :param integer warehouse_id: Warehouse id or None
+    :param boolean forecast: Information about use forecast or real price
+    :returns tuple: count and price
+    :rtype tuple:
+    '''
     days = (end - start).days + 1
     count = 0
     price = D(0)
@@ -31,7 +55,11 @@ def get_usages_count_price(query, start, end):
             else:
                 count += daily_count
             try:
-                daily_price = usage.type.get_price_at(day)
+                daily_price = usage.type.get_price_at(
+                    day,
+                    warehouse_id,
+                    forecast,
+                )
             except (
                 UsagePrice.DoesNotExist,
                 UsagePrice.MultipleObjectsReturned,
@@ -43,7 +71,20 @@ def get_usages_count_price(query, start, end):
     return count, price
 
 
+class Warehouse(TimeTrackable, EditorTrackable, Named,
+                WithConcurrentGetOrCreate):
+    """
+    Pricing warehouse model contains name and id from assets and own create
+    and modified date
+    """
+    def __unicode__(self):
+        return self.name
+
+
 class Device(db.Model):
+    """
+    Pricing device model contains data downloaded from devices and assets.
+    """
     name = db.CharField(verbose_name=_("name"), max_length=255)
     sn = db.CharField(max_length=200, null=True, blank=True)
     barcode = db.CharField(max_length=200, null=True, blank=True, default=None)
@@ -127,6 +168,9 @@ class ParentDevice(Device):
 
 
 class Venture(MPTTModel):
+    """
+    Venture device model contains asset ventures.
+    """
     venture_id = db.IntegerField()
     name = db.CharField(
         verbose_name=_("name"),
@@ -162,6 +206,10 @@ class Venture(MPTTModel):
         max_length=75,
         blank=True,
         default="",
+    )
+    is_active = db.BooleanField(
+        verbose_name=_("Is active"),
+        default=False,
     )
 
     class Meta:
@@ -214,17 +262,56 @@ class Venture(MPTTModel):
             total_count += 1
         return total_count / days, total_price / days, total_cost
 
-    def get_usages_count_price(
-        self, start, end, type_, descendants=False, query=None
-    ):
+    def get_usages_count_price(self,
+                               start,
+                               end,
+                               type_,
+                               warehouse_id=None,
+                               forecast=False,
+                               descendants=False,
+                               query=None):
+        '''
+        The filter part of get count and price single type of usage
+
+        :param datetime start: Start of the time interval
+        :param datetime end: End of the time interval
+        :param object type_: UsageType object for whitch price and
+                             count will be returned
+        :param integer warehouse_id: Warehouse id or None
+        :param object query: DailyUsage query
+        :param boolean forecast: Information about use forecast or real price
+        :param boolean descendants: If true, children price will be count
+        :returns tuple: count and price
+        :rtype tuple:
+        '''
         if query is None:
             query = DailyUsage.objects
         query = query.filter(type=type_)
         query = self._by_venture(query, descendants)
         query = query.filter(date__gte=start, date__lte=end)
-        return get_usages_count_price(query, start, end)
+
+        if warehouse_id:
+            query = query.filter(warehouse=warehouse_id)
+
+        return get_usages_count_price(
+            query,
+            start,
+            end,
+            warehouse_id,
+            forecast,
+        )
 
     def get_extra_costs(self, start, end, type_, descendants=False):
+        '''
+        The filter part of get count and price single type of usage
+
+        :param datetime start: Start of the time interval
+        :param datetime end: End of the time interval
+        :param object type_: UsageType object for whitch price and
+                             count will be returned
+        :returns decimal: price
+        :rtype decimal:
+        '''
         price = D('0')
         query = ExtraCost.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
@@ -313,6 +400,9 @@ def get_daily_price_cost(asset_id, device, start, end):
 
 
 class DailyDevice(db.Model):
+    """
+    Model for daily imprint of device
+    """
     date = db.DateField()
     name = db.CharField(verbose_name=_("name"), max_length=255)
     pricing_device = db.ForeignKey(
@@ -433,9 +523,9 @@ class DailyDevice(db.Model):
         total_cost = D('0')
         if self.pricing_device.slots and not self.pricing_device.is_blade:
             try:
-               blades = self.pricing_device.children_set.filter(
-                        date=self.date,
-                        pricing_device__is_blade=True,
+                blades = self.pricing_device.children_set.filter(
+                    date=self.date,
+                    pricing_device__is_blade=True,
                 )
             except AttributeError:
                 pass
@@ -451,8 +541,12 @@ class DailyDevice(db.Model):
 
 
 class UsageType(db.Model):
+    """
+    Model contains usage types
+    """
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
-    symbol = db.CharField(verbose_name=_("symbol"),
+    symbol = db.CharField(
+        verbose_name=_("symbol"),
         max_length=255,
         default="",
     )
@@ -468,6 +562,12 @@ class UsageType(db.Model):
         verbose_name=_("Show percentage of price"),
         default=False,
     )
+    by_warehouse = db.BooleanField(
+        default=False,
+    )
+    by_cost = db.BooleanField(
+        default=False,
+    )
 
     class Meta:
         verbose_name = _("usage type")
@@ -476,34 +576,120 @@ class UsageType(db.Model):
     def __unicode__(self):
         return self.name
 
-    def get_price_at(self, date):
-        return self.usageprice_set.get(start__lte=date, end__gte=date).price
+    @memoize
+    def _get_price_from_cost(self, cost, usage, warehouse_id):
+        '''
+        Get price from cost for given date and warehouse
+
+        :param decimal cost: Cost for given time interval
+        :param object usage: Usage object
+        :param integer warehouse_id: warehouse id or None
+        :returns decimal: price
+        :rtype decimal:
+        '''
+        dailyusages = DailyUsage.objects.filter(
+            date__gte=usage.start,
+            date__lte=usage.end,
+            type=self.id,
+            warehouse_id=warehouse_id,
+        )
+
+        total_usage = sum([D(dailyusage.value) for dailyusage in dailyusages])
+        if total_usage == 0:
+            return 0
+        return D(cost / total_usage / ((usage.end - usage.start).days + 1))
+
+    def get_price_at(self, date, warehouse_id, forecast):
+        '''
+        Get price for the specified warehouse for the given day
+
+        :param datetime date: Day for which the price will be returned
+        :param integer warehouse_id: warehouse id or None
+        :param boolean forecast: Information about use forecast or real price
+        :returns decimal: price
+        :rtype decimal:
+        '''
+        usage = self.usageprice_set.get(
+            start__lte=date,
+            end__gte=date,
+            warehouse=warehouse_id,
+        )
+
+        price = usage.forecast_price if forecast else usage.price
+        cost = usage.forecast_cost if forecast else usage.cost
+
+        if not price and cost:
+            return self._get_price_from_cost(
+                cost,
+                usage,
+                warehouse_id,
+            )
+        else:
+            return price
 
 
 class UsagePrice(db.Model):
+    """
+    Model contains usages price information
+    """
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
     price = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
+        default=0,
+    )
+    forecast_price = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("forecast price"),
+        default=0,
+    )
+    cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        default=0.00,
+        verbose_name=_("cost"),
+    )
+    forecast_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        default=0.00,
+        verbose_name=_("forecast cost"),
     )
     start = db.DateField()
     end = db.DateField()
+    warehouse = db.ForeignKey(
+        Warehouse,
+        null=True,
+        blank=True,
+        on_delete=db.PROTECT,
+    )
 
     class Meta:
         verbose_name = _("usage price")
         verbose_name_plural = _("usage prices")
+
         unique_together = [
-            ('start', 'type'),
-            ('end', 'type'),
+            ('warehouse', 'start', 'type'),
+            ('warehouse', 'end', 'type'),
         ]
-        ordering = ('type', 'start')
+        ordering = ('type', '-start')
 
     def __unicode__(self):
-        return '{} ({}-{})'.format(self.type, self.start, self.end)
+        return '{}-{} ({}-{})'.format(
+            self.warehouse,
+            self.type,
+            self.start,
+            self.end,
+        )
 
 
 class DailyUsage(db.Model):
+    """
+    DailyUsage model contains daily usage information for each
+    usage
+    """
     date = db.DateTimeField()
     pricing_venture = db.ForeignKey(
         Venture,
@@ -524,6 +710,7 @@ class DailyUsage(db.Model):
     value = db.FloatField(verbose_name=_("value"), default=0)
     total = db.FloatField(verbose_name=_("total usage"), default=0)
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
+    warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
 
     class Meta:
         verbose_name = _("daily usage")

@@ -13,6 +13,11 @@ from ralph_pricing.views.reports import Report, currency
 
 
 class Devices(Report):
+    '''
+    Devices raport class for building devices reports. Contains hard coded
+    label for columns. This class is sent to a queue in order to generate
+    report
+    '''
     template_name = 'ralph_pricing/devices.html'
     Form = DateRangeVentureForm
     section = 'devices'
@@ -20,6 +25,16 @@ class Devices(Report):
 
     @staticmethod
     def get_data(start, end, venture, **kwargs):
+        '''
+        Build and return list of lists contains full data for devices raport.
+        Additional return a progress like a total count of rows in raport
+
+        :param datetime.date start: Start date of the interval for the report
+        :param datetime.date end: End date of the interval for the report
+        :param class venture: Venture pricing model
+        :returns tuple: progress and list of lists contains report data
+        :rtype tuple:
+        '''
         if not venture:
             return
         devices_ids = DailyDevice.objects.filter(
@@ -38,7 +53,6 @@ class Devices(Report):
                 '{} - {}'.format(extracost.start, extracost.end),
                 '',
                 currency(extracost.price),
-                '',
                 '',
                 '',
                 '',
@@ -74,6 +88,7 @@ class Devices(Report):
                 currency(cost),
                 '',
             ])
+
             for part in device.get_daily_parts(start, end):
                 data.append([
                     '',
@@ -104,6 +119,12 @@ class Devices(Report):
 
     @staticmethod
     def get_header(**kwargs):
+        '''
+        Contains hard coded label names for devices report
+
+        :returns list: label names for devices report
+        :rtype list:
+        '''
         header = [
             _("Device"),
             _("Component name"),
