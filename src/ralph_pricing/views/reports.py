@@ -152,19 +152,6 @@ class Report(Base):
 
     @classmethod
     def _get_header_and_data(cls, **kwargs):
-        # import cProfile, pstats, StringIO
-        # pr = cProfile.Profile()
-        # pr.enable()
-
-        # import logging
-        # l = logging.getLogger('django.db.backends')
-        # l.setLevel(logging.DEBUG)
-        # h = logging.StreamHandler()
-        # l.addHandler(h)
-        from django.db import connection
-        before_queries_count = len(connection.queries)
-
-        # prev body
         cache = get_cache(CACHE_NAME)
         key = _get_cache_key(cls.section, **kwargs)
         cached = cache.get(key)
@@ -180,26 +167,6 @@ class Report(Base):
                 # Update progress in 5% increments
                 cache.set(key, (progress, job_id, header, data))
                 last_progress = progress
-        # prev body end
-
-        after_queries_count = len(connection.queries)
-        print('Report queries count: {0}'.format(after_queries_count - before_queries_count))
-
-        # l.removeHandler(h)
-
-        # pr.disable()
-        # s = StringIO.StringIO()
-        # sortby = 'cumulative'
-        # ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-        # ps.print_stats()
-        # from datetime import datetime
-        # ps.dump_stats('report_stats_{0}'.format(datetime.now().isoformat()))
-        # import logging
-        # logger = logging.getLogger(__name__)
-        # v = s.getvalue()
-        # print(v)
-        # logger.debug(v)
-
         return header, data
 
     @staticmethod

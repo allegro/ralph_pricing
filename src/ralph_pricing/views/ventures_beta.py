@@ -26,28 +26,23 @@ from ralph_pricing.forms import DateRangeForm
 logger = logging.getLogger(__name__)
 
 
-class AllVentures(Report):
+class AllVenturesBeta(Report):
     '''
         Reports for all ventures
     '''
     template_name = 'ralph_pricing/ventures_all.html'
     Form = DateRangeForm
     section = 'all-ventures'
-    report_name = _('All Ventures Report')
+    report_name = _('All Ventures Report Beta')
 
     @staticmethod
     def _get_visible_usage_types():
         return UsageType.objects.exclude(show_in_report=False).order_by('name')
 
     @staticmethod
-    def get_data(*a, **k):
-        # return AllVentures.get_data_new(*a, **k)
-        return AllVentures.get_data_old(*a, **k)
-
-    @staticmethod
-    def get_data_new(warehouse, start, end, show_in_ralph=False, forecast=False, **kwargs):
+    def get_data(warehouse, start, end, show_in_ralph=False, forecast=False, **kwargs):
         ventures = Venture.objects.order_by('name')
-        usage_types = AllVentures._get_visible_usage_types()
+        usage_types = AllVenturesBeta._get_visible_usage_types()
         total_count = usage_types.count() + 2  # + ventures preparsing + assets
         report_days = (end - start).days + 1
         progress = 1
@@ -225,115 +220,6 @@ class AllVentures(Report):
         yield 100, final_data
 
     @staticmethod
-    def get_data_old(
-        warehouse,
-        start,
-        end,
-        show_in_ralph=False,
-        forecast=False,
-        **kwargs
-    ):
-        '''
-            Generate raport for all ventures
-
-            :param integer warehouse: Id warehouse for which is generate report
-            :param datetime start: Start of the time interval
-            :param datetime end: End of the time interval
-            :param boolean show_in_ralph: if true, show only active ventures
-            :param boolean forecast: if true, generate forecast raport
-            :returns list: List of lists with report data and percent progress
-            :rtype list:
-        '''
-        # 'show_in_ralph' == 'show only active' checkbox in gui
-        ventures = Venture.objects.order_by('name')
-        # ventures = Venture.objects.filter(venture_id=267).order_by('name')
-        total_count = ventures.count() + 1  # additional step for post-process
-        data = []
-        totals = {}
-        values = []
-        start_time = time.clock()
-        for i, venture in enumerate(ventures):
-            if show_in_ralph and not venture.is_active:
-                continue
-            # logger.info('\n=================\n')
-            venture_start_time = time.clock()
-            asset_start_time = time.clock()
-            values_row = {}
-            values.append(values_row)
-            count, price, cost = venture.get_assets_count_price_cost(
-                start, end,
-            )
-            path = '/'.join(
-                v.name for v in venture.get_ancestors(include_self=True),
-            )
-            row = [
-                venture.venture_id,
-                path,
-                venture.is_active,
-                venture.department,
-                venture.business_segment,
-                venture.profit_center,
-                count,
-                currency(price),
-                currency(cost),
-            ]
-            column = len(row)
-            asset_end_time = time.clock()
-            # logger.info(u'{0}: asset time: {1} '.format(path, asset_end_time - asset_start_time))
-            usages_start_time = time.clock()
-            for usage_type in AllVentures._get_visible_usage_types():
-                count, price = venture.get_usages_count_price(
-                    start,
-                    end,
-                    usage_type,
-                    warehouse.id if usage_type.by_warehouse else None,
-                    forecast=forecast,
-                )
-                row.append(count)
-                column += 1
-                if usage_type.show_value_percentage:
-                    row.append('')
-                    totals[column] = totals.get(column, 0) + count
-                    values_row[column] = count
-                    column += 1
-                if price is None:
-                    row.append('NO PRICE')
-                else:
-                    row.append(currency(price))
-                column += 1
-                if usage_type.show_price_percentage:
-                    row.append('')
-                    totals[column] = totals.get(column, 0) + count
-                    values_row[column] = price
-                    column += 1
-            usages_end_time = time.clock()
-            # logger.info(u'{0}: usages time: {1} '.format(path, usages_end_time - usages_start_time))
-            extra_cost_start_time = time.clock()
-            for extra_cost_type in ExtraCostType.objects.order_by('name'):
-                row.append(currency(venture.get_extra_costs(
-                    start,
-                    end,
-                    extra_cost_type,
-                )))
-            progress = (100 * i) // total_count
-            data.append(row)
-            extra_cost_end_time = time.clock()
-            venture_end_time = time.clock()
-            # logger.info(u'{0}: extra cost time: {1} '.format(path, extra_cost_end_time - extra_cost_start_time))
-            # logger.info(u'{0}: total venture time: {1}'.format(path, venture_end_time - venture_start_time))
-            # import ipdb; ipdb.set_trace()
-            yield min(progress, 99), data
-        for row, values_row in zip(data, values):
-            for column, total in totals.iteritems():
-                if total:
-                    row[column] = '{:.2f}%'.format(
-                        100 * values_row[column] / total,
-                    )
-        end_time = time.clock()
-        logger.info(u'total_time: {0} '.format(end_time - start_time))
-        yield 100, data
-
-    @staticmethod
     def get_header(**kwargs):
         header = [
             _("ID"),
@@ -346,7 +232,7 @@ class AllVentures(Report):
             _("Assets price"),
             _("Assets cost"),
         ]
-        for usage_type in AllVentures._get_visible_usage_types():
+        for usage_type in AllVenturesBeta._get_visible_usage_types():
             header.append(_("{} count").format(usage_type.name))
             if usage_type.show_value_percentage:
                 header.append(_("{} count %").format(usage_type.name))
