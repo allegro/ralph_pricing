@@ -6,24 +6,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
-import logging
-import time
-from decimal import Decimal as D
 
 from django.utils.translation import ugettext_lazy as _
-from django.db.models import Sum, Count
 
 from ralph_pricing.views.reports import Report, currency
-from ralph_pricing.models import (
-    DailyDevice,
-    DailyUsage,
-    ExtraCostType,
-    UsageType,
-    Venture,
-)
+from ralph_pricing.models import UsageType, ExtraCostType, Venture
 from ralph_pricing.forms import DateRangeForm
-
-logger = logging.getLogger(__name__)
 
 
 class AllVentures(Report):
@@ -40,192 +28,7 @@ class AllVentures(Report):
         return UsageType.objects.exclude(show_in_report=False).order_by('name')
 
     @staticmethod
-    def get_data(*a, **k):
-        # return AllVentures.get_data_new(*a, **k)
-        return AllVentures.get_data_old(*a, **k)
-
-    @staticmethod
-    def get_data_new(warehouse, start, end, show_in_ralph=False, forecast=False, **kwargs):
-        ventures = Venture.objects.order_by('name')
-        usage_types = AllVentures._get_visible_usage_types()
-        total_count = usage_types.count() + 2  # + ventures preparsing + assets
-        report_days = (end - start).days + 1
-        progress = 1
-        data = {}
-        totals = {}
-        values = []
-
-        def get_assets_costs():
-            assets_report_query = DailyDevice.objects.filter(
-                    pricing_device__is_virtual=False,
-                    date__gte=start,
-                    date__lte=end,
-                )
-
-            if show_in_ralph:
-                assets_report_query = assets_report_query.filter(
-                    pricing_venture__is_active=True
-                )
-
-            assets_report = assets_report_query.values('pricing_venture')\
-                .annotate(assets_price=Sum('price'))\
-                .annotate(assets_cost=Sum('daily_cost'))\
-                .annotate(assets_count=Count('id'))
-
-            # calc blades
-            # todo
-            return assets_report
-
-        print("ventures preparsing")
-        for i, venture in enumerate(ventures):
-            path = '/'.join(
-                v.name for v in venture.get_ancestors(include_self=True),
-            )
-
-            data[venture.id] = {
-                'id': venture.id,
-                'venture_id': venture.venture_id,
-                'path': path,
-                'is_active': venture.is_active,
-                'department': venture.department,
-                'business_segment': venture.business_segment,
-                'profit_center': venture.profit_center,
-            }
-        yield progress / total_count, []
-
-        print("\n assets")
-        for ar in get_assets_costs():
-            if ar['pricing_venture'] in data:
-                data[ar['pricing_venture']].update({
-                    'assets_count': ar['assets_count'] / report_days,
-                    'assets_cost': ar['assets_cost'],
-                    'assets_price': ar['assets_price'],
-                })
-
-        print("\nusages")
-
-        progress += 1
-        yield progress / total_count, []
-
-        # todo: check if in every day for ut in report there is price
-
-        for i, usage_type in enumerate(usage_types):
-            print("\n\nut: {0}".format(usage_type.name))
-            usage_type_count = 'usage_{0}_count'.format(usage_type.id)
-            usage_type_cost = 'usage_{0}_cost'.format(usage_type.id)
-
-            # usage count per venture
-            ut_report_query = DailyUsage.objects.filter(
-                date__gte=start,
-                date__lte=end,
-                type=usage_type,
-            )
-            if usage_type.by_warehouse:
-                ut_report_query = ut_report_query.filter(
-                    warehouse_id=warehouse.id
-                )
-
-            if show_in_ralph:
-                ut_report_query = ut_report_query.filter(
-                    pricing_venture__is_active=True
-                )
-
-            ut_report = ut_report_query.values('pricing_venture').annotate(
-                total_usage=Sum('value')
-            )
-            for p in ut_report:
-                if p['pricing_venture'] in data:
-                    venture_row = data[p['pricing_venture']]
-                    total_usage = p['total_usage'] / (report_days if usage_type.average else 1)
-                    venture_row[usage_type_count] = total_usage
-            # if usage_type.id == 12:
-            #     import ipdb; ipdb.set_trace()
-            # for every usage price in report range
-            for usage_price in usage_type.usageprice_set.filter(
-                end__gte=start,
-                start__lte=end
-            ):
-                print("up: {0}".format(str(usage_price)))
-                up_start = max(start, usage_price.start)
-                up_end = min(end, usage_price.end)
-                days = (up_end - up_start).days + 1
-
-                price = usage_price.forecast_price if forecast else usage_price.price
-
-                if usage_type.by_cost:
-                    cost = usage_price.forecast_cost if forecast else usage_price.cost
-
-                    total_usage = DailyUsage.objects.filter(
-                        date__gte=up_start,
-                        date__lte=up_end,
-                        type=usage_type.id,
-                    ).aggregate(total=Sum('value')).get('total_usage', 0)
-                    if total_usage == 0:
-                        price = 0
-                    else:
-                        price = D(cost / total_usage / days)
-
-                up_report_query = DailyUsage.objects.filter(
-                    date__gte=up_start,
-                    date__lte=up_end,
-                    type=usage_type,
-                )
-
-                if usage_type.by_warehouse:
-                    ut_report_query = ut_report_query.filter(
-                        warehouse_id=warehouse.id
-                    )
-
-                if show_in_ralph:
-                    up_report_query = up_report_query.filter(
-                        pricing_venture__is_active=True
-                    )
-
-                up_report = up_report_query.values('pricing_venture').annotate(
-                    total_usage=Sum('value')
-                )
-                print("query completed; going for items")
-                for p in up_report:
-                    if p['pricing_venture'] in data:
-                        venture_row = data[p['pricing_venture']]
-                        # use defaultdict
-                        venture_row[usage_type_cost] = venture_row.get(usage_type_cost, 0) + D(p['total_usage']) * price
-
-                progress += 1
-                yield progress / total_count, []
-            # import ipdb; ipdb.set_trace()
-
-        # prepare final data
-        order = ['venture_id', 'path', 'is_active', 'department', 'business_segment', 'profit_center']
-        final_data = []
-        for venture in ventures:
-            venture_data = data.get(venture.id)
-            if not venture_data:
-                continue
-            venture_row = []
-            for field in order:
-                venture_row.append(venture_data[field])
-
-            # assets
-            for asset_field in ('assets_count', 'assets_price', 'assets_cost'):
-                venture_row.append(venture_data.get(asset_field, 0))
-
-            # usages
-            for usage in usage_types:
-                usage_id = usage.id
-                usage_type_count = 'usage_{0}_count'.format(usage_id)
-                usage_type_cost = 'usage_{0}_cost'.format(usage_id)
-
-                venture_row.extend([
-                    '{:.2f}'.format(venture_data.get(usage_type_count, 0)),
-                    currency(venture_data.get(usage_type_cost, 0))
-                ])
-            final_data.append(venture_row)
-        # import ipdb; ipdb.set_trace()
-        yield 100, final_data
-
-    @staticmethod
-    def get_data_old(
+    def get_data(
         warehouse,
         start,
         end,
@@ -246,18 +49,14 @@ class AllVentures(Report):
         '''
         # 'show_in_ralph' == 'show only active' checkbox in gui
         ventures = Venture.objects.order_by('name')
-        # ventures = Venture.objects.filter(venture_id=267).order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
         data = []
         totals = {}
         values = []
-        start_time = time.clock()
         for i, venture in enumerate(ventures):
             if show_in_ralph and not venture.is_active:
                 continue
-            # logger.info('\n=================\n')
-            venture_start_time = time.clock()
-            asset_start_time = time.clock()
+
             values_row = {}
             values.append(values_row)
             count, price, cost = venture.get_assets_count_price_cost(
@@ -278,9 +77,6 @@ class AllVentures(Report):
                 currency(cost),
             ]
             column = len(row)
-            asset_end_time = time.clock()
-            # logger.info(u'{0}: asset time: {1} '.format(path, asset_end_time - asset_start_time))
-            usages_start_time = time.clock()
             for usage_type in AllVentures._get_visible_usage_types():
                 count, price = venture.get_usages_count_price(
                     start,
@@ -306,9 +102,6 @@ class AllVentures(Report):
                     totals[column] = totals.get(column, 0) + count
                     values_row[column] = price
                     column += 1
-            usages_end_time = time.clock()
-            # logger.info(u'{0}: usages time: {1} '.format(path, usages_end_time - usages_start_time))
-            extra_cost_start_time = time.clock()
             for extra_cost_type in ExtraCostType.objects.order_by('name'):
                 row.append(currency(venture.get_extra_costs(
                     start,
@@ -317,11 +110,6 @@ class AllVentures(Report):
                 )))
             progress = (100 * i) // total_count
             data.append(row)
-            extra_cost_end_time = time.clock()
-            venture_end_time = time.clock()
-            # logger.info(u'{0}: extra cost time: {1} '.format(path, extra_cost_end_time - extra_cost_start_time))
-            # logger.info(u'{0}: total venture time: {1}'.format(path, venture_end_time - venture_start_time))
-            # import ipdb; ipdb.set_trace()
             yield min(progress, 99), data
         for row, values_row in zip(data, values):
             for column, total in totals.iteritems():
@@ -329,8 +117,6 @@ class AllVentures(Report):
                     row[column] = '{:.2f}%'.format(
                         100 * values_row[column] / total,
                     )
-        end_time = time.clock()
-        logger.info(u'total_time: {0} '.format(end_time - start_time))
         yield 100, data
 
     @staticmethod
@@ -352,7 +138,7 @@ class AllVentures(Report):
                 header.append(_("{} count %").format(usage_type.name))
             header.append(_("{} price").format(usage_type.name))
             if usage_type.show_price_percentage:
-                header.append(_("{} cost %").format(usage_type.name))
+                header.append(_("{} price %").format(usage_type.name))
         for extra_cost_type in ExtraCostType.objects.order_by('name'):
             header.append(extra_cost_type.name)
         return header

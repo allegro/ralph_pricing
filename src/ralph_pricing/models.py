@@ -251,14 +251,14 @@ class Venture(MPTTModel):
             asset_price, asset_cost = daily_device.get_price_cost(
                 zero_deprecated,
             )
-            # system_price, system_cost = daily_device.get_bladesystem_price_cost(  # noqa
-            #     zero_deprecated,
-            # )
-            # blades_price, blades_cost = daily_device.get_blades_price_cost(
-            #     zero_deprecated,
-            # )
-            total_price += asset_price #+ system_price - blades_price
-            total_cost += asset_cost #+ system_cost - blades_cost
+            system_price, system_cost = daily_device.get_bladesystem_price_cost(  # noqa
+                zero_deprecated,
+            )
+            blades_price, blades_cost = daily_device.get_blades_price_cost(
+                zero_deprecated,
+            )
+            total_price += asset_price + system_price - blades_price
+            total_cost += asset_cost + system_cost - blades_cost
             total_count += 1
         return total_count / days, total_price / days, total_cost
 
