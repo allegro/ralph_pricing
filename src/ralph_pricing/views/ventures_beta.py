@@ -28,9 +28,9 @@ logger = logging.getLogger(__name__)
 
 
 class AllVenturesBeta(Report):
-    '''
+    """
         Reports for all ventures
-    '''
+    """
     template_name = 'ralph_pricing/ventures_all.html'
     Form = DateRangeForm
     section = 'all-ventures'
@@ -38,21 +38,30 @@ class AllVenturesBeta(Report):
 
     @staticmethod
     def _get_visible_usage_types():
+        """
+        Returns usage types which should be visible on report
+        """
         return UsageType.objects.exclude(show_in_report=False).order_by('name')
 
     @staticmethod
     def _get_assets_costs(start, end, only_active=False):
         """
-        Returns mini-report for assets costs per venture.
+        Return mini-report for assets costs per venture.
 
-        Result format: list of dicts ie:
+        :param datetime start: Start date of the report
+        :param datetime end: End date of the report
+        :returns list: list of dicts (example below)
+        :rtype list:
+
+        Example result:
         [
             {
                 'pricing_venture': 1,
                 'assets_price': 1234,  # total price of assets in venture
                 'assets_cost': 111,  # sum of daily costs (deprecation)
                 'assets_count': 11.11,  # average count of assets
-            }
+            },
+            ...
         ]
         """
         assets_report_query = DailyDevice.objects.filter(
@@ -66,13 +75,14 @@ class AllVenturesBeta(Report):
                 pricing_venture__is_active=True
             )
 
+        # get sum of price, daily_cost and count of id and group by
+        # pricing_venture
         assets_report = assets_report_query.values('pricing_venture')\
             .annotate(assets_price=Sum('price'))\
             .annotate(assets_cost=Sum('daily_cost'))\
             .annotate(assets_count=Count('id'))
 
-        # calc blades
-        # TODO
+        # TODO: calc blades
         return assets_report
 
     @staticmethod
@@ -85,6 +95,31 @@ class AllVenturesBeta(Report):
         warehouse=None,
         forecast=False,
     ):
+        """
+        Calculate cost of usages for period in which usage_price is defined
+
+        Returns list of dicts with usage cost per venture.
+
+        :param datetime start: Start date of the report
+        :param datetime end: End date of the report
+        :param UsageType usage_type: usage type to calculate cost of usages
+        :param UsagePrice usage_price: usage price to calculate cost of usages
+        :param bool only_active: calculate only for active ventures
+        :param Warehouse warehouse: calculate for specified warehouse
+        :param bool forecast: use forecast costs/prices
+        :returns list: mini-report for specified usage price costs
+        :rtype list:
+
+        Example result:
+        [
+            {
+                'pricing_venture': 1,
+                'total_usage': 1234,  # total usage in usage_price period
+                'total_cost': 1111,  # total cost of usages in this period
+            },
+            ...
+        ]
+        """
         up_start = max(start, usage_price.start)
         up_end = min(end, usage_price.end)
         days = (up_end - up_start).days + 1
@@ -143,6 +178,30 @@ class AllVenturesBeta(Report):
         warehouse=None,
         forecast=False,
     ):
+        """
+        Calculate cost of usages in report date range
+
+        Returns list of dicts with usage cost per venture.
+
+        :param datetime start: Start date of the report
+        :param datetime end: End date of the report
+        :param UsageType usage_type: usage type to calculate cost of usages
+        :param bool only_active: calculate only for active ventures
+        :param Warehouse warehouse: calculate for specified warehouse
+        :param bool forecast: use forecast costs/prices
+        :returns dict: mini-report for specified usage type costs
+        :rtype dict:
+
+        Example result:
+        {
+            # venture with id 123
+            123: {
+                'usage_1_count': 1234,  # total usage of usage type with id=1
+                'usage_1_cost': 1111,  # total cost of usages
+            },
+            ...
+        }
+        """
         report_days = (end - start).days + 1
         usage_type_count = 'usage_{0}_count'.format(usage_type.id)
         usage_type_cost = 'usage_{0}_cost'.format(usage_type.id)
@@ -171,8 +230,11 @@ class AllVenturesBeta(Report):
             total_usage=Sum('value')
         )
         for p in ut_report:
-            total_usage = p['total_usage'] / (report_days if usage_type.average else 1)
-            usage_type_report[p['pricing_venture']][usage_type_count] = total_usage
+            venture_row = usage_type_report[p['pricing_venture']]
+            total_usage = p['total_usage']
+            if usage_type.average:
+                total_usage /= report_days
+            venture_row[usage_type_count] = total_usage
 
         # total cost of daily usages is caluclated in many parts
         # every part is single period in which price/cost is definded for
@@ -207,9 +269,29 @@ class AllVenturesBeta(Report):
         extra_cost_type,
         only_active=False,
     ):
+        """
+        Calculate mini-report for specified extra cost type.
+
+        :param datetime start: Start date of the report
+        :param datetime end: End date of the report
+        :param ExtraCostType extra_cost_type: extra cost type to calculate
+            cost of usages
+            :param bool only_active: calculate only for active ventures
+        :returns dict: mini-report for specified extra cost type
+        :rtype dict:
+
+        Example result:
+        {
+            123: {
+                'extra_cost_1_cost': 123  # cost of extra type with id 1 for
+                    venture with id 123
+            }
+        }
+        """
         extra_cost_report = defaultdict(dict)
         extra_cost_cost = 'extra_cost_{0}_cost'.format(extra_cost_type.id)
 
+        # get all extra cost in report date ranges and specified type
         ec_report = ExtraCost.objects.filter(
             type=extra_cost_type,
             end__gte=start,
@@ -217,6 +299,7 @@ class AllVenturesBeta(Report):
         ).values('pricing_venture', 'price', 'end', 'start')
 
         for p in ec_report:
+            # overlaping days of report and extra cost definition
             days = (min(end, p['end']) - max(start, p['start'])).days
             venture_row = extra_cost_report[p['pricing_venture']]
             venture_row[extra_cost_cost] = \
@@ -226,15 +309,27 @@ class AllVenturesBeta(Report):
 
     @staticmethod
     def _get_usage_types_price_defined(usage_types, start, end):
+        """
+        Calculate if for every day in report there is price defined for
+        every usage type
+
+        :param list usage_types: List of usage types
+        :param datetime start: Start date of the report
+        :param datetime end: End date of the report
+        :returns dict: dict of booleans - True if usage type has defined price
+            for every day in report
+        """
         price_defined = {}
-        total_days = (end - start).days
+        total_days = (end - start).days  # total report days
         for ut in usage_types:
+            # calculate amount of days for which price is defined
             ut_days = 0
             # TODO: improve preformance
             for up in ut.usageprice_set.filter(
                 end__gte=start,
                 start__lte=end
             ):
+                # add overlapping days
                 ut_days += (min(end, up.end) - max(start, up.start)).days
             price_defined[ut.id] = ut_days == total_days
         return price_defined
@@ -248,7 +343,13 @@ class AllVenturesBeta(Report):
         usage_types,
         extra_costs,
     ):
-        order = ['venture_id', 'path', 'is_active', 'department', 'business_segment', 'profit_center']
+        """
+        Prepare data to show in final report.
+
+        Fill missing usages/costs in venture by 0.
+        """
+        order = ['venture_id', 'path', 'is_active', 'department',
+                 'business_segment', 'profit_center']
         final_data = []
 
         usage_types_price_defined = \
@@ -279,7 +380,8 @@ class AllVenturesBeta(Report):
 
                 cost = currency(0)
                 if venture_data.get(usage_type_count):
-                    cost = currency(venture_data[usage_type_cost]) if usage_types_price_defined[usage_id] else 'NO PRICE'
+                    cost = currency(venture_data[usage_type_cost]) if \
+                        usage_types_price_defined[usage_id] else 'NO PRICE'
 
                 venture_row.extend([
                     '{:.2f}'.format(venture_data.get(usage_type_count, 0)),
