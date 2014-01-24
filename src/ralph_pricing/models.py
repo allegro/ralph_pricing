@@ -395,8 +395,13 @@ class DailyPart(db.Model):
         return self.price, total_cost
 
     def calc_costs(self):
-        self.daily_cost = self.deprecation_rate * self.price / 36500 if not self.is_deprecated else 0
-        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not self.is_deprecated else 0
+        """
+        Calculates daily and monthly depreciation costs
+        """
+        self.daily_cost = self.deprecation_rate * self.price / 36500 if not \
+            self.is_deprecated else 0
+        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
+            self.is_deprecated else 0
 
     def save(self):
         self.calc_costs()
@@ -572,8 +577,13 @@ class DailyDevice(db.Model):
         return total_price, total_cost
 
     def calc_costs(self):
-        self.daily_cost = self.deprecation_rate * self.price / 36500 if not self.is_deprecated else 0
-        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not self.is_deprecated else 0
+        """
+        Calculates daily and monthly depreciation costs
+        """
+        self.daily_cost = self.deprecation_rate * self.price / 36500 if not \
+            self.is_deprecated else 0
+        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
+            self.is_deprecated else 0
 
     def save(self):
         self.calc_costs()

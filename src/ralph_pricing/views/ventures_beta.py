@@ -72,7 +72,7 @@ class AllVenturesBeta(Report):
 
         if only_active:
             assets_report_query = assets_report_query.filter(
-                pricing_venture__is_active=True
+                pricing_venture__is_active=True,
             )
 
         # get sum of price, daily_cost and count of id and group by
@@ -154,14 +154,14 @@ class AllVenturesBeta(Report):
         )
         if usage_type.by_warehouse:
             up_report_query = up_report_query.filter(
-                warehouse_id=warehouse.id
+                warehouse_id=warehouse.id,
             )
         if only_active:
             up_report_query = up_report_query.filter(
-                pricing_venture__is_active=True
+                pricing_venture__is_active=True,
             )
         up_report = up_report_query.values('pricing_venture').annotate(
-            total_usage=Sum('value')
+            total_usage=Sum('value'),
         )
 
         for up in up_report:
@@ -217,17 +217,17 @@ class AllVenturesBeta(Report):
         )
         if usage_type.by_warehouse:
             ut_report_query = ut_report_query.filter(
-                warehouse_id=warehouse.id
+                warehouse_id=warehouse.id,
             )
 
         if only_active:
             ut_report_query = ut_report_query.filter(
-                pricing_venture__is_active=True
+                pricing_venture__is_active=True,
             )
 
         # query for sum of daily usages per venture
         ut_report = ut_report_query.values('pricing_venture').annotate(
-            total_usage=Sum('value')
+            total_usage=Sum('value'),
         )
         for p in ut_report:
             venture_row = usage_type_report[p['pricing_venture']]
@@ -244,7 +244,7 @@ class AllVenturesBeta(Report):
         # (26-30.11)
         for usage_price in usage_type.usageprice_set.filter(
             end__gte=start,
-            start__lte=end
+            start__lte=end,
         ):
             up_report = AllVenturesBeta._get_usage_type_costs_in_period(
                 start,
@@ -295,7 +295,7 @@ class AllVenturesBeta(Report):
         ec_report = ExtraCost.objects.filter(
             type=extra_cost_type,
             end__gte=start,
-            start__lte=end
+            start__lte=end,
         ).values('pricing_venture', 'price', 'end', 'start')
 
         for p in ec_report:
@@ -327,7 +327,7 @@ class AllVenturesBeta(Report):
             # TODO: improve preformance
             for up in ut.usageprice_set.filter(
                 end__gte=start,
-                start__lte=end
+                start__lte=end,
             ):
                 # add overlapping days
                 ut_days += (min(end, up.end) - max(start, up.start)).days
@@ -462,7 +462,7 @@ class AllVenturesBeta(Report):
                 usage_type,
                 show_in_ralph,
                 warehouse,
-                forecast
+                forecast,
             )
 
             for venture_id, venture_usage in usage_type_report.iteritems():
