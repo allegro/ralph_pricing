@@ -72,7 +72,7 @@ class Command(BaseCommand):
                 )
             except Exception, e:
                 print (
-                    'Plugin {0} raise exception: {1}'.format(name, e.message)
+                    'Plugin {0} raise exception: {1}'.format(name, e)
                 )
                 logger.error(e.message)
             if success:
