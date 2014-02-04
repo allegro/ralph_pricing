@@ -20,7 +20,7 @@ from ralph_pricing.models import (
     Warehouse,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('plugins')
 
 
 @commit_on_success
