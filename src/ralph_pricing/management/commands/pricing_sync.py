@@ -52,7 +52,11 @@ class Command(BaseCommand):
                 run_only,
                 today=today,
             )
-            print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
+            if success:
+                print('{1}: {0}'.format(message, 'Done'))
+            else:
+                logger.error(message)
+                print('{1}: {0}'.format(message, 'Failed'))
             return
         done = set()
         tried = set()
@@ -74,6 +78,6 @@ class Command(BaseCommand):
                 print (
                     'Plugin {0} raise exception: {1}'.format(name, e)
                 )
-                logger.error(e.message)
+                logger.error(e)
             if success:
                 done.add(name)
