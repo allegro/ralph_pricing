@@ -5,13 +5,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
-import logging
 import json
+import logging
 
 import requests
 
-from django.conf import settings
 from ceilometerclient.client import get_client
+from django.conf import settings
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
@@ -20,10 +20,7 @@ from ralph_pricing.models import UsageType, Venture, DailyUsage
 logger = logging.getLogger('ralph')
 
 
-def get_tenants(site):
-    """
-    For some reason keystoneclient forcibly use admin endpoint.
-    """
+def get_token(site):
     data = {
         "auth": {
             "passwordCredentials": {
@@ -32,21 +29,33 @@ def get_tenants(site):
             }
         }
     }
-    headers = {'content-type': 'application/json'}
-    token_url = site['OS_AUTH_URL'] + "/tokens"
-    token = requests.post(token_url, data=json.dumps(data), headers=headers)
-    token = json.loads(str(token.content))['access']['token']['id']
+    token = requests.post(
+        site['OS_AUTH_URL'] + "/tokens",
+        data=json.dumps(data),
+        headers={
+            'content-type': 'application/json',
+        },
+    )
+    return json.loads(str(token.content))['access']['token']['id']
+
+
+def get_tenants(site):
+    """
+    For some reason keystoneclient forcibly use admin endpoint.
+    """
     headers_tenant = {
-        'X-Auth-Token': token,
+        'X-Auth-Token': get_token(site),
         'content-type': 'application/json',
     }
     tenants_url = site['OS_AUTH_URL'] + "/tenants"
     tenants = requests.get(tenants_url, headers=headers_tenant)
-    tenants = json.loads(str(tenants.content))['tenants']
-    return tenants
+    return json.loads(str(tenants.content)).get('tenants', [])
 
 
 def get_ceilometer_usages(client, tenants, date=None):
+    """
+    Function which talks with openstack
+    """
     date = date or datetime.date.today()
     today = datetime.datetime.combine(date, datetime.datetime.min.time())
     yesterday = today - datetime.timedelta(days=1)
@@ -115,6 +124,9 @@ def get_ceilometer_usages(client, tenants, date=None):
 
 
 def save_ceilometer_usages(usages, date):
+    """
+    takes usages as input and saves them to database
+    """
     def set_usage(usage_symbol, venture, value, date):
         usage_type, created = UsageType.objects.get_or_create(
             symbol=usage_symbol,
@@ -147,6 +159,9 @@ def save_ceilometer_usages(usages, date):
 
 @plugin.register(chain='pricing', requires=['ventures'])
 def ceilometer(**kwargs):
+    """
+    Pricing plugin for openstack havana- ceilometer.
+    """
     logger.info("start {}".format(
         datetime.datetime.now().isoformat(),
     ))
