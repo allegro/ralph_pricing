@@ -766,6 +766,12 @@ class DailyUsage(db.Model):
     total = db.FloatField(verbose_name=_("total usage"), default=0)
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
     warehouse = db.ForeignKey(Warehouse, null=True, on_delete=db.PROTECT)
+    remarks = db.TextField(
+        verbose_name=_("Remarks"),
+        help_text=_("Additional information."),
+        blank=True,
+        default="",
+    )
 
     class Meta:
         verbose_name = _("daily usage")
@@ -822,23 +828,3 @@ class ExtraCost(db.Model):
             self.start,
             self.end,
         )
-
-
-class SplunkName(db.Model):
-    splunk_name = db.CharField(
-        verbose_name=_("Splunk name"),
-        max_length=255,
-        blank=False,
-        unique=True,
-    )
-    pricing_device = db.ForeignKey(
-        Device,
-        verbose_name=_("pricing device"),
-        null=True,
-        blank=True,
-        default=None,
-        on_delete=db.SET_NULL,
-    )
-
-    class Meta:
-        unique_together = ("splunk_name", "pricing_device")
