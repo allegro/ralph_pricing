@@ -403,9 +403,9 @@ class DailyPart(db.Model):
         self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
             self.is_deprecated else 0
 
-    def save(self):
+    def save(self, *args, **kwargs):
         self.calc_costs()
-        super(DailyPart, self).save()
+        super(DailyPart, self).save(*args, **kwargs)
 
 
 def get_daily_price_cost(asset_id, device, start, end):
@@ -585,9 +585,9 @@ class DailyDevice(db.Model):
         self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
             self.is_deprecated else 0
 
-    def save(self):
+    def save(self, *args, **kwargs):
         self.calc_costs()
-        super(DailyDevice, self).save()
+        super(DailyDevice, self).save(*args, **kwargs)
 
 
 class UsageType(db.Model):
@@ -622,6 +622,14 @@ class UsageType(db.Model):
     show_in_report = db.BooleanField(
         verbose_name=_("Show usage type in report"),
         default=True,
+    )
+    is_plug = db.BooleanField(
+        verbose_name=_("Is plug"),
+        default=True,
+    )
+    order = db.IntegerField(
+        verbose_name=_("Display order"),
+        default=0
     )
 
     class Meta:

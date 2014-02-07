@@ -9,6 +9,7 @@ import datetime
 import logging
 from collections import defaultdict
 from decimal import Decimal as D
+from lck.cache import memoize
 
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Sum, Count
@@ -23,6 +24,9 @@ from ralph_pricing.models import (
     Venture,
 )
 from ralph_pricing.forms import DateRangeForm
+from ralph.util import plugin
+from ralph_pricing.plugins import usages
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +39,16 @@ class AllVenturesBeta(Report):
     Form = DateRangeForm
     section = 'all-ventures'
     report_name = _('All Ventures Report Beta')
+    currency = 'PLN'
 
-    @staticmethod
-    def _get_visible_usage_types():
+    @classmethod
+    def _get_usage_types(cls):
         """
         Returns usage types which should be visible on report
         """
-        return UsageType.objects.exclude(show_in_report=False).order_by('name')
+        return UsageType.objects.exclude(
+            is_plug=False,
+        ).exclude(show_in_report=False).order_by('-order', 'name')
 
     @staticmethod
     def _get_assets_costs(start, end, only_active=False):
@@ -334,23 +341,22 @@ class AllVenturesBeta(Report):
             price_defined[ut.id] = ut_days == total_days
         return price_defined
 
-    @staticmethod
+    @classmethod
     def _prepare_final_report(
+        cls,
         start,
         end,
         data,
         ventures,
-        usage_types,
-        extra_costs,
     ):
         """
         Prepare data to show in final report.
 
         Fill missing usages/costs in venture by 0.
         """
-        order = ['venture_id', 'path', 'is_active', 'department',
+        '''
+        order = ['venture_id', 'path', 'department',
                  'business_segment', 'profit_center']
-        final_data = []
 
         usage_types_price_defined = \
             AllVenturesBeta._get_usage_types_price_defined(
@@ -358,9 +364,31 @@ class AllVenturesBeta(Report):
                 start,
                 end,
             )
-
+        '''
+        final_data = []
         for venture in ventures:
-            venture_data = data.get(venture.id)
+            venture_data = data.get(venture.id, {})
+            venture_row = []
+            total_cost = 0
+            for schema in cls._get_schema():
+                schema_columns = []
+                for key, value in schema.iteritems():
+                    field_content = venture_data.get(key, 0)
+                    if 'currency' in value and value['currency']:
+                        if 'total_cost' in value and value['total_cost']:
+                            total_cost += field_content
+                        field_content = '{0:.2f} {1}'.format(
+                            field_content,
+                            cls.currency,
+                        )
+                    schema_columns.append(field_content)
+                venture_row.extend(schema_columns)
+            venture_row.append(total_cost)
+            final_data.append(venture_row)
+        return final_data
+        '''
+        for venture in ventures:
+            venture_data = data.get(venture.id, None)
             if not venture_data:
                 continue
             venture_row = []
@@ -369,7 +397,6 @@ class AllVenturesBeta(Report):
 
             # assets
             venture_row.append(venture_data.get('assets_count', 0))
-            venture_row.append(currency(venture_data.get('assets_price', 0)))
             venture_row.append(currency(venture_data.get('assets_cost', 0)))
 
             # usages
@@ -398,10 +425,32 @@ class AllVenturesBeta(Report):
                 ])
 
             final_data.append(venture_row)
-        return final_data
+            '''
 
-    @staticmethod
+    @classmethod
+    def _get_ventures(cls, show_in_ralph):
+        ventures = Venture.objects.order_by('name')
+        if show_in_ralph:
+            ventures = ventures.filter(is_active=True)
+        return ventures
+
+    @classmethod
+    def _get_report_data(cls, start, end, show_in_ralph, forecast, ventures):
+        data = {venture.id: {} for venture in ventures}
+        for i, usage_type in enumerate(cls._get_usage_types()):
+            usage_type_report = plugin.run(
+                'usages',
+                '{0}_usages'.format(usage_type.name),
+                ventures=ventures,
+            )
+            for venture_id, venture_usage in usage_type_report.iteritems():
+                if venture_id in data:
+                    data[venture_id].update(venture_usage)
+        return data
+
+    @classmethod
     def get_data(
+        cls,
         warehouse,
         start,
         end,
@@ -409,36 +458,12 @@ class AllVenturesBeta(Report):
         forecast=False,
         **kwargs
     ):
-        ventures = Venture.objects.order_by('name')
-        if show_in_ralph:
-            ventures = ventures.filter(is_active=True)
-
-        usage_types = AllVenturesBeta._get_visible_usage_types()
+        '''
         extra_cost_types = ExtraCostType.objects.all()
-        total_count = usage_types.count() + extra_cost_types.count() + 2
-        report_days = (end - start).days + 1
         progress = 1
-        data = {}
-        logger.info("Generating report from {0} to {1}".format(start, end))
-
-        # ventures preparsing
-        logger.info("Ventures preparsing")
-        for i, venture in enumerate(ventures):
-            path = '/'.join(
-                v.name for v in venture.get_ancestors(include_self=True),
-            )
-
-            data[venture.id] = {
-                'id': venture.id,
-                'venture_id': venture.venture_id,
-                'path': path,
-                'is_active': venture.is_active,
-                'department': venture.department,
-                'business_segment': venture.business_segment,
-                'profit_center': venture.profit_center,
-            }
-        yield progress / total_count, []
-
+        report_days = (end - start).days + 1
+        '''
+        '''
         # assets costs
         logger.info("Assets costs generating")
         for ar in AllVenturesBeta._get_assets_costs(start, end, show_in_ralph):
@@ -451,9 +476,23 @@ class AllVenturesBeta(Report):
 
         progress += 1
         yield progress / total_count, []
-
-        # usages
-        logger.info("Usages parsing")
+        '''
+        logger.info("Generating report from {0} to {1}".format(start, end))
+        ventures = cls._get_ventures(show_in_ralph)
+        data = cls._get_report_data(
+            start,
+            end,
+            show_in_ralph,
+            forecast,
+            ventures,
+        )
+        yield 100, cls._prepare_final_report(
+            start,
+            end,
+            data,
+            ventures,
+        )
+        '''
         for i, usage_type in enumerate(usage_types):
             logger.info("usage type: {0}".format(usage_type.name))
             usage_type_report = AllVenturesBeta._get_usage_type_costs(
@@ -471,7 +510,9 @@ class AllVenturesBeta(Report):
 
             progress += 1
             yield progress / total_count, []
+        '''
 
+        '''
         # extra costs
         logger.info("Calculating extra costs")
         for ec in extra_cost_types:
@@ -489,38 +530,26 @@ class AllVenturesBeta(Report):
 
             progress += 1
             yield progress / total_count, []
+        '''
 
-        # prepare final data
-        final_data = AllVenturesBeta._prepare_final_report(
-            start,
-            end,
-            data,
-            ventures,
-            usage_types,
-            extra_cost_types,
-        )
-        yield 100, final_data
+    @classmethod
+    @memoize
+    def _get_schema(cls):
+        header = []
+        for usage_type in cls._get_usage_types():
+            usage_type_headers = plugin.run(
+                'usages',
+                '{0}_schema'.format(usage_type.name),
+                warehouse='1',
+            )
+            header.append(usage_type_headers)
+        return header
 
-    @staticmethod
-    def get_header(**kwargs):
-        header = [
-            _("ID"),
-            _("Venture"),
-            _("Active at %s" % datetime.date.today()),
-            _("Department"),
-            _("Business segment"),
-            _("Profit center"),
-            _("Assets count"),
-            _("Assets price"),
-            _("Assets cost"),
-        ]
-        for usage_type in AllVenturesBeta._get_visible_usage_types():
-            header.append(_("{} count").format(usage_type.name))
-            if usage_type.show_value_percentage:
-                header.append(_("{} count %").format(usage_type.name))
-            header.append(_("{} cost").format(usage_type.name))
-            if usage_type.show_price_percentage:
-                header.append(_("{} cost %").format(usage_type.name))
-        for extra_cost_type in ExtraCostType.objects.order_by('name'):
-            header.append(extra_cost_type.name)
+    @classmethod
+    def get_header(cls, **kwargs):
+        header = []
+        for schema in cls._get_schema():
+            for key, value in schema.iteritems():
+                header.append(value['name'])
+        header.append(_("Total cost"))
         return header
