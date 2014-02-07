@@ -73,9 +73,12 @@ def update_assets(data, date, core_usage_type, power_consumption_usage_type):
     try:
         device = Device.objects.get(asset_id=data['asset_id'])
     except Device.DoesNotExist:
-        created = True
-        device = Device()
-        device.device_id = data['ralph_id']
+        try:
+            device = Device.objects.get(sn=data['sn'])
+        except Device.DoesNotExist:
+            created = True
+            device = Device()
+            device.device_id = data['ralph_id']
 
     # device info
     device.asset_id = data['asset_id']
