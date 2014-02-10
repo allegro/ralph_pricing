@@ -366,6 +366,18 @@ class DailyPart(db.Model):
         verbose_name=_("is deprecated"),
         default=False,
     )
+    daily_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("daily cost"),
+        default=0,
+    )
+    monthly_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("monthly cost"),
+        default=0,
+    )
 
     class Meta:
         verbose_name = _("daily part")
@@ -381,6 +393,19 @@ class DailyPart(db.Model):
             return D('0'), D('0')
         total_cost = self.price * self.deprecation_rate / 36500
         return self.price, total_cost
+
+    def calc_costs(self):
+        """
+        Calculates daily and monthly depreciation costs
+        """
+        self.daily_cost = self.deprecation_rate * self.price / 36500 if not \
+            self.is_deprecated else 0
+        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
+            self.is_deprecated else 0
+
+    def save(self):
+        self.calc_costs()
+        super(DailyPart, self).save()
 
 
 def get_daily_price_cost(asset_id, device, start, end):
@@ -442,6 +467,18 @@ class DailyDevice(db.Model):
     is_deprecated = db.BooleanField(
         verbose_name=_("is deprecated"),
         default=False,
+    )
+    daily_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("daily cost"),
+        default=0,
+    )
+    monthly_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("monthly cost"),
+        default=0,
     )
 
     class Meta:
@@ -538,6 +575,19 @@ class DailyDevice(db.Model):
                     total_price += price
                     total_cost += cost
         return total_price, total_cost
+
+    def calc_costs(self):
+        """
+        Calculates daily and monthly depreciation costs
+        """
+        self.daily_cost = self.deprecation_rate * self.price / 36500 if not \
+            self.is_deprecated else 0
+        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
+            self.is_deprecated else 0
+
+    def save(self):
+        self.calc_costs()
+        super(DailyDevice, self).save()
 
 
 class UsageType(db.Model):
