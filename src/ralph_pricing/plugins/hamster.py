@@ -16,7 +16,7 @@ from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('plugins')
 
 
 def update_hamster_usage(venture, usage_type, date, url):

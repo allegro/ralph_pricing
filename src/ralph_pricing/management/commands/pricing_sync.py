@@ -7,11 +7,15 @@ from __future__ import unicode_literals
 
 import textwrap
 import datetime
+import logging
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
 from ralph.util import plugin
+
+
+logger = logging.getLogger('plugins')
 
 
 class Command(BaseCommand):
@@ -48,7 +52,11 @@ class Command(BaseCommand):
                 run_only,
                 today=today,
             )
-            print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
+            if success:
+                print('{1}: {0}'.format(message, 'Done'))
+            else:
+                logger.error(message)
+                print('{1}: {0}'.format(message, 'Failed'))
             return
         done = set()
         tried = set()
@@ -59,9 +67,17 @@ class Command(BaseCommand):
             name = plugin.highest_priority('pricing', to_run)
             tried.add(name)
             print('Running {0}...'.format(name))
-            success, message, context = plugin.run(
-                'pricing', name, today=today,
-            )
-            print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
+            try:
+                success, message, context = plugin.run(
+                    'pricing', name, today=today,
+                )
+                print(
+                    '{1}: {0}'.format(message, 'Done' if success else 'Failed')
+                )
+            except Exception, e:
+                print (
+                    'Plugin {0} raise exception: {1}'.format(name, e)
+                )
+                logger.error(e)
             if success:
                 done.add(name)

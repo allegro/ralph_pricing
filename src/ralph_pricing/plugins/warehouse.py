@@ -12,7 +12,7 @@ from ralph_assets.api_pricing import get_warehouses
 from ralph_pricing.models import Warehouse
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('plugins')
 
 
 def update_warehouses(data):

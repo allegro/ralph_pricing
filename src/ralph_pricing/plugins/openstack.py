@@ -17,7 +17,7 @@ from ralph_pricing.models import UsageType, Venture, DailyUsage
 from ralph_pricing.openstack import OpenStack
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('plugins')
 
 
 def set_usages(venture_symbol, data, date):

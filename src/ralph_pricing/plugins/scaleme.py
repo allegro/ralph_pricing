@@ -17,7 +17,7 @@ from ralph.util import plugin
 from ralph_pricing.models import DailyUsage, UsageType, Venture
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('plugins')
 
 
 def get_ventures_capacities(date, url):
