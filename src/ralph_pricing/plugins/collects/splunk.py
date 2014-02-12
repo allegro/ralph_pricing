@@ -16,7 +16,6 @@ from ralph_pricing.models import (
     DailyDevice,
     DailyUsage,
     Device,
-    SplunkName,
     UsageType,
     Venture,
 )

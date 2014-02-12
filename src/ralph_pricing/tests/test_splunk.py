@@ -14,7 +14,7 @@ from django.conf import settings
 from django.test import TestCase
 
 from ralph_pricing.models import DailyDevice, Device, DailyUsage, Venture
-from ralph_pricing.plugins.splunk import (
+from ralph_pricing.plugins.collects.splunk import (
     splunk as splunk_runner,
 )
 from ralph_pricing.tests.samples.splunk import hosts_usages_data
