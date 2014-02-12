@@ -1,6 +1,8 @@
 Change Log
 ----------
 
+* Openstack ceilometer plugin
+
 2.0.0
 ~~~~~
 
