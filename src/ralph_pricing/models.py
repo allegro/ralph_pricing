@@ -211,6 +211,10 @@ class Venture(MPTTModel):
         verbose_name=_("Is active"),
         default=False,
     )
+    is_service = db.BooleanField(
+        verbose_name=_("Is a service"),
+        default=False,
+    )
 
     class Meta:
         verbose_name = _("venture")
