@@ -16,7 +16,7 @@ from ralph_pricing import VERSION
 release = ".".join(str(num) for num in VERSION)
 
 setup(
-    name='ralph_pricing',
+    name='scrooge',
     version=release,
     author='Grupa Allegro Sp. z o.o. and Contributors',
     author_email='it-ralph-dev@allegro.pl',
@@ -37,7 +37,8 @@ setup(
         'python-ceilometerclient==1.0.8',
     ],
     entry_points={
-        'console_scripts': [
+        'django.pluggable_app': [
+            'scrooge = ralph_pricing.app:Scrooge',
         ],
     },
     classifiers=[

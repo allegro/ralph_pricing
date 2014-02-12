@@ -6,6 +6,12 @@ Change Log
 2.0.0
 ~~~~~
 
+* If assets plugin cannot find device by asset_id then try get device by sn
+
+
+2.0.0
+~~~~~
+
 * Changes in the architecture. Now devices are taken by asset plugin from assets
 
 * Remove device and cores plugin (This this is a role of asset plugin)
