@@ -39,6 +39,9 @@ def ventures_menu(href='', selected=None):
 
 
 def usages_menu(href='', selected=None):
+    usage_types = UsageType.objects.filter(
+        is_manually_type=True,
+    ).order_by('name')
     items = [
         MenuItem(
             usage_type.name,
@@ -46,6 +49,6 @@ def usages_menu(href='', selected=None):
             subitems=[],
             fugue_icon='fugue-beaker',
             href='{}/{}/'.format(href, usage_type.name),
-        ) for usage_type in UsageType.objects.order_by('name')
+        ) for usage_type in usage_types
     ]
     return items

@@ -6,11 +6,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from django.utils.translation import ugettext_lazy as _
 
+from ralph_pricing.models import UsageType
 from ralph.util import plugin
+from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
 
 
 logger = logging.getLogger(__name__)
@@ -19,12 +21,20 @@ logger = logging.getLogger(__name__)
 @plugin.register(chain='usages')
 def physical_cpu_cores_usages(**kwargs):
     logger.debug("Get phisical cpu cores usage")
-    usages = {}
-    for venture in kwargs.get('ventures'):
-        usages[venture.id] = {
-            'physical_cpu_cores_count': 4,
-            'physical_cpu_cores_cost': 0.4,
-        }
+    report_days = (kwargs['end'] - kwargs['start']).days + 1
+    usage_type = UsageType.objects.get(name='physical_cpu_cores')
+    core_usages = get_standard_usages_and_costs(
+        kwargs['start'],
+        kwargs['end'],
+        kwargs['ventures'],
+        usage_type,
+    )
+
+    usages = defaultdict(lambda : defaultdict(int))
+    for venture, core_usage in core_usages.iteritems():
+        usages[venture]['physical_cpu_cores_count'] = core_usage['value']
+        usages[venture]['physical_cpu_cores_cost'] = core_usage['cost']
+
     return usages
 
 

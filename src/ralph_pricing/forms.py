@@ -193,10 +193,6 @@ UsagesFormSet = forms.models.modelformset_factory(
 
 class DateRangeForm(forms.Form):
     '''Form schema. Used to generate venture raports'''
-    warehouse = forms.ModelChoiceField(
-        empty_label=None,
-        queryset=Warehouse.objects.all(),
-    )
     start = forms.DateField(
         widget=DateWidget(
             attrs={'class': 'input-small'},

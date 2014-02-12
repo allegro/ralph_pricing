@@ -6,11 +6,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin
+from ralph_pricing.models import UsageType
+from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
 
 
 logger = logging.getLogger(__name__)
@@ -19,12 +21,20 @@ logger = logging.getLogger(__name__)
 @plugin.register(chain='usages')
 def hamster_usages(**kwargs):
     logger.debug("Get hamster usage")
-    usages = {}
-    for venture in kwargs.get('ventures'):
-        usages[venture.id] = {
-            'hamster_usage_count': 3,
-            'hamster_usage_cost': 0.3,
-        }
+    report_days = (kwargs['end'] - kwargs['start']).days + 1
+    usage_type = UsageType.objects.get(name='hamster')
+    hamster_usages = get_standard_usages_and_costs(
+        kwargs['start'],
+        kwargs['end'],
+        kwargs['ventures'],
+        usage_type,
+    )
+
+    usages = defaultdict(lambda : defaultdict(int))
+    for venture, hamster_usage in hamster_usages.iteritems():
+        usages[venture]['hamster_usage_count'] = hamster_usage['value']
+        usages[venture]['hamster_usage_cost'] = hamster_usage['cost']
+
     return usages
 
 

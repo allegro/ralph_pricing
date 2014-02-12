@@ -616,6 +616,9 @@ class UsageType(db.Model):
     by_warehouse = db.BooleanField(
         default=False,
     )
+    is_manually_type = db.BooleanField(
+        default=False,
+    )
     by_cost = db.BooleanField(
         default=False,
     )

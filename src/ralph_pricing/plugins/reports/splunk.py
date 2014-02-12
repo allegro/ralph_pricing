@@ -6,11 +6,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin
+from ralph_pricing.models import UsageType
+from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
 
 
 logger = logging.getLogger(__name__)
@@ -19,12 +21,20 @@ logger = logging.getLogger(__name__)
 @plugin.register(chain='usages')
 def splunk_usages(**kwargs):
     logger.debug("Splunk usage")
-    usages = {}
-    for venture in kwargs.get('ventures'):
-        usages[venture.id] = {
-            'splunk_usage_count': 6,
-            'splunk_usage_cost': 0.6,
-        }
+    report_days = (kwargs['end'] - kwargs['start']).days + 1
+    usage_type = UsageType.objects.get(name='splunk')
+    splunk_usages = get_standard_usages_and_costs(
+        kwargs['start'],
+        kwargs['end'],
+        kwargs['ventures'],
+        usage_type,
+    )
+
+    usages = defaultdict(lambda : defaultdict(int))
+    for venture, splunk_usage in splunk_usages.iteritems():
+        usages[venture]['splunk_usage_count'] = splunk_usage['value']
+        usages[venture]['splunk_usage_cost'] = splunk_usage['cost']
+
     return usages
 
 
