@@ -77,7 +77,7 @@ class TestSplunkPluginTest(TestCase):
         settings.SPLUNK_HOST = 'test'
         settings.SPLUNK_USER = 'test'
         settings.SPLUNK_PASSWORD = 'test'
-        with mock.patch('ralph_pricing.plugins.splunk.Splunk') as Splunk:
+        with mock.patch('ralph_pricing.plugins.collects.splunk.Splunk') as Splunk:
             Splunk.side_effect = MockSplunk
             splunk_runner(today=datetime.date.today())
             usage_device1 = DailyUsage.objects.get(pricing_device=self.device1)
@@ -91,7 +91,7 @@ class TestSplunkPluginTest(TestCase):
 
     def test_fail_plugin(self):
             """ Testing not configured plugin """
-            with mock.patch('ralph_pricing.plugins.splunk.Splunk') as Splunk:
+            with mock.patch('ralph_pricing.plugins.collects.splunk.Splunk') as Splunk:
                 Splunk.side_effect = MockSplunk
                 status, message, arg = splunk_runner(
                     today=datetime.datetime.today(),

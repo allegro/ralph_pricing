@@ -584,10 +584,13 @@ class DailyDevice(db.Model):
         """
         Calculates daily and monthly depreciation costs
         """
-        self.daily_cost = self.deprecation_rate * self.price / 36500 if not \
-            self.is_deprecated else 0
-        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
-            self.is_deprecated else 0
+        print ('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print (int(self.price))
+        print (type(self.deprecation_rate))
+        self.daily_cost = self.deprecation_rate * int(self.price) / 36500\
+            if not self.is_deprecated else 0
+        self.monthly_cost = self.deprecation_rate * int(self.price) / 1200\
+            if not self.is_deprecated else 0
 
     def save(self, *args, **kwargs):
         self.calc_costs()

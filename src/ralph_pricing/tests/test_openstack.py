@@ -12,7 +12,7 @@ from django.conf import settings
 from django.test import TestCase
 
 from ralph_pricing.models import DailyUsage, Venture
-from ralph_pricing.plugins.openstack import (
+from ralph_pricing.plugins.collects.openstack import (
     openstack as openstack_runner,
 )
 from ralph_pricing.tests.samples.openstack import (
@@ -78,7 +78,7 @@ class TestOpenstack(TestCase):
         settings.OPENSTACK_USER = 'test'
         settings.OPENSTACK_PASSWORD = 'test'
         with mock.patch(
-            'ralph_pricing.plugins.openstack.OpenStack'
+            'ralph_pricing.plugins.collects.openstack.OpenStack'
         ) as OpenStack:
             OpenStack.side_effect = MockOpenStack
             status, message, arg = openstack_runner(
@@ -144,7 +144,7 @@ class TestOpenstack(TestCase):
     def test_fail_plugin(self):
         """ Testing not configured plugin """
         with mock.patch(
-            'ralph_pricing.plugins.openstack.OpenStack'
+            'ralph_pricing.plugins.collects.openstack.OpenStack'
         ) as OpenStack:
             OpenStack.side_effect = MockOpenStack
             status, message, arg = openstack_runner(
