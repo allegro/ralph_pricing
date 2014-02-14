@@ -5,27 +5,20 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import datetime
 import logging
-from collections import defaultdict
 from decimal import Decimal as D
 from lck.cache import memoize
 
 from django.utils.translation import ugettext_lazy as _
-from django.db.models import Sum, Count
 
-from ralph_pricing.views.reports import Report, currency
+from ralph_pricing.views.reports import Report
 from ralph_pricing.models import (
-    DailyDevice,
-    DailyUsage,
-    ExtraCost,
-    ExtraCostType,
     UsageType,
     Venture,
 )
 from ralph_pricing.forms import DateRangeForm
 from ralph.util import plugin
-from ralph_pricing.plugins import reports
+from ralph_pricing.plugins import reports  # noqa
 
 
 logger = logging.getLogger(__name__)
@@ -47,7 +40,7 @@ class AllVenturesBeta(Report):
         Returns usage types which should be visible on report
         """
         return UsageType.objects.exclude(
-            is_plug=False,
+            show_in_report=False,
         ).exclude(show_in_report=False).order_by('-order', 'name')
 
     @classmethod
@@ -118,18 +111,24 @@ class AllVenturesBeta(Report):
     def _get_report_data(cls, start, end, show_in_ralph, forecast, ventures):
         data = {venture.id: {} for venture in ventures}
         for i, usage_type in enumerate(cls._get_usage_types()):
-            usage_type_report = plugin.run(
-                'usages',
-                '{0}_usages'.format(usage_type.name),
-                ventures=ventures,
-                start=start,
-                end=end,
-                show_in_ralph=show_in_ralph,
-                forecast=forecast,
-            )
-            for venture_id, venture_usage in usage_type_report.iteritems():
-                if venture_id in data:
-                    data[venture_id].update(venture_usage)
+            try:
+                usage_type_report = plugin.run(
+                    'reports',
+                    '{0}_usages'.format(usage_type.symbol),
+                    ventures=ventures,
+                    start=start,
+                    end=end,
+                    show_in_ralph=show_in_ralph,
+                    forecast=forecast,
+                )
+                for venture_id, venture_usage in usage_type_report.iteritems():
+                    if venture_id in data:
+                        data[venture_id].update(venture_usage)
+            except KeyError:
+                logger.warning(
+                    "Usage '{0}' have no usage plugin".format(usage_type.name)
+                )
+
         return data
 
     @classmethod
@@ -157,12 +156,17 @@ class AllVenturesBeta(Report):
     def _get_schema(cls):
         header = []
         for usage_type in cls._get_usage_types():
-            usage_type_headers = plugin.run(
-                'usages',
-                '{0}_schema'.format(usage_type.name),
-                warehouse='1',
-            )
-            header.append(usage_type_headers)
+            try:
+                usage_type_headers = plugin.run(
+                    'reports',
+                    '{0}_schema'.format(usage_type.symbol),
+                    warehouse='1',
+                )
+                header.append(usage_type_headers)
+            except KeyError:
+                logger.warning(
+                    "Usage '{0}' have no schema plugin".format(usage_type.name)
+                )
         return header
 
     @classmethod

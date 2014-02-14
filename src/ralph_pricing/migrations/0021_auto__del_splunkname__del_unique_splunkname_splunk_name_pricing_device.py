@@ -13,11 +13,6 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
-        # Adding field 'UsageType.is_plug'
-        db.add_column('ralph_pricing_usagetype', 'is_plug',
-                      self.gf('django.db.models.fields.BooleanField')(default=True),
-                      keep_default=False)
-
         # Adding field 'UsageType.order'
         db.add_column('ralph_pricing_usagetype', 'order',
                       self.gf('django.db.models.fields.IntegerField')(default=0),
@@ -27,9 +22,6 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
         # Deleting field 'UsageType.is_manually_type'
         db.delete_column('ralph_pricing_usagetype', 'is_manually_type')
-
-        # Deleting field 'UsageType.is_plug'
-        db.delete_column('ralph_pricing_usagetype', 'is_plug')
 
         # Deleting field 'UsageType.order'
         db.delete_column('ralph_pricing_usagetype', 'order')
@@ -170,7 +162,6 @@ class Migration(SchemaMigration):
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_plug': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
@@ -184,7 +175,6 @@ class Migration(SchemaMigration):
             'department': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_service': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255'}),

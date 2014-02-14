@@ -35,7 +35,7 @@ def get_assets_count_and_cost(start, end, ventures):
     return assets_report
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def deprecation_usages(**kwargs):
     logger.debug("Get deprecation usage")
     # TODO: calc blades
@@ -55,7 +55,7 @@ def deprecation_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def deprecation_schema(**kwargs):
     logger.debug("Get deprecation schema")
     schema = OrderedDict()

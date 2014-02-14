@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from mptt.forms import TreeNodeChoiceField
 
 from ralph.ui.widgets import DateWidget
-from ralph_pricing.models import ExtraCost, UsagePrice, Venture, Warehouse
+from ralph_pricing.models import ExtraCost, UsagePrice, Venture
 
 
 class ExtraCostForm(forms.ModelForm):

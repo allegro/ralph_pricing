@@ -211,10 +211,6 @@ class Venture(MPTTModel):
         verbose_name=_("Is active"),
         default=False,
     )
-    is_service = db.BooleanField(
-        verbose_name=_("Is a service"),
-        default=False,
-    )
 
     class Meta:
         verbose_name = _("venture")
@@ -584,9 +580,6 @@ class DailyDevice(db.Model):
         """
         Calculates daily and monthly depreciation costs
         """
-        print ('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        print (int(self.price))
-        print (type(self.deprecation_rate))
         self.daily_cost = self.deprecation_rate * int(self.price) / 36500\
             if not self.is_deprecated else 0
         self.monthly_cost = self.deprecation_rate * int(self.price) / 1200\
@@ -631,10 +624,6 @@ class UsageType(db.Model):
     )
     show_in_report = db.BooleanField(
         verbose_name=_("Show usage type in report"),
-        default=True,
-    )
-    is_plug = db.BooleanField(
-        verbose_name=_("Is plug"),
         default=True,
     )
     order = db.IntegerField(

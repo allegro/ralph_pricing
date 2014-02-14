@@ -19,7 +19,7 @@ from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def power_consumption_usages(**kwargs):
     logger.debug("Get power consumption usage")
 
@@ -39,7 +39,7 @@ def power_consumption_usages(**kwargs):
         Warehouse.objects.get(name='DC4'),
     )
 
-    usages = defaultdict(lambda : defaultdict(int))
+    usages = defaultdict(lambda: defaultdict(int))
     for venture, power_dc2_usage in power_dc2_usages.iteritems():
         usages[venture]['power_consumption_count_dc2'] =\
             power_dc2_usage['value']
@@ -59,7 +59,7 @@ def power_consumption_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def power_consumption_schema(**kwargs):
     logger.debug("Get power consumption schema")
     schema = OrderedDict()

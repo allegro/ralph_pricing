@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-
 from django.conf import settings
 from django.test import TestCase
 
@@ -37,8 +36,20 @@ class MockSplunk(object):
         pass
 
 
+def mock_get_device_by_name(host):
+    for hosts_data in hosts_usages_data:
+        if hosts_data['host'] == host:
+            return {
+                'device_id': hosts_data['device_id'],
+                'venture_id': hosts_data['venture_id'],
+            }
+    return {}
+
+
 class TestSplunkPluginTest(TestCase):
     """ Splunk costs Test Case """
+    SPLUNK_PLUGIN_PATH = 'ralph_pricing.plugins.collects.splunk.Splunk'
+
     def setUp(self):
         self.splunk_venture = Venture(
             name='Splunk unknown usage',
@@ -77,11 +88,14 @@ class TestSplunkPluginTest(TestCase):
         settings.SPLUNK_HOST = 'test'
         settings.SPLUNK_USER = 'test'
         settings.SPLUNK_PASSWORD = 'test'
-        with mock.patch('ralph_pricing.plugins.collects.splunk.Splunk') as Splunk:
+        splunk_runner.func_globals['get_device_by_name'] =\
+            mock_get_device_by_name
+        with mock.patch(self.SPLUNK_PLUGIN_PATH) as Splunk:
             Splunk.side_effect = MockSplunk
             splunk_runner(today=datetime.date.today())
             usage_device1 = DailyUsage.objects.get(pricing_device=self.device1)
             usage_device2 = DailyUsage.objects.get(pricing_device=self.device2)
+
             usage_splunk_venture = DailyUsage.objects.get(
                 pricing_venture=self.splunk_venture,
             )
@@ -91,7 +105,7 @@ class TestSplunkPluginTest(TestCase):
 
     def test_fail_plugin(self):
             """ Testing not configured plugin """
-            with mock.patch('ralph_pricing.plugins.collects.splunk.Splunk') as Splunk:
+            with mock.patch(self.SPLUNK_PLUGIN_PATH) as Splunk:
                 Splunk.side_effect = MockSplunk
                 status, message, arg = splunk_runner(
                     today=datetime.datetime.today(),

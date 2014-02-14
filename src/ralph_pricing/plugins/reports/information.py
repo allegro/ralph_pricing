@@ -16,7 +16,7 @@ from ralph.util import plugin
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def information_usages(**kwargs):
     logger.debug("Get information usage")
     usages = {}
@@ -34,7 +34,7 @@ def information_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def information_schema(**kwargs):
     logger.debug("Get information schema")
     schema = OrderedDict()

@@ -18,10 +18,9 @@ from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def splunk_usages(**kwargs):
     logger.debug("Splunk usage")
-    report_days = (kwargs['end'] - kwargs['start']).days + 1
     usage_type = UsageType.objects.get(name='splunk')
     splunk_usages = get_standard_usages_and_costs(
         kwargs['start'],
@@ -30,7 +29,7 @@ def splunk_usages(**kwargs):
         usage_type,
     )
 
-    usages = defaultdict(lambda : defaultdict(int))
+    usages = defaultdict(lambda: defaultdict(int))
     for venture, splunk_usage in splunk_usages.iteritems():
         usages[venture]['splunk_usage_count'] = splunk_usage['value']
         usages[venture]['splunk_usage_cost'] = splunk_usage['cost']
@@ -38,7 +37,7 @@ def splunk_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def splunk_schema(**kwargs):
     logger.debug("Splunk usage schema")
     schema = OrderedDict()

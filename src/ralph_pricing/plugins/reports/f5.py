@@ -16,7 +16,7 @@ from ralph.util import plugin
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def f5_usages(**kwargs):
     logger.debug("Get F5 usage")
     usages = {}
@@ -28,7 +28,7 @@ def f5_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def f5_schema(**kwargs):
     logger.debug("Get F5 schema")
     schema = OrderedDict()

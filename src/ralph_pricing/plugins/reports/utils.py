@@ -1,4 +1,3 @@
-import logging
 from decimal import Decimal as D
 from datetime import timedelta
 from collections import defaultdict
@@ -6,7 +5,7 @@ from collections import defaultdict
 from ralph_pricing.models import DailyUsage
 
 
-class AttributeDict(dict): 
+class AttributeDict(dict):
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
 
@@ -36,11 +35,7 @@ def get_prices_from_costs(start, end, usage_type, warehouse):
                 (cost.end - cost.start).days + 1)
 
         prices.append(
-            AttributeDict(
-                end = cost.end,
-                start = cost.start,
-                price = price,
-            )
+            AttributeDict(end=cost.end, start=cost.start, price=price)
         )
 
     return prices
@@ -76,7 +71,7 @@ def generate_prices_list(start, end, prices):
 
 
 def prepare_data(daily_usages, prices_list):
-    count_and_price = defaultdict(lambda : defaultdict(int))
+    count_and_price = defaultdict(lambda: defaultdict(int))
     for daily_usage in daily_usages:
         count_and_price[daily_usage['pricing_venture']]['value'] +=\
             daily_usage['value']

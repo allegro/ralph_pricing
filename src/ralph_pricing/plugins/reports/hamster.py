@@ -18,10 +18,9 @@ from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def hamster_usages(**kwargs):
     logger.debug("Get hamster usage")
-    report_days = (kwargs['end'] - kwargs['start']).days + 1
     usage_type = UsageType.objects.get(name='hamster')
     hamster_usages = get_standard_usages_and_costs(
         kwargs['start'],
@@ -30,7 +29,7 @@ def hamster_usages(**kwargs):
         usage_type,
     )
 
-    usages = defaultdict(lambda : defaultdict(int))
+    usages = defaultdict(lambda: defaultdict(int))
     for venture, hamster_usage in hamster_usages.iteritems():
         usages[venture]['hamster_usage_count'] = hamster_usage['value']
         usages[venture]['hamster_usage_cost'] = hamster_usage['cost']
@@ -38,7 +37,7 @@ def hamster_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def hamster_schema(**kwargs):
     logger.debug("Get hamster usage")
     schema = OrderedDict()

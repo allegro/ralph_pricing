@@ -18,7 +18,7 @@ from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def virtual_systems_usages(**kwargs):
     logger.debug("Get virtual systems usage")
 
@@ -44,7 +44,7 @@ def virtual_systems_usages(**kwargs):
         usage_type,
     )
 
-    usages = defaultdict(lambda : defaultdict(int))
+    usages = defaultdict(lambda: defaultdict(int))
     for venture, disk_usage in disk_usages.iteritems():
         usages[venture]['virtual_disk_count'] = disk_usage['value']
         usages[venture]['virtual_disk_cost'] = disk_usage['cost']
@@ -64,7 +64,7 @@ def virtual_systems_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='usages')
+@plugin.register(chain='reports')
 def virtual_systems_schema(**kwargs):
     logger.debug("Get virtual systems schema")
     schema = OrderedDict()
