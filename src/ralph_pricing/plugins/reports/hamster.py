@@ -69,7 +69,7 @@ def hamster_schema(**kwargs):
     :returns dict: schema for usage
     :rtype dict:
     """
-    logger.debug("Get hamster usage")
+    logger.debug("Get hamster schema")
     schema = OrderedDict()
     schema['hamster_usage_count'] = {
         'name': _("Hamster usage count"),
