@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType
-from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
+from ralph_pricing.plugins.reports.utils import get_usages_and_costs
 
 
 logger = logging.getLogger(__name__)
@@ -20,24 +20,38 @@ logger = logging.getLogger(__name__)
 
 @plugin.register(chain='reports')
 def virtual_systems_usages(**kwargs):
+    """
+    Return usages and costs for given ventures. Format of
+    returned data must looks like:
+
+    usages = {
+        'venture_id': {
+            'field_name': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: usages and costs
+    """
     logger.debug("Get virtual systems usage")
 
     usage_type = UsageType.objects.get(name='virtual_disk_mb')
-    disk_usages = get_standard_usages_and_costs(
+    disk_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
         kwargs['ventures'],
         usage_type,
     )
     usage_type = UsageType.objects.get(name='virtual_memory_mb')
-    memory_usages = get_standard_usages_and_costs(
+    memory_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
         kwargs['ventures'],
         usage_type,
     )
     usage_type = UsageType.objects.get(name='virtual_cpu_cores')
-    cpu_cores_usages = get_standard_usages_and_costs(
+    cpu_cores_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
         kwargs['ventures'],
@@ -66,6 +80,20 @@ def virtual_systems_usages(**kwargs):
 
 @plugin.register(chain='reports')
 def virtual_systems_schema(**kwargs):
+    """
+    Build schema for this usage. Format of schema looks like:
+
+    schema = {
+        'field_name': {
+            'name': 'Verbous name',
+            'next_option': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: schema for usage
+    """
     logger.debug("Get virtual systems schema")
     schema = OrderedDict()
     schema['virtual_disk_count'] = {

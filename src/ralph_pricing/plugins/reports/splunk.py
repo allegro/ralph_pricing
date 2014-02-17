@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType
-from ralph_pricing.plugins.reports.utils import get_standard_usages_and_costs
+from ralph_pricing.plugins.reports.utils import get_usages_and_costs
 
 
 logger = logging.getLogger(__name__)
@@ -20,9 +20,23 @@ logger = logging.getLogger(__name__)
 
 @plugin.register(chain='reports')
 def splunk_usages(**kwargs):
+    """
+    Return usages and costs for given ventures. Format of
+    returned data must looks like:
+
+    usages = {
+        'venture_id': {
+            'field_name': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: usages and costs
+    """
     logger.debug("Splunk usage")
     usage_type = UsageType.objects.get(name='splunk')
-    splunk_usages = get_standard_usages_and_costs(
+    splunk_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
         kwargs['ventures'],
@@ -39,6 +53,20 @@ def splunk_usages(**kwargs):
 
 @plugin.register(chain='reports')
 def splunk_schema(**kwargs):
+    """
+    Build schema for this usage. Format of schema looks like:
+
+    schema = {
+        'field_name': {
+            'name': 'Verbous name',
+            'next_option': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: schema for usage
+    """
     logger.debug("Splunk usage schema")
     schema = OrderedDict()
     schema['splunk_usage_count'] = {

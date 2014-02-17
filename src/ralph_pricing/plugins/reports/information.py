@@ -18,6 +18,19 @@ logger = logging.getLogger(__name__)
 
 @plugin.register(chain='reports')
 def information_usages(**kwargs):
+    """
+    Return informations about given ventures
+
+    usages = {
+        'venture_id': {
+            'field_name': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: informations about ventures
+    """
     logger.debug("Get information usage")
     usages = {}
     for venture in kwargs.get('ventures'):
@@ -36,6 +49,20 @@ def information_usages(**kwargs):
 
 @plugin.register(chain='reports')
 def information_schema(**kwargs):
+    """
+    Build schema for this usage. Format of schema looks like:
+
+    schema = {
+        'field_name': {
+            'name': 'Verbous name',
+            'next_option': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: schema for usage
+    """
     logger.debug("Get information schema")
     schema = OrderedDict()
     schema['venture_id'] = {

@@ -21,6 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_assets_count_and_cost(start, end, ventures):
+    """
+    Create query with divecs sorted by pricing_ventures from given time period
+
+    :param datatime start: Begin of time interval for deprecation
+    :param datatime end: End of time interval for deprecation
+    :param list ventures: List of ventures
+    :returns dict: query with selected devices for give venture
+    """
     assets_report_query = DailyDevice.objects.filter(
         pricing_device__is_virtual=False,
         date__gte=start,
@@ -37,6 +45,20 @@ def get_assets_count_and_cost(start, end, ventures):
 
 @plugin.register(chain='reports')
 def deprecation_usages(**kwargs):
+    """
+    Return usages and costs for given ventures. Format of
+    returned data must looks like:
+
+    usages = {
+        'venture_id': {
+            'field_name': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: usages and costs
+    """
     logger.debug("Get deprecation usage")
     # TODO: calc blades
     report_days = (kwargs['end'] - kwargs['start']).days + 1
@@ -57,6 +79,20 @@ def deprecation_usages(**kwargs):
 
 @plugin.register(chain='reports')
 def deprecation_schema(**kwargs):
+    """
+    Build schema for this usage. Format of schema looks like:
+
+    schema = {
+        'field_name': {
+            'name': 'Verbous name',
+            'next_option': value,
+            ...
+        },
+        ...
+    }
+
+    :returns dict: schema for usage
+    """
     logger.debug("Get deprecation schema")
     schema = OrderedDict()
     schema['assets_count'] = {

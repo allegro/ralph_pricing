@@ -6,11 +6,24 @@ from ralph_pricing.models import DailyUsage
 
 
 class AttributeDict(dict):
+    """
+    Attribute dict. Used to attribute access to dict
+    """
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
 
 
-def get_prices_from_costs(start, end, usage_type, warehouse):
+def get_prices_from_costs(start, end, usage_type, warehouse=None):
+    """
+    Count price from cost for each unit of usage
+
+    :param datatime start: Begin of time interval for report
+    :param datatime end: End of time interval for report
+    :param object usage_type: Usage type for which price will be calculated
+    :param object warehouse: Warehouse if price is by warehouse
+    :returns list: List with calculated prices
+    :rtype list:
+    """
     costs = usage_type.usageprice_set.filter(
         start__lte=end,
         end__gte=start,
@@ -23,16 +36,17 @@ def get_prices_from_costs(start, end, usage_type, warehouse):
             date__gte=cost.start,
             date__lte=cost.end,
             type=usage_type,
-            warehouse=warehouse,
         )
+
+        if warehouse:
+            daily_usages = daily_usages.filter(warehouse=warehouse)
 
         total_usage = 0
         for daily_usage in daily_usages:
             total_usage += daily_usage.value
         price = 0
         if total_usage != 0 and cost.cost != 0:
-            price = cost.cost / D(total_usage) / (
-                (cost.end - cost.start).days + 1)
+            price = cost.cost / D(total_usage)
 
         prices.append(
             AttributeDict(end=cost.end, start=cost.start, price=price)
@@ -42,6 +56,16 @@ def get_prices_from_costs(start, end, usage_type, warehouse):
 
 
 def get_prices(start, end, usage_type, warehouse=None):
+    """
+    Get prices for given time period
+
+    :param datatime start: Start of time interval for report
+    :param datatime end: End of time interval for report
+    :param object usage_type: Usage type for which price will be calculated
+    :param object warehouse: Warehouse if price is by warehouse
+    :returns list: List of prices
+    :rtype list:
+    """
     prices = usage_type.usageprice_set.filter(
         start__lte=end,
         end__gte=start,
@@ -53,6 +77,15 @@ def get_prices(start, end, usage_type, warehouse=None):
 
 
 def generate_prices_list(start, end, prices):
+    """
+    Create a prices list as dict where key is date and value is price
+
+    :param datatime start: Start of time interval for report
+    :param datatime end: End of time interval for report
+    :param list prices: List of pirces with time periods
+    :returns dict: Dict with price for each day
+    :rtype dict:
+    """
     prices_list = {}
     for price in prices:
         delta = price.end - price.start
@@ -71,6 +104,17 @@ def generate_prices_list(start, end, prices):
 
 
 def prepare_data(daily_usages, prices_list):
+    """
+    Create a finally dict where venture is a key but value is dict contains
+    informations like value and cost. Cost is calculated based on value of
+    usage and then is count to one value. If price for give data is a string,
+    then string is assigned to the field instead of calculating price
+
+    :param dict daily_usages: Daily usages for each venture from all days
+    :param dict prices_list: prices list for each day
+    :returns dict: count and price together and venture id as a key
+    :rtype dict:
+    """
     count_and_price = defaultdict(lambda: defaultdict(int))
     for daily_usage in daily_usages:
         count_and_price[daily_usage['pricing_venture']]['value'] +=\
@@ -93,6 +137,16 @@ def get_daily_usages(
     usage_type,
     warehouse=None,
 ):
+    """
+    Get all usages for given usage types and ventures
+
+    :param datatime start: Start of time interval for report
+    :param datatime end: End of time interval for report
+    :param object usage_type: Usage type for which price will be calculated
+    :param object warehouse: Warehouse if price is by warehouse
+    :returns list: query with selected daily usages
+    :rtype list:
+    """
     daily_usages = DailyUsage.objects.filter(
         date__gte=start,
         date__lte=end,
@@ -109,13 +163,27 @@ def get_daily_usages(
     return daily_usages
 
 
-def get_standard_usages_and_costs(
+def get_usages_and_costs(
     start,
     end,
     ventures,
     usage_type,
     warehouse=None,
 ):
+    """
+    Get usages and costs based on standard algorithm. The sandard algorithm
+    get all usages and price for them (or calculate from cost). Then value
+    from each day is multiply by price and everything is summed together for
+    each venture. At the end everything is joined to one dict where key is
+    venture id and value is dict with cost and price
+
+    :param datatime start: Start of time interval for report
+    :param datatime end: End of time interval for report
+    :param object usage_type: Usage type for which price will be calculated
+    :param object warehouse: Warehouse if price is by warehouse
+    :returns dict: usage and cost for each venture
+    :rtype dict:
+    """
     daily_usages = get_daily_usages(
         start,
         end,
