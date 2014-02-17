@@ -83,7 +83,7 @@ class AllVenturesBeta(Report):
         )
         usage_cost = D(0)
 
-        if type(field_content) == str:
+        if isinstance(field_content, str):
             return field_content, usage_cost
 
         if 'currency' in field_rules and field_rules['currency']:

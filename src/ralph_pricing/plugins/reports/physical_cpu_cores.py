@@ -33,6 +33,7 @@ def physical_cpu_cores_usages(**kwargs):
     }
 
     :returns dict: usages and costs
+    :rtype dict:
     """
     logger.debug("Get phisical cpu cores usage")
     usage_type = UsageType.objects.get(name='physical_cpu_cores')
@@ -66,6 +67,7 @@ def physical_cpu_cores_schema(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Get phisical cpu cores schema")
     schema = OrderedDict()

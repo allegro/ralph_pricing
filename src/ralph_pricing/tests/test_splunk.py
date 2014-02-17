@@ -95,7 +95,6 @@ class TestSplunkPluginTest(TestCase):
             splunk_runner(today=datetime.date.today())
             usage_device1 = DailyUsage.objects.get(pricing_device=self.device1)
             usage_device2 = DailyUsage.objects.get(pricing_device=self.device2)
-
             usage_splunk_venture = DailyUsage.objects.get(
                 pricing_venture=self.splunk_venture,
             )

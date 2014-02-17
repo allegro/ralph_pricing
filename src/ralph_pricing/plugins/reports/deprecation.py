@@ -28,6 +28,7 @@ def get_assets_count_and_cost(start, end, ventures):
     :param datatime end: End of time interval for deprecation
     :param list ventures: List of ventures
     :returns dict: query with selected devices for give venture
+    :rtype dict:
     """
     assets_report_query = DailyDevice.objects.filter(
         pricing_device__is_virtual=False,

@@ -6,8 +6,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import OrderedDict, defaultdict
 from decimal import Decimal as D
+from collections import OrderedDict, defaultdict
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -34,6 +34,7 @@ def power_consumption_usages(**kwargs):
     }
 
     :returns dict: usages and costs
+    :rtype dict:
     """
     logger.debug("Get power consumption usage")
 
@@ -88,6 +89,7 @@ def power_consumption_schema(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Get power consumption schema")
     schema = OrderedDict()

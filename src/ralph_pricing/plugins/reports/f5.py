@@ -31,6 +31,7 @@ def f5_usages(**kwargs):
     }
 
     :returns dict: usages and costs
+    :rtype dict:
     """
     logger.debug("Get F5 usage")
     usages = {}
@@ -53,6 +54,7 @@ def f5_schema(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Get F5 schema")
     schema = OrderedDict()

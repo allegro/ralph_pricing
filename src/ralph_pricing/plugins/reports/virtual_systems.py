@@ -33,6 +33,7 @@ def virtual_systems_usages(**kwargs):
     }
 
     :returns dict: usages and costs
+    :rtype dict:
     """
     logger.debug("Get virtual systems usage")
 
@@ -93,6 +94,7 @@ def virtual_systems_schema(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Get virtual systems schema")
     schema = OrderedDict()

@@ -1,5 +1,5 @@
-from decimal import Decimal as D
 from datetime import timedelta
+from decimal import Decimal as D
 from collections import defaultdict
 
 from ralph_pricing.models import DailyUsage

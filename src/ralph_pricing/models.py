@@ -398,10 +398,13 @@ class DailyPart(db.Model):
         """
         Calculates daily and monthly depreciation costs
         """
-        self.daily_cost = self.deprecation_rate * self.price / 36500 if not \
-            self.is_deprecated else 0
-        self.monthly_cost = self.deprecation_rate * self.price / 1200 if not \
-            self.is_deprecated else 0
+        self.daily_cost = D(0)
+        if not self.is_deprecated:
+            self.daily_cost = D(self.deprecation_rate * self.price / 36500)
+
+        self.monthly_cost = D(0)
+        if not self.is_deprecated:
+            self.monthly_cost = D(self.deprecation_rate * self.price / 1200)
 
     def save(self, *args, **kwargs):
         self.calc_costs()
@@ -580,10 +583,13 @@ class DailyDevice(db.Model):
         """
         Calculates daily and monthly depreciation costs
         """
-        self.daily_cost = self.deprecation_rate * int(self.price) / 36500\
-            if not self.is_deprecated else 0
-        self.monthly_cost = self.deprecation_rate * int(self.price) / 1200\
-            if not self.is_deprecated else 0
+        self.daily_cost = D(0)
+        if not self.is_deprecated:
+            self.daily_cost = D(self.deprecation_rate * self.price / 36500)
+
+        self.monthly_cost = D(0)
+        if not self.is_deprecated:
+            self.monthly_cost = D(self.deprecation_rate * self.price / 1200)
 
     def save(self, *args, **kwargs):
         self.calc_costs()
@@ -614,12 +620,15 @@ class UsageType(db.Model):
         default=False,
     )
     by_warehouse = db.BooleanField(
+        verbose_name=_("Usage type is by warehouse"),
         default=False,
     )
     is_manually_type = db.BooleanField(
+        verbose_name=_("Cost or price for usage is entering manually"),
         default=False,
     )
     by_cost = db.BooleanField(
+        verbose_name=_("Give value is a cost"),
         default=False,
     )
     show_in_report = db.BooleanField(

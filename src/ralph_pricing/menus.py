@@ -39,6 +39,9 @@ def ventures_menu(href='', selected=None):
 
 
 def usages_menu(href='', selected=None):
+    """
+    Create menus for usage types for manually entering prices
+    """
     usage_types = UsageType.objects.filter(
         is_manually_type=True,
     ).order_by('name')

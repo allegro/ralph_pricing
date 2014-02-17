@@ -33,6 +33,7 @@ def splunk_usages(**kwargs):
     }
 
     :returns dict: usages and costs
+    :rtype dict:
     """
     logger.debug("Splunk usage")
     usage_type = UsageType.objects.get(name='splunk')
@@ -66,6 +67,7 @@ def splunk_schema(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Splunk usage schema")
     schema = OrderedDict()

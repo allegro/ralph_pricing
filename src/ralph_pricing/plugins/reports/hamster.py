@@ -33,6 +33,7 @@ def hamster_usages(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Get hamster usage")
     usage_type = UsageType.objects.get(name='hamster')
@@ -66,6 +67,7 @@ def hamster_schema(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Get hamster usage")
     schema = OrderedDict()

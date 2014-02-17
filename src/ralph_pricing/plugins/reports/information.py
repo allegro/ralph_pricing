@@ -30,6 +30,7 @@ def information_usages(**kwargs):
     }
 
     :returns dict: informations about ventures
+    :rtype dict:
     """
     logger.debug("Get information usage")
     usages = {}
@@ -62,6 +63,7 @@ def information_schema(**kwargs):
     }
 
     :returns dict: schema for usage
+    :rtype dict:
     """
     logger.debug("Get information schema")
     schema = OrderedDict()
