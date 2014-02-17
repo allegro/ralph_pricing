@@ -39,6 +39,7 @@ class AllVenturesBeta(Report):
         """
         Returns usage types which should be visible on report
         """
+        logger.debug("Getting usage types")
         return UsageType.objects.exclude(
             show_in_report=False,
         ).exclude(show_in_report=False).order_by('-order', 'name')
@@ -145,6 +146,7 @@ class AllVenturesBeta(Report):
         :returns list: prepared data to generating report in html
         :rtype list:
         """
+        logger.debug("Preparing final report")
         final_data = []
         for venture in ventures:
             final_data.append(
@@ -161,9 +163,11 @@ class AllVenturesBeta(Report):
         :returns list: list of ventures
         :rtype list:
         """
+        logger.debug("Getting ventures")
         ventures = Venture.objects.order_by('name')
         if show_in_ralph:
             ventures = ventures.filter(is_active=True)
+        logger.debug("Got {0} ventures".format(ventures.count()))
         return ventures
 
     @classmethod
@@ -189,6 +193,7 @@ class AllVenturesBeta(Report):
         :returns dict: Complete report data for all ventures
         :rtype dict:
         """
+        logger.debug("Getting report date")
         data = {venture.id: {} for venture in ventures}
         for i, usage_type in enumerate(cls._get_usage_types()):
             try:
@@ -247,6 +252,7 @@ class AllVenturesBeta(Report):
         :returns dict: Complete schema for all columns in report
         :rtype dict:
         """
+        logger.debug("Getting schema for report")
         header = []
         for usage_type in cls._get_usage_types():
             try:
@@ -270,7 +276,7 @@ class AllVenturesBeta(Report):
         :returns list: Complete collection of headers for report
         :rtype list:
         """
-        logger.debug("Getting schema for report")
+        logger.debug("Getting headers for report")
         header = []
         for schema in cls._get_schema():
             for key, value in schema.iteritems():
