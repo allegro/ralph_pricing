@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from mptt.forms import TreeNodeChoiceField
 
 from ralph.ui.widgets import DateWidget
-from ralph_pricing.models import ExtraCost, UsagePrice, Venture
+from ralph_pricing.models import ExtraCost, UsagePrice, Venture, Warehouse
 
 
 class ExtraCostForm(forms.ModelForm):
@@ -193,6 +193,10 @@ UsagesFormSet = forms.models.modelformset_factory(
 
 class DateRangeForm(forms.Form):
     '''Form schema. Used to generate venture raports'''
+    warehouse = forms.ModelChoiceField(
+        empty_label=None,
+        queryset=Warehouse.objects.all(),
+    )
     start = forms.DateField(
         widget=DateWidget(
             attrs={'class': 'input-small'},
