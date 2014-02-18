@@ -38,9 +38,9 @@ def physical_cpu_cores_usages(start, end, ventures, **kwargs):
     logger.debug("Get phisical cpu cores usage")
     usage_type = UsageType.objects.get(symbol='physical_cpu_cores')
     core_usages = get_usages_and_costs(
-        kwargs['start'],
-        kwargs['end'],
-        kwargs['ventures'],
+        start,
+        end,
+        ventures,
         usage_type,
     )
 

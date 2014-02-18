@@ -2,6 +2,8 @@ from datetime import timedelta
 from decimal import Decimal as D
 from collections import defaultdict
 
+from django.db.models import Sum
+
 from ralph_pricing.models import DailyUsage
 
 
@@ -32,18 +34,15 @@ def get_prices_from_costs(start, end, usage_type, warehouse=None):
 
     prices = []
     for cost in costs:
-        daily_usages = DailyUsage.objects.filter(
+        daily_usage = DailyUsage.objects.filter(
             date__gte=cost.start,
             date__lte=cost.end,
             type=usage_type,
         )
-
         if warehouse:
-            daily_usages = daily_usages.filter(warehouse=warehouse)
+            daily_usage = daily_usage.filter(warehouse=warehouse)
+        total_usage = daily_usage.aggregate(total=Sum('value')).get('total', 0)
 
-        total_usage = 0
-        for daily_usage in daily_usages:
-            total_usage += daily_usage.value
         price = 0
         if total_usage != 0 and cost.cost != 0:
             price = cost.cost / D(total_usage)
