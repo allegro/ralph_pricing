@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @plugin.register(chain='reports')
-def splunk_usages(**kwargs):
+def splunk_usages(start, end, ventures, **kwargs):
     """
     Return usages and costs for given ventures. Format of
     returned data must looks like:
@@ -38,9 +38,9 @@ def splunk_usages(**kwargs):
     logger.debug("Splunk usage")
     usage_type = UsageType.objects.get(symbol='splunk')
     splunk_usages = get_usages_and_costs(
-        kwargs['start'],
-        kwargs['end'],
-        kwargs['ventures'],
+        start,
+        end,
+        ventures,
         usage_type,
     )
 

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @plugin.register(chain='reports')
-def hamster_usages(**kwargs):
+def hamster_usages(start, end, ventures, **kwargs):
     """
     Build schema for this usage. Format of schema looks like:
 
@@ -38,9 +38,9 @@ def hamster_usages(**kwargs):
     logger.debug("Get hamster usage")
     usage_type = UsageType.objects.get(symbol='hamster')
     hamster_usages = get_usages_and_costs(
-        kwargs['start'],
-        kwargs['end'],
-        kwargs['ventures'],
+        start,
+        end,
+        ventures,
         usage_type,
     )
 

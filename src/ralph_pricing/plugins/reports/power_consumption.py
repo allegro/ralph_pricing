@@ -23,7 +23,7 @@ def get_warehouses():
     return Warehouse.objects.filter(show_in_report=True)
 
 @plugin.register(chain='reports')
-def power_consumption_usages(**kwargs):
+def power_consumption_usages(start, end, ventures, **kwargs):
     """
     Return usages and costs for given ventures. Format of
     returned data must looks like:
@@ -47,9 +47,9 @@ def power_consumption_usages(**kwargs):
     for warehouse in get_warehouses():
         warehouse_name = "".join(warehouse.name.split(' ')).lower()
         power_usages = get_usages_and_costs(
-            kwargs['start'],
-            kwargs['end'],
-            kwargs['ventures'],
+            start,
+            end,
+            ventures,
             usage_type,
             warehouse,
         )

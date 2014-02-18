@@ -44,7 +44,7 @@ def get_assets_count_and_cost(start, end, ventures):
 
 
 @plugin.register(chain='reports')
-def deprecation_usages(**kwargs):
+def deprecation_usages(start, end, ventures, **kwargs):
     """
     Return usages and costs for given ventures. Format of
     returned data must looks like:
@@ -61,12 +61,8 @@ def deprecation_usages(**kwargs):
     """
     logger.debug("Get deprecation usage")
     # TODO: calc blades
-    report_days = (kwargs['end'] - kwargs['start']).days + 1
-    assets_count_and_cost = get_assets_count_and_cost(
-        kwargs['start'],
-        kwargs['end'],
-        kwargs['ventures'],
-    )
+    report_days = (end - start).days + 1
+    assets_count_and_cost = get_assets_count_and_cost(start, end, ventures)
 
     usages = {}
     for asset in assets_count_and_cost:

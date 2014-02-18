@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @plugin.register(chain='reports')
-def physical_cpu_cores_usages(**kwargs):
+def physical_cpu_cores_usages(start, end, ventures, **kwargs):
     """
     Return usages and costs for given ventures. Format of
     returned data must looks like:

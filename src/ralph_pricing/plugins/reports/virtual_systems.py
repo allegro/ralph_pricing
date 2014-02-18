@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @plugin.register(chain='reports')
-def virtual_systems_usages(**kwargs):
+def virtual_systems_usages(start, end, ventures, **kwargs):
     """
     Return usages and costs for given ventures. Format of
     returned data must looks like:
@@ -39,16 +39,16 @@ def virtual_systems_usages(**kwargs):
 
     usage_type = UsageType.objects.get(symbol='virtual_disk_mb')
     disk_usages = get_usages_and_costs(
-        kwargs['start'],
-        kwargs['end'],
-        kwargs['ventures'],
+        start,
+        end,
+        ventures,
         usage_type,
     )
     usage_type = UsageType.objects.get(symbol='virtual_memory_mb')
     memory_usages = get_usages_and_costs(
-        kwargs['start'],
-        kwargs['end'],
-        kwargs['ventures'],
+        start,
+        end,
+        ventures,
         usage_type,
     )
     usage_type = UsageType.objects.get(symbol='virtual_cpu_cores')
