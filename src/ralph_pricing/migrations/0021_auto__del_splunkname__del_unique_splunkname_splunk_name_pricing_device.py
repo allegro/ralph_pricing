@@ -8,6 +8,11 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding field 'Warehouse.show_in_report'
+        db.add_column('ralph_pricing_warehouse', 'show_in_report',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
         # Adding field 'UsageType.is_manually_type'
         db.add_column('ralph_pricing_usagetype', 'is_manually_type',
                       self.gf('django.db.models.fields.BooleanField')(default=False),
@@ -20,6 +25,9 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Deleting field 'Warehouse.show_in_report'
+        db.delete_column('ralph_pricing_warehouse', 'show_in_report')
+
         # Deleting field 'UsageType.is_manually_type'
         db.delete_column('ralph_pricing_usagetype', 'is_manually_type')
 
@@ -193,7 +201,8 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         }
     }
 

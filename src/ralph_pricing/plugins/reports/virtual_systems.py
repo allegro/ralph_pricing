@@ -37,21 +37,21 @@ def virtual_systems_usages(**kwargs):
     """
     logger.debug("Get virtual systems usage")
 
-    usage_type = UsageType.objects.get(name='virtual_disk_mb')
+    usage_type = UsageType.objects.get(symbol='virtual_disk_mb')
     disk_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
         kwargs['ventures'],
         usage_type,
     )
-    usage_type = UsageType.objects.get(name='virtual_memory_mb')
+    usage_type = UsageType.objects.get(symbol='virtual_memory_mb')
     memory_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
         kwargs['ventures'],
         usage_type,
     )
-    usage_type = UsageType.objects.get(name='virtual_cpu_cores')
+    usage_type = UsageType.objects.get(symbol='virtual_cpu_cores')
     cpu_cores_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
@@ -63,17 +63,17 @@ def virtual_systems_usages(**kwargs):
     for venture, disk_usage in disk_usages.iteritems():
         usages[venture]['virtual_disk_count'] = disk_usage['value']
         usages[venture]['virtual_disk_cost'] = disk_usage['cost']
-        if type(disk_usage['cost']) is not str:
+        if not isinstance(disk_usage['cost'], basestring):
             usages[venture]['virtual_systems_cost'] += disk_usage['cost']
     for venture, memory_usage in memory_usages.iteritems():
         usages[venture]['virtual_memory_count'] = memory_usage['value']
         usages[venture]['virtual_memory_cost'] = memory_usage['cost']
-        if type(disk_usage['cost']) is not str:
+        if not isinstance(disk_usage['cost'], basestring):
             usages[venture]['virtual_systems_cost'] += memory_usage['cost']
     for venture, cpu_cores_usage in cpu_cores_usages.iteritems():
         usages[venture]['virtual_cpu_cores_count'] = cpu_cores_usage['value']
         usages[venture]['virtual_cpu_cores_cost'] = cpu_cores_usage['cost']
-        if type(disk_usage['cost']) is not str:
+        if not isinstance(disk_usage['cost'], basestring):
             usages[venture]['virtual_systems_cost'] += cpu_cores_usage['cost']
 
     return usages

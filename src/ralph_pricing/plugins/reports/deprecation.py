@@ -11,9 +11,7 @@ from collections import OrderedDict
 from django.db.models import Sum, Count
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_pricing.models import (
-    DailyDevice,
-)
+from ralph_pricing.models import DailyDevice
 from ralph.util import plugin
 
 
@@ -22,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 def get_assets_count_and_cost(start, end, ventures):
     """
-    Create query with divecs sorted by pricing_ventures from given time period
+    Returns sum of devices price and daily_costs for every venture in given
+    time period
 
     :param datatime start: Begin of time interval for deprecation
     :param datatime end: End of time interval for deprecation

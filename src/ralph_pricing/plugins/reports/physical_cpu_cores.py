@@ -36,7 +36,7 @@ def physical_cpu_cores_usages(**kwargs):
     :rtype dict:
     """
     logger.debug("Get phisical cpu cores usage")
-    usage_type = UsageType.objects.get(name='physical_cpu_cores')
+    usage_type = UsageType.objects.get(symbol='physical_cpu_cores')
     core_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],

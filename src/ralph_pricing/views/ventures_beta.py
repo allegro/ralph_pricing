@@ -84,7 +84,7 @@ class AllVenturesBeta(Report):
         )
         usage_cost = D(0)
 
-        if isinstance(field_content, str):
+        if isinstance(field_content, basestring):
             return field_content, usage_cost
 
         if 'currency' in field_rules and field_rules['currency']:
@@ -155,23 +155,23 @@ class AllVenturesBeta(Report):
         return final_data
 
     @classmethod
-    def _get_ventures(cls, show_in_ralph):
+    def _get_ventures(cls, is_active):
         """
         This function return all ventures for which report will be ganarated
 
-        :param boolean show_in_ralph: Flag. Get only active or all.
+        :param boolean is_active: Flag. Get only active or all.
         :returns list: list of ventures
         :rtype list:
         """
         logger.debug("Getting ventures")
         ventures = Venture.objects.order_by('name')
-        if show_in_ralph:
+        if is_active:
             ventures = ventures.filter(is_active=True)
         logger.debug("Got {0} ventures".format(ventures.count()))
         return ventures
 
     @classmethod
-    def _get_report_data(cls, start, end, show_in_ralph, forecast, ventures):
+    def _get_report_data(cls, start, end, is_active, forecast, ventures):
         """
         Use plugins to get usages data for given ventures. Plugin logic can be
         so complicated but for this method, plugin must return value in
@@ -220,7 +220,7 @@ class AllVenturesBeta(Report):
         cls,
         start,
         end,
-        show_in_ralph=False,
+        is_active=False,
         forecast=False,
         **kwargs
     ):
@@ -233,11 +233,11 @@ class AllVenturesBeta(Report):
         :rtype tuple:
         """
         logger.info("Generating report from {0} to {1}".format(start, end))
-        ventures = cls._get_ventures(show_in_ralph)
+        ventures = cls._get_ventures(is_active)
         data = cls._get_report_data(
             start,
             end,
-            show_in_ralph,
+            is_active,
             forecast,
             ventures,
         )

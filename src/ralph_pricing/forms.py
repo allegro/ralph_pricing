@@ -207,7 +207,7 @@ class DateRangeForm(forms.Form):
         label='',
         initial=datetime.date.today,
     )
-    show_in_ralph = forms.BooleanField(
+    is_active = forms.BooleanField(
         required=False,
         label=_("Show only active"),
     )

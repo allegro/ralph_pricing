@@ -15,7 +15,7 @@ class AttributeDict(dict):
 
 def get_prices_from_costs(start, end, usage_type, warehouse=None):
     """
-    Count price from cost for each unit of usage
+    Calculate price from cost for each unit of usage
 
     :param datatime start: Begin of time interval for report
     :param datatime end: End of time interval for report
@@ -57,7 +57,7 @@ def get_prices_from_costs(start, end, usage_type, warehouse=None):
 
 def get_prices(start, end, usage_type, warehouse=None):
     """
-    Get prices for given time period
+    Get prices for usage type in given time period
 
     :param datatime start: Start of time interval for report
     :param datatime end: End of time interval for report
@@ -119,7 +119,7 @@ def prepare_data(daily_usages, prices_list):
     for daily_usage in daily_usages:
         count_and_price[daily_usage['pricing_venture']]['value'] +=\
             daily_usage['value']
-        if type(prices_list) == dict:
+        if isinstance(prices_list, dict):
             count_and_price[daily_usage['pricing_venture']]['cost'] +=\
                 D(daily_usage['value']) * prices_list.get(
                     str(daily_usage['date'].date()))

@@ -36,7 +36,7 @@ def hamster_usages(**kwargs):
     :rtype dict:
     """
     logger.debug("Get hamster usage")
-    usage_type = UsageType.objects.get(name='hamster')
+    usage_type = UsageType.objects.get(symbol='hamster')
     hamster_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],

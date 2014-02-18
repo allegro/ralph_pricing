@@ -36,7 +36,7 @@ def splunk_usages(**kwargs):
     :rtype dict:
     """
     logger.debug("Splunk usage")
-    usage_type = UsageType.objects.get(name='splunk')
+    usage_type = UsageType.objects.get(symbol='splunk')
     splunk_usages = get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],

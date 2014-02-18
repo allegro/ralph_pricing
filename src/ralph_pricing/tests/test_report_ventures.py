@@ -106,7 +106,7 @@ class TestReportVentures(TestCase):
             self.warehouse,
             day,
             day,
-            show_in_ralph=False,
+            is_active=False,
         ):
             pass
         self.assertEquals(
@@ -115,7 +115,7 @@ class TestReportVentures(TestCase):
                 [
                     3,                  # id
                     'a',                # path (venture)
-                    True,               # show_in_ralph
+                    True,               # is_active
                     '',                 # department
                     '',                 # business segment
                     '',                 # profit center
@@ -131,7 +131,7 @@ class TestReportVentures(TestCase):
                 [
                     2,
                     'a/b',
-                    False,  # show_in_ralph
+                    False,  # is_active
                     '',
                     '',
                     '',
@@ -154,7 +154,7 @@ class TestReportVentures(TestCase):
             self.warehouse,
             day,
             day,
-            show_in_ralph=True,
+            is_active=True,
         ):
             pass
         self.assertEquals(
@@ -163,7 +163,7 @@ class TestReportVentures(TestCase):
                 [
                     3,
                     'a',
-                    True,  # show_in_ralph
+                    True,  # is_active
                     '',
                     '',
                     '',
@@ -201,7 +201,7 @@ class TestReportVentures(TestCase):
             self.warehouse,
             day,
             day,
-            show_in_ralph=True,
+            is_active=True,
         ):
             pass
         # hidden usage type columns should not appear in report
@@ -211,7 +211,7 @@ class TestReportVentures(TestCase):
                 [
                     3,
                     'a',
-                    True,  # show_in_ralph
+                    True,  # is_active
                     '',
                     '',
                     '',

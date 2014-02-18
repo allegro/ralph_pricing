@@ -77,13 +77,17 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
     Pricing warehouse model contains name and id from assets and own create
     and modified date
     """
+    show_in_report = db.BooleanField(
+        verbose_name=_("Show warehouse in report"),
+        default=False,
+    )
     def __unicode__(self):
         return self.name
 
 
 class Device(db.Model):
     """
-    Pricing device model contains data downloaded from devices and assets.
+    Pricing device model contains data downloaded from devices and assets
     """
     name = db.CharField(verbose_name=_("name"), max_length=255)
     sn = db.CharField(max_length=200, null=True, blank=True)
@@ -400,11 +404,11 @@ class DailyPart(db.Model):
         """
         self.daily_cost = D(0)
         if not self.is_deprecated:
-            self.daily_cost = D(self.deprecation_rate * self.price / 36500)
+            self.daily_cost = D(self.deprecation_rate) * self.price / D(36500)
 
         self.monthly_cost = D(0)
         if not self.is_deprecated:
-            self.monthly_cost = D(self.deprecation_rate * self.price / 1200)
+            self.monthly_cost = D(self.deprecation_rate) * self.price / D(1200)
 
     def save(self, *args, **kwargs):
         self.calc_costs()
@@ -585,11 +589,13 @@ class DailyDevice(db.Model):
         """
         self.daily_cost = D(0)
         if not self.is_deprecated:
-            self.daily_cost = D(self.deprecation_rate * self.price / 36500)
+            self.daily_cost =\
+                D(self.deprecation_rate) * D(self.price) / D(36500)
 
         self.monthly_cost = D(0)
         if not self.is_deprecated:
-            self.monthly_cost = D(self.deprecation_rate * self.price / 1200)
+            self.monthly_cost =\
+                D(self.deprecation_rate) * D(self.price) / D(1200)
 
     def save(self, *args, **kwargs):
         self.calc_costs()
@@ -624,11 +630,11 @@ class UsageType(db.Model):
         default=False,
     )
     is_manually_type = db.BooleanField(
-        verbose_name=_("Cost or price for usage is entering manually"),
+        verbose_name=_("Cost or price for usage is entered manually"),
         default=False,
     )
     by_cost = db.BooleanField(
-        verbose_name=_("Give value is a cost"),
+        verbose_name=_("Given value is a cost"),
         default=False,
     )
     show_in_report = db.BooleanField(
