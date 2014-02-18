@@ -15,7 +15,7 @@ from ralph_pricing.models import DailyUsage, Venture
 from ralph_pricing.plugins.collects.openstack import (
     openstack as openstack_runner,
 )
-from ralph_pricing.tests.samples.openstack import (
+from ralph_pricing.tests.collect_plugins.samples.openstack import (
     simple_tenant_usage_data,
     tenants,
     tenants_data,

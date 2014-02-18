@@ -111,7 +111,7 @@ class TestPrices(TestCase):
             pricing_device=device,
             date=day,
             name='ziew',
-            price='1337',
+            price=1337,
             pricing_venture=venture,
         )
         daily.save()
@@ -126,7 +126,7 @@ class TestPrices(TestCase):
             pricing_device=other_device,
             date=day,
             name='ziew',
-            price='833833',
+            price=833833,
             pricing_venture=subventure,
         )
         other_daily.save()
