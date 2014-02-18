@@ -17,8 +17,9 @@ from ralph_pricing.models import (
     Venture,
 )
 from ralph_pricing.forms import DateRangeForm
-from ralph.util import plugin
+from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
+from ralph_pricing.plugins.reports.utils import AttributeDict
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,21 @@ class AllVenturesBeta(Report):
         return UsageType.objects.exclude(
             show_in_report=False,
         ).exclude(show_in_report=False).order_by('-order', 'name')
+
+    @classmethod
+    def _get_plugins(cls):
+        base_plugins = [
+            AttributeDict(name='Information', symbol='information'),
+            AttributeDict(name='Deprecation', symbol='deprecation')
+        ]
+        usage_types = [
+            AttributeDict(
+                name=ut.name,
+                symbol=ut.symbol
+            ) for ut in cls._get_usage_types()
+        ]
+        plugins = base_plugins + usage_types
+        return plugins
 
     @classmethod
     def _get_as_currency(cls, field_content, total_cost):
@@ -195,22 +211,23 @@ class AllVenturesBeta(Report):
         """
         logger.debug("Getting report date")
         data = {venture.id: {} for venture in ventures}
-        for i, usage_type in enumerate(cls._get_usage_types()):
+
+        for i, plugin in enumerate(cls._get_plugins()):
             try:
-                usage_type_report = plugin.run(
+                plugin_report = plugin_runner.run(
                     'reports',
-                    '{0}_usages'.format(usage_type.symbol),
+                    '{0}_usages'.format(plugin.symbol),
                     ventures=ventures,
                     start=start,
                     end=end,
                     forecast=forecast,
                 )
-                for venture_id, venture_usage in usage_type_report.iteritems():
+                for venture_id, venture_usage in plugin_report.iteritems():
                     if venture_id in data:
                         data[venture_id].update(venture_usage)
             except KeyError:
                 logger.warning(
-                    "Usage '{0}' have no usage plugin".format(usage_type.name)
+                    "Usage '{0}' have no usage plugin".format(plugin.name)
                 )
 
         return data
@@ -254,17 +271,17 @@ class AllVenturesBeta(Report):
         """
         logger.debug("Getting schema for report")
         header = []
-        for usage_type in cls._get_usage_types():
+        for plugin in cls._get_plugins():
             try:
-                usage_type_headers = plugin.run(
+                plugin_headers = plugin_runner.run(
                     'reports',
-                    '{0}_schema'.format(usage_type.symbol),
+                    '{0}_schema'.format(plugin.symbol),
                     warehouse='1',
                 )
-                header.append(usage_type_headers)
+                header.append(plugin_headers)
             except KeyError:
                 logger.warning(
-                    "Usage '{0}' have no schema plugin".format(usage_type.name)
+                    "Usage '{0}' have no schema plugin".format(plugin.name)
                 )
         return header
 
