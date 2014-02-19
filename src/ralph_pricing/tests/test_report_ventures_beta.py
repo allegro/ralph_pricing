@@ -12,13 +12,15 @@ from decimal import Decimal as D
 
 from django.test import TestCase
 
+from ralph.util import plugin
 from ralph_pricing import models
 from ralph_pricing.views.ventures_beta import AllVenturesBeta as AllVentures
 
 
 class TestReportVenturesBeta(TestCase):
     def setUp(self):
-        self.day = day = datetime.date(2013, 4, 25)
+        self.report_start = datetime.date(2013, 4, 20)
+        self.report_end = datetime.date(2013, 4, 30)
 
         # ventures
         self.venture = models.Venture(venture_id=1, name='b', is_active=True)
@@ -33,49 +35,9 @@ class TestReportVenturesBeta(TestCase):
         self.venture2 = models.Venture(venture_id=3, name='a', is_active=True)
         self.venture2.save()
 
-        # devices (assets)
-        device = models.Device(
-            device_id=3,
-            asset_id=5,
-        )
-        device.save()
-        daily = models.DailyDevice(
-            pricing_device=device,
-            date=day,
-            name='ziew',
-            price=1337,
-            pricing_venture=self.venture,
-        )
-        daily.save()
-
-        other_device = models.Device(
-            device_id=2,
-            asset_id=3,
-        )
-        other_device.save()
-        other_daily = models.DailyDevice(
-            pricing_device=other_device,
-            date=day,
-            name='ziew',
-            price=833833,
-            pricing_venture=self.subventure,
-        )
-        other_daily.save()
-
-        # warehouse
-        self.warehouse = models.Warehouse(name='Warehouse1')
-        self.warehouse.save()
-
         # usages
         usage_type = models.UsageType(name='UT1', symbol='ut1')
         usage_type.save()
-        daily_usage = models.DailyUsage(
-            type=usage_type,
-            value=32,
-            date=day,
-            pricing_venture=self.venture,
-        )
-        daily_usage.save()
         usage_type3 = models.UsageType(
             name='UT2',
             symbol='ut2',
@@ -91,14 +53,6 @@ class TestReportVenturesBeta(TestCase):
             order=3,
         )
         warehouse_usage_type.save()
-        daily_warehouse_usage = models.DailyUsage(
-            type=warehouse_usage_type,
-            value=120,
-            date=day,
-            pricing_venture=self.venture,
-            warehouse=self.warehouse,
-        )
-        daily_warehouse_usage.save()
 
     def test_get_plugins(self):
         """
@@ -201,11 +155,19 @@ class TestReportVenturesBeta(TestCase):
         return [
             OrderedDict([
                 ('field1', {'name': 'Field1'}),
-                ('field2', {'name': 'Field2', 'currency': True}),
+                ('field2', {
+                    'name': 'Field2',
+                    'currency': True,
+                    'total_cost': True,
+                }),
             ]),
             OrderedDict([
                 ('field3', {'name': 'Field3'}),
-                ('field4', {'name': 'Field4'}),
+                ('field4', {
+                    'name': 'Field4',
+                    'currency': True,
+                    'total_cost': True,
+                }),
             ]),
         ]
 
@@ -216,36 +178,161 @@ class TestReportVenturesBeta(TestCase):
         """
         venture_data = {
             'field1': 123,
-            'field2': 34,
+            'field2': 3,
             'field3': 3123,
-            'field4': 3434
+            'field4': 33
         }
         get_schema_mock.return_value = self._sample_schema()
         result = AllVentures._prepare_venture_row(venture_data)
-        self.assertEquals(result, [123, u'34.00 PLN', 3123, 3434, u'0.00 PLN'])
+        self.assertEquals(result,
+                          [123, u'3.00 PLN', 3123, u'33.00 PLN', u'36.00 PLN'])
 
     def test_get_ventures(self):
         """
         Test if ventures are correctly filtered
         """
-        def get_id(l):
+        def get_ids(l):
             return [i.id for i in l]
 
         ventures1 = AllVentures._get_ventures(is_active=True)
-        self.assertEquals(get_id(ventures1),
-                          get_id([self.venture2, self.venture]))
+        self.assertEquals(get_ids(ventures1),
+                          get_ids([self.venture2, self.venture]))
 
         ventures1 = AllVentures._get_ventures(is_active=False)
         self.assertEquals(
-            get_id(ventures1),
-            get_id([self.venture2, self.venture, self.subventure])
+            get_ids(ventures1),
+            get_ids([self.venture2, self.venture, self.subventure])
         )
 
-    def test_get_report_data(self):
+    @mock.patch('ralph.util.plugin.run')
+    def test_get_report_data(self, plugin_run_mock):
         """
         Test generating data for whole report
         """
-        raise NotImplementedError()
+        def pl(chain, func_name, **kwargs):
+            """
+            Mock for plugin run. Should replace every schema and report plugin
+            """
+            data = {
+                'information_schema': OrderedDict([
+                    ('venture_id', {'name': 'ID'}),
+                    ('venture', {'name': 'Venture'}),
+                    ('department', {'name': 'Department'}),
+                ]),
+                'information_usages': {
+                    1: {
+                        'venture_id': 1,
+                        'venture': 'b',
+                        'department': 'aaaa',
+                    },
+                    3: {
+                        'venture_id': 3,
+                        'venture': 'a',
+                        'department': 'bbbb',
+                    }
+                },
+                'deprecation_schema': OrderedDict([
+                    ('assets_count', {'name': 'Assets count'}),
+                    ('assets_cost', {
+                        'name': 'Assets cost',
+                        'currency': True,
+                        'total_cost': True,
+                    }),
+                ]),
+                'deprecation_usages': {
+                    1: {'assets_count': 12, 'assets_cost': 213},
+                    3: {'assets_count': 1, 'assets_cost': 23},
+                },
+                'ut1_schema': OrderedDict([
+                    ('ut1_count', {'name': 'UT1 count'}),
+                    ('ut1_cost', {
+                        'name': 'UT1 cost',
+                        'currency': True,
+                        'total_cost': True,
+                    })
+                ]),
+                'ut1_usages': {
+                    1: {'ut1_count': 123, 'ut1_cost': 23.23},
+                },
+                'ut3_schema': OrderedDict([
+                    ('ut3_count_warehouse_1', {'name': 'UT3 count wh 1'}),
+                    ('ut3_count_warehouse_2', {'name': 'UT3 count wh 2'}),
+                    ('ut3_cost_warehouse_1', {
+                        'name': 'UT3 cost wh 1',
+                        'currency': True,
+                    }),
+                    ('ut3_cost_warehouse_2', {
+                        'name': 'UT3 cost wh 2',
+                        'currency': True
+                    }),
+                    ('ut3_cost_total', {
+                        'name': 'UT3 total cost',
+                        'currency': True,
+                        'total_cost': True,
+                    })
+                ]),
+                'ut3_usages': {
+                    1: {
+                        'ut3_count_warehouse_1': 213,
+                        'ut3_cost_warehouse_1': 434.21,
+                        'ut3_count_warehouse_2': 3234,
+                        'ut3_cost_warehouse_2': 123.21,
+                        'ut3_cost_total': 557.42,
+                    },
+                    3: {
+                        'ut3_count_warehouse_1': 267,
+                        'ut3_cost_warehouse_1': 4764.21,
+                        'ut3_count_warehouse_2': 36774,
+                        'ut3_cost_warehouse_2': 'Incomplete price',
+                        'ut3_cost_total': 4764.21,
+                    }
+                }
+            }
+            result = data.get(func_name)
+            if result is not None:
+                return result
+            raise KeyError()
+
+        plugin_run_mock.side_effect = pl
+        result = None
+        for percent, result in AllVentures.get_data(
+            self.report_start,
+            self.report_end,
+            is_active=True,
+        ):
+            pass
+        self.assertEquals(result, [
+            [
+                3,  # venture_id
+                u'a',  # venture_name
+                u'bbbb',  # department
+                1,  # asset_count
+                u'23.00 PLN',  # asset_cost
+                267,  # ut3_count_warehouse_1
+                36774,  # ut3_cost_warehouse_1
+                u'4764.21 PLN',  # ut3_count_warehouse_2
+                u'Incomplete price',  # ut3_cost_warehouse_2
+                u'4764.21 PLN',  # ut3_cost_total
+                0.0,  # ut1_count
+                u'0.00 PLN',  # ut1_cost
+                u'4787.21 PLN',  # total_cost
+            ],
+            [
+                1,  # venture_id
+                u'b',  # venture_name
+                u'aaaa',  # department
+                12,  # asset_count
+                u'213.00 PLN',  # asset_cost
+                213,  # ut3_count_warehouse_1
+                3234,  # ut3_cost_warehouse_1
+                u'434.21 PLN',  # ut3_count_warehouse_2
+                u'123.21 PLN',  # ut3_cost_warehouse_2
+                u'557.42 PLN',  # ut3_cost_total
+                123,  # ut1_count
+                u'23.23 PLN',  # ut1_cost
+                u'793.65 PLN',  # total_cost
+            ]
+        ])
 
     @mock.patch.object(AllVentures, '_get_schema')
     def test_get_header(self, get_schema_mock):
