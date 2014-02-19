@@ -2,25 +2,15 @@
 import datetime
 from south.db import db
 from south.v2 import DataMigration
-from django.db import models
+from django.db import models, connection
 
 class Migration(DataMigration):
 
     def forwards(self, orm):
         "Write your forwards methods here."
-        for dd in orm.DailyDevice.objects.all():
-            dd.daily_cost = dd.deprecation_rate * dd.price / 36500 if not \
-                dd.is_deprecated else 0
-            dd.monthly_cost = dd.deprecation_rate * dd.price / 1200 if not \
-                dd.is_deprecated else 0
-            dd.save()
-
-        for dp in orm.DailyPart.objects.all():
-            dp.daily_cost = dp.deprecation_rate * dp.price / 36500 if not \
-                dp.is_deprecated else 0
-            dp.monthly_cost = dp.deprecation_rate * dp.price / 1200 if not \
-                dp.is_deprecated else 0
-            dp.save()
+        cursor = connection.cursor()
+        cursor.execute('UPDATE ralph.ralph_pricing_dailydevice SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
+        cursor.execute('UPDATE ralph.ralph_pricing_dailypart SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
 
     def backwards(self, orm):
         "Write your backwards methods here."
