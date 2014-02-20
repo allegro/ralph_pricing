@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 from datetime import timedelta
 from decimal import Decimal as D
 from collections import defaultdict
@@ -28,7 +35,7 @@ def get_prices_from_costs(start, end, usage_type, warehouse=None):
         start__lte=end,
         end__gte=start,
         warehouse=warehouse,
-    )
+    ).order_by('start')
 
     prices = []
     for cost in costs:
@@ -73,7 +80,7 @@ def get_prices(start, end, usage_type, warehouse=None):
     if warehouse:
         prices = prices.filter(warehouse=warehouse)
 
-    return prices
+    return prices.order_by('start')
 
 
 def generate_prices_list(start, end, prices):

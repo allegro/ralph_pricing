@@ -12,7 +12,6 @@ from decimal import Decimal as D
 
 from django.test import TestCase
 
-from ralph.util import plugin
 from ralph_pricing import models
 from ralph_pricing.views.ventures_beta import AllVenturesBeta as AllVentures
 
@@ -21,7 +20,6 @@ class TestReportVenturesBeta(TestCase):
     def setUp(self):
         self.report_start = datetime.date(2013, 4, 20)
         self.report_end = datetime.date(2013, 4, 30)
-
         # ventures
         self.venture = models.Venture(venture_id=1, name='b', is_active=True)
         self.venture.save()
@@ -71,7 +69,7 @@ class TestReportVenturesBeta(TestCase):
         Test if decimal is properly 'transformed' to currency
         """
         currency = AllVentures._get_as_currency('1234', False)
-        self.assertEquals(currency, ('1234.00 PLN', D(0)))
+        self.assertEquals(currency, ('1234.00 PLN', D('0')))
 
     def test_get_as_currency_total_cost(self):
         """
@@ -92,7 +90,7 @@ class TestReportVenturesBeta(TestCase):
             'currency': False
         }
         result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('1234', D(0)))
+        self.assertEquals(result, ('1234', D('0')))
 
     def test_prepare_field_value_in_venture_data_currency(self):
         """
@@ -178,14 +176,14 @@ class TestReportVenturesBeta(TestCase):
         """
         venture_data = {
             'field1': 123,
-            'field2': 3,
+            'field2': D('3'),
             'field3': 3123,
             'field4': 33
         }
         get_schema_mock.return_value = self._sample_schema()
         result = AllVentures._prepare_venture_row(venture_data)
         self.assertEquals(result,
-                          [123, u'3.00 PLN', 3123, u'33.00 PLN', u'36.00 PLN'])
+                          [123, '3.00 PLN', 3123, '33.00 PLN', '36.00 PLN'])
 
     def test_get_ventures(self):
         """
@@ -240,8 +238,8 @@ class TestReportVenturesBeta(TestCase):
                     }),
                 ]),
                 'deprecation_usages': {
-                    1: {'assets_count': 12, 'assets_cost': 213},
-                    3: {'assets_count': 1, 'assets_cost': 23},
+                    1: {'assets_count': 12, 'assets_cost': D('213')},
+                    3: {'assets_count': 1, 'assets_cost': D('23')},
                 },
                 'ut1_schema': OrderedDict([
                     ('ut1_count', {'name': 'UT1 count'}),
@@ -252,7 +250,7 @@ class TestReportVenturesBeta(TestCase):
                     })
                 ]),
                 'ut1_usages': {
-                    1: {'ut1_count': 123, 'ut1_cost': 23.23},
+                    1: {'ut1_count': 123, 'ut1_cost': D('23.23')},
                 },
                 'ut3_schema': OrderedDict([
                     ('ut3_count_warehouse_1', {'name': 'UT3 count wh 1'}),
@@ -274,17 +272,17 @@ class TestReportVenturesBeta(TestCase):
                 'ut3_usages': {
                     1: {
                         'ut3_count_warehouse_1': 213,
-                        'ut3_cost_warehouse_1': 434.21,
+                        'ut3_cost_warehouse_1': D('434.21'),
                         'ut3_count_warehouse_2': 3234,
-                        'ut3_cost_warehouse_2': 123.21,
-                        'ut3_cost_total': 557.42,
+                        'ut3_cost_warehouse_2': D('123.21'),
+                        'ut3_cost_total': D('557.42'),
                     },
                     3: {
                         'ut3_count_warehouse_1': 267,
-                        'ut3_cost_warehouse_1': 4764.21,
+                        'ut3_cost_warehouse_1': D('4764.21'),
                         'ut3_count_warehouse_2': 36774,
                         'ut3_cost_warehouse_2': 'Incomplete price',
-                        'ut3_cost_total': 4764.21,
+                        'ut3_cost_total': D('4764.21'),
                     }
                 }
             }
@@ -304,33 +302,33 @@ class TestReportVenturesBeta(TestCase):
         self.assertEquals(result, [
             [
                 3,  # venture_id
-                u'a',  # venture_name
-                u'bbbb',  # department
+                'a',  # venture_name
+                'bbbb',  # department
                 1,  # asset_count
-                u'23.00 PLN',  # asset_cost
+                '23.00 PLN',  # asset_cost
                 267,  # ut3_count_warehouse_1
                 36774,  # ut3_cost_warehouse_1
-                u'4764.21 PLN',  # ut3_count_warehouse_2
-                u'Incomplete price',  # ut3_cost_warehouse_2
-                u'4764.21 PLN',  # ut3_cost_total
+                '4764.21 PLN',  # ut3_count_warehouse_2
+                'Incomplete price',  # ut3_cost_warehouse_2
+                '4764.21 PLN',  # ut3_cost_total
                 0.0,  # ut1_count
-                u'0.00 PLN',  # ut1_cost
-                u'4787.21 PLN',  # total_cost
+                '0.00 PLN',  # ut1_cost
+                '4787.21 PLN',  # total_cost
             ],
             [
                 1,  # venture_id
-                u'b',  # venture_name
-                u'aaaa',  # department
+                'b',  # venture_name
+                'aaaa',  # department
                 12,  # asset_count
-                u'213.00 PLN',  # asset_cost
+                '213.00 PLN',  # asset_cost
                 213,  # ut3_count_warehouse_1
                 3234,  # ut3_cost_warehouse_1
-                u'434.21 PLN',  # ut3_count_warehouse_2
-                u'123.21 PLN',  # ut3_cost_warehouse_2
-                u'557.42 PLN',  # ut3_cost_total
+                '434.21 PLN',  # ut3_count_warehouse_2
+                '123.21 PLN',  # ut3_cost_warehouse_2
+                '557.42 PLN',  # ut3_cost_total
                 123,  # ut1_count
-                u'23.23 PLN',  # ut1_cost
-                u'793.65 PLN',  # total_cost
+                '23.23 PLN',  # ut1_cost
+                '793.65 PLN',  # total_cost
             ]
         ])
 
