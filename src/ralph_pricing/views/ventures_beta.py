@@ -49,12 +49,12 @@ class AllVenturesBeta(Report):
     def _get_plugins(cls):
         base_plugins = [
             AttributeDict(name='Information', symbol='information'),
-            AttributeDict(name='Deprecation', symbol='deprecation')
+            AttributeDict(name='Deprecation', symbol='deprecation'),
         ]
         usage_types = [
             AttributeDict(
                 name=ut.name,
-                symbol=ut.symbol
+                symbol=ut.symbol,
             ) for ut in cls._get_usage_types()
         ]
         plugins = base_plugins + usage_types

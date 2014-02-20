@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from decimal import Decimal as D
+from decimal import Decimal
 from collections import OrderedDict, defaultdict
 
 from django.utils.translation import ugettext_lazy as _
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 def get_warehouses():
     return Warehouse.objects.filter(show_in_report=True)
+
 
 @plugin.register(chain='reports')
 def power_consumption_usages(start, end, ventures, **kwargs):
@@ -58,7 +59,7 @@ def power_consumption_usages(start, end, ventures, **kwargs):
             usages[venture][key_name] = power_usage['value']
             key_name = 'power_consumption_cost_{0}'.format(warehouse_name)
             usages[venture][key_name] = power_usage['cost']
-            if type(power_usage['cost']) in [int, float, type(D(0))]:
+            if isinstance(power_usage['cost'], (int, float, Decimal)):
                 usages[venture]['power_consumption_total_cost'] += \
                     power_usage['cost']
 
@@ -86,7 +87,7 @@ def power_consumption_schema(**kwargs):
 
     schema = OrderedDict()
     for warehouse in get_warehouses():
-        warehouse_name = "".join(warehouse.name.split(' ')).lower()
+        warehouse_name = warehouse.name.replace(' ', '').lower()
         schema['power_consumption_count_{0}'.format(warehouse_name)] = {
             'name': _("Power consumption count ({0})".format(warehouse_name)),
         }

@@ -81,6 +81,7 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
         verbose_name=_("Show warehouse in report"),
         default=False,
     )
+
     def __unicode__(self):
         return self.name
 
@@ -643,7 +644,7 @@ class UsageType(db.Model):
     )
     order = db.IntegerField(
         verbose_name=_("Display order"),
-        default=0
+        default=0,
     )
 
     class Meta:
