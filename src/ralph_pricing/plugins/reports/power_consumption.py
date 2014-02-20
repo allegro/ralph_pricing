@@ -13,7 +13,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Warehouse
-from ralph_pricing.plugins.reports.utils import get_usages_and_costs
+from ralph_pricing.plugins.base import register
+from ralph_pricing.plugins.reports.base import BaseUsagesPlugin
+# from ralph_pricing.plugins.reports.utils import get_usages_and_costs
 
 
 logger = logging.getLogger(__name__)
@@ -22,47 +24,33 @@ logger = logging.getLogger(__name__)
 def get_warehouses():
     return Warehouse.objects.filter(show_in_report=True)
 
-@plugin.register(chain='reports')
-def power_consumption_usages(**kwargs):
-    """
-    Return usages and costs for given ventures. Format of
-    returned data must looks like:
 
-    usages = {
-        'venture_id': {
-            'field_name': value,
-            ...
-        },
-        ...
-    }
+@register(chain='reports')
+class PowerConsumptionUsages(BaseUsagesPlugin):
+    def run(self, start, end, ventures):
+        logger.debug("Get power consumption usage")
 
-    :returns dict: usages and costs
-    :rtype dict:
-    """
-    logger.debug("Get power consumption usage")
+        usage_type = UsageType.objects.get(symbol='power_consumption')
+        usages = defaultdict(lambda: defaultdict(int))
+        for warehouse in get_warehouses():
+            warehouse_name = "".join(warehouse.name.split(' ')).lower()
+            power_usages = self.get_usages_and_costs(
+                start,
+                end,
+                ventures,
+                usage_type,
+                warehouse,
+            )
+            for venture, power_usage in power_usages.iteritems():
+                key_name = 'power_consumption_count_{0}'.format(warehouse_name)
+                usages[venture][key_name] = power_usage['value']
+                key_name = 'power_consumption_cost_{0}'.format(warehouse_name)
+                usages[venture][key_name] = power_usage['cost']
+                if type(power_usage['cost']) in [int, float, type(D(0))]:
+                    usages[venture]['power_consumption_total_cost'] += \
+                        power_usage['cost']
 
-    usage_type = UsageType.objects.get(symbol='power_consumption')
-
-    usages = defaultdict(lambda: defaultdict(int))
-    for warehouse in get_warehouses():
-        warehouse_name = "".join(warehouse.name.split(' ')).lower()
-        power_usages = get_usages_and_costs(
-            kwargs['start'],
-            kwargs['end'],
-            kwargs['ventures'],
-            usage_type,
-            warehouse,
-        )
-        for venture, power_usage in power_usages.iteritems():
-            key_name = 'power_consumption_count_{0}'.format(warehouse_name)
-            usages[venture][key_name] = power_usage['value']
-            key_name = 'power_consumption_cost_{0}'.format(warehouse_name)
-            usages[venture][key_name] = power_usage['cost']
-            if type(power_usage['cost']) in [int, float, type(D(0))]:
-                usages[venture]['power_consumption_total_cost'] += \
-                    power_usage['cost']
-
-    return usages
+        return usages
 
 
 @plugin.register(chain='reports')
