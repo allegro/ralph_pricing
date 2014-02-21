@@ -21,6 +21,10 @@ class AttributeDict(dict):
     __setattr__ = dict.__setitem__
 
 
+class BaseSchemaPlugin(BasePlugin):
+    pass
+
+
 class BaseUsagesPlugin(BasePlugin):
     def get_prices_from_costs(self, start, end, usage_type, warehouse=None):
         """
