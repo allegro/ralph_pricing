@@ -5,9 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from ralph_pricing.models import Venture, UsageType
-
 from bob.menu import MenuItem
+from django.db.models import Q
+
+from ralph_pricing.models import Venture, UsageType
 
 
 def ventures_menu(href='', selected=None):
@@ -43,7 +44,7 @@ def usages_menu(href='', selected=None):
     Create menus for usage types for manually entering prices
     """
     usage_types = UsageType.objects.filter(
-        is_manually_type=True,
+        Q(is_manually_type=True) | Q(type='BU'),
     ).order_by('name')
     items = [
         MenuItem(

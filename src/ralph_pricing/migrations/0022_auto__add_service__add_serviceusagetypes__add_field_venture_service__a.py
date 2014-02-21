@@ -47,14 +47,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Service'], null=True, blank=True),
                       keep_default=False)
 
-        # Adding field 'UsageType.is_base'
-        db.add_column('ralph_pricing_usagetype', 'is_base',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
-        # Adding field 'UsageType.is_service_usage'
-        db.add_column('ralph_pricing_usagetype', 'is_service_usage',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Adding field 'UsageType.type'
+        db.add_column('ralph_pricing_usagetype', 'type',
+                      self.gf('django.db.models.fields.CharField')(default=u'RU', max_length=2),
                       keep_default=False)
 
 
@@ -74,11 +69,8 @@ class Migration(SchemaMigration):
         # Deleting field 'Venture.service'
         db.delete_column('ralph_pricing_venture', 'service_id')
 
-        # Deleting field 'UsageType.is_base'
-        db.delete_column('ralph_pricing_usagetype', 'is_base')
-
-        # Deleting field 'UsageType.is_service_usage'
-        db.delete_column('ralph_pricing_usagetype', 'is_service_usage')
+        # Deleting field 'UsageType.type'
+        db.delete_column('ralph_pricing_usagetype', 'type')
 
 
     models = {
@@ -199,8 +191,8 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.service': {
             'Meta': {'object_name': 'Service'},
-            'base_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'+'", 'symmetrical': 'False', 'to': "orm['ralph_pricing.UsageType']"}),
-            'dependency': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['ralph_pricing.Service']", 'symmetrical': 'False'}),
+            'base_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'+'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.UsageType']"}),
+            'dependency': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['ralph_pricing.Service']", 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['ralph_pricing.UsageType']", 'through': "orm['ralph_pricing.ServiceUsageTypes']", 'symmetrical': 'False'})
@@ -232,15 +224,14 @@ class Migration(SchemaMigration):
             'by_cost': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_base': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_service_usage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_price_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'})
+            'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
+            'type': ('django.db.models.fields.CharField', [], {'default': "u'RU'", 'max_length': '2'})
         },
         'ralph_pricing.venture': {
             'Meta': {'object_name': 'Venture'},

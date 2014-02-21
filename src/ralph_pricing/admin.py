@@ -73,3 +73,14 @@ class ExtraCostTypeAdmin(ModelAdmin):
 class WarehouseAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+
+
+class ServiceUsageTypesInline(admin.TabularInline):
+    model = models.ServiceUsageTypes
+
+
+@register(models.Service)
+class ServiceAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    inlines = [ServiceUsageTypesInline]

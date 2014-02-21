@@ -130,14 +130,12 @@ class UsageType(db.Model):
         verbose_name=_("Display order"),
         default=0
     )
-    is_base = db.BooleanField(
-        verbose_name=_("Is base usage type"),
-        default=False,
+    TYPE_CHOICES = (
+        ('BU', _("Base usage type")),
+        ('RU', _("Regular usage type")),
+        ('SU', _("Service usage type")),
     )
-    is_service_usage = db.BooleanField(
-        verbose_name=_("Is service usage type"),
-        default=False,
-    )
+    type = db.CharField(max_length=2, choices=TYPE_CHOICES, default='RU')
 
     class Meta:
         verbose_name = _("usage type")
@@ -204,8 +202,10 @@ class Service(db.Model):
         UsageType,
         related_name='+',
         limit_choices_to={
-            'is_base': True,
+            'type': 'BU',
         },
+        blank=True,
+        null=True,
     )
     usage_types = db.ManyToManyField(
         UsageType,
@@ -214,6 +214,8 @@ class Service(db.Model):
     dependency = db.ManyToManyField(
         "self",
         symmetrical=False,
+        blank=True,
+        null=True,
     )
 
     def __unicode__(self):
@@ -226,7 +228,7 @@ class ServiceUsageTypes(db.Model):
         verbose_name=_("Usage type"),
         related_name="service_division",
         limit_choices_to={
-            'is_service_usage': True,
+            'type': 'SU',
         },
     )
     service = db.ForeignKey(
@@ -241,6 +243,10 @@ class ServiceUsageTypes(db.Model):
             MinValueValidator(0.0)
         ]
     )
+
+    class Meta:
+        verbose_name = _("service usage type")
+        verbose_name_plural = _("service usage types")
 
     def __unicode__(self):
         return '{}/{} ({} - {})'.format(
