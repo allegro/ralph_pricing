@@ -125,7 +125,7 @@ class TestUtils(TestCase):
         prices = utils.get_prices_from_costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
-            usage_type=self.usage_type_cost
+            usage_type=self.usage_type_cost,
         )
         # usage from 5 to 12: 13500 (with cost 54000)
         # usage from 13 to 17: 36000 (with cost 18000)
@@ -156,7 +156,7 @@ class TestUtils(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            warehouse=self.warehouse1
+            warehouse=self.warehouse1,
         )
         # usage from 5 to 12: 7200 (with cost 36000)
         # usage from 13 to 17: 28800 (with cost 57600)
@@ -179,6 +179,71 @@ class TestUtils(TestCase):
                 'start': datetime.date(2013, 10, 18),
                 'end': datetime.date(2013, 10, 25),
                 'price': D('0.25'),
+            },
+        ])
+
+    def test_get_prices_from_cost_no_usage(self):
+        usage_type = models.UsageType(
+            name='UsageType5',
+            symbol='ut5',
+            by_warehouse=False,
+            by_cost=True,
+        )
+        usage_type.save()
+        usage_price = models.UsagePrice(
+            type=usage_type,
+            start=datetime.date(2013, 11, 11),
+            end=datetime.date(2013, 11, 15),
+            cost=1234,
+        )
+        usage_price.save()
+
+        prices = utils.get_prices_from_costs(
+            start=datetime.date(2013, 11, 12),
+            end=datetime.date(2013, 11, 14),
+            usage_type=usage_type,
+        )
+        self.assertEquals(prices, [
+            {
+                'start': datetime.date(2013, 11, 11),
+                'end': datetime.date(2013, 11, 15),
+                'price': D('0'),
+            },
+        ])
+
+    def test_get_prices_from_cost_cost_0(self):
+        usage_type = models.UsageType(
+            name='UsageType5',
+            symbol='ut5',
+            by_warehouse=False,
+            by_cost=True,
+        )
+        usage_type.save()
+        usage_price = models.UsagePrice(
+            type=usage_type,
+            start=datetime.date(2013, 11, 11),
+            end=datetime.date(2013, 11, 15),
+            cost=0,
+        )
+        usage_price.save()
+        daily_usage = models.DailyUsage(
+            date=datetime.date(2013, 11, 13),
+            pricing_venture=self.venture1,
+            value=100,
+            type=usage_type,
+        )
+        daily_usage.save()
+
+        prices = utils.get_prices_from_costs(
+            start=datetime.date(2013, 11, 12),
+            end=datetime.date(2013, 11, 14),
+            usage_type=usage_type,
+        )
+        self.assertEquals(prices, [
+            {
+                'start': datetime.date(2013, 11, 11),
+                'end': datetime.date(2013, 11, 15),
+                'price': D('0'),
             },
         ])
 
@@ -215,13 +280,13 @@ class TestUtils(TestCase):
             models.UsagePrice(
                 start=datetime.date(2013, 10, 13),
                 end=datetime.date(2013, 10, 17),
-                price=D('2')
+                price=D('2'),
             ),
         ]
         prices_list = utils.generate_prices_list(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 15),
-            prices=prices
+            prices=prices,
         )
         self.assertEquals(prices_list, {
             '2013-10-10': D('5'),
@@ -243,7 +308,7 @@ class TestUtils(TestCase):
         prices_list = utils.generate_prices_list(
             start=datetime.date(2013, 10, 14),
             end=datetime.date(2013, 10, 15),
-            prices=prices
+            prices=prices,
         )
         self.assertEquals(prices_list, 'No Price')
 
@@ -258,7 +323,7 @@ class TestUtils(TestCase):
         prices_list = utils.generate_prices_list(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 15),
-            prices=prices
+            prices=prices,
         )
         self.assertEquals(prices_list, 'Incomplete Price')
 
@@ -274,23 +339,23 @@ class TestUtils(TestCase):
             {
                 'date': datetime.datetime(2013, 10, 8, 0, 0),
                 'pricing_venture': 1,
-                'value': 100.0
+                'value': 100.0,
             },
             {
                 'date': datetime.datetime(2013, 10, 8, 0, 0),
                 'pricing_venture': 2,
-                'value': 200.0
+                'value': 200.0,
             },
             {
                 'date': datetime.datetime(2013, 10, 9, 0, 0),
                 'pricing_venture': 1,
-                'value': 200.0
+                'value': 200.0,
             },
             {
                 'date': datetime.datetime(2013, 10, 9, 0, 0),
                 'pricing_venture': 2,
-                'value': 400.0
-            }
+                'value': 400.0,
+            },
         ])
 
     def test_get_daily_usages_with_warehouse(self):
@@ -305,13 +370,13 @@ class TestUtils(TestCase):
             {
                 'date': datetime.datetime(2013, 10, 9, 0, 0),
                 'pricing_venture': 1,
-                'value': 400.0
+                'value': 400.0,
             },
             {
                 'date': datetime.datetime(2013, 10, 9, 0, 0),
                 'pricing_venture': 2,
-                'value': 800.0
-            }
+                'value': 800.0,
+            },
         ])
 
     def test_prepare_data(self):
@@ -319,29 +384,28 @@ class TestUtils(TestCase):
             {
                 'date': datetime.datetime(2013, 10, 8, 0, 0),
                 'pricing_venture': 1,
-                'value': 100.0
+                'value': 100.0,
             },
             {
                 'date': datetime.datetime(2013, 10, 8, 0, 0),
                 'pricing_venture': 2,
-                'value': 200.0
+                'value': 200.0,
             },
             {
                 'date': datetime.datetime(2013, 10, 9, 0, 0),
                 'pricing_venture': 1,
-                'value': 200.0
+                'value': 200.0,
             },
             {
                 'date': datetime.datetime(2013, 10, 9, 0, 0),
                 'pricing_venture': 2,
-                'value': 400.0
+                'value': 400.0,
             },
-
             {
                 'date': datetime.datetime(2013, 10, 10, 0, 0),
                 'pricing_venture': 2,
-                'value': 990.0
-            }
+                'value': 990.0,
+            },
         ]
         prices_list = {
             '2013-10-07': D('5'),
@@ -367,7 +431,7 @@ class TestUtils(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             ventures=self.ventures,
-            usage_type=self.usage_type_cost
+            usage_type=self.usage_type_cost,
         )
         self.assertEquals(usages_and_costs, {
             1: {
@@ -386,7 +450,7 @@ class TestUtils(TestCase):
             end=datetime.date(2013, 10, 20),
             ventures=self.ventures,
             usage_type=self.usage_type_cost_wh,
-            warehouse=self.warehouse1
+            warehouse=self.warehouse1,
         )
         self.assertEquals(usages_and_costs, {
             1: {

@@ -27,17 +27,20 @@ def pc_get_usages_and_costs(
     usage_type,
     warehouse=None,
 ):
-    if warehouse.name == 'Warehouse1':
-        return {
+    warehouse_data = {
+        'Warehouse1': {
             1: {'value': 123, 'cost': D('213.22')},
             2: {'value': 1244, 'cost': D('2323.32')},
             3: {'value': 231, 'cost': 'No price'},
+        },
+        'default': {
+            1: {'value': 43, 'cost': D('5656.22')},
+            2: {'value': 32, 'cost': D('213.32')},
+            4: {'value': 123, 'cost': D('123.12')},
         }
-    return {
-        1: {'value': 43, 'cost': D('5656.22')},
-        2: {'value': 32, 'cost': D('213.32')},
-        4: {'value': 123, 'cost': D('123.12')},
     }
+    key = warehouse.name if warehouse.name in warehouse_data else 'default'
+    return warehouse_data[key]
 
 
 class TestPowerConsumptionPlugin(TestCase):
@@ -127,5 +130,5 @@ class TestPowerConsumptionPlugin(TestCase):
                 'power_consumption_count_warehouse2': 123,
                 'power_consumption_cost_warehouse2': D('123.12'),
                 'power_consumption_total_cost': D('123.12'),
-            }
+            },
         })

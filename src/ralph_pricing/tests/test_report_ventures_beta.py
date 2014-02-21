@@ -182,15 +182,16 @@ class TestReportVenturesBeta(TestCase):
         }
         get_schema_mock.return_value = self._sample_schema()
         result = AllVentures._prepare_venture_row(venture_data)
-        self.assertEquals(result,
-                          [123, '3.00 PLN', 3123, '33.00 PLN', '36.00 PLN'])
+        self.assertEquals(
+            result,
+            [123, '3.00 PLN', 3123, '33.00 PLN', '36.00 PLN']
+        )
 
     def test_get_ventures(self):
         """
         Test if ventures are correctly filtered
         """
-        def get_ids(l):
-            return [i.id for i in l]
+        get_ids = lambda l: [i.id for i in l]
 
         ventures1 = AllVentures._get_ventures(is_active=True)
         self.assertEquals(get_ids(ventures1),
