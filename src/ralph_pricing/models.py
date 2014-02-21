@@ -9,6 +9,7 @@ from decimal import Decimal as D
 from dateutil import rrule
 from lck.cache import memoize
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from lck.django.common.models import (
@@ -81,8 +82,173 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
         verbose_name=_("Show warehouse in report"),
         default=False,
     )
+
     def __unicode__(self):
         return self.name
+
+
+class UsageType(db.Model):
+    """
+    Model contains usage types
+    """
+    name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
+    symbol = db.CharField(
+        verbose_name=_("symbol"),
+        max_length=255,
+        default="",
+        blank=True,
+    )
+    average = db.BooleanField(
+        verbose_name=_("Average the values over multiple days"),
+        default=False,
+    )
+    show_value_percentage = db.BooleanField(
+        verbose_name=_("Show percentage of value"),
+        default=False,
+    )
+    show_price_percentage = db.BooleanField(
+        verbose_name=_("Show percentage of price"),
+        default=False,
+    )
+    by_warehouse = db.BooleanField(
+        verbose_name=_("Usage type is by warehouse"),
+        default=False,
+    )
+    is_manually_type = db.BooleanField(
+        verbose_name=_("Cost or price for usage is entered manually"),
+        default=False,
+    )
+    by_cost = db.BooleanField(
+        verbose_name=_("Given value is a cost"),
+        default=False,
+    )
+    show_in_report = db.BooleanField(
+        verbose_name=_("Show usage type in report"),
+        default=True,
+    )
+    order = db.IntegerField(
+        verbose_name=_("Display order"),
+        default=0
+    )
+    is_base = db.BooleanField(
+        verbose_name=_("Is base usage type"),
+        default=False,
+    )
+    is_service_usage = db.BooleanField(
+        verbose_name=_("Is service usage type"),
+        default=False,
+    )
+
+    class Meta:
+        verbose_name = _("usage type")
+        verbose_name_plural = _("usage types")
+
+    def __unicode__(self):
+        return self.name
+
+    @memoize
+    def _get_price_from_cost(self, cost, usage, warehouse_id):
+        '''
+        Get price from cost for given date and warehouse
+
+        :param decimal cost: Cost for given time interval
+        :param object usage: Usage object
+        :param integer warehouse_id: warehouse id or None
+        :returns decimal: price
+        :rtype decimal:
+        '''
+        dailyusages = DailyUsage.objects.filter(
+            date__gte=usage.start,
+            date__lte=usage.end,
+            type=self.id,
+            warehouse_id=warehouse_id,
+        )
+
+        total_usage = sum([D(dailyusage.value) for dailyusage in dailyusages])
+        if total_usage == 0:
+            return 0
+        return D(cost / total_usage / ((usage.end - usage.start).days + 1))
+
+    def get_price_at(self, date, warehouse_id, forecast):
+        '''
+        Get price for the specified warehouse for the given day
+
+        :param datetime date: Day for which the price will be returned
+        :param integer warehouse_id: warehouse id or None
+        :param boolean forecast: Information about use forecast or real price
+        :returns decimal: price
+        :rtype decimal:
+        '''
+        usage = self.usageprice_set.get(
+            start__lte=date,
+            end__gte=date,
+            warehouse=warehouse_id,
+        )
+
+        price = usage.forecast_price if forecast else usage.price
+        cost = usage.forecast_cost if forecast else usage.cost
+
+        if not price and cost:
+            return self._get_price_from_cost(
+                cost,
+                usage,
+                warehouse_id,
+            )
+        else:
+            return price
+
+
+class Service(db.Model):
+    name = db.CharField(verbose_name=_("Name"), max_length=255, unique=True)
+    base_usage_types = db.ManyToManyField(
+        UsageType,
+        related_name='+',
+        limit_choices_to={
+            'is_base': True,
+        },
+    )
+    usage_types = db.ManyToManyField(
+        UsageType,
+        through='ServiceUsageTypes',
+    )
+    dependency = db.ManyToManyField(
+        "self",
+        symmetrical=False,
+    )
+
+    def __unicode__(self):
+        return self.name
+
+
+class ServiceUsageTypes(db.Model):
+    usage_type = db.ForeignKey(
+        UsageType,
+        verbose_name=_("Usage type"),
+        related_name="service_division",
+        limit_choices_to={
+            'is_service_usage': True,
+        },
+    )
+    service = db.ForeignKey(
+        Service,
+        verbose_name=_("Service"),
+    )
+    start = db.DateField()
+    end = db.DateField()
+    percent = db.FloatField(
+        validators=[
+            MaxValueValidator(100.0),
+            MinValueValidator(0.0)
+        ]
+    )
+
+    def __unicode__(self):
+        return '{}/{} ({} - {})'.format(
+            self.service,
+            self.usage_type,
+            self.start,
+            self.end,
+        )
 
 
 class Device(db.Model):
@@ -214,6 +380,12 @@ class Venture(MPTTModel):
     is_active = db.BooleanField(
         verbose_name=_("Is active"),
         default=False,
+    )
+    service = db.ForeignKey(
+        Service,
+        null=True,
+        blank=True,
+        verbose_name=_("Service"),
     )
 
     class Meta:
@@ -600,109 +772,6 @@ class DailyDevice(db.Model):
     def save(self, *args, **kwargs):
         self.calc_costs()
         super(DailyDevice, self).save(*args, **kwargs)
-
-
-class UsageType(db.Model):
-    """
-    Model contains usage types
-    """
-    name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
-    symbol = db.CharField(
-        verbose_name=_("symbol"),
-        max_length=255,
-        default="",
-        blank=True,
-    )
-    average = db.BooleanField(
-        verbose_name=_("Average the values over multiple days"),
-        default=False,
-    )
-    show_value_percentage = db.BooleanField(
-        verbose_name=_("Show percentage of value"),
-        default=False,
-    )
-    show_price_percentage = db.BooleanField(
-        verbose_name=_("Show percentage of price"),
-        default=False,
-    )
-    by_warehouse = db.BooleanField(
-        verbose_name=_("Usage type is by warehouse"),
-        default=False,
-    )
-    is_manually_type = db.BooleanField(
-        verbose_name=_("Cost or price for usage is entered manually"),
-        default=False,
-    )
-    by_cost = db.BooleanField(
-        verbose_name=_("Given value is a cost"),
-        default=False,
-    )
-    show_in_report = db.BooleanField(
-        verbose_name=_("Show usage type in report"),
-        default=True,
-    )
-    order = db.IntegerField(
-        verbose_name=_("Display order"),
-        default=0
-    )
-
-    class Meta:
-        verbose_name = _("usage type")
-        verbose_name_plural = _("usage types")
-
-    def __unicode__(self):
-        return self.name
-
-    @memoize
-    def _get_price_from_cost(self, cost, usage, warehouse_id):
-        '''
-        Get price from cost for given date and warehouse
-
-        :param decimal cost: Cost for given time interval
-        :param object usage: Usage object
-        :param integer warehouse_id: warehouse id or None
-        :returns decimal: price
-        :rtype decimal:
-        '''
-        dailyusages = DailyUsage.objects.filter(
-            date__gte=usage.start,
-            date__lte=usage.end,
-            type=self.id,
-            warehouse_id=warehouse_id,
-        )
-
-        total_usage = sum([D(dailyusage.value) for dailyusage in dailyusages])
-        if total_usage == 0:
-            return 0
-        return D(cost / total_usage / ((usage.end - usage.start).days + 1))
-
-    def get_price_at(self, date, warehouse_id, forecast):
-        '''
-        Get price for the specified warehouse for the given day
-
-        :param datetime date: Day for which the price will be returned
-        :param integer warehouse_id: warehouse id or None
-        :param boolean forecast: Information about use forecast or real price
-        :returns decimal: price
-        :rtype decimal:
-        '''
-        usage = self.usageprice_set.get(
-            start__lte=date,
-            end__gte=date,
-            warehouse=warehouse_id,
-        )
-
-        price = usage.forecast_price if forecast else usage.price
-        cost = usage.forecast_cost if forecast else usage.cost
-
-        if not price and cost:
-            return self._get_price_from_cost(
-                cost,
-                usage,
-                warehouse_id,
-            )
-        else:
-            return price
 
 
 class UsagePrice(db.Model):
