@@ -10,7 +10,7 @@ import datetime
 from django.test import TestCase
 
 from ralph_pricing.models import DailyPart
-from ralph_pricing.plugins.assets_part import update_assets_parts
+from ralph_pricing.plugins.collects.assets_part import update_assets_parts
 
 
 class TestAssetPlugin(TestCase):

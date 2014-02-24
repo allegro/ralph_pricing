@@ -12,7 +12,7 @@ import mock
 from django.conf import settings
 from django.test import TestCase
 from ralph_pricing.models import DailyUsage, UsageType, Venture
-from ralph_pricing.plugins.scaleme import (
+from ralph_pricing.plugins.collects.scaleme import (
     scaleme as scaleme_runner
 )
 
@@ -55,7 +55,7 @@ class TestScaleme(TestCase):
         """Scaleme usages Test Case"""
         settings.SCALEME_API_URL = "/"
         with mock.patch(
-            'ralph_pricing.plugins.scaleme.get_ventures_capacities'
+            'ralph_pricing.plugins.collects.scaleme.get_ventures_capacities'
         ) as get_ventures_capacities:
             get_ventures_capacities.side_effect = mock_get_ventures_capacities
             status, message, args = scaleme_runner(
@@ -99,7 +99,7 @@ class TestScaleme(TestCase):
     def test_fail_plugin(self):
         """Testing not configured plugin"""
         with mock.patch(
-            'ralph_pricing.plugins.scaleme.get_ventures_capacities'
+            'ralph_pricing.plugins.collects.scaleme.get_ventures_capacities'
         ) as get_ventures_capacities:
             get_ventures_capacities.side_effect = mock_get_ventures_capacities
             status, message, args = scaleme_runner(

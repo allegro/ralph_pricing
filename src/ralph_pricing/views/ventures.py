@@ -32,7 +32,7 @@ class AllVentures(Report):
         warehouse,
         start,
         end,
-        show_in_ralph=False,
+        is_active=False,
         forecast=False,
         **kwargs
     ):
@@ -42,19 +42,19 @@ class AllVentures(Report):
             :param integer warehouse: Id warehouse for which is generate report
             :param datetime start: Start of the time interval
             :param datetime end: End of the time interval
-            :param boolean show_in_ralph: if true, show only active ventures
+            :param boolean is_active: if true, show only active ventures
             :param boolean forecast: if true, generate forecast raport
             :returns list: List of lists with report data and percent progress
             :rtype list:
         '''
-        # 'show_in_ralph' == 'show only active' checkbox in gui
+        # 'is_active' == 'show only active' checkbox in gui
         ventures = Venture.objects.order_by('name')
         total_count = ventures.count() + 1  # additional step for post-process
         data = []
         totals = {}
         values = []
         for i, venture in enumerate(ventures):
-            if show_in_ralph and not venture.is_active:
+            if is_active and not venture.is_active:
                 continue
 
             values_row = {}
