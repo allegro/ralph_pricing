@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import logging
 
+from django.conf import settings
 from raven import Client
 from raven.handlers.logging import SentryHandler
 
@@ -15,14 +16,14 @@ from ralph.app import RalphModule
 
 
 def setup_scrooge_logger(level='ERROR'):
-
-    client = Client(
-        'http://b4a72068092b475dba6917630417336f:8ee33fff77324953b26dda3cc5d2'
-        'ec49@ralph-sentry.office/21',
-    )
-    handler = SentryHandler(client, level=level)
-    logger = logging.getLogger('ralph_pricing')
-    logger.addHandler(handler)
+    SCROOGE_SENTRY_DSN = getattr(settings, 'SCROOGE_SENTRY_DSN', False)
+    if SCROOGE_SENTRY_DSN:
+        client = Client(SCROOGE_SENTRY_DSN)
+        handler = SentryHandler(client, level=level)
+        logger = logging.getLogger('ralph_pricing')
+        logger.addHandler(handler)
+        return True
+    return False
 
 
 class Scrooge(RalphModule):
@@ -43,4 +44,14 @@ class Scrooge(RalphModule):
         )
         self.append_app()
         self.insert_templates(__file__)
-        setup_scrooge_logger()
+        if not setup_scrooge_logger():
+            self.register_logger('ralph_pricing', {
+                'handlers': ['file'],
+                'propagate': True,
+                'level': 'DEBUG',
+            })
+            self.register_logger('ralph_pricing.plugins', {
+                'handlers': ['file', 'console'],
+                'propagate': True,
+                'level': 'DEBUG',
+            })
