@@ -24,8 +24,6 @@ def setup_scrooge_logger(level='ERROR'):
     logger = logging.getLogger('ralph_pricing')
     logger.addHandler(handler)
 
-    # setup_logging(handler, exclude=['ralph'])
-
 
 class Scrooge(RalphModule):
     """Scrooge main application. The 'ralph_pricing' name is retained
