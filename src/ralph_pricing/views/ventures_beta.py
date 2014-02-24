@@ -7,8 +7,8 @@ from __future__ import unicode_literals
 
 import logging
 from decimal import Decimal as D
-from lck.cache import memoize
 
+from lck.cache import memoize
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.reports import Report
@@ -55,6 +55,21 @@ class AllVenturesBeta(Report):
             AttributeDict(
                 name=ut.name,
                 symbol=ut.symbol,
+            ) for ut in cls._get_usage_types()
+        ]
+        plugins = base_plugins + usage_types
+        return plugins
+
+    @classmethod
+    def _get_plugins(cls):
+        base_plugins = [
+            AttributeDict(name='Information', symbol='information'),
+            AttributeDict(name='Deprecation', symbol='deprecation'),
+        ]
+        usage_types = [
+            AttributeDict(
+                name=ut.name,
+                symbol=ut.symbol
             ) for ut in cls._get_usage_types()
         ]
         plugins = base_plugins + usage_types
