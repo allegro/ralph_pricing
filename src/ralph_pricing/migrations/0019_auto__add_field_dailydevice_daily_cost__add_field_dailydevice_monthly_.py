@@ -8,15 +8,39 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Venture.is_service'
-        db.add_column('ralph_pricing_venture', 'is_service',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Adding field 'DailyDevice.daily_cost'
+        db.add_column('ralph_pricing_dailydevice', 'daily_cost',
+                      self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6),
+                      keep_default=False)
+
+        # Adding field 'DailyDevice.monthly_cost'
+        db.add_column('ralph_pricing_dailydevice', 'monthly_cost',
+                      self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6),
+                      keep_default=False)
+
+        # Adding field 'DailyPart.daily_cost'
+        db.add_column('ralph_pricing_dailypart', 'daily_cost',
+                      self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6),
+                      keep_default=False)
+
+        # Adding field 'DailyPart.monthly_cost'
+        db.add_column('ralph_pricing_dailypart', 'monthly_cost',
+                      self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Venture.is_service'
-        db.delete_column('ralph_pricing_venture', 'is_service')
+        # Deleting field 'DailyDevice.daily_cost'
+        db.delete_column('ralph_pricing_dailydevice', 'daily_cost')
+
+        # Deleting field 'DailyDevice.monthly_cost'
+        db.delete_column('ralph_pricing_dailydevice', 'monthly_cost')
+
+        # Deleting field 'DailyPart.daily_cost'
+        db.delete_column('ralph_pricing_dailypart', 'daily_cost')
+
+        # Deleting field 'DailyPart.monthly_cost'
+        db.delete_column('ralph_pricing_dailypart', 'monthly_cost')
 
 
     models = {
@@ -72,10 +96,12 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.dailydevice': {
             'Meta': {'unique_together': "((u'date', u'pricing_device'),)", 'object_name': 'DailyDevice'},
+            'daily_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'date': ('django.db.models.fields.DateField', [], {}),
             'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'monthly_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'child_set'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['ralph_pricing.Device']", 'blank': 'True', 'null': 'True'}),
             'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
@@ -85,10 +111,12 @@ class Migration(SchemaMigration):
         'ralph_pricing.dailypart': {
             'Meta': {'ordering': "(u'asset_id', u'pricing_device', u'date')", 'unique_together': "((u'date', u'asset_id'),)", 'object_name': 'DailyPart'},
             'asset_id': ('django.db.models.fields.IntegerField', [], {}),
+            'daily_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'date': ('django.db.models.fields.DateField', [], {}),
             'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'monthly_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Device']"})
@@ -166,7 +194,6 @@ class Migration(SchemaMigration):
             'department': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_service': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255'}),

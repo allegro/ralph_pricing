@@ -6,6 +6,8 @@ hosts_usages_data = [
         u'source': u'/var/log/apache2/error.log',
         u'host': u'test_host1',
         u'lastReceived': u'Thu 2013-05-16 06:09:09',
+        u'device_id': 1,
+        u'venture_id': 111,
     },
     {
         u'MBytes': u'1326.640829',
@@ -14,6 +16,8 @@ hosts_usages_data = [
         u'source': u'WinEventLog',
         u'host': u'test_host2',
         u'lastReceived': u'Fri 2013-05-17 07:26:16',
+        u'device_id': 2,
+        u'venture_id': 222,
     },
     {
         u'MBytes': u'1048.363416',
@@ -22,5 +26,7 @@ hosts_usages_data = [
         u'source': u'syslog',
         u'host': u'test_host3',
         u'lastReceived': u'Fri 2013-05-17 07:27:02',
+        u'device_id': None,
+        u'venture_id': 666,
     },
 ]

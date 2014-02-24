@@ -16,7 +16,7 @@ from ralph_pricing.models import (
     UsageType,
     Warehouse,
 )
-from ralph_pricing.plugins.assets import update_assets
+from ralph_pricing.plugins.collects.assets import update_assets
 
 
 class TestAssetPlugin(TestCase):
