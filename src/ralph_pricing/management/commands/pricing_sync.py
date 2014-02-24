@@ -5,13 +5,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import textwrap
 import datetime
+import logging
+import textwrap
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
 from ralph.util import plugin
+from ralph_pricing.app import setup_scrooge_logger
+
+
+logger = logging.getLogger(__name__)
+
+
+class PluginError(Exception):
+    pass
 
 
 class Command(BaseCommand):
@@ -35,7 +44,8 @@ class Command(BaseCommand):
     )
 
     def handle(self, today, run_only, *args, **options):
-        from ralph_pricing import plugins  # noqa
+        setup_scrooge_logger()
+        from ralph_pricing.plugins import collects  # noqa
         if today:
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:
@@ -43,13 +53,20 @@ class Command(BaseCommand):
         print('Synchronizing for {0}.'.format(today.isoformat()))
         if run_only:
             print('Running only {0}...'.format(run_only))
-            success, message, context = plugin.run(
-                'pricing',
-                run_only,
-                today=today,
-            )
-            print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
+            try:
+                success, message, context = plugin.run(
+                    'pricing',
+                    run_only,
+                    today=today,
+                )
+                if not success:
+                    raise PluginError(message)
+                print('{0}: Done'.format(message))
+            except Exception as e:
+                logger.error("{0}: {1}".format(run_only, e))
+                print('Failed: {0}'.format(e))
             return
+
         done = set()
         tried = set()
         while True:
@@ -59,9 +76,14 @@ class Command(BaseCommand):
             name = plugin.highest_priority('pricing', to_run)
             tried.add(name)
             print('Running {0}...'.format(name))
-            success, message, context = plugin.run(
-                'pricing', name, today=today,
-            )
-            print('{1}: {0}'.format(message, 'Done' if success else 'Failed'))
-            if success:
+            try:
+                success, message, context = plugin.run(
+                    'pricing', name, today=today,
+                )
+                if not success:
+                    raise PluginError(message)
                 done.add(name)
+                print('{0}: Done'.format(message))
+            except Exception as e:
+                logger.error("{0}: {1}".format(name, e))
+                print('Failed: {0}'.format(e))
