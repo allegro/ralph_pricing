@@ -20,6 +20,7 @@ from ralph_pricing.models import (
     Warehouse,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
