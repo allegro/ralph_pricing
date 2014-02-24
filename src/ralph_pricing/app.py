@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 from ralph.app import RalphModule
 
+
 class Scrooge(RalphModule):
     """Scrooge main application. The 'ralph_pricing' name is retained
     internally for historical reasons, while we try to use 'scrooge' as

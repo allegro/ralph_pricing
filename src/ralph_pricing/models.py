@@ -77,13 +77,18 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
     Pricing warehouse model contains name and id from assets and own create
     and modified date
     """
+    show_in_report = db.BooleanField(
+        verbose_name=_("Show warehouse in report"),
+        default=False,
+    )
+
     def __unicode__(self):
         return self.name
 
 
 class Device(db.Model):
     """
-    Pricing device model contains data downloaded from devices and assets.
+    Pricing device model contains data downloaded from devices and assets
     """
     name = db.CharField(verbose_name=_("name"), max_length=255)
     sn = db.CharField(max_length=200, null=True, blank=True)
@@ -209,10 +214,6 @@ class Venture(MPTTModel):
     )
     is_active = db.BooleanField(
         verbose_name=_("Is active"),
-        default=False,
-    )
-    is_service = db.BooleanField(
-        verbose_name=_("Is a service"),
         default=False,
     )
 
@@ -370,6 +371,18 @@ class DailyPart(db.Model):
         verbose_name=_("is deprecated"),
         default=False,
     )
+    daily_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("daily cost"),
+        default=0,
+    )
+    monthly_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("monthly cost"),
+        default=0,
+    )
 
     class Meta:
         verbose_name = _("daily part")
@@ -385,6 +398,22 @@ class DailyPart(db.Model):
             return D('0'), D('0')
         total_cost = self.price * self.deprecation_rate / 36500
         return self.price, total_cost
+
+    def calc_costs(self):
+        """
+        Calculates daily and monthly depreciation costs
+        """
+        self.daily_cost = D(0)
+        if not self.is_deprecated:
+            self.daily_cost = D(self.deprecation_rate) * self.price / D(36500)
+
+        self.monthly_cost = D(0)
+        if not self.is_deprecated:
+            self.monthly_cost = D(self.deprecation_rate) * self.price / D(1200)
+
+    def save(self, *args, **kwargs):
+        self.calc_costs()
+        super(DailyPart, self).save(*args, **kwargs)
 
 
 def get_daily_price_cost(asset_id, device, start, end):
@@ -446,6 +475,18 @@ class DailyDevice(db.Model):
     is_deprecated = db.BooleanField(
         verbose_name=_("is deprecated"),
         default=False,
+    )
+    daily_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("daily cost"),
+        default=0,
+    )
+    monthly_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        verbose_name=_("monthly cost"),
+        default=0,
     )
 
     class Meta:
@@ -543,6 +584,24 @@ class DailyDevice(db.Model):
                     total_cost += cost
         return total_price, total_cost
 
+    def calc_costs(self):
+        """
+        Calculates daily and monthly depreciation costs
+        """
+        self.daily_cost = D(0)
+        if not self.is_deprecated:
+            self.daily_cost =\
+                D(self.deprecation_rate) * D(self.price) / D(36500)
+
+        self.monthly_cost = D(0)
+        if not self.is_deprecated:
+            self.monthly_cost =\
+                D(self.deprecation_rate) * D(self.price) / D(1200)
+
+    def save(self, *args, **kwargs):
+        self.calc_costs()
+        super(DailyDevice, self).save(*args, **kwargs)
+
 
 class UsageType(db.Model):
     """
@@ -568,14 +627,24 @@ class UsageType(db.Model):
         default=False,
     )
     by_warehouse = db.BooleanField(
+        verbose_name=_("Usage type is by warehouse"),
+        default=False,
+    )
+    is_manually_type = db.BooleanField(
+        verbose_name=_("Cost or price for usage is entered manually"),
         default=False,
     )
     by_cost = db.BooleanField(
+        verbose_name=_("Given value is a cost"),
         default=False,
     )
     show_in_report = db.BooleanField(
         verbose_name=_("Show usage type in report"),
         default=True,
+    )
+    order = db.IntegerField(
+        verbose_name=_("Display order"),
+        default=0,
     )
 
     class Meta:

@@ -35,7 +35,7 @@ class Command(BaseCommand):
     )
 
     def handle(self, today, run_only, *args, **options):
-        from ralph_pricing import plugins  # noqa
+        from ralph_pricing.plugins import collects  # noqa
         if today:
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:

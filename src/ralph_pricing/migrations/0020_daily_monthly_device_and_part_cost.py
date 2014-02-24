@@ -1,40 +1,19 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from south.v2 import DataMigration
+from django.db import models, connection
 
-
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
-        db.delete_unique('ralph_pricing_splunkname', ['splunk_name', 'pricing_device_id'])
-
-        # Deleting model 'SplunkName'
-        db.delete_table('ralph_pricing_splunkname')
-
-        # Adding field 'DailyUsage.remarks'
-        db.add_column('ralph_pricing_dailyusage', 'remarks',
-                      self.gf('django.db.models.fields.TextField')(default=u'', blank=True),
-                      keep_default=False)
-
+        "Write your forwards methods here."
+        cursor = connection.cursor()
+        cursor.execute('UPDATE ralph.ralph_pricing_dailydevice SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
+        cursor.execute('UPDATE ralph.ralph_pricing_dailypart SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
 
     def backwards(self, orm):
-        # Adding model 'SplunkName'
-        db.create_table('ralph_pricing_splunkname', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('splunk_name', self.gf('django.db.models.fields.CharField')(max_length=255, unique=True)),
-            ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Device'], null=True, on_delete=models.SET_NULL, blank=True)),
-        ))
-        db.send_create_signal('ralph_pricing', ['SplunkName'])
-
-        # Adding unique constraint on 'SplunkName', fields ['splunk_name', 'pricing_device']
-        db.create_unique('ralph_pricing_splunkname', ['splunk_name', 'pricing_device_id'])
-
-        # Deleting field 'DailyUsage.remarks'
-        db.delete_column('ralph_pricing_dailyusage', 'remarks')
-
+        "Write your backwards methods here."
 
     models = {
         'account.profile': {
@@ -89,10 +68,12 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.dailydevice': {
             'Meta': {'unique_together': "((u'date', u'pricing_device'),)", 'object_name': 'DailyDevice'},
+            'daily_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'date': ('django.db.models.fields.DateField', [], {}),
             'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'monthly_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'child_set'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['ralph_pricing.Device']", 'blank': 'True', 'null': 'True'}),
             'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
@@ -102,10 +83,12 @@ class Migration(SchemaMigration):
         'ralph_pricing.dailypart': {
             'Meta': {'ordering': "(u'asset_id', u'pricing_device', u'date')", 'unique_together': "((u'date', u'asset_id'),)", 'object_name': 'DailyPart'},
             'asset_id': ('django.db.models.fields.IntegerField', [], {}),
+            'daily_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'date': ('django.db.models.fields.DateField', [], {}),
             'deprecation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_deprecated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'monthly_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Device']"})
@@ -116,7 +99,6 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Venture']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
             'total': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.UsageType']"}),
             'value': ('django.db.models.fields.FloatField', [], {'default': '0'}),
@@ -147,6 +129,12 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ExtraCostType'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
+        },
+        'ralph_pricing.splunkname': {
+            'Meta': {'unique_together': "((u'splunk_name', u'pricing_device'),)", 'object_name': 'SplunkName'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
+            'splunk_name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
         },
         'ralph_pricing.usageprice': {
             'Meta': {'ordering': "(u'type', u'-start')", 'unique_together': "[(u'warehouse', u'start', u'type'), (u'warehouse', u'end', u'type')]", 'object_name': 'UsagePrice'},
@@ -201,3 +189,4 @@ class Migration(SchemaMigration):
     }
 
     complete_apps = ['ralph_pricing']
+    symmetrical = True

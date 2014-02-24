@@ -11,7 +11,7 @@ import decimal
 from django.test import TestCase
 
 from ralph_pricing.models import ExtraCostType, ExtraCost, Venture
-from ralph_pricing.plugins.extra_cost import update_extra_cost
+from ralph_pricing.plugins.collects.extra_cost import update_extra_cost
 
 
 class TestExtraCostPlugin(TestCase):
