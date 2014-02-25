@@ -34,7 +34,7 @@ setup(
         'ralph>=2.0.0rc1',
         'ralph_assets>=1.3.0',
         'django-mptt==0.5.5',
-        'python-ceilometerclient==1.0.8',
+        'python-ceilometerclient',
     ],
     entry_points={
         'django.pluggable_app': [

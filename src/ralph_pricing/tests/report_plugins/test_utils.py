@@ -66,8 +66,10 @@ class TestUtils(TestCase):
         end = datetime.date(2013, 10, 22)
 
         for i, ut in enumerate(models.UsageType.objects.all(), start=1):
-            for j, day in enumerate(rrule.rrule(rrule.DAILY, dtstart=start, until=end), start=1):
-                for k, venture in enumerate(models.Venture.objects.all(), start=1):
+            rule = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
+            for j, day in enumerate(rule, start=1):
+                ventures = models.Venture.objects.all()
+                for k, venture in enumerate(ventures, start=1):
                     # some of ventures sometimes will not have daily usages
                     if i % 4 == 0 and k % 4 == 0:
                         continue
@@ -78,7 +80,8 @@ class TestUtils(TestCase):
                         type=ut,
                     )
                     if ut.by_warehouse:
-                        daily_usage.warehouse = self.warehouses[j % len(self.warehouses)]
+                        daily_usage.warehouse =\
+                            self.warehouses[j % len(self.warehouses)]
                     daily_usage.save()
 
         # usage prices
