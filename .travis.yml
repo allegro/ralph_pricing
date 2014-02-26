@@ -4,7 +4,7 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 # install: git clone https://github.com/allegro/ralph.git;cd ralph;git checkout develop;pip install -e . --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core; git clone https://github.com/allegro/ralph_assets.git;cd ralph_assets;git checkout develop;pip install -e . --allow-all-external;pip install . --use-mirrors --allow-all-external
 install:
-  - pip install git+https://github.com/allegro/ralph.git@develop --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core
+  - pip install git+https://github.com/kula1922/ralph.git@feature/add-raven-to-requirements-and-south-tests-migrations-as-false --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core
   - pip install git+https://github.com/allegro/ralph_assets.git@develop
   - pip install . --use-mirrors
 
