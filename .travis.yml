@@ -2,6 +2,6 @@ language: python
 python:
   - "2.7"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: git clone https://github.com/allegro/ralph.git;cd ralph;git checkout develop;pip install -e .;pip install . --use-mirrors
+install: git clone https://github.com/allegro/ralph.git;cd ralph;git checkout develop;pip install -e .;pip install --allow-unverified ipaddr . --use-mirrors
 # command to run tests, e.g. python setup.py test
 script: DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
