@@ -5,3 +5,4 @@ python:
 install: pip install . --use-mirrors
 # command to run tests, e.g. python setup.py test
 script: DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
+script: git clone https://github.com/allegro/ralph.git;cd ralph;git checkout develop;touch test.test
