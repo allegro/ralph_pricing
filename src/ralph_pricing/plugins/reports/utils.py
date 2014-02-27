@@ -49,9 +49,8 @@ def get_prices_from_costs(start, end, usage_type, warehouse=None):
         if warehouse:
             daily_usage = daily_usage.filter(warehouse=warehouse)
         total_usage = daily_usage.aggregate(total=Sum('value')).get('total', 0)
-
         price = 0
-        if total_usage != 0 and cost.cost != 0:
+        if total_usage and cost.cost:
             price = cost.cost / D(total_usage)
 
         prices.append(

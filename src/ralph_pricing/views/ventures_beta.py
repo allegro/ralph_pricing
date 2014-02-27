@@ -61,21 +61,6 @@ class AllVenturesBeta(Report):
         return plugins
 
     @classmethod
-    def _get_plugins(cls):
-        base_plugins = [
-            AttributeDict(name='Information', symbol='information'),
-            AttributeDict(name='Deprecation', symbol='deprecation'),
-        ]
-        usage_types = [
-            AttributeDict(
-                name=ut.name,
-                symbol=ut.symbol
-            ) for ut in cls._get_usage_types()
-        ]
-        plugins = base_plugins + usage_types
-        return plugins
-
-    @classmethod
     def _get_as_currency(cls, field_content, total_cost):
         """
         Change field content to currency format. Returned format looks like
