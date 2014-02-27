@@ -14,10 +14,7 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing import models
-from ralph_pricing.plugins.reports.power_consumption import (
-    PowerConsumptionSchema,
-    PowerConsumptionUsages
-)
+from ralph_pricing.plugins.reports.power_consumption import PowerConsumption
 
 
 def pc_get_usages_and_costs(
@@ -72,7 +69,7 @@ class TestPowerConsumptionPlugin(TestCase):
         self.usage_type.save()
 
     def test_schema(self):
-        result = PowerConsumptionSchema()
+        result = PowerConsumption(type='schema')
         self.assertEquals(result, OrderedDict([
             ('power_consumption_count_warehouse1', {
                 'name': _('Power consumption count (warehouse1)')
@@ -95,10 +92,10 @@ class TestPowerConsumptionPlugin(TestCase):
             }),
         ]))
 
-    @mock.patch('ralph_pricing.plugins.reports.power_consumption.PowerConsumptionUsages.get_usages_and_costs')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.power_consumption.PowerConsumption.get_usages_and_costs')  # noqa
     def test_usages(self, get_usages_and_costs_mock):
         get_usages_and_costs_mock.side_effect = pc_get_usages_and_costs
-        result = PowerConsumptionUsages(
+        result = PowerConsumption(
             start=self.start,
             end=self.end,
             ventures=[]

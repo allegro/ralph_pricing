@@ -12,8 +12,6 @@ class Migration(SchemaMigration):
         db.create_table('ralph_pricing_service', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
-            ('symbol', self.gf('django.db.models.fields.CharField')(default=u'', max_length=255, blank=True)),
-            ('use_universal_plugin', self.gf('django.db.models.fields.BooleanField')(default=True)),
         ))
         db.send_create_signal('ralph_pricing', ['Service'])
 
@@ -59,7 +57,6 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting model 'Service'
         db.delete_table('ralph_pricing_service')
@@ -81,7 +78,6 @@ class Migration(SchemaMigration):
 
         # Deleting field 'UsageType.use_universal_plugin'
         db.delete_column('ralph_pricing_usagetype', 'use_universal_plugin')
-
 
     models = {
         'account.profile': {
@@ -205,9 +201,7 @@ class Migration(SchemaMigration):
             'dependency': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['ralph_pricing.Service']", 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
-            'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
-            'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['ralph_pricing.UsageType']", 'through': "orm['ralph_pricing.ServiceUsageTypes']", 'symmetrical': 'False'}),
-            'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
+            'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['ralph_pricing.UsageType']", 'through': "orm['ralph_pricing.ServiceUsageTypes']", 'symmetrical': 'False'})
         },
         'ralph_pricing.serviceusagetypes': {
             'Meta': {'object_name': 'ServiceUsageTypes'},

@@ -10,16 +10,15 @@ from collections import OrderedDict, defaultdict
 
 from django.utils.translation import ugettext_lazy as _
 
-from ralph.util import plugin
 from ralph_pricing.models import UsageType
-from ralph_pricing.plugins.reports.utils import get_usages_and_costs
+from ralph_pricing.plugins.base import register
+from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
 
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='reports')
-def hamster_usages(**kwargs):
+def hamster_usages(self, **kwargs):
     """
     Build schema for this usage. Format of schema looks like:
 
@@ -37,7 +36,7 @@ def hamster_usages(**kwargs):
     """
     logger.debug("Get hamster usage")
     usage_type = UsageType.objects.get(symbol='hamster')
-    hamster_usages = get_usages_and_costs(
+    hamster_usages = self.get_usages_and_costs(
         kwargs['start'],
         kwargs['end'],
         kwargs['ventures'],
@@ -51,9 +50,7 @@ def hamster_usages(**kwargs):
 
     return usages
 
-
-@plugin.register(chain='reports')
-def hamster_schema(**kwargs):
+def hamster_schema(self, **kwargs):
     """
     Build schema for this usage. Format of schema looks like:
 

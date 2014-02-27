@@ -16,7 +16,7 @@ from ralph.util import plugin
 logger = logging.getLogger(__name__)
 
 
-@plugin.register(chain='reports')
+# @plugin.register(chain='reports')
 def f5_usages(**kwargs):
     """
     Return usages and costs for given ventures. Format of
@@ -39,7 +39,7 @@ def f5_usages(**kwargs):
     return usages
 
 
-@plugin.register(chain='reports')
+# @plugin.register(chain='reports')
 def f5_schema(**kwargs):
     """
     Build schema for this usage. Format of schema looks like:

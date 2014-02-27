@@ -38,25 +38,12 @@ class BasePlugin(object):
         """
         return camel_case_to_underscore(self.__class__.__name__)
 
-    def __call__(self, type='usages', *args, **kwargs):
-        # if type == 'schema':
-        #     return self.schema(*args, **kwargs)
-        # elif type == 'usages':
-        #     return self.usages(*args, **kwargs)
-        # raise AttributeError()
+    def __call__(self, *args, **kwargs):
         return self.run(*args, **kwargs)
 
     @abc.abstractmethod
     def run(self, *args, **kwargs):
         pass
-
-    # @abc.abstractmethod
-    # def usage(self, *args, **kwargs):
-    #     pass
-
-    # @abc.abstractmethod
-    # def schema(self, *args, **kwargs):
-    #     pass
 
     @classmethod
     def get_warehouses(cls):

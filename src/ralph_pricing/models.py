@@ -136,6 +136,10 @@ class UsageType(db.Model):
         ('SU', _("Service usage type")),
     )
     type = db.CharField(max_length=2, choices=TYPE_CHOICES, default='RU')
+    use_universal_plugin = db.BooleanField(
+        verbose_name=_("Use universal plugin"),
+        default=True,
+    )
 
     class Meta:
         verbose_name = _("usage type")
@@ -143,6 +147,11 @@ class UsageType(db.Model):
 
     def __unicode__(self):
         return self.name
+
+    def get_plugin_name(self):
+        if self.use_universal_plugin:
+            return 'usage_plugin'
+        return self.symbol or self.name.lower().replace(' ', '_')
 
     @memoize
     def _get_price_from_cost(self, cost, usage, warehouse_id):
@@ -198,6 +207,12 @@ class UsageType(db.Model):
 
 class Service(db.Model):
     name = db.CharField(verbose_name=_("Name"), max_length=255, unique=True)
+    symbol = db.CharField(
+        verbose_name=_("symbol"),
+        max_length=255,
+        default="",
+        blank=True,
+    )
     base_usage_types = db.ManyToManyField(
         UsageType,
         related_name='+',
@@ -217,9 +232,18 @@ class Service(db.Model):
         blank=True,
         null=True,
     )
+    use_universal_plugin = db.BooleanField(
+        verbose_name=_("Use universal plugin"),
+        default=True,
+    )
 
     def __unicode__(self):
         return self.name
+
+    def get_plugin_name(self):
+        if self.use_universal_plugin:
+            return 'service_plugin'
+        return self.symbol or self.name.lower().replace(' ', '_')
 
 
 class ServiceUsageTypes(db.Model):

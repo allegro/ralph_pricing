@@ -145,6 +145,7 @@ def get_core_usage():
     """Creates physical cpu cores usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
         name="Physical CPU cores",
+        symbol='physical_cpu_cores',
         average=True,
     )
     usage_type.save()
@@ -155,6 +156,7 @@ def get_power_consumption_usage():
     """Creates power consumption usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
         name="Power consumption",
+        symbol='power_consumption',
         by_warehouse=True,
         by_cost=True,
     )

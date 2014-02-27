@@ -13,20 +13,17 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.models import UsageType
 from ralph_pricing.plugins.base import register
-from ralph_pricing.plugins.reports.base import (
-    BaseSchemaPlugin,
-    BaseUsagesPlugin,
-)
+from ralph_pricing.plugins.reports.usage import UsageBasePlugin
 
 
 logger = logging.getLogger(__name__)
 
 
-@register(chain='reports')
-class PowerConsumptionUsages(BaseUsagesPlugin):
-    def run(self, start, end, ventures, forecast=False, **kwargs):
+# @register(chain='reports')
+class PowerConsumption(UsageBasePlugin):
+    def usages(self, start, end, ventures, forecast=False, **kwargs):
         logger.debug("Get power consumption usage")
-        usage_type = UsageType.objects.get(symbol='power_consumption')
+        usage_type = UsageType.objects.get(name="Power consumption")
         usages = defaultdict(lambda: defaultdict(int))
         for warehouse in self.get_warehouses():
             warehouse_name = "".join(warehouse.name.split(' ')).lower()
@@ -48,10 +45,7 @@ class PowerConsumptionUsages(BaseUsagesPlugin):
 
         return usages
 
-
-@register(chain='reports')
-class PowerConsumptionSchema(BaseSchemaPlugin):
-    def run(self, *args, **kwargs):
+    def schema(self, *args, **kwargs):
         """
         Build schema for this usage. Format of schema looks like:
 
