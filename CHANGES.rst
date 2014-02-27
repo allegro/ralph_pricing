@@ -8,13 +8,13 @@ Change Log
 
 * Create few plugins for each usage
 
-* Distinguisch two groups of plugins, reports and collections
+* Distinguish two groups of plugins, reports and collections
 
 * Rebuild generate reports view and add it as beta venture view
 
-* New report conitans separated columns for warehouses for one report
+* New report contains separated columns for warehouses for one report
 
-* Increasing efficiency of report generation
+* Increased efficiency of report generation
 
 * Fix splunk plugin
 
@@ -22,13 +22,13 @@ Change Log
 
 * Added more logs from logger
 
-* Added separated loger for scrooge
+* Added separated logger for scrooge
 
 * Openstack ceilometer plugin
 
-* When usage is per warehouse then warehouse must be choose
+* When usage is per warehouse then warehouse must be chosen
 
-* Fix data picker on report generating page
+* Fix datepicker on report subpage
 
 * Added flag to hide/show usages on report
 
