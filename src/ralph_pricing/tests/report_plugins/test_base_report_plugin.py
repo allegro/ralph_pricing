@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
+import mock
 from dateutil import rrule
 from decimal import Decimal as D
 
@@ -37,54 +38,62 @@ class TestBaseReportPlugin(TestCase):
             symbol='ut1',
             by_warehouse=False,
             by_cost=False,
+            type='BU',
         )
         self.usage_type.save()
-        self.usage_type_wh = models.UsageType(
+        self.usage_type_cost_wh = models.UsageType(
             name='UsageType2',
             symbol='ut2',
             by_warehouse=True,
-            by_cost=False,
-        )
-        self.usage_type_wh.save()
-        self.usage_type_cost = models.UsageType(
-            name='UsageType3',
-            symbol='ut3',
-            by_warehouse=False,
             by_cost=True,
-        )
-        self.usage_type_cost.save()
-        self.usage_type_cost_wh = models.UsageType(
-            name='UsageType4',
-            symbol='ut4',
-            by_warehouse=True,
-            by_cost=True,
+            type='BU',
         )
         self.usage_type_cost_wh.save()
 
         # warehouses
-        self.warehouse1 = models.Warehouse(name='Warehouse1')
+        self.warehouse1 = models.Warehouse(
+            name='Warehouse1',
+            show_in_report=True,
+        )
         self.warehouse1.save()
-        self.warehouse2 = models.Warehouse(name='Warehouse2')
+        self.warehouse2 = models.Warehouse(
+            name='Warehouse2',
+            show_in_report=True,
+        )
         self.warehouse2.save()
         self.warehouses = models.Warehouse.objects.all()
 
         # ventures
-        self.venture1 = models.Venture(venture_id=1, name='V1', is_active=True)
+        self.venture1 = models.Venture(
+            venture_id=1,
+            name='V1',
+            is_active=True,
+        )
         self.venture1.save()
-        self.venture2 = models.Venture(venture_id=2, name='V2', is_active=True)
+        self.venture2 = models.Venture(
+            venture_id=2,
+            name='V2',
+            is_active=True,
+        )
         self.venture2.save()
+        self.venture3 = models.Venture(venture_id=3, name='V3', is_active=True)
+        self.venture3.save()
+        self.venture4 = models.Venture(venture_id=4, name='V4', is_active=True)
+        self.venture4.save()
         self.ventures = models.Venture.objects.all()
 
-        # daily usages
+        # daily usages of base type
+        # ut1:
+        #   venture1: 10
+        #   venture2: 20
+        # ut2:
+        #   venture1: 20 (half in warehouse1, half in warehouse2)
+        #   venture2: 40 (half in warehouse1, half in warehouse2)
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
-
-        for i, ut in enumerate(models.UsageType.objects.all(), start=1):
+        for i, ut in enumerate(models.UsageType.objects.filter(type='BU'), start=1):
             for j, day in enumerate(rrule.rrule(rrule.DAILY, dtstart=start, until=end), start=1):
                 for k, venture in enumerate(models.Venture.objects.all(), start=1):
-                    # some of ventures sometimes will not have daily usages
-                    # if i % 4 == 0 and k % 4 == 0:
-                    #     continue
                     daily_usage = models.DailyUsage(
                         date=day,
                         pricing_venture=venture,
@@ -101,15 +110,12 @@ class TestBaseReportPlugin(TestCase):
             (datetime.date(2013, 10, 13), datetime.date(2013, 10, 17)),
             (datetime.date(2013, 10, 18), datetime.date(2013, 10, 25)),
         ]
-        ut_prices = [
-            (self.usage_type, [10, 20, 30]),
-            (self.usage_type_cost, [54000, 18000, 5850]),
-            (self.usage_type_wh, [[44, 55, 66], [77, 88, 99]]),
+        # (real cost/price, forecast cost/price)
+        ut_prices_costs = [
+            (self.usage_type, [(10, 50), (20, 60), (30, 70)]),
             (self.usage_type_cost_wh, [
-                # [36000, 57600, 7800],  # warehouse1
-                # [500, 600, 700],  # warehouse2
-                [3600, 5400, 4800],
-                [3600, 3600, 7200]
+                [(3600, 2400), (5400, 5400), (4800, 12000)],  # warehouse1
+                [(3600, 5400), (3600, 1200), (7200, 3600)],  # warehouse2
             ]),
         ]
 
@@ -124,12 +130,14 @@ class TestBaseReportPlugin(TestCase):
                 if warehouse is not None:
                     usage_price.warehouse = warehouse
                 if usage_type.by_cost:
-                    usage_price.cost = price_cost
+                    usage_price.cost = price_cost[0]
+                    usage_price.forecast_cost = price_cost[1]
                 else:
-                    usage_price.price = price_cost
+                    usage_price.price = price_cost[0]
+                    usage_price.forecast_price = price_cost[1]
                 usage_price.save()
 
-        for ut, prices in ut_prices:
+        for ut, prices in ut_prices_costs:
             if ut.by_warehouse:
                 for i, prices_wh in enumerate(prices):
                     warehouse = self.warehouses[i]
@@ -137,283 +145,141 @@ class TestBaseReportPlugin(TestCase):
             else:
                 add_usage_price(ut, prices)
 
-    # def test_get_prices_from_cost(self):
-    #     prices = self.plugin.get_prices_from_costs(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 20),
-    #         usage_type=self.usage_type_cost
-    #     )
-    #     # usage from 5 to 12: 13500 (with cost 54000)
-    #     # usage from 13 to 17: 36000 (with cost 18000)
-    #     # usage from 18 to 25: 58500 (with cost 5850)
-    #     # price from 5 to 12: 54000/13500 = 4
-    #     # price from 13 to 17: 18000/36000 = 0.5
-    #     # price from 18 to 25: 5850/58500 = 0.1
-    #     self.assertEquals(prices, [
-    #         {
-    #             'start': datetime.date(2013, 10, 5),
-    #             'end': datetime.date(2013, 10, 12),
-    #             'price': D('4'),
-    #         },
-    #         {
-    #             'start': datetime.date(2013, 10, 13),
-    #             'end': datetime.date(2013, 10, 17),
-    #             'price': D('0.5'),
-    #         },
-    #         {
-    #             'start': datetime.date(2013, 10, 18),
-    #             'end': datetime.date(2013, 10, 25),
-    #             'price': D('0.1'),
-    #         },
-    #     ])
+    # =========================================================================
+    # _get_price_from_cost
+    # =========================================================================
+    @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    def test_get_price_from_cost(self, get_total_usage_in_period_mock):
+        get_total_usage_in_period_mock.return_value = 100.0
+        usage_price = models.UsagePrice(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            cost=2000,
+            type=self.usage_type_cost_wh,
+        )
+        result = self.plugin._get_price_from_cost(usage_price, False)
 
-    # def test_get_prices_from_cost_with_warehouse(self):
-    #     prices = self.plugin.get_prices_from_costs(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 20),
-    #         usage_type=self.usage_type_cost_wh,
-    #         warehouse=self.warehouse1
-    #     )
-    #     # usage from 5 to 12: 7200 (with cost 36000)
-    #     # usage from 13 to 17: 28800 (with cost 57600)
-    #     # usage from 18 to 25: 31200 (with cost 7800)
-    #     # price from 5 to 12: 36000/7200 = 5
-    #     # price from 13 to 17: 57600/28800 = 2
-    #     # price from 18 to 25: 7800/31200 = 0.25
-    #     self.assertEquals(prices, [
-    #         {
-    #             'start': datetime.date(2013, 10, 5),
-    #             'end': datetime.date(2013, 10, 12),
-    #             'price': D('5'),
-    #         },
-    #         {
-    #             'start': datetime.date(2013, 10, 13),
-    #             'end': datetime.date(2013, 10, 17),
-    #             'price': D('2'),
-    #         },
-    #         {
-    #             'start': datetime.date(2013, 10, 18),
-    #             'end': datetime.date(2013, 10, 25),
-    #             'price': D('0.25'),
-    #         },
-    #     ])
+        self.assertEquals(result, D(20))  # 2000 / 100 = 20
+        get_total_usage_in_period_mock.assert_called_with(
+            datetime.date(2013, 10, 10),
+            datetime.date(2013, 10, 10),
+            self.usage_type_cost_wh,
+            None,
+            None,
+        )
 
-    # def test_get_prices(self):
-    #     prices = self.plugin.get_prices(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 20),
-    #         usage_type=self.usage_type,
-    #     )
-    #     self.assertEquals(len(prices), 3)
-    #     self.assertEquals(prices[0].price, 10)
-    #     self.assertEquals(prices[1].price, 20)
-    #     self.assertEquals(prices[2].price, 30)
+    @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    def test_get_price_from_cost_with_warehouse(self, get_total_usage_in_period_mock):
+        get_total_usage_in_period_mock.return_value = 100.0
+        usage_price = models.UsagePrice(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            cost=2000,
+            type=self.usage_type_cost_wh,
+        )
+        result = self.plugin._get_price_from_cost(
+            usage_price,
+            False,
+            warehouse=self.warehouse1
+        )
 
-    # def test_get_prices_with_warehouse(self):
-    #     prices = self.plugin.get_prices(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 20),
-    #         usage_type=self.usage_type_wh,
-    #         warehouse=self.warehouse2,
-    #     )
-    #     self.assertEquals(len(prices), 3)
-    #     self.assertEquals(prices[0].price, 77)
-    #     self.assertEquals(prices[1].price, 88)
-    #     self.assertEquals(prices[2].price, 99)
+        self.assertEquals(result, D(20))  # 2000 / 100 = 20
+        get_total_usage_in_period_mock.assert_called_with(
+            datetime.date(2013, 10, 10),
+            datetime.date(2013, 10, 10),
+            self.usage_type_cost_wh,
+            self.warehouse1,
+            None,
+        )
 
-    # def test_generate_prices_list(self):
-    #     prices = [
-    #         AttributeDict({
-    #             'start': datetime.date(2013, 10, 5),
-    #             'end': datetime.date(2013, 10, 12),
-    #             'price': D('5'),
-    #         }),
-    #         models.UsagePrice(
-    #             start=datetime.date(2013, 10, 13),
-    #             end=datetime.date(2013, 10, 17),
-    #             price=D('2')
-    #         ),
-    #     ]
-    #     prices_list = self.plugin.generate_prices_list(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 15),
-    #         prices=prices
-    #     )
-    #     self.assertEquals(prices_list, {
-    #         '2013-10-10': D('5'),
-    #         '2013-10-11': D('5'),
-    #         '2013-10-12': D('5'),
-    #         '2013-10-13': D('2'),
-    #         '2013-10-14': D('2'),
-    #         '2013-10-15': D('2'),
-    #     })
+    @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    def test_get_price_from_cost_with_forecast(self, get_total_usage_in_period_mock):
+        get_total_usage_in_period_mock.return_value = 100.0
+        usage_price = models.UsagePrice(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            forecast_cost=3000,
+            type=self.usage_type_cost_wh,
+        )
+        result = self.plugin._get_price_from_cost(usage_price, True)
 
-    # def test_generate_prices_list_no_price(self):
-    #     prices = [
-    #         AttributeDict({
-    #             'start': datetime.date(2013, 10, 5),
-    #             'end': datetime.date(2013, 10, 12),
-    #             'price': D('5'),
-    #         }),
-    #     ]
-    #     prices_list = self.plugin.generate_prices_list(
-    #         start=datetime.date(2013, 10, 14),
-    #         end=datetime.date(2013, 10, 15),
-    #         prices=prices
-    #     )
-    #     self.assertEquals(prices_list, 'No Price')
+        self.assertEquals(result, D(30))  # 3000 / 100 = 30
+        get_total_usage_in_period_mock.assert_called_with(
+            datetime.date(2013, 10, 10),
+            datetime.date(2013, 10, 10),
+            self.usage_type_cost_wh,
+            None,
+            None,
+        )
 
-    # def test_generate_prices_list_incomplete_price(self):
-    #     prices = [
-    #         AttributeDict({
-    #             'start': datetime.date(2013, 10, 5),
-    #             'end': datetime.date(2013, 10, 12),
-    #             'price': D('5'),
-    #         }),
-    #     ]
-    #     prices_list = self.plugin.generate_prices_list(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 15),
-    #         prices=prices
-    #     )
-    #     self.assertEquals(prices_list, 'Incomplete Price')
+    @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    def test_get_price_from_cost_total_usage_0(
+        self,
+        get_total_usage_in_period_mock
+    ):
+        get_total_usage_in_period_mock.return_value = 0.0
+        usage_price = models.UsagePrice(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            cost=3000,
+            type=self.usage_type_cost_wh,
+        )
+        result = self.plugin._get_price_from_cost(usage_price, False)
 
-    # def test_get_daily_usages(self):
-    #     daily_usages = self.plugin.get_daily_usages(
-    #         start=datetime.date(2013, 10, 5),
-    #         end=datetime.date(2013, 10, 9),
-    #         ventures=self.ventures,
-    #         usage_type=self.usage_type,
-    #     )
-    #     self.assertEquals([du for du in daily_usages], [
-    #         {
-    #             'date': datetime.datetime(2013, 10, 8, 0, 0),
-    #             'pricing_venture': 1,
-    #             'value': 100.0
-    #         },
-    #         {
-    #             'date': datetime.datetime(2013, 10, 8, 0, 0),
-    #             'pricing_venture': 2,
-    #             'value': 200.0
-    #         },
-    #         {
-    #             'date': datetime.datetime(2013, 10, 9, 0, 0),
-    #             'pricing_venture': 1,
-    #             'value': 200.0
-    #         },
-    #         {
-    #             'date': datetime.datetime(2013, 10, 9, 0, 0),
-    #             'pricing_venture': 2,
-    #             'value': 400.0
-    #         }
-    #     ])
+        self.assertEquals(result, D(0))
 
-    # def test_get_daily_usages_with_warehouse(self):
-    #     daily_usages = self.plugin.get_daily_usages(
-    #         start=datetime.date(2013, 10, 5),
-    #         end=datetime.date(2013, 10, 9),
-    #         ventures=self.ventures,
-    #         usage_type=self.usage_type_wh,
-    #         warehouse=self.warehouse1,
-    #     )
-    #     self.assertEquals([du for du in daily_usages], [
-    #         {
-    #             'date': datetime.datetime(2013, 10, 9, 0, 0),
-    #             'pricing_venture': 1,
-    #             'value': 400.0
-    #         },
-    #         {
-    #             'date': datetime.datetime(2013, 10, 9, 0, 0),
-    #             'pricing_venture': 2,
-    #             'value': 800.0
-    #         }
-    #     ])
+    # =========================================================================
+    # _get_total_usage_in_period
+    # =========================================================================
+    def test_get_total_usage_in_period(self):
+        result = self.plugin._get_total_usage_in_period(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type,
+        )
+        # 11*(10 + 20 + 30 + 40) = 1100
+        self.assertEquals(result, 1100.0)
 
-    # def test_prepare_data(self):
-    #     daily_usages = [
-    #         {
-    #             'date': datetime.datetime(2013, 10, 8, 0, 0),
-    #             'pricing_venture': 1,
-    #             'value': 100.0
-    #         },
-    #         {
-    #             'date': datetime.datetime(2013, 10, 8, 0, 0),
-    #             'pricing_venture': 2,
-    #             'value': 200.0
-    #         },
-    #         {
-    #             'date': datetime.datetime(2013, 10, 9, 0, 0),
-    #             'pricing_venture': 1,
-    #             'value': 200.0
-    #         },
-    #         {
-    #             'date': datetime.datetime(2013, 10, 9, 0, 0),
-    #             'pricing_venture': 2,
-    #             'value': 400.0
-    #         },
+    def test_get_total_usage_in_period_with_warehouse(self):
+        result = self.plugin._get_total_usage_in_period(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_wh,
+            warehouse=self.warehouse2,
+        )
+        #  6 * (20 + 40 + 60 + 80)
+        # /^\
+        #  |
+        #  +--- every even day between 10 and 20 (inclusive)
+        self.assertEquals(result, 1200.0)
 
-    #         {
-    #             'date': datetime.datetime(2013, 10, 10, 0, 0),
-    #             'pricing_venture': 2,
-    #             'value': 990.0
-    #         }
-    #     ]
-    #     prices_list = {
-    #         '2013-10-07': D('5'),
-    #         '2013-10-08': D('3'),
-    #         '2013-10-09': D('2'),
-    #         '2013-10-10': D('10'),
-    #         '2013-10-11': D('9'),
-    #     }
-    #     total_costs = self.plugin.prepare_data(daily_usages, prices_list)
-    #     self.assertEquals(total_costs, {
-    #         1: {
-    #             'value': 300.0,
-    #             'cost': D('700'),
-    #         },
-    #         2: {
-    #             'value': 1590.0,
-    #             'cost': D('11300'),
-    #         },
-    #     })
+    def test_get_total_usage_in_period_with_ventures(self):
+        result = self.plugin._get_total_usage_in_period(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type,
+            ventures=[self.venture1]
+        )
+        # 11 * 10 = 110
+        self.assertEquals(result, 110.0)
 
-    # def test_get_usages_and_costs(self):
-    #     usages_and_costs = self.plugin.get_usages_and_costs(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 20),
-    #         ventures=self.ventures,
-    #         usage_type=self.usage_type_cost
-    #     )
-    #     self.assertEquals(usages_and_costs, {
-    #         1: {
-    #             'value': 26400.0,
-    #             'cost': D('21480.0'),
-    #         },
-    #         2: {
-    #             'value': 52800.0,
-    #             'cost': D('42960.0'),
-    #         },
-    #     })
+    def test_get_total_usage_in_period_with_ventures_and_warehouse(self):
+        result = self.plugin._get_total_usage_in_period(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_wh,
+            warehouse=self.warehouse1,
+            ventures=[self.venture2],
+        )
+        #  5 * 40 = 200
+        # /^\
+        #  |
+        #  +--- every odd day between 10 and 20 (inclusive)
+        self.assertEquals(result, 200.0)
 
-    # def test_get_usages_and_costs_with_warehouse(self):
-    #     usages_and_costs = self.plugin.get_usages_and_costs(
-    #         start=datetime.date(2013, 10, 10),
-    #         end=datetime.date(2013, 10, 20),
-    #         ventures=self.ventures,
-    #         usage_type=self.usage_type_cost_wh,
-    #         warehouse=self.warehouse1
-    #     )
-    #     self.assertEquals(usages_and_costs, {
-    #         1: {
-    #             'value': 16000.0,
-    #             'cost': D('28400.0'),
-    #         },
-    #         2: {
-    #             'value': 32000.0,
-    #             'cost': D('56800.0'),
-    #         },
-    #     })
-
+    # =========================================================================
+    # _get_usages_in_period_per_venture
+    # =========================================================================
     def test_get_usages_in_period_per_venture(self):
         result = self.plugin._get_usages_in_period_per_venture(
             start=datetime.date(2013, 10, 10),

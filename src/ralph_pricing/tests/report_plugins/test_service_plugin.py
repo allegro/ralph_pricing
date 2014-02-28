@@ -203,6 +203,46 @@ class TestServicePlugin(TestCase):
                     )
                     daily_usage.save()
 
+        self.maxDiff = None
+
+    # =========================================================================
+    # _get_usage_type_cost
+    # =========================================================================
+    @mock.patch('ralph.util.plugin.run')
+    def test_get_usage_type_cost(self, plugin_run_mock):
+        plugin_run_mock.return_value = 100
+        result = ServicePlugin._get_usage_type_cost(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type,
+            forecast=True,
+            ventures=self.ventures,
+        )
+        self.assertEquals(result, 100)
+        plugin_run_mock.assert_called_with(
+            'reports',
+            self.usage_type.get_plugin_name(),
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type,
+            forecast=True,
+            ventures=self.ventures,
+            type='total_cost',
+        )
+
+    @mock.patch('ralph.util.plugin.run')
+    def test_get_usage_type_cost_with_exception(self, plugin_run_mock):
+        for exc in (KeyError(), AttributeError()):
+            plugin_run_mock.side_effect = exc
+            result = ServicePlugin._get_usage_type_cost(
+                start=datetime.date(2013, 10, 10),
+                end=datetime.date(2013, 10, 20),
+                usage_type=self.usage_type,
+                forecast=True,
+                ventures=self.ventures,
+            )
+            self.assertEquals(result, 0)
+
     def test_get_date_ranges_percentage(self):
         result = ServicePlugin._get_date_ranges_percentage(
             start=datetime.date(2013, 10, 10),
@@ -210,14 +250,14 @@ class TestServicePlugin(TestCase):
             service=self.service,
         )
         self.assertEquals(result, {
-            (datetime.date(2013, 10, 10), datetime.date(2013, 10, 15)): [
-                {'usage_type': 3, 'percent': 30.0},
-                {'usage_type': 4, 'percent': 70.0}
-            ],
-            (datetime.date(2013, 10, 16), datetime.date(2013, 10, 20)): [
-                {'usage_type': 3, 'percent': 40.0},
-                {'usage_type': 4, 'percent': 60.0}
-            ]
+            (datetime.date(2013, 10, 10), datetime.date(2013, 10, 15)): {
+                3: 30.0,
+                4: 70.0,
+            },
+            (datetime.date(2013, 10, 16), datetime.date(2013, 10, 20)): {
+                3: 40.0,
+                4: 60.0,
+            },
         })
 
     def test_get_date_ranges_percentage2(self):
@@ -296,141 +336,40 @@ class TestServicePlugin(TestCase):
             service=self.service,
         )
 
+        # self.assertEquals(result, {
+        #     (datetime.date(2013, 10, 5), datetime.date(2013, 10, 10)): [
+        #         {'usage_type': 3, 'percent': 50.0},
+        #         {'usage_type': 4, 'percent': 30.0},
+        #         {'usage_type': 5, 'percent': 20.0},
+        #     ],
+        #     (datetime.date(2013, 10, 11), datetime.date(2013, 10, 20)): [
+        #         {'usage_type': 3, 'percent': 50.0},
+        #         {'usage_type': 4, 'percent': 10.0},
+        #         {'usage_type': 5, 'percent': 40.0},
+        #     ],
+        #     (datetime.date(2013, 10, 21), datetime.date(2013, 10, 25)): [
+        #         {'usage_type': 3, 'percent': 30.0},
+        #         {'usage_type': 4, 'percent': 30.0},
+        #         {'usage_type': 5, 'percent': 40.0},
+        #     ],
+        # })
         self.assertEquals(result, {
-            (datetime.date(2013, 10, 5), datetime.date(2013, 10, 10)): [
-                {'usage_type': 3, 'percent': 50.0},
-                {'usage_type': 4, 'percent': 30.0},
-                {'usage_type': 5, 'percent': 20.0},
-            ],
-            (datetime.date(2013, 10, 11), datetime.date(2013, 10, 20)): [
-                {'usage_type': 3, 'percent': 50.0},
-                {'usage_type': 4, 'percent': 10.0},
-                {'usage_type': 5, 'percent': 40.0},
-            ],
-            (datetime.date(2013, 10, 21), datetime.date(2013, 10, 25)): [
-                {'usage_type': 3, 'percent': 30.0},
-                {'usage_type': 4, 'percent': 30.0},
-                {'usage_type': 5, 'percent': 40.0},
-            ],
+            (datetime.date(2013, 10, 5), datetime.date(2013, 10, 10)): {
+                3: 50.0,
+                4: 30.0,
+                5: 20.0,
+            },
+            (datetime.date(2013, 10, 11), datetime.date(2013, 10, 20)): {
+                3: 50.0,
+                4: 10.0,
+                5: 40.0,
+            },
+            (datetime.date(2013, 10, 21), datetime.date(2013, 10, 25)): {
+                3: 30.0,
+                4: 30.0,
+                5: 40.0,
+            },
         })
-
-
-
-    def test_get_total_usage_in_period(self):
-        result = ServicePlugin._get_total_usage_in_period(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 20),
-            usage_type=self.usage_type,
-        )
-        # 11*(10 + 20 + 30 + 40) = 1100
-        self.assertEquals(result, 1100.0)
-
-    def test_get_total_usage_in_period_with_warehouse(self):
-        result = ServicePlugin._get_total_usage_in_period(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 20),
-            usage_type=self.usage_type_cost_wh,
-            warehouse=self.warehouse2,
-        )
-        #  6 * (20 + 40 + 60 + 80)
-        # /^\
-        #  |
-        #  +--- every even day between 10 and 20 (inclusive)
-        self.assertEquals(result, 1200.0)
-
-    def test_get_total_usage_in_period_with_ventures(self):
-        result = ServicePlugin._get_total_usage_in_period(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 20),
-            usage_type=self.usage_type,
-            ventures=[self.venture1]
-        )
-        # 11 * 10 = 110
-        self.assertEquals(result, 110.0)
-
-    def test_get_total_usage_in_period_with_ventures_and_warehouse(self):
-        result = ServicePlugin._get_total_usage_in_period(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 20),
-            usage_type=self.usage_type_cost_wh,
-            warehouse=self.warehouse1,
-            ventures=[self.venture2],
-        )
-        #  5 * 40 = 200
-        # /^\
-        #  |
-        #  +--- every odd day between 10 and 20 (inclusive)
-        self.assertEquals(result, 200.0)
-
-    @mock.patch('ralph_pricing.plugins.reports.service.ServicePlugin._get_total_usage_in_period')  # noqa
-    def test_get_price_from_cost(self, get_total_usage_in_period_mock):
-        get_total_usage_in_period_mock.return_value = 100.0
-        usage_price = models.UsagePrice(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 10),
-            cost=2000,
-            type=self.usage_type_cost_wh,
-        )
-        result = ServicePlugin._get_price_from_cost(usage_price, False)
-
-        self.assertEquals(result, D(20))  # 2000 / 100 = 20
-        get_total_usage_in_period_mock.assert_called_with(
-            datetime.date(2013, 10, 10),
-            datetime.date(2013, 10, 10),
-            self.usage_type_cost_wh,
-            None
-        )
-
-    @mock.patch('ralph_pricing.plugins.reports.service.ServicePlugin._get_total_usage_in_period')  # noqa
-    def test_get_price_from_cost_with_warehouse(self, get_total_usage_in_period_mock):
-        get_total_usage_in_period_mock.return_value = 100.0
-        usage_price = models.UsagePrice(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 10),
-            cost=2000,
-            type=self.usage_type_cost_wh,
-        )
-        result = ServicePlugin._get_price_from_cost(usage_price, False, warehouse=self.warehouse1)
-
-        self.assertEquals(result, D(20))  # 2000 / 100 = 20
-        get_total_usage_in_period_mock.assert_called_with(
-            datetime.date(2013, 10, 10),
-            datetime.date(2013, 10, 10),
-            self.usage_type_cost_wh,
-            self.warehouse1,
-        )
-
-    @mock.patch('ralph_pricing.plugins.reports.service.ServicePlugin._get_total_usage_in_period')  # noqa
-    def test_get_price_from_cost_with_forecast(self, get_total_usage_in_period_mock):
-        get_total_usage_in_period_mock.return_value = 100.0
-        usage_price = models.UsagePrice(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 10),
-            forecast_cost=3000,
-            type=self.usage_type_cost_wh,
-        )
-        result = ServicePlugin._get_price_from_cost(usage_price, True)
-
-        self.assertEquals(result, D(30))  # 3000 / 100 = 30
-        get_total_usage_in_period_mock.assert_called_with(
-            datetime.date(2013, 10, 10),
-            datetime.date(2013, 10, 10),
-            self.usage_type_cost_wh,
-            None
-        )
-
-    @mock.patch('ralph_pricing.plugins.reports.service.ServicePlugin._get_total_usage_in_period')  # noqa
-    def test_get_price_from_cost_total_usage_0(self, get_total_usage_in_period_mock):
-        get_total_usage_in_period_mock.return_value = 0.0
-        usage_price = models.UsagePrice(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 10),
-            cost=3000,
-            type=self.usage_type_cost_wh,
-        )
-        result = ServicePlugin._get_price_from_cost(usage_price, False)
-
-        self.assertEquals(result, D(0))
 
     def test_get_service_base_usage_types_cost(self):
         result = ServicePlugin._get_service_base_usage_types_cost(
@@ -459,10 +398,10 @@ class TestServicePlugin(TestCase):
     @mock.patch('ralph_pricing.plugins.reports.service.ServicePlugin._get_usages_in_period_per_venture')  # noqa
     @mock.patch('ralph_pricing.plugins.reports.service.ServicePlugin._get_total_usage_in_period')  # noqa
     def test_distribute_costs(self, total_usage_mock, usages_per_venture_mock):
-        percentage = [
-            {'usage_type': 3, 'percent': 20},
-            {'usage_type': 4, 'percent': 80},
-        ]
+        percentage = {
+            3: 20,
+            4: 80,
+        }
 
         def sample_usages(start, end, usage_type, warehouse=None, ventures=None):
             usages = {
@@ -641,7 +580,6 @@ class TestServicePlugin(TestCase):
             service=self.service,
             type='schema'
         )
-        # import ipdb; ipdb.set_trace()
         self.assertEquals(result, OrderedDict([
             ('3_count', {'name': _('ServiceUsageType1 count')}),
             ('3_cost', {

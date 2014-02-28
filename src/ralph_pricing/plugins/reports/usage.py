@@ -21,6 +21,33 @@ logger = logging.getLogger(__name__)
 
 
 class UsageBasePlugin(BaseReportPlugin):
+    def _incomplete_price(self, usage_type, start, end, warehouse=None):
+        """
+        Calculate if for every day in report there is price defined for usage
+        type
+
+        :param list usage_type: usage type
+        :param datetime start: Start date of the report
+        :param datetime end: End date of the report
+        :returns str: 'No price' or 'Incomplete price' or None (if all is ok)
+        """
+        total_days = (end - start).days + 1 # total report days
+        ut_days = 0
+        usage_prices = usage_type.usageprice_set.filter(
+            end__gte=start,
+            start__lte=end,
+        )
+        if usage_type.by_warehouse and warehouse:
+            usage_prices = usage_prices.filter(warehouse=warehouse)
+        # TODO: improve preformance
+        for up in usage_prices:
+            # add overlapping days
+            ut_days += (min(end, up.end) - max(start, up.start)).days + 1
+        if ut_days == 0:
+            return _('No price')
+        if ut_days != total_days:
+            return _('Incomplete price')
+
     def _get_total_cost_by_warehouses(self, start, end, ventures, usage_type, forecast=False, **kwargs):
         """
         Returns total cost of usage for ventures
@@ -80,7 +107,15 @@ class UsageBasePlugin(BaseReportPlugin):
         costs_by_wh = self._get_total_cost_by_warehouses(*args, **kwargs)
         return costs_by_wh[-1]
 
-    def _get_usages_per_warehouse(self, usage_type, start, end, forecast, ventures):
+    def _get_usages_per_warehouse(
+        self,
+        usage_type,
+        start,
+        end,
+        forecast,
+        ventures,
+        no_price_msg=False,
+    ):
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
         else:
@@ -88,10 +123,15 @@ class UsageBasePlugin(BaseReportPlugin):
         result = defaultdict(lambda: defaultdict(int))
 
         for warehouse in warehouses:
+            price_undefined = no_price_msg and self._incomplete_price(
+                usage_type,
+                start,
+                end,
+                warehouse
+            )
             usage_prices = usage_type.usageprice_set.filter(
                 start__lte=end,
                 end__gte=start,
-                type=usage_type,
             )
             if warehouse:
                 usage_prices = usage_prices.filter(warehouse=warehouse)
@@ -131,13 +171,22 @@ class UsageBasePlugin(BaseReportPlugin):
                     venture = v['pricing_venture']
                     result[venture][count_symbol] = v['usage']
                     cost = D(v['usage']) * price
-                    result[venture][cost_symbol] = cost
-                    if usage_type.by_warehouse:
+                    result[venture][cost_symbol] = price_undefined or cost
+                    if usage_type.by_warehouse and not price_undefined:
                         result[venture][total_cost_symbol] += cost
 
         return result
 
-    def usages(self, start, end, ventures, usage_type, forecast=False, **kwargs):
+    def usages(
+        self,
+        start,
+        end,
+        ventures,
+        usage_type,
+        forecast=False,
+        no_price_msg=False,
+        **kwargs
+    ):
         logger.debug("Get {0} usage".format(usage_type.name))
         return self._get_usages_per_warehouse(
             start=start,
@@ -145,6 +194,7 @@ class UsageBasePlugin(BaseReportPlugin):
             ventures=ventures,
             usage_type=usage_type,
             forecast=forecast,
+            no_price_msg=no_price_msg,
         )
 
     def schema(self, usage_type, **kwargs):

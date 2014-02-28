@@ -203,6 +203,39 @@ class TestUsageBasePlugin(TestCase):
                     )
                     daily_usage.save()
 
+    def test_incomplete_price(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+        )
+        self.assertEquals(result, None)
+
+    def test_incomplete_price_by_warehouse(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_wh,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            warehouse=self.warehouse1,
+        )
+        self.assertEquals(result, None)
+
+    def test_incomplete_price_no_price(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type,
+            start=datetime.date(2013, 11, 10),
+            end=datetime.date(2013, 11, 20),
+        )
+        self.assertEquals(result, 'No price')
+
+    def test_incomplete_price_incomplete_price(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 11, 20),
+        )
+        self.assertEquals(result, 'Incomplete price')
+
     def test_get_usage_type_cost(self):
         result = UsagePlugin._get_total_cost_by_warehouses(
             start=datetime.date(2013, 10, 10),
@@ -354,3 +387,28 @@ class TestUsageBasePlugin(TestCase):
         #   warehouse2: usage: 120; cost: 720
         #   total: cost: 1980
         self.assertEquals(result, [100.0, D('1260'), 120.0, D('720'), D('1980')])
+
+    def test_get_usages_per_warehouse_with_warehouse(self):
+        result = UsagePlugin._get_usages_per_warehouse(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_wh,
+            ventures=self.service_ventures,
+            forecast=False,
+        )
+        self.assertEquals(result, {
+            1: {
+                '2_count_1': 20.0,
+                '2_cost_1': D('240'),
+                '2_count_2': 40.0,
+                '2_cost_2': D('480'),
+                '2_total_cost': D('720'),
+            },
+            2: {
+                '2_count_1': 40.0,
+                '2_cost_1': D('480'),
+                '2_count_2': 80.0,
+                '2_cost_2': D('960'),
+                '2_total_cost': D('1440'),
+            },
+        })

@@ -22,6 +22,28 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceBasePlugin(BaseReportPlugin):
+    def _get_usage_type_cost(self, start, end, usage_type, forecast, ventures):
+        """
+        Calculates total cost of usage of given type for specified ventures in
+        period of time (between start and end), using real or forecast
+        price/cost.
+        """
+        try:
+            result = plugin_runner.run(
+                'reports',
+                usage_type.get_plugin_name(),
+                type='total_cost',
+                start=start,
+                end=end,
+                usage_type=usage_type,
+                forecast=forecast,
+                ventures=ventures,
+            )
+            return result
+        except (KeyError, AttributeError):
+            logger.warning('Invalid call for {0} total cost'.format(usage_type.name))
+            return 0
+
     def _get_service_base_usage_types_cost(
         self,
         start,
@@ -32,7 +54,8 @@ class ServiceBasePlugin(BaseReportPlugin):
     ):
         """
         Calculates total cost of base types usages for given service, using
-        real or forecast prices/costs.
+        real or forecast prices/costs. Total cost is calculated for period of
+        time (between start and end) and for specified ventures.
         """
         total_cost = 0
         for usage_type in service.base_usage_types.all():
@@ -46,62 +69,93 @@ class ServiceBasePlugin(BaseReportPlugin):
             total_cost += usage_type_total_cost
         return total_cost
 
-    def _get_dependent_services_cost(self, start, end, service, forecast, ventures):
+    def _get_dependent_services_cost(
+        self,
+        start,
+        end,
+        service,
+        forecast,
+        ventures
+    ):
+        """
+        Calculates cost of dependent services used by service.
+        """
         dependent_costs = 0
-        for dependent in service.dependency.all():
+        for dependent in service.dependency.exclude(id=service.id):
             try:
-                dependent_usages = plugin_runner.run(
-                    'reports',
-                    dependent.get_plugin_name(),
-                    service=dependent,
-                    ventures=ventures,
-                    start=start,
-                    end=end,
-                    forecast=forecast,
-                    type='usages',
-                )
                 dependent_schema = plugin_runner.run(
                     'reports',
                     dependent.get_plugin_name(),
                     service=dependent,
                     type='schema'
                 )
-
+                # find total cost column in schema
                 total_cost_key = None
                 for column_key, column_description in dependent_schema.items():
                     if column_description.get('total_cost'):
                         total_cost_key = column_key
                         break
+
                 if total_cost_key:
+                    # do report of usages for service (and it's ventures)
+                    dependent_usages = plugin_runner.run(
+                        'reports',
+                        dependent.get_plugin_name(),
+                        service=dependent,
+                        ventures=ventures,
+                        start=start,
+                        end=end,
+                        forecast=forecast,
+                        type='usages',
+                    )
+
                     for venture, venture_data in dependent_usages.items():
                         dependent_costs += venture_data[total_cost_key]
+                else:
+                    logger.warning(
+                        'No total cost column for {0} dependency'.format(
+                            dependent.name
+                        )
+                    )
             except (KeyError, AttributeError):
-                logger.warning('Invalid plugin for {0} dependency'.format(dependent.name))
+                logger.warning('Invalid plugin for {0} dependency'.format(
+                    dependent.name
+                ))
         return dependent_costs
 
     def _get_date_ranges_percentage(self, start, end, service):
         """
         Returns list of minimum date ranges that have different percentage
         division in given service.
+
+        :returns: dict of date ranges and it's percentage division. Key in dict
+            is tuple: (start, end), value is dict (key: usage type id, value:
+            percent)
+        :rtype dict:
         """
         usage_types = service.serviceusagetypes_set.filter(
             start__lte=end,
             end__gte=start,
         )
-        dates = set()
+        dates = defaultdict(lambda: defaultdict(list))
         for ut in usage_types:
-            dates.add(max(ut.start, start))
-            dates.add(min(ut.end, end))
+            dates[max(ut.start, start)]['start'].append(ut)
+            dates[min(ut.end, end)]['end'].append(ut)
 
         result = {}
-        dates = sorted(list(dates))
-        for i in range(0, len(dates)-1, 2):
-            dstart, dend = dates[i], dates[i+1]
-            usage_types = service.serviceusagetypes_set.filter(
-                start__lte=dend,
-                end__gte=dstart,
-            ).values('usage_type', 'percent').order_by('usage_type')
-            result[(dstart, dend)] = list(usage_types)
+        current_percentage = {}
+        current_start = None
+
+        for date, usage_types in sorted(dates.items(), key=lambda k: k[0]):
+            if usage_types['start']:
+                current_start = date
+            for usage_type in usage_types['start']:
+                current_percentage[usage_type.usage_type.id] = usage_type.percent
+
+            if usage_types['end']:
+                result[(current_start, date)] = current_percentage.copy()
+            for usage_type in usage_types['end']:
+                del current_percentage[usage_type.usage_type.id]
         return result
 
     def _distribute_costs(
@@ -115,14 +169,14 @@ class ServiceBasePlugin(BaseReportPlugin):
     ):
         """
         Distributes some cost between all ventures proportionally to usages of
-        service resources.
+        service resources (taken from percentage).
         """
         # first level: venture
         # second level: usage type key (count or cost)
         result = defaultdict(lambda: defaultdict(int))
 
-        for percent in percentage:
-            usage_type = UsageType.objects.get(id=percent['usage_type'])
+        for usage_type_id, percent in percentage.items():
+            usage_type = UsageType.objects.get(id=usage_type_id)
             usages_per_venture = self._get_usages_in_period_per_venture(
                 start,
                 end,
@@ -134,10 +188,10 @@ class ServiceBasePlugin(BaseReportPlugin):
                 end,
                 usage_type
             )
-            cost_part = D(percent['percent']) * cost / D(100)
+            cost_part = D(percent) * cost / D(100)
 
-            usage_type_count_symbol = '{0}_count'.format(percent['usage_type'])
-            usage_type_cost_symbol = '{0}_cost'.format(percent['usage_type'])
+            usage_type_count_symbol = '{0}_count'.format(usage_type_id)
+            usage_type_cost_symbol = '{0}_cost'.format(usage_type_id)
 
             for v in usages_per_venture:
                 venture = v['pricing_venture']
@@ -147,6 +201,13 @@ class ServiceBasePlugin(BaseReportPlugin):
         return result
 
     def total_cost(self, start, end, service, forecast, ventures):
+        """
+        Calculates total cost of service (in period of time), assuming, that
+        ventures are service ventures.
+
+        Total cost is sum of cost of base usage types usages and all dependent
+        services costs (for specified ventures).
+        """
         # total cost of base usage types for ventures providing this service
         total_cost = self._get_service_base_usage_types_cost(
             start,
@@ -165,6 +226,18 @@ class ServiceBasePlugin(BaseReportPlugin):
         return total_cost
 
     def usages(self, service, start, end, ventures, forecast=False, **kwargs):
+        """
+        Calculates usages and costs of service usages per venture.
+
+        Main steps:
+        1) calculation of percentage division in date ranges
+        2) for each daterange with different percentage division:
+            2.1) calculation of service total cost in daterange
+            2.2) distribution of that cost to ventures, basing on venture usage
+                 of service and using percentage division
+            2.3) sum ventures costs of service usage types (eventually total
+                 cost)
+        """
         logger.debug("Calculating report for service {0}".format(service))
         date_ranges_percentage = self._get_date_ranges_percentage(
             start,
@@ -178,8 +251,6 @@ class ServiceBasePlugin(BaseReportPlugin):
         result = defaultdict(lambda: defaultdict(int))
         for date_range, percentage in date_ranges_percentage.items():
             dstart, dend = date_range[0], date_range[1]
-            # if service.name == 'Hamster':
-            #     import ipdb; ipdb.set_trace()
             service_cost = self.total_cost(
                 dstart,
                 dend,
