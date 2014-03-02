@@ -144,7 +144,7 @@ class AllVenturesBeta(Report):
     def _prepare_field(cls, field_name, field_rules, venture_data):
         """
         Prepare single field for one row for single column. For example,
-        here is a place for format filed as currency or set default value
+        here is a place for format field as currency or set default value
 
         :param string field_name: Key for define which value must be taken
         :param dict field_rules: Schema for this field
