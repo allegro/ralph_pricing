@@ -7,27 +7,15 @@ from __future__ import unicode_literals
 
 import abc
 import logging
-from datetime import timedelta
 from decimal import Decimal as D
-from collections import defaultdict
 
 from django.db.models import Sum
-from django.utils.translation import ugettext_lazy as _
 from lck.cache import memoize
 
-from ralph.util import plugin as plugin_runner
 from ralph_pricing.models import DailyUsage
 from ralph_pricing.plugins.base import BasePlugin
 
 logger = logging.getLogger(__name__)
-
-
-class ExceptionalSituation(unicode):
-    pass
-
-
-INCOMPLETE_PRICE = ExceptionalSituation(_('Incomplete price'))
-NO_PRICE = ExceptionalSituation(_('No price'))
 
 
 class AttributeDict(dict):
@@ -39,7 +27,18 @@ class AttributeDict(dict):
 
 
 class BaseReportPlugin(BasePlugin):
+    """
+    Base report plugin
+
+    Every plugin which inherit from BaseReportPlugin should implement 3
+    methods: usages, schema and total_cost.
+
+    Usages and schema methods are connected - schema defines output format of
+    usages method. Usages method should return informations about usages (one
+    or more types - depending on plugins needs) per every venture.
+    """
     def run(self, type='usages', *args, **kwargs):
+        # find method with name the same as type param
         if hasattr(self, type):
             func = getattr(self, type)
             if hasattr(func, '__call__'):
@@ -99,6 +98,8 @@ class BaseReportPlugin(BasePlugin):
         Calculates total usage of usage type in period of time (between start
         and end). Total usage can be calculated overall, for single warehouse,
         for selected ventures or for ventures in warehouse.
+
+        :rtype: float
         """
         daily_usages = DailyUsage.objects.filter(
             date__gte=start,
@@ -129,6 +130,8 @@ class BaseReportPlugin(BasePlugin):
         one-number result, it returns total cost per venture in period of time
         (between start and end). Total usage can be calculated overall, for
         single warehouse, for selected ventures or for ventures in warehouse.
+
+        :rtype: list
         """
         daily_usages = DailyUsage.objects.filter(
             date__gte=start,

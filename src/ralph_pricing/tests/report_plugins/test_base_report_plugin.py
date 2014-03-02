@@ -13,8 +13,7 @@ from decimal import Decimal as D
 from django.test import TestCase
 
 from ralph_pricing import models
-# from ralph_pricing.plugins.reports import utils
-from ralph_pricing.plugins.reports.base import AttributeDict, BaseReportPlugin
+from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
 
 class SampleReportPlugin(BaseReportPlugin):
@@ -91,9 +90,11 @@ class TestBaseReportPlugin(TestCase):
         #   venture2: 40 (half in warehouse1, half in warehouse2)
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
-        for i, ut in enumerate(models.UsageType.objects.filter(type='BU'), start=1):
-            for j, day in enumerate(rrule.rrule(rrule.DAILY, dtstart=start, until=end), start=1):
-                for k, venture in enumerate(models.Venture.objects.all(), start=1):
+        base_usage_types = models.UsageType.objects.filter(type='BU')
+        for i, ut in enumerate(base_usage_types, start=1):
+            days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
+            for j, day in enumerate(days, start=1):
+                for k, venture in enumerate(self.ventures, start=1):
                     daily_usage = models.DailyUsage(
                         date=day,
                         pricing_venture=venture,
@@ -101,7 +102,9 @@ class TestBaseReportPlugin(TestCase):
                         type=ut,
                     )
                     if ut.by_warehouse:
-                        daily_usage.warehouse = self.warehouses[j % len(self.warehouses)]
+                        daily_usage.warehouse = (
+                            self.warehouses[j % len(self.warehouses)]
+                        )
                     daily_usage.save()
 
         # usage prices
@@ -169,7 +172,10 @@ class TestBaseReportPlugin(TestCase):
         )
 
     @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
-    def test_get_price_from_cost_with_warehouse(self, get_total_usage_in_period_mock):
+    def test_get_price_from_cost_with_warehouse(
+        self,
+        get_total_usage_in_period_mock
+    ):
         get_total_usage_in_period_mock.return_value = 100.0
         usage_price = models.UsagePrice(
             start=datetime.date(2013, 10, 10),
@@ -193,7 +199,10 @@ class TestBaseReportPlugin(TestCase):
         )
 
     @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
-    def test_get_price_from_cost_with_forecast(self, get_total_usage_in_period_mock):
+    def test_get_price_from_cost_with_forecast(
+        self,
+        get_total_usage_in_period_mock
+    ):
         get_total_usage_in_period_mock.return_value = 100.0
         usage_price = models.UsagePrice(
             start=datetime.date(2013, 10, 10),

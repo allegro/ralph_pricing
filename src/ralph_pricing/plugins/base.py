@@ -8,6 +8,8 @@ from __future__ import unicode_literals
 import abc
 import re
 
+from lck.cache import memoize
+
 from ralph.util import plugin
 from ralph_pricing.models import Warehouse
 
@@ -16,11 +18,18 @@ ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
 
 
 def camel_case_to_underscore(name):
+    """
+    Transform camel case string to underscore
+    """
     s1 = FIRST_CAP_RE.sub(r'\1_\2', name)
     return str(ALL_CAP_RE.sub(r'\1_\2', s1).lower())
 
 
 def register(*rargs, **rkwargs):
+    """
+    Allow to register class as ralph plugin. Class should have argumentless
+    constructor and should be callable.
+    """
     def wrap(cls):
         wrapper = cls()
         plugin.register(wrapper, *rargs, **rkwargs)
@@ -46,5 +55,12 @@ class BasePlugin(object):
         pass
 
     @classmethod
-    def get_warehouses(cls):
-        return Warehouse.objects.filter(show_in_report=True)
+    @memoize(skip_first=True)
+    def get_warehouses(cls, show_in_report=True):
+        """
+        Returns available warehouses
+        """
+        warehouses = Warehouse.objects.filter()
+        if show_in_report is not None:
+            warehouses = warehouses.filter(show_in_report=show_in_report)
+        return warehouses

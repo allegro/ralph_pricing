@@ -9,11 +9,8 @@ import logging
 from collections import defaultdict, OrderedDict
 from decimal import Decimal as D
 
-from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
-from lck.cache import memoize
 
-from ralph_pricing.models import DailyUsage, UsageType
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
@@ -49,9 +46,18 @@ class UsageBasePlugin(BaseReportPlugin):
             return _('Incomplete price')
         return None
 
-    def _get_total_cost_by_warehouses(self, start, end, ventures, usage_type, forecast=False, **kwargs):
+    def _get_total_cost_by_warehouses(
+        self,
+        start,
+        end,
+        ventures,
+        usage_type,
+        forecast=False,
+        **kwargs
+    ):
         """
-        Returns total cost of usage for ventures
+        Returns total cost of usage for ventures for every warehouse (if usage
+        type is by venture).
         """
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
@@ -104,10 +110,6 @@ class UsageBasePlugin(BaseReportPlugin):
             result.append(total_cost)
         return result
 
-    def total_cost(self, *args, **kwargs):
-        costs_by_wh = self._get_total_cost_by_warehouses(*args, **kwargs)
-        return costs_by_wh[-1]
-
     def _get_usages_per_warehouse(
         self,
         usage_type,
@@ -117,6 +119,14 @@ class UsageBasePlugin(BaseReportPlugin):
         ventures,
         no_price_msg=False,
     ):
+        """
+        Returns informations about usage (of usage type) count and cost
+        per venture in period (between start and end) using forecast or real
+        price. If no_price_msg is False, then even if there is no price
+        defined cost will always be number. If no_price_msg is True then if
+        price for period of time in undefined of partially defined (incomplete)
+        cost will be message what's wrong with price (i.e. 'Incomplete price').
+        """
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
         else:
@@ -139,12 +149,18 @@ class UsageBasePlugin(BaseReportPlugin):
             usage_prices = usage_prices.order_by('start')
 
             if usage_type.by_warehouse:
-                count_symbol = 'ut_{0}_count_wh_{1}'.format(usage_type.id, warehouse.id)
-                cost_symbol = 'ut_{0}_cost_wh_{1}'.format(usage_type.id, warehouse.id)
-                total_cost_symbol = 'ut_{0}_total_cost'.format(usage_type.id)
+                count_key = 'ut_{0}_count_wh_{1}'.format(
+                    usage_type.id,
+                    warehouse.id
+                )
+                cost_key = 'ut_{0}_cost_wh_{1}'.format(
+                    usage_type.id,
+                    warehouse.id
+                )
+                total_cost_key = 'ut_{0}_total_cost'.format(usage_type.id)
             else:
-                count_symbol = 'ut_{0}_count'.format(usage_type.id)
-                cost_symbol = 'ut_{0}_cost'.format(usage_type.id)
+                count_key = 'ut_{0}_count'.format(usage_type.id)
+                cost_key = 'ut_{0}_cost'.format(usage_type.id)
 
             def add_usages_per_venture(up_start, up_end, price):
                 usages_per_venture = self._get_usages_in_period_per_venture(
@@ -156,14 +172,14 @@ class UsageBasePlugin(BaseReportPlugin):
                 )
                 for v in usages_per_venture:
                     venture = v['pricing_venture']
-                    result[venture][count_symbol] += v['usage']
+                    result[venture][count_key] += v['usage']
                     cost = D(v['usage']) * price
                     if price_undefined:
-                        result[venture][cost_symbol] = price_undefined
+                        result[venture][cost_key] = price_undefined
                     else:
-                        result[venture][cost_symbol] += cost
+                        result[venture][cost_key] += cost
                     if usage_type.by_warehouse and not price_undefined:
-                        result[venture][total_cost_symbol] += cost
+                        result[venture][total_cost_key] += cost
 
             if usage_prices:
                 for usage_price in usage_prices:
@@ -186,6 +202,10 @@ class UsageBasePlugin(BaseReportPlugin):
 
         return result
 
+    def total_cost(self, *args, **kwargs):
+        costs_by_wh = self._get_total_cost_by_warehouses(*args, **kwargs)
+        return costs_by_wh[-1]
+
     def usages(
         self,
         start,
@@ -196,7 +216,7 @@ class UsageBasePlugin(BaseReportPlugin):
         no_price_msg=False,
         **kwargs
     ):
-        logger.debug("Get {0} usage".format(usage_type.name))
+        logger.debug("Get {0} usages".format(usage_type.name))
         return self._get_usages_per_warehouse(
             start=start,
             end=end,
@@ -211,13 +231,21 @@ class UsageBasePlugin(BaseReportPlugin):
         if usage_type.by_warehouse:
             schema = OrderedDict()
             for warehouse in self.get_warehouses():
-                schema['ut_{0}_count_wh_{1}'.format(usage_type.id, warehouse.id)] = {
+                count_key = 'ut_{0}_count_wh_{1}'.format(
+                    usage_type.id,
+                    warehouse.id
+                )
+                cost_key = 'ut_{0}_cost_wh_{1}'.format(
+                    usage_type.id,
+                    warehouse.id
+                )
+                schema[count_key] = {
                     'name': _("{0} count ({1})".format(
                         usage_type.name,
                         warehouse.name,
                     )),
                 }
-                schema['ut_{0}_cost_wh_{1}'.format(usage_type.id, warehouse.id)] = {
+                schema[cost_key] = {
                     'name': _("{0} cost ({1})".format(
                         usage_type.name,
                         warehouse.name,
@@ -245,4 +273,8 @@ class UsageBasePlugin(BaseReportPlugin):
 
 @register(chain='reports')
 class UsagePlugin(UsageBasePlugin):
+    """
+    Base Usage Plugin as ralph plugin. Splitting it into two classes gives
+    ability to inherit from UsageBasePlugin.
+    """
     pass

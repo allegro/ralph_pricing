@@ -123,7 +123,11 @@ class TestServicePlugin(TestCase):
         self.venture4 = models.Venture(venture_id=4, name='V4', is_active=True)
         self.venture4.save()
         self.service_ventures = list(self.service.venture_set.all())
-        self.not_service_ventures = list(models.Venture.objects.exclude(id__in=[i.id for i in self.service_ventures]))
+        self.not_service_ventures = list(
+            models.Venture.objects.exclude(
+                id__in=[i.id for i in self.service_ventures]
+            )
+        )
         self.ventures = models.Venture.objects.all()
 
         # daily usages of base type
@@ -135,9 +139,11 @@ class TestServicePlugin(TestCase):
         #   venture2: 40 (half in warehouse1, half in warehouse2)
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
-        for i, ut in enumerate(models.UsageType.objects.filter(type='BU'), start=1):
-            for j, day in enumerate(rrule.rrule(rrule.DAILY, dtstart=start, until=end), start=1):
-                for k, venture in enumerate(models.Venture.objects.all(), start=1):
+        base_usage_types = models.UsageType.objects.filter(type='BU')
+        for i, ut in enumerate(base_usage_types, start=1):
+            days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
+            for j, day in enumerate(days, start=1):
+                for k, venture in enumerate(self.ventures, start=1):
                     daily_usage = models.DailyUsage(
                         date=day,
                         pricing_venture=venture,
@@ -145,7 +151,9 @@ class TestServicePlugin(TestCase):
                         type=ut,
                     )
                     if ut.by_warehouse:
-                        daily_usage.warehouse = self.warehouses[j % len(self.warehouses)]
+                        daily_usage.warehouse = (
+                            self.warehouses[j % len(self.warehouses)]
+                        )
                     daily_usage.save()
 
         # usage prices
@@ -192,9 +200,14 @@ class TestServicePlugin(TestCase):
         # usage of service resources
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
-        for i, ut in enumerate(models.UsageType.objects.filter(type='SU'), start=1):
-            for j, day in enumerate(rrule.rrule(rrule.DAILY, dtstart=start, until=end), start=1):
-                for k, venture in enumerate(self.not_service_ventures, start=1):
+        service_usage_types = models.UsageType.objects.filter(type='SU')
+        for i, ut in enumerate(service_usage_types, start=1):
+            days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
+            for j, day in enumerate(days, start=1):
+                for k, venture in enumerate(
+                    self.not_service_ventures,
+                    start=1
+                ):
                     daily_usage = models.DailyUsage(
                         date=day,
                         pricing_venture=venture,
@@ -336,23 +349,6 @@ class TestServicePlugin(TestCase):
             service=self.service,
         )
 
-        # self.assertEquals(result, {
-        #     (datetime.date(2013, 10, 5), datetime.date(2013, 10, 10)): [
-        #         {'usage_type': 3, 'percent': 50.0},
-        #         {'usage_type': 4, 'percent': 30.0},
-        #         {'usage_type': 5, 'percent': 20.0},
-        #     ],
-        #     (datetime.date(2013, 10, 11), datetime.date(2013, 10, 20)): [
-        #         {'usage_type': 3, 'percent': 50.0},
-        #         {'usage_type': 4, 'percent': 10.0},
-        #         {'usage_type': 5, 'percent': 40.0},
-        #     ],
-        #     (datetime.date(2013, 10, 21), datetime.date(2013, 10, 25)): [
-        #         {'usage_type': 3, 'percent': 30.0},
-        #         {'usage_type': 4, 'percent': 30.0},
-        #         {'usage_type': 5, 'percent': 40.0},
-        #     ],
-        # })
         self.assertEquals(result, {
             (datetime.date(2013, 10, 5), datetime.date(2013, 10, 10)): {
                 3: 50.0,
@@ -403,7 +399,13 @@ class TestServicePlugin(TestCase):
             4: 80,
         }
 
-        def sample_usages(start, end, usage_type, warehouse=None, ventures=None):
+        def sample_usages(
+            start,
+            end,
+            usage_type,
+            warehouse=None,
+            ventures=None
+        ):
             usages = {
                 3: [
                     {'pricing_venture': self.venture1.id, 'usage': 0},
@@ -439,28 +441,26 @@ class TestServicePlugin(TestCase):
         self.assertEquals(result, {
             self.venture1.id: {
                 'sut_3_count': 0,
-                'sut_3_cost': 0,
+                'sut_3_cost': D(0),
             },
             self.venture2.id: {
                 'sut_3_count': 0,
-                'sut_3_cost': 0,
+                'sut_3_cost': D(0),
             },
             self.venture3.id: {
                 'sut_3_count': 900,
-                'sut_3_cost': 1800,
+                'sut_3_cost': D('1800'),
                 'sut_4_count': 1200,
-                'sut_4_cost': 6000,
+                'sut_4_cost': D('6000'),
             },
             self.venture4.id: {
                 'sut_3_count': 100,
-                'sut_3_cost': 200,
+                'sut_3_cost': D('200'),
                 'sut_4_count': 400,
-                'sut_4_cost': 2000,
+                'sut_4_cost': D('2000'),
             },
-
         })
 
-    # @mock.patch('ralph_pricing.plugins.reports.service.ServicePlugin.total_cost')  # noqa
     @mock.patch('ralph.util.plugin.run')
     def test_get_dependent_services_cost(self, plugin_run_mock):
         dependent_service1 = models.Service(

@@ -9,12 +9,10 @@ import logging
 from collections import defaultdict, OrderedDict
 from decimal import Decimal as D
 
-from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
-from lck.cache import memoize
 
 from ralph.util import plugin as plugin_runner
-from ralph_pricing.models import DailyUsage, UsageType
+from ralph_pricing.models import UsageType
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
@@ -22,6 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceBasePlugin(BaseReportPlugin):
+    """
+    Base plugin for all services in report. Provides 3 main methods:
+    * usages - service resources usages count and cost per venture
+    * schema - schema (output format) of usages method
+    * total_cost - returns total cost of service
+    """
     def _get_usage_type_cost(self, start, end, usage_type, forecast, ventures):
         """
         Calculates total cost of usage of given type for specified ventures in
@@ -41,7 +45,9 @@ class ServiceBasePlugin(BaseReportPlugin):
             )
             return result
         except (KeyError, AttributeError):
-            logger.warning('Invalid call for {0} total cost'.format(usage_type.name))
+            logger.warning(
+                'Invalid call for {0} total cost'.format(usage_type.name)
+            )
             return 0
 
     def _get_service_base_usage_types_cost(
@@ -149,8 +155,8 @@ class ServiceBasePlugin(BaseReportPlugin):
         for date, usage_types in sorted(dates.items(), key=lambda k: k[0]):
             if usage_types['start']:
                 current_start = date
-            for usage_type in usage_types['start']:
-                current_percentage[usage_type.usage_type.id] = usage_type.percent
+            for sut in usage_types['start']:
+                current_percentage[sut.usage_type.id] = sut.percent
 
             if usage_types['end']:
                 result[(current_start, date)] = current_percentage.copy()
@@ -190,14 +196,15 @@ class ServiceBasePlugin(BaseReportPlugin):
             )
             cost_part = D(percent) * cost / D(100)
 
-            usage_type_count_symbol = 'sut_{0}_count'.format(usage_type_id)
-            usage_type_cost_symbol = 'sut_{0}_cost'.format(usage_type_id)
+            count_key = 'sut_{0}_count'.format(usage_type_id)
+            cost_key = 'sut_{0}_cost'.format(usage_type_id)
 
-            for v in usages_per_venture:
-                venture = v['pricing_venture']
-                result[venture][usage_type_count_symbol] = v['usage']
-                result[venture][usage_type_cost_symbol] = D(v['usage']) / D(total_usage) \
-                    * cost_part
+            for venture_usage in usages_per_venture:
+                venture = venture_usage['pricing_venture']
+                usage = venture_usage['usage']
+                result[venture][count_key] = usage
+                venture_cost = D(usage) / D(total_usage) * cost_part
+                result[venture][cost_key] = venture_cost
         return result
 
     def total_cost(self, start, end, service, forecast, ventures):
@@ -207,6 +214,8 @@ class ServiceBasePlugin(BaseReportPlugin):
 
         Total cost is sum of cost of base usage types usages and all dependent
         services costs (for specified ventures).
+
+        :rtype: Decimal
         """
         # total cost of base usage types for ventures providing this service
         total_cost = self._get_service_base_usage_types_cost(
@@ -245,7 +254,10 @@ class ServiceBasePlugin(BaseReportPlugin):
             service,
         )
         service_symbol = "{0}_service_cost".format(service.id)
-        usage_types = sorted(set([a.usage_type for a in service.serviceusagetypes_set.all()]), key=lambda a: a.name)
+        schema_usage_types = [
+            a.usage_type for a in service.serviceusagetypes_set.all()
+        ]
+        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
         total_cost_column = len(usage_types) > 1
 
         result = defaultdict(lambda: defaultdict(int))
@@ -258,8 +270,8 @@ class ServiceBasePlugin(BaseReportPlugin):
                 forecast,
                 ventures=service.venture_set.all(),
             )
-            # distribute total cost between every venture proportionally to service
-            # usages
+            # distribute total cost between every venture proportionally to
+            # service usages
             service_report_in_daterange = self._distribute_costs(
                 start,
                 end,
@@ -276,21 +288,29 @@ class ServiceBasePlugin(BaseReportPlugin):
         return result
 
     def schema(self, service):
-        usage_types = sorted(set([a.usage_type for a in service.serviceusagetypes_set.all()]), key=lambda a: a.name)
+        """
+        Returns service usages schema depending on schema usage types.
+        """
+        schema_usage_types = [
+            a.usage_type for a in service.serviceusagetypes_set.all()
+        ]
+        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
         schema = OrderedDict()
-        for ut in usage_types:
-            symbol = ut.id
+        for usage_type in usage_types:
+            symbol = usage_type.id
             usage_type_count_symbol = 'sut_{0}_count'.format(symbol)
             usage_type_cost_symbol = 'sut_{0}_cost'.format(symbol)
 
             schema[usage_type_count_symbol] = {
-                'name': _("{0} count".format(ut.name)),
+                'name': _("{0} count".format(usage_type.name)),
             }
             schema[usage_type_cost_symbol] = {
-                'name': _("{0} cost".format(ut.name)),
+                'name': _("{0} cost".format(usage_type.name)),
                 'currency': True,
                 'total_cost': len(usage_types) == 1,
             }
+        # if there is more than one schema usage type -> add total service
+        # usage column
         if len(usage_types) > 1:
             service_symbol = "{0}_service_cost".format(service.id)
             schema[service_symbol] = {
@@ -304,4 +324,8 @@ class ServiceBasePlugin(BaseReportPlugin):
 
 @register(chain='reports')
 class ServicePlugin(ServiceBasePlugin):
+    """
+    Base Service Plugin as ralph plugin. Splitting it into two classes gives
+    ability to inherit from ServiceBasePlugin.
+    """
     pass
