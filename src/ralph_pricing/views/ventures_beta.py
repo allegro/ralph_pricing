@@ -57,6 +57,7 @@ class AllVenturesBeta(Report):
                 plugin_name=but.get_plugin_name(),  # TODO: create base plugin for BU
                 plugin_kwargs={
                     'usage_type': but,
+                    'no_price_msg': True,
                 }
             )
             result.append(but_info)
@@ -79,6 +80,7 @@ class AllVenturesBeta(Report):
                 plugin_name=rut.get_plugin_name(),  # TODO: create base plugin for RU
                 plugin_kwargs={
                     'usage_type': rut,
+                    'no_price_msg': True,
                 }
             )
             result.append(rut_info)
@@ -157,7 +159,7 @@ class AllVenturesBeta(Report):
         )
         usage_cost = D(0)
 
-        if isinstance(field_content, basestring):
+        if not isinstance(field_content, (int, D, float, long)):
             return field_content, usage_cost
 
         if 'currency' in field_rules and field_rules['currency']:

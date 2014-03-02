@@ -438,24 +438,24 @@ class TestServicePlugin(TestCase):
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                '3_count': 0,
-                '3_cost': 0,
+                'sut_3_count': 0,
+                'sut_3_cost': 0,
             },
             self.venture2.id: {
-                '3_count': 0,
-                '3_cost': 0,
+                'sut_3_count': 0,
+                'sut_3_cost': 0,
             },
             self.venture3.id: {
-                '3_count': 900,
-                '3_cost': 1800,
-                '4_count': 1200,
-                '4_cost': 6000,
+                'sut_3_count': 900,
+                'sut_3_cost': 1800,
+                'sut_4_count': 1200,
+                'sut_4_cost': 6000,
             },
             self.venture4.id: {
-                '3_count': 100,
-                '3_cost': 200,
-                '4_count': 400,
-                '4_cost': 2000,
+                'sut_3_count': 100,
+                'sut_3_cost': 200,
+                'sut_4_count': 400,
+                'sut_4_cost': 2000,
             },
 
         })
@@ -478,38 +478,38 @@ class TestServicePlugin(TestCase):
         def pl(chain, func_name, type, service, **kwargs):
             data = {
                 'Service2_schema': {
-                    '1_count': {},
-                    '1_cost': {'total_cost': False},
-                    '2_count': {},
-                    '2_cost': {'total_cost': False, 'currency': True},
+                    'sut_1_count': {},
+                    'sut_1_cost': {'total_cost': False},
+                    'sut_2_count': {},
+                    'sut_2_cost': {'total_cost': False, 'currency': True},
                     '2_service_cost': {'total_cost': True, 'currency': True},
                 },
                 'Service2_usages': {
                     1: {
-                        '1_count': 10,
-                        '1_cost': D(100),
+                        'sut_1_count': 10,
+                        'sut_1_cost': D(100),
                         '2_service_cost': D(100),
                     },
                     2: {
-                        '1_count': 10,
-                        '1_cost': D(100),
-                        '2_count': 10,
-                        '2_cost': D(200),
+                        'sut_1_count': 10,
+                        'sut_1_cost': D(100),
+                        'sut_2_count': 10,
+                        'sut_2_cost': D(200),
                         '2_service_cost': D(300),
                     }
                 },
                 'Service3_schema': {
-                    '1_count': {},
-                    '1_cost': {'total_cost': True, 'currency': True},
+                    'sut_1_count': {},
+                    'sut_1_cost': {'total_cost': True, 'currency': True},
                 },
                 'Service3_usages': {
                     1: {
-                        '1_count': 10,
-                        '1_cost': D(300),
+                        'sut_1_count': 10,
+                        'sut_1_cost': D(300),
                     },
                     2: {
-                        '1_count': 10,
-                        '1_cost': D(500),
+                        'sut_1_count': 10,
+                        'sut_1_cost': D(500),
                     }
                 },
             }
@@ -560,17 +560,17 @@ class TestServicePlugin(TestCase):
         )
         self.assertEquals(result, {
             3: {
-                '3_count': 220.0,
-                '3_cost': D('1510'),
-                '4_count': 440.0,
-                '4_cost': D('2730'),
+                'sut_3_count': 220.0,
+                'sut_3_cost': D('1510'),
+                'sut_4_count': 440.0,
+                'sut_4_cost': D('2730'),
                 '1_service_cost': D('4240'),
             },
             4: {
-                '3_count': 440.0,
-                '3_cost': D('3020'),
-                '4_count': 880.0,
-                '4_cost': D('5460'),
+                'sut_3_count': 440.0,
+                'sut_3_cost': D('3020'),
+                'sut_4_count': 880.0,
+                'sut_4_cost': D('5460'),
                 '1_service_cost': D('8480'),
             },
         })
@@ -581,14 +581,14 @@ class TestServicePlugin(TestCase):
             type='schema'
         )
         self.assertEquals(result, OrderedDict([
-            ('3_count', {'name': _('ServiceUsageType1 count')}),
-            ('3_cost', {
+            ('sut_3_count', {'name': _('ServiceUsageType1 count')}),
+            ('sut_3_cost', {
                 'name': _('ServiceUsageType1 cost'),
                 'currency': True,
                 'total_cost': False,
             }),
-            ('4_count', {'name': _('ServiceUsageType2 count')}),
-            ('4_cost', {
+            ('sut_4_count', {'name': _('ServiceUsageType2 count')}),
+            ('sut_4_cost', {
                 'name': _('ServiceUsageType2 cost'),
                 'currency': True,
                 'total_cost': False,

@@ -31,7 +31,7 @@ class UsageBasePlugin(BaseReportPlugin):
         :param datetime end: End date of the report
         :returns str: 'No price' or 'Incomplete price' or None (if all is ok)
         """
-        total_days = (end - start).days + 1 # total report days
+        total_days = (end - start).days + 1  # total report days
         ut_days = 0
         usage_prices = usage_type.usageprice_set.filter(
             end__gte=start,
@@ -47,6 +47,7 @@ class UsageBasePlugin(BaseReportPlugin):
             return _('No price')
         if ut_days != total_days:
             return _('Incomplete price')
+        return None
 
     def _get_total_cost_by_warehouses(self, start, end, ventures, usage_type, forecast=False, **kwargs):
         """
@@ -138,28 +139,14 @@ class UsageBasePlugin(BaseReportPlugin):
             usage_prices = usage_prices.order_by('start')
 
             if usage_type.by_warehouse:
-                count_symbol = '{0}_count_{1}'.format(usage_type.id, warehouse.id)
-                cost_symbol = '{0}_cost_{1}'.format(usage_type.id, warehouse.id)
-                total_cost_symbol = '{0}_total_cost'.format(usage_type.id)
+                count_symbol = 'ut_{0}_count_wh_{1}'.format(usage_type.id, warehouse.id)
+                cost_symbol = 'ut_{0}_cost_wh_{1}'.format(usage_type.id, warehouse.id)
+                total_cost_symbol = 'ut_{0}_total_cost'.format(usage_type.id)
             else:
-                count_symbol = '{0}_count'.format(usage_type.id)
-                cost_symbol = '{0}_cost'.format(usage_type.id)
+                count_symbol = 'ut_{0}_count'.format(usage_type.id)
+                cost_symbol = 'ut_{0}_cost'.format(usage_type.id)
 
-            for usage_price in usage_prices:
-                if forecast:
-                    price = usage_price.forecast_price
-                else:
-                    price = usage_price.price
-                if usage_type.by_cost:
-                    price = self._get_price_from_cost(
-                        usage_price,
-                        forecast,
-                        warehouse
-                    )
-
-                up_start = max(start, usage_price.start)
-                up_end = min(end, usage_price.end)
-
+            def add_usages_per_venture(up_start, up_end, price):
                 usages_per_venture = self._get_usages_in_period_per_venture(
                     up_start,
                     up_end,
@@ -169,11 +156,33 @@ class UsageBasePlugin(BaseReportPlugin):
                 )
                 for v in usages_per_venture:
                     venture = v['pricing_venture']
-                    result[venture][count_symbol] = v['usage']
+                    result[venture][count_symbol] += v['usage']
                     cost = D(v['usage']) * price
-                    result[venture][cost_symbol] = price_undefined or cost
+                    if price_undefined:
+                        result[venture][cost_symbol] = price_undefined
+                    else:
+                        result[venture][cost_symbol] += cost
                     if usage_type.by_warehouse and not price_undefined:
                         result[venture][total_cost_symbol] += cost
+
+            if usage_prices:
+                for usage_price in usage_prices:
+                    if forecast:
+                        price = usage_price.forecast_price
+                    else:
+                        price = usage_price.price
+                    if usage_type.by_cost:
+                        price = self._get_price_from_cost(
+                            usage_price,
+                            forecast,
+                            warehouse
+                        )
+
+                    up_start = max(start, usage_price.start)
+                    up_end = min(end, usage_price.end)
+                    add_usages_per_venture(up_start, up_end, price)
+            else:
+                add_usages_per_venture(start, end, 0)
 
         return result
 
@@ -202,30 +211,30 @@ class UsageBasePlugin(BaseReportPlugin):
         if usage_type.by_warehouse:
             schema = OrderedDict()
             for warehouse in self.get_warehouses():
-                schema['{0}_count_{1}'.format(usage_type.id, warehouse.id)] = {
+                schema['ut_{0}_count_wh_{1}'.format(usage_type.id, warehouse.id)] = {
                     'name': _("{0} count ({1})".format(
                         usage_type.name,
                         warehouse.name,
                     )),
                 }
-                schema['{0}_cost_{1}'.format(usage_type.id, warehouse.id)] = {
+                schema['ut_{0}_cost_wh_{1}'.format(usage_type.id, warehouse.id)] = {
                     'name': _("{0} cost ({1})".format(
                         usage_type.name,
                         warehouse.name,
                     )),
                     'currency': True,
                 }
-            schema['{0}_total_cost'.format(usage_type.id)] = {
+            schema['ut_{0}_total_cost'.format(usage_type.id)] = {
                 'name': _("{0} total cost".format(usage_type.name)),
                 'currency': True,
                 'total_cost': True,
             }
         else:
             schema = OrderedDict([
-                ('{0}_count'.format(usage_type.id), {
+                ('ut_{0}_count'.format(usage_type.id), {
                     'name': _("{0} count".format(usage_type.name)),
                 }),
-                ('{0}_cost'.format(usage_type.id), {
+                ('ut_{0}_cost'.format(usage_type.id), {
                     'name': _("{0} cost".format(usage_type.name)),
                     'currency': True,
                     'total_cost': True,

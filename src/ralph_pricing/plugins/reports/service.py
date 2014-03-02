@@ -190,8 +190,8 @@ class ServiceBasePlugin(BaseReportPlugin):
             )
             cost_part = D(percent) * cost / D(100)
 
-            usage_type_count_symbol = '{0}_count'.format(usage_type_id)
-            usage_type_cost_symbol = '{0}_cost'.format(usage_type_id)
+            usage_type_count_symbol = 'sut_{0}_count'.format(usage_type_id)
+            usage_type_cost_symbol = 'sut_{0}_cost'.format(usage_type_id)
 
             for v in usages_per_venture:
                 venture = v['pricing_venture']
@@ -280,8 +280,8 @@ class ServiceBasePlugin(BaseReportPlugin):
         schema = OrderedDict()
         for ut in usage_types:
             symbol = ut.id
-            usage_type_count_symbol = '{0}_count'.format(symbol)
-            usage_type_cost_symbol = '{0}_cost'.format(symbol)
+            usage_type_count_symbol = 'sut_{0}_count'.format(symbol)
+            usage_type_cost_symbol = 'sut_{0}_cost'.format(symbol)
 
             schema[usage_type_count_symbol] = {
                 'name': _("{0} count".format(ut.name)),
