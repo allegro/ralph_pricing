@@ -270,7 +270,6 @@ class AllVenturesBeta(Report):
         """
         logger.debug("Getting report date")
         data = {venture.id: {} for venture in ventures}
-        # import ipdb; ipdb.set_trace()
         for i, plugin in enumerate(cls._get_plugins()):
             try:
                 plugin_report = plugin_runner.run(
