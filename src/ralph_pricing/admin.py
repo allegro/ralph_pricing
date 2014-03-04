@@ -5,7 +5,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django import forms
 from django.contrib import admin
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from lck.django.common.admin import ModelAdmin
 
 from ralph_pricing import models
@@ -79,8 +81,36 @@ class ServiceUsageTypesInline(admin.TabularInline):
     model = models.ServiceUsageTypes
 
 
+class ServiceForm(forms.ModelForm):
+    class Meta:
+        model = models.Service
+
+    ventures = forms.ModelMultipleChoiceField(
+        queryset=models.Venture.objects.all(),
+        required=False,
+        widget=FilteredSelectMultiple('Ventures', False),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(ServiceForm, self).__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['ventures'].initial = self.instance.venture_set.all()
+
+    def save(self, commit=True):
+        # NOTE: Previously assigned Ventures and their services are
+        # silently reset
+        instance = super(ServiceForm, self).save(commit=False)
+        self.fields['ventures'].initial.update(service=None)
+        if self.cleaned_data['ventures']:
+            self.cleaned_data['ventures'].update(service=instance)
+        if commit:
+            instance.save()
+        return instance
+
+
 @register(models.Service)
 class ServiceAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+    form = ServiceForm
     inlines = [ServiceUsageTypesInline]
