@@ -10,8 +10,9 @@ class Migration(DataMigration):
     def forwards(self, orm):
         "Write your forwards methods here."
         cursor = connection.cursor()
-        cursor.execute('UPDATE ralph.ralph_pricing_dailydevice SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
-        cursor.execute('UPDATE ralph.ralph_pricing_dailypart SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
+        cursor.execute('UPDATE ralph_pricing_dailydevice SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
+
+        cursor.execute('UPDATE ralph_pricing_dailypart SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
 
     def backwards(self, orm):
         "Write your backwards methods here."

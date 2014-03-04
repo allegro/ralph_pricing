@@ -52,10 +52,10 @@ class Migration(SchemaMigration):
                       keep_default=False)
 
         # Adding unique constraint on 'UsagePrice', fields ['warehouse', 'start', 'type']
-        db.create_unique('ralph_pricing_usageprice', ['warehouse_id', 'start', 'type_id'])
+        # db.create_unique('ralph_pricing_usageprice', ['warehouse_id', 'start', 'type_id'])
 
         # Adding unique constraint on 'UsagePrice', fields ['warehouse', 'type', 'end']
-        db.create_unique('ralph_pricing_usageprice', ['warehouse_id', 'type_id', 'end'])
+        # db.create_unique('ralph_pricing_usageprice', ['warehouse_id', 'type_id', 'end'])
 
         # Adding field 'DailyDevice.warehouse'
         db.add_column('ralph_pricing_dailydevice', 'warehouse',
