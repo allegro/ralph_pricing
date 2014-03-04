@@ -54,7 +54,7 @@ class AllVenturesBeta(Report):
         for but in base_usage_types:
             but_info = AttributeDict(
                 name=but.name,
-                plugin_name=but.get_plugin_name(),  # TODO: create base plugin for BU
+                plugin_name=but.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': but,
                     'no_price_msg': True,
@@ -77,7 +77,7 @@ class AllVenturesBeta(Report):
         for rut in regular_usage_types:
             rut_info = AttributeDict(
                 name=rut.name,
-                plugin_name=rut.get_plugin_name(),  # TODO: create base plugin for RU
+                plugin_name=rut.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': rut,
                     'no_price_msg': True,

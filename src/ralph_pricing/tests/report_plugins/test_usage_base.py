@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
-import mock
 from collections import OrderedDict
 from dateutil import rrule
 from decimal import Decimal as D
@@ -256,7 +255,10 @@ class TestUsageBasePlugin(TestCase):
         #   warehouse1: usage: 300; cost: 2880
         #   warehouse2: usage: 360; cost: 3240
         #   total: cost: 6840
-        self.assertEquals(result, [300.0, D('2880'), 360.0, D('3240'), D('6120')])
+        self.assertEquals(
+            result,
+            [300.0, D('2880'), 360.0, D('3240'), D('6120')]
+        )
 
     def test_get_usage_type_cost_by_cost_forecast(self):
         result = UsagePlugin._get_total_cost_by_warehouses(
@@ -313,7 +315,10 @@ class TestUsageBasePlugin(TestCase):
         #   warehouse1: usage: 100; cost: 1260
         #   warehouse2: usage: 120; cost: 720
         #   total: cost: 1980
-        self.assertEquals(result, [100.0, D('1260'), 120.0, D('720'), D('1980')])
+        self.assertEquals(
+            result,
+            [100.0, D('1260'), 120.0, D('720'), D('1980')]
+        )
 
     def test_get_usages(self):
         result = UsagePlugin.usages(
