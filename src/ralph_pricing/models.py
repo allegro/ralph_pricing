@@ -128,14 +128,19 @@ class UsageType(db.Model):
     )
     order = db.IntegerField(
         verbose_name=_("Display order"),
-        default=0
+        default=0,
     )
     TYPE_CHOICES = (
         ('BU', _("Base usage type")),
         ('RU', _("Regular usage type")),
         ('SU', _("Service usage type")),
     )
-    type = db.CharField(max_length=2, choices=TYPE_CHOICES, default='RU')
+    type = db.CharField(
+        verbose_name=_("Type"),
+        max_length=2,
+        choices=TYPE_CHOICES,
+        default='RU',
+    )
     use_universal_plugin = db.BooleanField(
         verbose_name=_("Use universal plugin"),
         default=True,
@@ -205,8 +210,7 @@ class UsageType(db.Model):
             return price
 
 
-class Service(db.Model):
-    name = db.CharField(verbose_name=_("Name"), max_length=255, unique=True)
+class Service(TimeTrackable, EditorTrackable, Named):
     symbol = db.CharField(
         verbose_name=_("symbol"),
         max_length=255,

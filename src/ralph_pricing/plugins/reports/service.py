@@ -33,7 +33,7 @@ class ServiceBasePlugin(BaseReportPlugin):
         price/cost.
         """
         try:
-            result = plugin_runner.run(
+            return plugin_runner.run(
                 'reports',
                 usage_type.get_plugin_name(),
                 type='total_cost',
@@ -43,12 +43,11 @@ class ServiceBasePlugin(BaseReportPlugin):
                 forecast=forecast,
                 ventures=ventures,
             )
-            return result
         except (KeyError, AttributeError):
             logger.warning(
                 'Invalid call for {0} total cost'.format(usage_type.name)
             )
-            return 0
+            return D(0)
 
     def _get_service_base_usage_types_cost(
         self,
@@ -63,7 +62,7 @@ class ServiceBasePlugin(BaseReportPlugin):
         real or forecast prices/costs. Total cost is calculated for period of
         time (between start and end) and for specified ventures.
         """
-        total_cost = 0
+        total_cost = D(0)
         for usage_type in service.base_usage_types.all():
             usage_type_total_cost = self._get_usage_type_cost(
                 start,
@@ -144,14 +143,15 @@ class ServiceBasePlugin(BaseReportPlugin):
             end__gte=start,
         )
         dates = defaultdict(lambda: defaultdict(list))
-        for ut in usage_types:
-            dates[max(ut.start, start)]['start'].append(ut)
-            dates[min(ut.end, end)]['end'].append(ut)
+        for usage_type in usage_types:
+            dates[max(usage_type.start, start)]['start'].append(usage_type)
+            dates[min(usage_type.end, end)]['end'].append(usage_type)
 
         result = {}
         current_percentage = {}
         current_start = None
 
+        # iterate through dict items sorted by key (date)
         for date, usage_types in sorted(dates.items(), key=lambda k: k[0]):
             if usage_types['start']:
                 current_start = date
@@ -192,7 +192,7 @@ class ServiceBasePlugin(BaseReportPlugin):
             total_usage = self._get_total_usage_in_period(
                 start,
                 end,
-                usage_type
+                usage_type,
             )
             cost_part = D(percent) * cost / D(100)
 

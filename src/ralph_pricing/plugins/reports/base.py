@@ -34,7 +34,7 @@ class BaseReportPlugin(BasePlugin):
     methods: usages, schema and total_cost.
 
     Usages and schema methods are connected - schema defines output format of
-    usages method. Usages method should return informations about usages (one
+    usages method. Usages method should return information about usages (one
     or more types - depending on plugins needs) per every venture.
     """
     def run(self, type='usages', *args, **kwargs):
@@ -79,9 +79,8 @@ class BaseReportPlugin(BasePlugin):
             ventures,
         )
         cost = usage_price.forecast_cost if forecast else usage_price.cost
-        if total_usage == 0:
-            price = 0
-        else:
+        price = 0
+        if total_usage and cost:
             price = cost / D(total_usage)
         return D(price)
 
@@ -107,14 +106,13 @@ class BaseReportPlugin(BasePlugin):
             type=usage_type,
         )
         if warehouse:
-                daily_usages = daily_usages.filter(warehouse=warehouse)
+            daily_usages = daily_usages.filter(warehouse=warehouse)
         if ventures:
             daily_usages = daily_usages.filter(pricing_venture__in=ventures)
 
-        total_usage = daily_usages.aggregate(
+        return daily_usages.aggregate(
             total=Sum('value')
         ).get('total') or 0
-        return total_usage
 
     @memoize(skip_first=True)
     def _get_usages_in_period_per_venture(
@@ -142,7 +140,6 @@ class BaseReportPlugin(BasePlugin):
                 daily_usages = daily_usages.filter(warehouse=warehouse)
         if ventures:
             daily_usages = daily_usages.filter(pricing_venture__in=ventures)
-        result = daily_usages.values('pricing_venture').annotate(
+        return list(daily_usages.values('pricing_venture').annotate(
             usage=Sum('value'),
-        ).order_by('pricing_venture')
-        return list(result)
+        ).order_by('pricing_venture'))

@@ -40,11 +40,10 @@ class Deprecation(UsageBasePlugin):
             pricing_venture__in=ventures,
         )
 
-        assets_report = assets_report_query.values('pricing_venture')\
+        return assets_report_query.values('pricing_venture')\
             .annotate(assets_price=Sum('price'))\
             .annotate(assets_cost=Sum('daily_cost'))\
             .annotate(assets_count=Count('id'))
-        return assets_report
 
     def total_cost(self, start, end, ventures, **kwargs):
         assets_report_query = DailyDevice.objects.filter(
