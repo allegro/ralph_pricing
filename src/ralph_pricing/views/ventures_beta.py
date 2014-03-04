@@ -20,7 +20,7 @@ from ralph_pricing.models import (
 from ralph_pricing.forms import DateRangeForm
 from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
-from ralph_pricing.plugins.reports.utils import AttributeDict
+from ralph_pricing.plugins.reports.base import AttributeDict
 
 
 logger = logging.getLogger(__name__)
