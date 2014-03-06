@@ -189,4 +189,4 @@ class TestAssetPlugin(TestCase):
             'deprecation_rate': 0,
         }
         device = Device.objects.get(device_id=123)
-        self.assertEqual(device.sn, '5555-5555-5555-5555')
+        self.assertEqual(device.sn, '5556-5555-5555-5555')
