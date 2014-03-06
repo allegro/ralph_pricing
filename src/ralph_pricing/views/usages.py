@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
+from ralph_pricing.app import Scrooge
 from ralph_pricing.forms import UsagesFormSet
 from ralph_pricing.menus import usages_menu
 from ralph_pricing.models import UsageType
@@ -71,7 +72,7 @@ class Usages(Base):
         context.update({
             'section': 'usages',
             'sidebar_items': usages_menu(
-                '/pricing/usages',
+                '/{0}/usages'.format(Scrooge.url_prefix),
                 self.usage_type_name
             ),
             'sidebar_selected': self.usage_type_name,
