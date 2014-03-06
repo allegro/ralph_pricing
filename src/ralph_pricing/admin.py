@@ -94,17 +94,18 @@ class ServiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ServiceForm, self).__init__(*args, **kwargs)
         if self.instance:
-            self.fields['ventures'].initial = self.instance.venture_set.all()
+            self.fields['ventures'].initial = (
+                self.instance.venture_set.exclude(service=None)
+            )
 
     def save(self, commit=True):
         # NOTE: Previously assigned Ventures and their services are
         # silently reset
         instance = super(ServiceForm, self).save(commit=False)
         self.fields['ventures'].initial.update(service=None)
+        instance.save()
         if self.cleaned_data['ventures']:
             self.cleaned_data['ventures'].update(service=instance)
-        if commit:
-            instance.save()
         return instance
 
 
