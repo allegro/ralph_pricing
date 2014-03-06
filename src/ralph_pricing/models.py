@@ -87,6 +87,41 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
         return self.name
 
 
+class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
+    show_in_report = db.BooleanField(
+        verbose_name=_("Show team in report"),
+        default=False,
+    )
+    BILLING_TYPES = (
+        ('TIME', 'By time'),
+        ('DEVICES_CORES', 'By devices and cores count'),
+        ('DEVICES', 'By devices'),
+        ('DISTRIBUTE', 'Distribute cost to other teams proportionally to team members count'),
+    )
+    billing_type = db.CharField(
+        verbose_name=_("Billing type"),
+        max_length=15,
+        choices=BILLING_TYPES,
+        default='TIME',
+    )
+
+    def __unicode__(self):
+        return self.name
+
+
+class TeamMembersCount(db.Model):
+    team = db.ForeignKey(
+        Team,
+        verbose_name=_("Team"),
+    )
+    start = db.DateField()
+    end = db.DateField()
+    members_count = db.IntegerField(
+        verbose_name=_("Members count"),
+        default=0,
+    )
+
+
 class UsageType(db.Model):
     """
     Model contains usage types
@@ -112,6 +147,10 @@ class UsageType(db.Model):
     )
     by_warehouse = db.BooleanField(
         verbose_name=_("Usage type is by warehouse"),
+        default=False,
+    )
+    by_team = db.BooleanField(
+        verbose_name=_("Usage type is by team"),
         default=False,
     )
     is_manually_type = db.BooleanField(
@@ -845,6 +884,12 @@ class UsagePrice(db.Model):
         blank=True,
         on_delete=db.PROTECT,
     )
+    team = db.ForeignKey(
+        Team,
+        null=True,
+        blank=True,
+        on_delete=db.PROTECT,
+    )
 
     class Meta:
         verbose_name = _("usage price")
@@ -857,8 +902,21 @@ class UsagePrice(db.Model):
         ordering = ('type', '-start')
 
     def __unicode__(self):
-        return '{}-{} ({}-{})'.format(
-            self.warehouse,
+        if self.type and self.type.by_warehouse:
+            return '{}-{} ({}-{})'.format(
+                self.warehouse,
+                self.type,
+                self.start,
+                self.end,
+            )
+        if self.type and self.type.by_team:
+            return '{}-{} ({}-{})'.format(
+                self.team,
+                self.type,
+                self.start,
+                self.end,
+            )
+        return '{} ({}-{})'.format(
             self.type,
             self.start,
             self.end,

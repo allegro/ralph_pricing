@@ -115,3 +115,14 @@ class ServiceAdmin(ModelAdmin):
     search_fields = ('name',)
     form = ServiceForm
     inlines = [ServiceUsageTypesInline]
+
+
+class TeamMembersCountInline(admin.TabularInline):
+    model = models.TeamMembersCount
+
+
+@register(models.Team)
+class TeamAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    inlines = [TeamMembersCountInline, UsagePriceInline]
