@@ -121,8 +121,12 @@ class TeamMembersCountInline(admin.TabularInline):
     model = models.TeamMembersCount
 
 
+class TeamVenturesPercentInline(admin.TabularInline):
+    model = models.TeamVenturePercent
+
+
 @register(models.Team)
 class TeamAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    inlines = [TeamMembersCountInline, UsagePriceInline]
+    inlines = [TeamMembersCountInline, UsagePriceInline, TeamVenturesPercentInline]

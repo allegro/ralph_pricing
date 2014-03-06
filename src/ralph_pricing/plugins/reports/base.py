@@ -7,12 +7,14 @@ from __future__ import unicode_literals
 
 import abc
 import logging
+from collections import defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum
 from lck.cache import memoize
 
 from ralph_pricing.models import DailyUsage
+from ralph_pricing.models import UsageType
 from ralph_pricing.plugins.base import BasePlugin
 
 logger = logging.getLogger(__name__)
@@ -37,6 +39,9 @@ class BaseReportPlugin(BasePlugin):
     usages method. Usages method should return information about usages (one
     or more types - depending on plugins needs) per every venture.
     """
+    distribute_count_key_tmpl = 'ut_{0}_count'
+    distribute_cost_key_tmpl = 'ut_{0}_cost'
+
     def run(self, type='usages', *args, **kwargs):
         # find method with name the same as type param
         if hasattr(self, type):
@@ -56,6 +61,48 @@ class BaseReportPlugin(BasePlugin):
     @abc.abstractmethod
     def total_cost(self, *args, **kwargs):
         pass
+
+    def _distribute_costs(
+        self,
+        start,
+        end,
+        ventures,
+        cost,
+        percentage,
+    ):
+        """
+        Distributes some cost between all ventures proportionally to usages of
+        service resources (taken from percentage).
+        """
+        # first level: venture
+        # second level: usage type key (count or cost)
+        result = defaultdict(lambda: defaultdict(int))
+
+        for usage_type_id, percent in percentage.items():
+            usage_type = UsageType.objects.get(id=usage_type_id)
+            usages_per_venture = self._get_usages_in_period_per_venture(
+                start,
+                end,
+                usage_type,
+                ventures=ventures,
+            )
+            total_usage = self._get_total_usage_in_period(
+                start,
+                end,
+                usage_type,
+            )
+            cost_part = D(percent) * cost / D(100)
+
+            count_key = self.distribute_count_key_tmpl.format(usage_type_id)
+            cost_key = self.distribute_cost_key_tmpl.format(usage_type_id)
+
+            for venture_usage in usages_per_venture:
+                venture = venture_usage['pricing_venture']
+                usage = venture_usage['usage']
+                result[venture][count_key] = usage
+                venture_cost = D(usage) / D(total_usage) * cost_part
+                result[venture][cost_key] = venture_cost
+        return result
 
     @memoize(skip_first=True)
     def _get_price_from_cost(

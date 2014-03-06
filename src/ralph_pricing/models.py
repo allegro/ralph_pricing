@@ -9,6 +9,7 @@ from decimal import Decimal as D
 from dateutil import rrule
 from lck.cache import memoize
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
@@ -90,7 +91,7 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
 class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
     show_in_report = db.BooleanField(
         verbose_name=_("Show team in report"),
-        default=False,
+        default=True,
     )
     BILLING_TYPES = (
         ('TIME', 'By time'),
@@ -104,6 +105,14 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         choices=BILLING_TYPES,
         default='TIME',
     )
+    ventures_percent = db.ManyToManyField(
+        'Venture',
+        through='TeamVenturePercent',
+    )
+
+    class Meta:
+        verbose_name = _("Team")
+        verbose_name_plural = _("Teams")
 
     def __unicode__(self):
         return self.name
@@ -120,6 +129,49 @@ class TeamMembersCount(db.Model):
         verbose_name=_("Members count"),
         default=0,
     )
+
+    class Meta:
+        verbose_name = _("Team members count")
+        verbose_name_plural = _("Teams members count")
+
+    def __unicode__(self):
+        return '{} ({}-{})'.format(
+            self.team,
+            self.start,
+            self.end,
+        )
+
+
+class TeamVenturePercent(db.Model):
+    team = db.ForeignKey(
+        Team,
+        verbose_name=_("Team"),
+    )
+    venture = db.ForeignKey(
+        'Venture',
+        verbose_name=_("Venture"),
+    )
+    start = db.DateField()
+    end = db.DateField()
+    percent = db.FloatField(
+        verbose_name=_("Percent"),
+        validators=[
+            MaxValueValidator(100.0),
+            MinValueValidator(0.0)
+        ]
+    )
+
+    class Meta:
+        verbose_name = _("Team venture percent")
+        verbose_name_plural = _("Teams ventures percent")
+
+    def __unicode__(self):
+        return '{}/{} ({} - {})'.format(
+            self.team,
+            self.venture,
+            self.start,
+            self.end,
+        )
 
 
 class UsageType(db.Model):
@@ -921,6 +973,12 @@ class UsagePrice(db.Model):
             self.start,
             self.end,
         )
+
+    def clean(self):
+        if self.type.by_warehouse and not self.warehouse:
+            raise ValidationError('Warehouse is required')
+        if self.type.by_team and not self.team:
+            raise ValidationError('Team is required')
 
 
 class DailyUsage(db.Model):

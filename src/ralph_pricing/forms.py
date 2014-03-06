@@ -95,6 +95,7 @@ class UsagePriceForm(forms.ModelForm):
 
         fields = [
             'warehouse',
+            'team',
             'forecast_price',
             'price',
             'forecast_cost',
@@ -107,13 +108,6 @@ class UsagePriceForm(forms.ModelForm):
             'start': DateWidget(attrs={'class': 'input-small'}),
             'end': DateWidget(attrs={'class': 'input-small'}),
         }
-
-    def clean_warehouse(self):
-        if self.cleaned_data['warehouse'] is None:
-            raise forms.ValidationError(
-                _("You must choose warehouse."),
-            )
-        return self.cleaned_data['warehouse']
 
     def clean_end(self):
         '''
