@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
+from ralph_pricing.app import Scrooge
 from ralph_pricing.forms import ExtraCostFormSet
 from ralph_pricing.menus import ventures_menu
 from ralph_pricing.models import Venture
@@ -60,7 +61,7 @@ class ExtraCosts(Base):
         context.update({
             'section': 'extra-costs',
             'sidebar_items': ventures_menu(
-                '/pricing/extra-costs',
+                '/{0}/extra-costs'.format(Scrooge.url_prefix),
                 self.venture_id
             ),
             'sidebar_selected': self.venture_id,

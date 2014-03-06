@@ -13,13 +13,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.reports import Report
 from ralph_pricing.models import (
+    Service,
     UsageType,
     Venture,
 )
 from ralph_pricing.forms import DateRangeForm
 from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
-from ralph_pricing.plugins.reports.utils import AttributeDict
+from ralph_pricing.plugins.reports.base import AttributeDict
 
 
 logger = logging.getLogger(__name__)
@@ -36,28 +37,86 @@ class AllVenturesBeta(Report):
     currency = 'PLN'
 
     @classmethod
-    def _get_usage_types(cls):
+    def _get_base_usage_types(cls):
         """
         Returns usage types which should be visible on report
         """
         logger.debug("Getting usage types")
-        return UsageType.objects.exclude(
-            show_in_report=False,
+        return UsageType.objects.filter(
+            show_in_report=True,
+            type='BU',
         ).order_by('-order', 'name')
 
     @classmethod
+    def _get_base_usage_types_plugins(cls):
+        base_usage_types = cls._get_base_usage_types()
+        result = []
+        for but in base_usage_types:
+            but_info = AttributeDict(
+                name=but.name,
+                plugin_name=but.get_plugin_name(),
+                plugin_kwargs={
+                    'usage_type': but,
+                    'no_price_msg': True,
+                }
+            )
+            result.append(but_info)
+        return result
+
+    @classmethod
+    def _get_regular_usage_types(cls):
+        return UsageType.objects.filter(
+            show_in_report=True,
+            type='RU',
+        ).order_by('-order', 'name')
+
+    @classmethod
+    def _get_regular_usage_types_plugins(cls):
+        regular_usage_types = cls._get_regular_usage_types()
+        result = []
+        for rut in regular_usage_types:
+            rut_info = AttributeDict(
+                name=rut.name,
+                plugin_name=rut.get_plugin_name(),
+                plugin_kwargs={
+                    'usage_type': rut,
+                    'no_price_msg': True,
+                }
+            )
+            result.append(rut_info)
+        return result
+
+    @classmethod
+    def _get_services(cls):
+        return Service.objects.order_by('name')
+
+    @classmethod
+    def _get_services_plugins(cls):
+        services = cls._get_services()
+        result = []
+        for service in services:
+            service_info = AttributeDict(
+                name=service.name,
+                plugin_name=service.get_plugin_name(),
+                plugin_kwargs={
+                    'service': service
+                }
+            )
+            result.append(service_info)
+        return result
+
+    @classmethod
+    @memoize
     def _get_plugins(cls):
         base_plugins = [
-            AttributeDict(name='Information', symbol='information'),
-            AttributeDict(name='Deprecation', symbol='deprecation'),
+            AttributeDict(name='Information', plugin_name='information'),
+            # AttributeDict(name='Deprecation', plugin_name='deprecation'),
         ]
-        usage_types = [
-            AttributeDict(
-                name=ut.name,
-                symbol=ut.symbol,
-            ) for ut in cls._get_usage_types()
-        ]
-        plugins = base_plugins + usage_types
+        base_usage_types_plugins = cls._get_base_usage_types_plugins()
+        regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
+        services_plugins = cls._get_services_plugins()
+        plugins = (base_plugins + base_usage_types_plugins +
+                   regular_usage_types_plugins + services_plugins)
         return plugins
 
     @classmethod
@@ -100,7 +159,7 @@ class AllVenturesBeta(Report):
         )
         usage_cost = D(0)
 
-        if isinstance(field_content, basestring):
+        if not isinstance(field_content, (int, D, float, long)):
             return field_content, usage_cost
 
         if 'currency' in field_rules and field_rules['currency']:
@@ -211,16 +270,17 @@ class AllVenturesBeta(Report):
         """
         logger.debug("Getting report date")
         data = {venture.id: {} for venture in ventures}
-
         for i, plugin in enumerate(cls._get_plugins()):
             try:
                 plugin_report = plugin_runner.run(
                     'reports',
-                    '{0}_usages'.format(plugin.symbol),
+                    plugin.plugin_name,
                     ventures=ventures,
                     start=start,
                     end=end,
                     forecast=forecast,
+                    type='usages',
+                    **plugin.get('plugin_kwargs', {})
                 )
                 for venture_id, venture_usage in plugin_report.iteritems():
                     if venture_id in data:
@@ -275,13 +335,14 @@ class AllVenturesBeta(Report):
             try:
                 plugin_headers = plugin_runner.run(
                     'reports',
-                    '{0}_schema'.format(plugin.symbol),
-                    warehouse='1',
+                    plugin.plugin_name,
+                    type='schema',
+                    **plugin.get('plugin_kwargs', {})
                 )
                 header.append(plugin_headers)
             except KeyError:
                 logger.warning(
-                    "Usage '{0}' have no schema plugin".format(plugin.name)
+                    "Usage '{0}' has no schema plugin".format(plugin.name)
                 )
         return header
 

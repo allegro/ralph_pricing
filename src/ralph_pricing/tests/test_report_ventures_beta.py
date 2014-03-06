@@ -11,6 +11,7 @@ from collections import OrderedDict
 from decimal import Decimal as D
 
 from django.test import TestCase
+from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing import models
 from ralph_pricing.views.ventures_beta import AllVenturesBeta as AllVentures
@@ -34,23 +35,30 @@ class TestReportVenturesBeta(TestCase):
         self.venture2.save()
 
         # usages
-        usage_type = models.UsageType(name='UT1', symbol='ut1')
-        usage_type.save()
-        usage_type3 = models.UsageType(
+        self.usage_type = models.UsageType(name='UT1', symbol='ut1')
+        self.usage_type.save()
+        usage_type2 = models.UsageType(
             name='UT2',
             symbol='ut2',
             show_in_report=False,
         )
-        usage_type3.save()
+        usage_type2.save()
 
         # usages by warehouse
-        warehouse_usage_type = models.UsageType(
+        self.warehouse_usage_type = models.UsageType(
             name='UT3',
             symbol='ut3',
             by_warehouse=True,
             order=3,
+            use_universal_plugin=False,
         )
-        warehouse_usage_type.save()
+        self.warehouse_usage_type.save()
+
+        # service
+        self.service = models.Service(
+            name='Service1'
+        )
+        self.service.save()
 
     def test_get_plugins(self):
         """
@@ -58,10 +66,30 @@ class TestReportVenturesBeta(TestCase):
         """
         plugins = AllVentures._get_plugins()
         self.assertEquals(plugins, [
-            dict(name='Information', symbol='information'),
-            dict(name='Deprecation', symbol='deprecation'),
-            dict(name='UT3', symbol='ut3'),  # order matters
-            dict(name='UT1', symbol='ut1'),
+            dict(name='Information', plugin_name='information'),
+            dict(
+                name='UT3',
+                plugin_name=self.warehouse_usage_type.get_plugin_name(),
+                plugin_kwargs=dict(
+                    usage_type=self.warehouse_usage_type,
+                    no_price_msg=True,
+                ),
+            ),  # order matters
+            dict(
+                name='UT1',
+                plugin_name=self.usage_type.get_plugin_name(),
+                plugin_kwargs=dict(
+                    usage_type=self.usage_type,
+                    no_price_msg=True,
+                ),
+            ),
+            dict(
+                name='Service1',
+                plugin_name=self.service.get_plugin_name(),
+                plugin_kwargs=dict(
+                    service=self.service,
+                ),
+            ),
         ])
 
     def test_get_as_currency(self):
@@ -208,86 +236,114 @@ class TestReportVenturesBeta(TestCase):
         """
         Test generating data for whole report
         """
-        def pl(chain, func_name, **kwargs):
+        def pl(chain, func_name, type, **kwargs):
             """
             Mock for plugin run. Should replace every schema and report plugin
             """
             data = {
-                'information_schema': OrderedDict([
-                    ('venture_id', {'name': 'ID'}),
-                    ('venture', {'name': 'Venture'}),
-                    ('department', {'name': 'Department'}),
-                ]),
-                'information_usages': {
-                    1: {
-                        'venture_id': 1,
-                        'venture': 'b',
-                        'department': 'aaaa',
+                'information': {
+                    'schema': OrderedDict([
+                        ('venture_id', {'name': 'ID'}),
+                        ('venture', {'name': 'Venture'}),
+                        ('department', {'name': 'Department'}),
+                    ]),
+                    'usages': {
+                        1: {
+                            'venture_id': 1,
+                            'venture': 'b',
+                            'department': 'aaaa',
+                        },
+                        3: {
+                            'venture_id': 3,
+                            'venture': 'a',
+                            'department': 'bbbb',
+                        }
                     },
-                    3: {
-                        'venture_id': 3,
-                        'venture': 'a',
-                        'department': 'bbbb',
+                },
+                'usage_plugin': {
+                    'schema': OrderedDict([
+                        ('ut1_count', {'name': 'UT1 count'}),
+                        ('ut1_cost', {
+                            'name': 'UT1 cost',
+                            'currency': True,
+                            'total_cost': True,
+                        })
+                    ]),
+                    'usages': {
+                        1: {'ut1_count': 123, 'ut1_cost': D('23.23')},
+                    },
+                },
+                'ut3': {
+                    'schema': OrderedDict([
+                        ('ut3_count_warehouse_1', {'name': 'UT3 count wh 1'}),
+                        ('ut3_count_warehouse_2', {'name': 'UT3 count wh 2'}),
+                        ('ut3_cost_warehouse_1', {
+                            'name': 'UT3 cost wh 1',
+                            'currency': True,
+                        }),
+                        ('ut3_cost_warehouse_2', {
+                            'name': 'UT3 cost wh 2',
+                            'currency': True
+                        }),
+                        ('ut3_cost_total', {
+                            'name': 'UT3 total cost',
+                            'currency': True,
+                            'total_cost': True,
+                        })
+                    ]),
+                    'usages': {
+                        1: {
+                            'ut3_count_warehouse_1': 213,
+                            'ut3_cost_warehouse_1': D('434.21'),
+                            'ut3_count_warehouse_2': 3234,
+                            'ut3_cost_warehouse_2': D('123.21'),
+                            'ut3_cost_total': D('557.42'),
+                        },
+                        3: {
+                            'ut3_count_warehouse_1': 267,
+                            'ut3_cost_warehouse_1': D('4764.21'),
+                            'ut3_count_warehouse_2': 36774,
+                            'ut3_cost_warehouse_2': _('Incomplete price'),
+                            'ut3_cost_total': D('4764.21'),
+                        }
                     }
                 },
-                'deprecation_schema': OrderedDict([
-                    ('assets_count', {'name': 'Assets count'}),
-                    ('assets_cost', {
-                        'name': 'Assets cost',
-                        'currency': True,
-                        'total_cost': True,
-                    }),
-                ]),
-                'deprecation_usages': {
-                    1: {'assets_count': 12, 'assets_cost': D('213')},
-                    3: {'assets_count': 1, 'assets_cost': D('23')},
-                },
-                'ut1_schema': OrderedDict([
-                    ('ut1_count', {'name': 'UT1 count'}),
-                    ('ut1_cost', {
-                        'name': 'UT1 cost',
-                        'currency': True,
-                        'total_cost': True,
-                    })
-                ]),
-                'ut1_usages': {
-                    1: {'ut1_count': 123, 'ut1_cost': D('23.23')},
-                },
-                'ut3_schema': OrderedDict([
-                    ('ut3_count_warehouse_1', {'name': 'UT3 count wh 1'}),
-                    ('ut3_count_warehouse_2', {'name': 'UT3 count wh 2'}),
-                    ('ut3_cost_warehouse_1', {
-                        'name': 'UT3 cost wh 1',
-                        'currency': True,
-                    }),
-                    ('ut3_cost_warehouse_2', {
-                        'name': 'UT3 cost wh 2',
-                        'currency': True
-                    }),
-                    ('ut3_cost_total', {
-                        'name': 'UT3 total cost',
-                        'currency': True,
-                        'total_cost': True,
-                    })
-                ]),
-                'ut3_usages': {
-                    1: {
-                        'ut3_count_warehouse_1': 213,
-                        'ut3_cost_warehouse_1': D('434.21'),
-                        'ut3_count_warehouse_2': 3234,
-                        'ut3_cost_warehouse_2': D('123.21'),
-                        'ut3_cost_total': D('557.42'),
-                    },
-                    3: {
-                        'ut3_count_warehouse_1': 267,
-                        'ut3_cost_warehouse_1': D('4764.21'),
-                        'ut3_count_warehouse_2': 36774,
-                        'ut3_cost_warehouse_2': 'Incomplete price',
-                        'ut3_cost_total': D('4764.21'),
+                'service_plugin': {
+                    'schema': OrderedDict([
+                        ('sut_3_count', {'name': 'UT3 count'}),
+                        ('sut_3_cost', {
+                            'name': 'UT3 cost wh 1',
+                            'currency': True,
+                        }),
+                        ('sut_4_count', {'name': 'UT4 count'}),
+
+                        ('sut_4_cost', {
+                            'name': 'UT4 cost',
+                            'currency': True
+                        }),
+                        ('1_service_cost', {
+                            'name': 'Service1 cost',
+                            'currency': True,
+                            'total_cost': True,
+                        })
+                    ]),
+                    'usages': {
+                        1: {
+                            'sut_4_count': 40.0,
+                            'sut_4_cost': D('2212.11'),
+                            '1_service_cost': D('2212.11'),
+                        },
+                        3: {
+                            'sut_3_count': 10.0,
+                            'sut_3_cost': D('20.22'),
+                            'sut_4_count': 20.0,
+                            'sut_4_cost': D('1212.11'),
+                            '1_service_cost': D('1232.33'),
+                        },
                     }
                 }
             }
-            result = data.get(func_name)
+            result = data.get(func_name, {}).get(type)
             if result is not None:
                 return result
             raise KeyError()
@@ -305,8 +361,8 @@ class TestReportVenturesBeta(TestCase):
                 3,  # venture_id
                 'a',  # venture_name
                 'bbbb',  # department
-                1,  # asset_count
-                '23.00 PLN',  # asset_cost
+                # 1,  # asset_count
+                # '23.00 PLN',  # asset_cost
                 267,  # ut3_count_warehouse_1
                 36774,  # ut3_cost_warehouse_1
                 '4764.21 PLN',  # ut3_count_warehouse_2
@@ -314,14 +370,19 @@ class TestReportVenturesBeta(TestCase):
                 '4764.21 PLN',  # ut3_cost_total
                 0.0,  # ut1_count
                 '0.00 PLN',  # ut1_cost
-                '4787.21 PLN',  # total_cost
+                10.0,  # sut_3_count
+                '20.22 PLN',  # sut_3_cost,
+                20.0,  # sut_4_count
+                '1212.11 PLN',  # sut_4_count
+                '1232.33 PLN',  # 1_sercive_cost
+                '5996.54 PLN',  # total_cost
             ],
             [
                 1,  # venture_id
                 'b',  # venture_name
                 'aaaa',  # department
-                12,  # asset_count
-                '213.00 PLN',  # asset_cost
+                # 12,  # asset_count
+                # '213.00 PLN',  # asset_cost
                 213,  # ut3_count_warehouse_1
                 3234,  # ut3_cost_warehouse_1
                 '434.21 PLN',  # ut3_count_warehouse_2
@@ -329,7 +390,12 @@ class TestReportVenturesBeta(TestCase):
                 '557.42 PLN',  # ut3_cost_total
                 123,  # ut1_count
                 '23.23 PLN',  # ut1_cost
-                '793.65 PLN',  # total_cost
+                0.0,  # sut_3_count
+                '0.00 PLN',  # sut_3_cost,
+                40.0,  # sut_4_count
+                '2212.11 PLN',  # sut_4_count
+                '2212.11 PLN',  # 1_sercive_cost
+                '2792.76 PLN',  # total_cost
             ]
         ])
 

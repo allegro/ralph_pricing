@@ -1,21 +1,92 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
-from django.db import models, connection
+from south.v2 import SchemaMigration
+from django.db import models
 
 
-class Migration(DataMigration):
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        "Write your forwards methods here."
-        cursor = connection.cursor()
-        cursor.execute('UPDATE ralph_pricing_dailydevice SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
+        # Adding model 'Service'
+        db.create_table('ralph_pricing_service', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('cache_version', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
+            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
+            ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
+            ('symbol', self.gf('django.db.models.fields.CharField')(default=u'', max_length=255, blank=True)),
+            ('use_universal_plugin', self.gf('django.db.models.fields.BooleanField')(default=True)),
+        ))
+        db.send_create_signal('ralph_pricing', ['Service'])
 
-        cursor.execute('UPDATE ralph_pricing_dailypart SET daily_cost=ROUND(deprecation_rate*price/36500, 6), monthly_cost=ROUND(deprecation_rate*price/1200, 6) WHERE is_deprecated=0')
+        # Adding M2M table for field base_usage_types on 'Service'
+        db.create_table('ralph_pricing_service_base_usage_types', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('service', models.ForeignKey(orm['ralph_pricing.service'], null=False)),
+            ('usagetype', models.ForeignKey(orm['ralph_pricing.usagetype'], null=False))
+        ))
+        db.create_unique('ralph_pricing_service_base_usage_types', ['service_id', 'usagetype_id'])
+
+        # Adding M2M table for field dependency on 'Service'
+        db.create_table('ralph_pricing_service_dependency', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('from_service', models.ForeignKey(orm['ralph_pricing.service'], null=False)),
+            ('to_service', models.ForeignKey(orm['ralph_pricing.service'], null=False))
+        ))
+        db.create_unique('ralph_pricing_service_dependency', ['from_service_id', 'to_service_id'])
+
+        # Adding model 'ServiceUsageTypes'
+        db.create_table('ralph_pricing_serviceusagetypes', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('usage_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'service_division', to=orm['ralph_pricing.UsageType'])),
+            ('service', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Service'])),
+            ('start', self.gf('django.db.models.fields.DateField')()),
+            ('end', self.gf('django.db.models.fields.DateField')()),
+            ('percent', self.gf('django.db.models.fields.FloatField')()),
+        ))
+        db.send_create_signal('ralph_pricing', ['ServiceUsageTypes'])
+
+        # Adding field 'Venture.service'
+        db.add_column('ralph_pricing_venture', 'service',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Service'], null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'UsageType.type'
+        db.add_column('ralph_pricing_usagetype', 'type',
+                      self.gf('django.db.models.fields.CharField')(default=u'RU', max_length=2),
+                      keep_default=False)
+
+        # Adding field 'UsageType.use_universal_plugin'
+        db.add_column('ralph_pricing_usagetype', 'use_universal_plugin',
+                      self.gf('django.db.models.fields.BooleanField')(default=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Deleting model 'Service'
+        db.delete_table('ralph_pricing_service')
+
+        # Removing M2M table for field base_usage_types on 'Service'
+        db.delete_table('ralph_pricing_service_base_usage_types')
+
+        # Removing M2M table for field dependency on 'Service'
+        db.delete_table('ralph_pricing_service_dependency')
+
+        # Deleting model 'ServiceUsageTypes'
+        db.delete_table('ralph_pricing_serviceusagetypes')
+
+        # Deleting field 'Venture.service'
+        db.delete_column('ralph_pricing_venture', 'service_id')
+
+        # Deleting field 'UsageType.type'
+        db.delete_column('ralph_pricing_usagetype', 'type')
+
+        # Deleting field 'UsageType.use_universal_plugin'
+        db.delete_column('ralph_pricing_usagetype', 'use_universal_plugin')
+
 
     models = {
         'account.profile': {
@@ -101,6 +172,7 @@ class Migration(DataMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Venture']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
+            'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
             'total': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.UsageType']"}),
             'value': ('django.db.models.fields.FloatField', [], {'default': '0'}),
@@ -132,11 +204,29 @@ class Migration(DataMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
         },
-        'ralph_pricing.splunkname': {
-            'Meta': {'unique_together': "((u'splunk_name', u'pricing_device'),)", 'object_name': 'SplunkName'},
+        'ralph_pricing.service': {
+            'Meta': {'object_name': 'Service'},
+            'base_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'+'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.UsageType']"}),
+            'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'dependency': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['ralph_pricing.Service']", 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'splunk_name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
+            'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
+            'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['ralph_pricing.UsageType']", 'through': "orm['ralph_pricing.ServiceUsageTypes']", 'symmetrical': 'False'}),
+            'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
+        },
+        'ralph_pricing.serviceusagetypes': {
+            'Meta': {'object_name': 'ServiceUsageTypes'},
+            'end': ('django.db.models.fields.DateField', [], {}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'percent': ('django.db.models.fields.FloatField', [], {}),
+            'service': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Service']"}),
+            'start': ('django.db.models.fields.DateField', [], {}),
+            'usage_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'service_division'", 'to': "orm['ralph_pricing.UsageType']"})
         },
         'ralph_pricing.usageprice': {
             'Meta': {'ordering': "(u'type', u'-start')", 'unique_together': "[(u'warehouse', u'start', u'type'), (u'warehouse', u'end', u'type')]", 'object_name': 'UsagePrice'},
@@ -156,11 +246,15 @@ class Migration(DataMigration):
             'by_cost': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
+            'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_price_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'})
+            'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
+            'type': ('django.db.models.fields.CharField', [], {'default': "u'RU'", 'max_length': '2'}),
+            'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
         },
         'ralph_pricing.venture': {
             'Meta': {'object_name': 'Venture'},
@@ -174,6 +268,7 @@ class Migration(DataMigration):
             'parent': ('mptt.fields.TreeForeignKey', [], {'default': 'None', 'related_name': "u'children'", 'null': 'True', 'blank': 'True', 'to': "orm['ralph_pricing.Venture']"}),
             'profit_center': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '75', 'blank': 'True'}),
             'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
+            'service': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Service']", 'null': 'True', 'blank': 'True'}),
             'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '32', 'blank': 'True'}),
             'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'venture_id': ('django.db.models.fields.IntegerField', [], {})
@@ -186,9 +281,9 @@ class Migration(DataMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         }
     }
 
     complete_apps = ['ralph_pricing']
-    symmetrical = True
