@@ -41,7 +41,7 @@ def update(data, usages, date):
         update_usage(device, venture, usage, date, data.get(key))
 
 
-def get_usages(usage_names):
+def get_or_create_usages(usage_names):
     cpu_usage, created = UsageType.objects.get_or_create(
         name=usage_names['virtual_cores'],
         symbol=usage_names['virtual_cores'].replace(' ', '_').lower(),
@@ -80,7 +80,7 @@ def virtual_usages(**kwargs):
             'virtual_memory': '{0} Virtual memory MB'.format(venture_name),
             'virtual_disk': '{0} Virtual disk MB'.format(venture_name),
         }
-        usages = get_usages(usage_names)
+        usages = get_or_create_usages(usage_names)
         for data in api_pricing.get_virtual_usages(venture_name):
             update(data, usages, date)
     return True, 'virtual usages updated', kwargs
