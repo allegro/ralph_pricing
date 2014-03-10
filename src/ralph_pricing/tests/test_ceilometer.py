@@ -11,7 +11,7 @@ import mock
 
 from django.test import TestCase
 
-from ralph_pricing.plugins import ceilometer
+from ralph_pricing.plugins.collects import ceilometer
 from ralph_pricing.models import DailyUsage, Venture
 
 
