@@ -83,10 +83,10 @@ class Migration(SchemaMigration):
         db.send_create_signal('ralph_pricing', ['UsagePrice'])
 
         # Adding unique constraint on 'UsagePrice', fields ['start', 'type']
-        db.create_unique('ralph_pricing_usageprice', ['start', 'type_id'])
+        # db.create_unique('ralph_pricing_usageprice', ['start', 'type_id'])
 
         # Adding unique constraint on 'UsagePrice', fields ['end', 'type']
-        db.create_unique('ralph_pricing_usageprice', ['end', 'type_id'])
+        # db.create_unique('ralph_pricing_usageprice', ['end', 'type_id'])
 
         # Adding model 'DailyUsage'
         db.create_table('ralph_pricing_dailyusage', (
