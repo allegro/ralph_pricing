@@ -8,21 +8,21 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.conf import settings
-from raven import Client
-from raven.handlers.logging import SentryHandler
-
 from ralph.app import RalphModule
 
 
 def setup_scrooge_logger(level='ERROR'):
-    SCROOGE_SENTRY_DSN = getattr(settings, 'SCROOGE_SENTRY_DSN', False)
-    if SCROOGE_SENTRY_DSN:
-        client = Client(SCROOGE_SENTRY_DSN)
-        handler = SentryHandler(client, level=level)
-        logger = logging.getLogger('ralph_pricing')
-        logger.addHandler(handler)
-        return True
+    from django.conf import settings
+    if 'raven.contrib.django' in settings.INSTALLED_APPS:
+        from raven import Client
+        from raven.handlers.logging import SentryHandler
+        SCROOGE_SENTRY_DSN = getattr(settings, 'SCROOGE_SENTRY_DSN', False)
+        if SCROOGE_SENTRY_DSN:
+            client = Client(SCROOGE_SENTRY_DSN)
+            handler = SentryHandler(client, level=level)
+            logger = logging.getLogger('ralph_pricing')
+            logger.addHandler(handler)
+            return True
     return False
 
 
