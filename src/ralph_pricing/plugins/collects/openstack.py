@@ -24,7 +24,7 @@ def set_usages(venture_symbol, data, date):
     try:
         venture = Venture.objects.get(symbol=venture_symbol)
     except Venture.DoesNotExist:
-        logger.error('Venture: %s does not exist' % venture_symbol)
+        logger.warning('Venture: %s does not exist' % venture_symbol)
         return
 
     def set_usage(name, key, venture, multiplier):
