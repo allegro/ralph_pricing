@@ -18,7 +18,14 @@ logger = logging.getLogger(__name__)
 
 
 class UsageBasePlugin(BaseReportPlugin):
-    def _incomplete_price(self, usage_type, start, end, warehouse=None):
+    def _incomplete_price(
+        self,
+        usage_type,
+        start,
+        end,
+        warehouse=None,
+        team=None
+    ):
         """
         Calculate if for every day in report there is price defined for usage
         type
@@ -36,6 +43,8 @@ class UsageBasePlugin(BaseReportPlugin):
         )
         if usage_type.by_warehouse and warehouse:
             usage_prices = usage_prices.filter(warehouse=warehouse)
+        if usage_type.by_team and team:
+            usage_prices = usage_prices.filter(team=team)
         # TODO: improve preformance
         for up in usage_prices:
             # add overlapping days
