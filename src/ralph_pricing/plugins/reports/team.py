@@ -295,8 +295,16 @@ class Team(UsageBasePlugin):
         return self._get_team_func_cost_per_venture(
             team=team,
             funcs = (
-                (self._get_devices_count_by_venture, self._get_total_devices_count, 'team_{0}_devices'.format(team.id)),
-                (self._get_cores_count_by_venture, self._get_total_cores_count, 'team_{0}_cores'.format(team.id)),
+                (
+                    self._get_devices_count_by_venture,
+                    self._get_total_devices_count,
+                    'team_{0}_devices'.format(team.id)
+                ),
+                (
+                    self._get_cores_count_by_venture,
+                    self._get_total_cores_count,
+                    'team_{0}_cores'.format(team.id)
+                ),
             ),
             *args,
             **kwargs
@@ -306,7 +314,11 @@ class Team(UsageBasePlugin):
         return self._get_team_func_cost_per_venture(
             team=team,
             funcs=(
-                (self._get_devices_count_by_venture, self._get_total_devices_count, 'team_{0}_devices'.format(team.id)),
+                (
+                    self._get_devices_count_by_venture,
+                    self._get_total_devices_count,
+                    'team_{0}_devices'.format(team.id)
+                ),
             ),
             *args,
             **kwargs
@@ -329,7 +341,7 @@ class Team(UsageBasePlugin):
                     # get team members count in period and it's % among all teams
                     # calculate % of distributed team total cost (daily)
         result = defaultdict(lambda: defaultdict(D))
-        teams = TeamModel.objects.exclude(billing_type='DISTRIBUTE')
+        teams = self._get_teams_not_distributes_to_others()
         teams_by_id = dict([(t.id, t) for t in teams])
         team_cost_key = 'team_{0}_cost'.format(team.id)
         price_undefined = no_price_msg and self._incomplete_price(
