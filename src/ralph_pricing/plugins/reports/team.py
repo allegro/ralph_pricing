@@ -31,10 +31,16 @@ logger = logging.getLogger(__name__)
 class Team(UsageBasePlugin):
     @memoize(skip_first=True)
     def _get_teams(self):
+        """
+        Returns all available teams, that should be visible on report
+        """
         return TeamModel.objects.filter(show_in_report=True)
 
     @memoize(skip_first=True)
     def _get_teams_distrubuted_to_others(self):
+        """
+        Returns all teams that have billing type DISTRIBUTE
+        """
         return TeamModel.objects.filter(
             show_in_report=True,
             billing_type='DISTRIBUTE',
@@ -42,6 +48,9 @@ class Team(UsageBasePlugin):
 
     @memoize(skip_first=True)
     def _get_teams_not_distributes_to_others(self):
+        """
+        Returns all teams that have billing type different than DISTRIBUTE
+        """
         return TeamModel.objects.filter(show_in_report=True).exclude(
             billing_type='DISTRIBUTE'
         )

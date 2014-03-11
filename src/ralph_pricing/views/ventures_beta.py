@@ -9,6 +9,8 @@ import logging
 from decimal import Decimal as D
 
 from lck.cache import memoize
+from django.conf import settings
+from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.reports import Report
@@ -269,9 +271,11 @@ class AllVenturesBeta(Report):
         :rtype dict:
         """
         logger.debug("Getting report date")
+        old_queries_count = len(connection.queries)
         data = {venture.id: {} for venture in ventures}
         for i, plugin in enumerate(cls._get_plugins()):
             try:
+                plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
                     'reports',
                     plugin.plugin_name,
@@ -285,11 +289,20 @@ class AllVenturesBeta(Report):
                 for venture_id, venture_usage in plugin_report.iteritems():
                     if venture_id in data:
                         data[venture_id].update(venture_usage)
+                plugin_queries_count = (
+                    len(connection.queries) - plugin_old_queries_count
+                )
+                if settings.DEBUG:
+                    logger.debug('Total SQL queries: {0}\n'.format(
+                        plugin_queries_count
+                    ))
             except KeyError:
                 logger.warning(
                     "Usage '{0}' have no usage plugin".format(plugin.name)
                 )
-
+        queries_count = len(connection.queries) - old_queries_count
+        if settings.DEBUG:
+            logger.debug('Total SQL queries: {0}'.format(queries_count))
         return data
 
     @classmethod
