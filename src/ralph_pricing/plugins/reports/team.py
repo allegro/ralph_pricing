@@ -56,6 +56,15 @@ class Team(UsageBasePlugin):
         )
 
     def _get_team_dateranges_percentage(self, start, end, team):
+        """
+        Returns percentage division (of team time) between ventures in period
+        of time (between start and end). Returned periods are not overlapping.
+
+        TODO: improve doc
+
+        :rtype: dict (key: (start, end) tuple; value: dict venture-percent )
+        """
+        # get all percents between that overlap time between start and end
         percentage = team.teamventurepercent_set.filter(
             start__lte=end,
             end__gte=start,
@@ -83,6 +92,12 @@ class Team(UsageBasePlugin):
         return result
 
     def _get_teams_dateranges_members_count(self, start, end, teams):
+        """
+        Returns not overlaping members count of each time in periods of time
+        between start and end.
+
+        :rtype: dict (key: (start, end) tuple; value: dict team-members count )
+        """
         members_count = TeamMembersCount.objects.filter(
             start__lte=end,
             end__gte=start,
@@ -112,6 +127,13 @@ class Team(UsageBasePlugin):
 
     @memoize(skip_first=True)
     def _get_devices_count_by_venture(self, start, end, ventures):
+        """
+        Returns (total) devices count per venture between start and end.
+        Notice that total devices count is sum of all DailyDevices for every
+        venture - not average devices count.
+
+        :rtype: dict (key: venture, value: devices count)
+        """
         devices_query = DailyDevice.objects.filter(
             pricing_device__is_virtual=False,
             date__gte=start,
@@ -126,6 +148,11 @@ class Team(UsageBasePlugin):
 
     @memoize(skip_first=True)
     def _get_total_devices_count(self, start, end, ventures):
+        """
+        Returns total count of devices in period of time (sum of DailyDevices).
+
+        :rtype: int
+        """
         devices_query = DailyDevice.objects.filter(
             pricing_device__is_virtual=False,
             date__gte=start,
@@ -135,12 +162,22 @@ class Team(UsageBasePlugin):
         return devices_query.aggregate(count=Count('id')).get('count', 0)
 
     def _get_cores_usage_type(self):
+        """
+        Physical CPU cores usage type definition
+        """
         return UsageType.objects.get_or_create(
             name="Physical CPU cores",
         )[0]
 
     @memoize(skip_first=True)
     def _get_cores_count_by_venture(self, start, end, ventures):
+        """
+        Returns (total) cores count per venture between start and end.
+        Notice that total cores count is sum of all DailyUsage for every
+        venture - not average cores count.
+
+        :rtype: dict (key: venture, value: cores count)
+        """
         cores_query = DailyUsage.objects.filter(
             type=self._get_cores_usage_type(),
             date__gte=start,
@@ -155,6 +192,11 @@ class Team(UsageBasePlugin):
 
     @memoize(skip_first=True)
     def _get_total_cores_count(self, start, end, ventures):
+        """
+        Returns total count of cores in period of time (sum of DailyUsage).
+
+        :rtype: int
+        """
         cores_query = DailyUsage.objects.filter(
             type=self._get_cores_usage_type(),
             date__gte=start,
@@ -177,13 +219,29 @@ class Team(UsageBasePlugin):
         daily_cost=None,
         **kwargs
     ):
-        # for every period in which cost is defined for team
-            # for every not-overlaping daterange of percent per team
-                # calculate % of daily cost * count of days in period
+        """
+        Calculates cost of teams, that are billed by spent time for each
+        venture. If daily_cost is passed, it's used instead of calculated
+        daily cost from total cost.
+
+        Main idea:
+        for every period in which cost is defined for team
+            for every not-overlaping daterange of percent per team
+                calculate cost of team time per venture in this period of time
+
+        Notice that:
+        * total cost is treated as sum of equal daily cost (assumed, that in
+            period of time daily cost is the same)
+        * assumed, that in period of time percent of time spent to venture is
+            equal for each day
+        """
+
         result = defaultdict(lambda: defaultdict(int))
-        team_cost_key = 'team_{0}_cost'.format(team.id)
-        team_percent_key = 'team_{0}_percent'.format(team.id)
+        cost_key = 'team_{0}_cost'.format(team.id)
+        percent_key = 'team_{0}_percent'.format(team.id)
+        # total days of report (calculations)
         total_days = (end - start).days + 1
+        # check if price is undefined for any time between start and end
         price_undefined = no_price_msg and self._incomplete_price(
             usage_type,
             start,
@@ -191,20 +249,20 @@ class Team(UsageBasePlugin):
             team=team,
         )
 
-        def add_subcosts(sstart, send, cost):
-            percentage = team.teamventurepercent_set.filter(
-                start__lte=send,
-                end__gte=sstart,
-                venture__in=ventures,
-            )
+        def add_subcosts(sstart, send, cost, percentage):
+            """
+            Helper to add subcost for every venture for single, integral period
+            of time.
+            """
             days = (send - sstart).days + 1
-            for percent in percentage:
-                venture = percent.venture.id
-                result[venture][team_percent_key] += percent.percent * days
+            # for every venture-percentage division defined for period of time
+            for venture, percent in percentage.items():
+                # store daily percent to calculate average percent
+                result[venture][percent_key] += percent * days
                 if price_undefined:
-                    result[venture][team_cost_key] = price_undefined
+                    result[venture][cost_key] = price_undefined
                 else:
-                    result[venture][team_cost_key] += cost * D(percent.percent) / 100
+                    result[venture][cost_key] += cost * D(percent) / 100
 
         usageprices = team.usageprice_set.filter(
             start__lte=end,
@@ -214,25 +272,37 @@ class Team(UsageBasePlugin):
         if usageprices:
             for team_cost in usageprices:
                 cost = team_cost.forecast_cost if forecast else team_cost.cost
+                # calculate daily cost if not provided
+                if not daily_cost:
+                    period_daily_cost = cost / (
+                        (team_cost.end - team_cost.start).days + 1
+                    )
+                else:
+                    period_daily_cost = daily_cost
                 tcstart = max(start, team_cost.start)
                 tcend = min(end, team_cost.end)
-                if not daily_cost:
-                    daily_cost_in_period = cost / ((team_cost.end - team_cost.start).days + 1)
-                else:
-                    daily_cost_in_period = daily_cost
                 dateranges_percentage = self._get_team_dateranges_percentage(
                     tcstart,
                     tcend,
                     team
                 )
                 for (dpstart, dpend), percentage in dateranges_percentage.items():
-                    subcost = daily_cost_in_period * ((dpend - dpstart).days + 1)
-                    add_subcosts(dpstart, dpend, subcost)
+                    subcost = period_daily_cost * ((dpend - dpstart).days + 1)
+                    add_subcosts(dpstart, dpend, subcost, percentage)
         else:
-            add_subcosts(start, end, 0)
+            # if price was not provided at all
+            percentage = team.teamventurepercent_set.filter(
+                start__lte=end,
+                end__gte=start,
+                venture__in=ventures,
+            )
+            percentage = dict([(p.venture.id, p.percent) for p in percentage])
+            add_subcosts(start, end, 0, percentage)
 
+        # calculate average percentage for venture (rounded for 2 decimal
+        # places)
         for v in result.values():
-            v[team_percent_key] = round(v[team_percent_key] / total_days, 2)
+            v[percent_key] = round(v[percent_key] / total_days, 2)
 
         return result
 
@@ -249,9 +319,27 @@ class Team(UsageBasePlugin):
         funcs=None,
         **kwargs
     ):
-        # for every period in which cost is defined for team
-            # get total count of devices and cores per venture
-            # calculate % of total cost based on devices and cores proportions
+        """
+        Calculates cost of used resources (i.e. devices, cores) for each
+        venture in period of time. If daily_cost is passed, it's used instead
+        of calculated daily cost from total cost.
+
+        Main idea:
+        for every period in which cost is defined for team:
+            calculate daily cost
+            for every resource:
+                get total count of resource usage per venture
+                calculate venture cost based od cost in period of time and
+                    resource usage
+
+        Passed functions (funcs) should be 3-elements tuple:
+        (resource_usage_per_venture_function, resource_total_usage_function,
+        result_dict_key (to store usages of venture)).
+
+        Notice that:
+        * if there is more than one funcs (resources), that total cost is
+            distributed in equal parts to all resources (1/n)
+        """
         result = defaultdict(lambda: defaultdict(int))
         cost_key = 'team_{0}_cost'.format(team.id)
         total_days = (end - start).days + 1
@@ -267,12 +355,15 @@ class Team(UsageBasePlugin):
             for count_func, total_count_func, key in funcs:
                 count_per_venture = count_func(sstart, send, ventures)
                 total = total_count_func(sstart, send, ventures)
+                # if there is more than one resource, calculate 1/n of total
+                # cost
                 cost_part = cost / D(len(funcs))
                 for venture, count in count_per_venture.items():
                     if price_undefined:
                         result[venture][cost_key] = price_undefined
                     else:
                         result[venture][cost_key] += cost_part * count / total
+                    # store usage count to calculate average usage per day
                     result[venture][key] += count
 
         usageprices = team.usageprice_set.filter(
@@ -284,7 +375,9 @@ class Team(UsageBasePlugin):
             for team_cost in usageprices:
                 cost = team_cost.forecast_cost if forecast else team_cost.cost
                 if not daily_cost:
-                    daily_cost_in_period = cost / ((team_cost.end - team_cost.start).days + 1)
+                    daily_cost_in_period = cost / (
+                        (team_cost.end - team_cost.start).days + 1
+                    )
                 else:
                     daily_cost_in_period = daily_cost
 
@@ -295,12 +388,17 @@ class Team(UsageBasePlugin):
         else:
             add_subcosts(start, end, 0)
 
+        # calculate average usage of resource per day (rounded to 2 decimal
+        # places)
         for v in result.values():
             for f in funcs:
                 v[f[2]] = round(v[f[2]] / total_days, 2)
         return result
 
     def _get_team_devices_cores_cost_per_venture(self, team, *args, **kwargs):
+        """
+        Calculates costs of devices and cores usage per venture.
+        """
         return self._get_team_func_cost_per_venture(
             team=team,
             funcs = (
@@ -320,6 +418,9 @@ class Team(UsageBasePlugin):
         )
 
     def _get_team_devices_cost_per_venture(self, team, *args, **kwargs):
+        """
+        Calculates costs of devices usage per venture.
+        """
         return self._get_team_func_cost_per_venture(
             team=team,
             funcs=(
@@ -344,15 +445,33 @@ class Team(UsageBasePlugin):
         no_price_msg=False,
         **kwargs
     ):
-        # for every period on which cost is defined for team
-            # for every period of not-distributed teams members count
-                # for every not-distributed team
-                    # get team members count in period and it's % among all teams
-                    # calculate % of distributed team total cost (daily)
+        """
+        Calculates cost of team, which cost is based on venture cost for other
+        teams (proprotionally to members count of other teams).
+
+        Main idea:
+        for every period on which cost is defined for team
+            for every period of not-distributed teams members count in main
+            period
+                for every not-distributed team
+                    get team members count in period and it's % among all teams
+                    calculate % of distributed team total cost (daily)
+                    calculate cost for this team for all ventures,
+                    proportionally to team cost (usage)
+
+        Not distributed team cost is calculated using functions defined for
+        such calculations. First of all, daily cost of distributed team is
+        calculated. Then, based on not distributed team members count, daily
+        cost of that team is calculated (distributed_team_daily_cost *
+        not_distributed_team_members_count / total_members). Then such daily
+        cost is passed to function for not distributed team and used to
+        calculate (part of) cost of distributed team.
+        """
+
         result = defaultdict(lambda: defaultdict(D))
         teams = self._get_teams_not_distributes_to_others()
         teams_by_id = dict([(t.id, t) for t in teams])
-        team_cost_key = 'team_{0}_cost'.format(team.id)
+        cost_key = 'team_{0}_cost'.format(team.id)
         price_undefined = no_price_msg and self._incomplete_price(
             usage_type,
             start,
@@ -360,26 +479,31 @@ class Team(UsageBasePlugin):
             team=team,
         )
 
-        usageprices = team.usageprice_set.filter(start__lte=end, end__gte=start, type=usage_type)
+        usageprices = team.usageprice_set.filter(
+            start__lte=end,
+            end__gte=start,
+            type=usage_type
+        )
 
         if usageprices:
             for team_cost in usageprices:
                 cost = team_cost.forecast_cost if forecast else team_cost.cost
                 tcstart = max(start, team_cost.start)
                 tcend = min(end, team_cost.end)
-                daily_cost = cost / ((team_cost.end - team_cost.start).days + 1)
+                daily_cost = cost / (
+                    (team_cost.end - team_cost.start).days + 1
+                )
 
                 for members_count in self._get_teams_dateranges_members_count(
                     tcstart, tcend, teams
                 ).items():
-                    mcstart, mcend = members_count[0]
-                    team_members_count = members_count[1]
+                    (mcstart, mcend), team_members_count = members_count
                     total_members = sum(team_members_count.values())
                     for team_id, members in team_members_count.items():
                         dependent_team = teams_by_id[team_id]
                         team_key = 'team_{0}_cost'.format(dependent_team.id)
                         daily_team_cost = daily_cost * members / total_members
-                        for venture, venture_cost in self._get_team_cost_per_venture(
+                        for venture_info in self._get_team_cost_per_venture(
                             team=dependent_team,
                             start=mcstart,
                             end=mcend,
@@ -388,18 +512,22 @@ class Team(UsageBasePlugin):
                             daily_cost=daily_team_cost,
                             forecast=forecast,
                         ).items():
-                            # logger.debug('Venture {0} cost for team {1} ({2}-{3}): {4}'.format(venture, team_key, mcstart, mcend, venture_cost[team_key]))
+                            venture = venture_info[0]
+                            venture_cost = venture_info[1][team_key]
                             if price_undefined:
-                                result[venture][team_cost_key] = price_undefined
-                            elif isinstance(venture_cost[team_key], (int, D)):
-                                result[venture][team_cost_key] += venture_cost[team_key]
+                                result[venture][cost_key] = price_undefined
+                            elif isinstance(venture_cost, (int, D)):
+                                result[venture][cost_key] += venture_cost
         else:
             for venture in ventures:
-                result[venture.id][team_cost_key] = price_undefined
+                result[venture.id][cost_key] = price_undefined
 
         return result
 
     def _get_team_cost_per_venture(self, team, *args, **kwargs):
+        """
+        Call proper function to calculate team cost, based on team billing type
+        """
         functions = {
             'TIME': self._get_team_time_cost_per_venture,
             'DISTRIBUTE': self._get_team_distributed_cost_per_venture,
@@ -410,27 +538,33 @@ class Team(UsageBasePlugin):
         if func:
             logger.debug("Get team {0} costs".format(team))
             return func(team, *args, **kwargs)
-        logger.warning('No handle method for billing type {0}'.format(team.billing_type))
+        logger.warning('No handle method for billing type {0}'.format(
+            team.billing_type
+        ))
         return {}
 
-    def usages(self, *args, **kwargs):
+    def usages(self, **kwargs):
+        """
+        Calculates teams costs.
+        """
         logger.debug("Get teams usages")
         teams = self._get_teams()
         total_cost_column = len(teams) > 1
         total_cost_key = 'teams_total_cost'
         result = defaultdict(lambda: defaultdict(int))
         for team in teams:
-            team_report = self._get_team_cost_per_venture(team, *args, **kwargs)
+            team_report = self._get_team_cost_per_venture(team, **kwargs)
             for venture, venture_data in team_report.items():
                 for key, value in venture_data.items():
                     result[venture][key] = value
-                    if total_cost_column and key.endswith('cost') and isinstance(value, (int, D)):
+                    if (total_cost_column and key.endswith('cost')
+                       and isinstance(value, (int, D))):
                         result[venture][total_cost_key] += value
         return result
 
     def schema(self, usage_type, **kwargs):
         """
-        Build schema for this usage. Format of schema looks like:
+        Build schema for this usage.
 
         :returns dict: schema for usage
         """
