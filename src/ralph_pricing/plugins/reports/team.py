@@ -1,5 +1,42 @@
 # -*- coding: utf-8 -*-
+"""
+Plugin for billing teams on pricing report.
 
+There are 4 possible models of team billing:
+- time
+- devices-cores
+- devices
+- distribution
+
+* Time
+For each team, that should be billed based on time model, should be provided
+information about percentage division of time, that team spent for each
+venture (in some period of time - generally this periods don't have to be the
+same as team cost period). It's assumed, that team cost, that is defined for
+some period of time, is splitted between all days in period as some daily cost
+and then distributed between teams based on their value of time spent.
+
+* Devices-cores
+In this billing model, each venture is billed for total number of owned devices
+and cores, proportionally to total number of devices and cores for all
+ventures (in period of team cost definition). Having such proportions, half of
+team cost in period of time is designed for devices and other half for cores.
+Devices and cores "budget" is distributed for each venture, proportionally to
+the number of owned devices and cores.
+
+* Devices
+This billing model is similar to devices-cores model, but whole team cost is
+distributed to ventures proprotionally to the number of devices each own.
+
+* Distribution
+This model is using other teams (not-distributed) and information about team
+members count (more specifically: proportion of team members number to total
+members number of all teams). Cost of distributed team is splitted between all
+other teams based on members number proportion. Then, based on other team
+model (time, devices-cores or devices), team cost (which is part of total
+distributed cost) is spliited between all ventures and summed with parts of
+cost for other teams.
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -59,8 +96,6 @@ class Team(UsageBasePlugin):
         """
         Returns percentage division (of team time) between ventures in period
         of time (between start and end). Returned periods are not overlapping.
-
-        TODO: improve doc
 
         :rtype: dict (key: (start, end) tuple; value: dict venture-percent )
         """
