@@ -98,7 +98,7 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         ('DEVICES_CORES', 'By devices and cores count'),
         ('DEVICES', 'By devices'),
         ('DISTRIBUTE', (
-            'Distribute cost to other teams proportionally to',
+            'Distribute cost to other teams proportionally to'
             'team members count'
         )),
     )
