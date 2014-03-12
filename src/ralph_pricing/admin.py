@@ -129,4 +129,8 @@ class TeamVenturesPercentInline(admin.TabularInline):
 class TeamAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    inlines = [TeamMembersCountInline, UsagePriceInline, TeamVenturesPercentInline]
+    inlines = [
+        TeamMembersCountInline,
+        UsagePriceInline,
+        TeamVenturesPercentInline
+    ]

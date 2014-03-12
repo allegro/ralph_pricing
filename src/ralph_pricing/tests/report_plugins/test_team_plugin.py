@@ -6,9 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import mock
-from collections import OrderedDict
 from datetime import date
-from dateutil import rrule
 from decimal import Decimal as D
 
 from django.test import TestCase
@@ -286,12 +284,12 @@ class TestTeamPlugin(TestCase):
     def test_team_time_cost_no_price(self):
         for venture, percent in zip(self.ventures, [30, 20, 50]):
             tvp = models.TeamVenturePercent(
-                    team=self.team_time,
-                    venture=venture,
-                    start=date(2013, 11, 1),
-                    end=date(2013, 11, 10),
-                    percent=percent,
-                )
+                team=self.team_time,
+                venture=venture,
+                start=date(2013, 11, 1),
+                end=date(2013, 11, 10),
+                percent=percent,
+            )
             tvp.save()
         result = self.plugin._get_team_cost_per_venture(
             start=date(2013, 11, 3),

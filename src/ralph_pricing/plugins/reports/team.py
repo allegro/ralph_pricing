@@ -286,9 +286,9 @@ class Team(UsageBasePlugin):
                     tcend,
                     team
                 )
-                for (dpstart, dpend), percentage in dateranges_percentage.items():
+                for (dpstart, dpend), percent in dateranges_percentage.items():
                     subcost = period_daily_cost * ((dpend - dpstart).days + 1)
-                    add_subcosts(dpstart, dpend, subcost, percentage)
+                    add_subcosts(dpstart, dpend, subcost, percent)
         else:
             # if price was not provided at all
             percentage = team.teamventurepercent_set.filter(
@@ -401,7 +401,7 @@ class Team(UsageBasePlugin):
         """
         return self._get_team_func_cost_per_venture(
             team=team,
-            funcs = (
+            funcs=(
                 (
                     self._get_devices_count_by_venture,
                     self._get_total_devices_count,

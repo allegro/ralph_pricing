@@ -97,7 +97,10 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         ('TIME', 'By time'),
         ('DEVICES_CORES', 'By devices and cores count'),
         ('DEVICES', 'By devices'),
-        ('DISTRIBUTE', 'Distribute cost to other teams proportionally to team members count'),
+        ('DISTRIBUTE', (
+            'Distribute cost to other teams proportionally to',
+            'team members count'
+        )),
     )
     billing_type = db.CharField(
         verbose_name=_("Billing type"),

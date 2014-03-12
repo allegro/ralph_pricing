@@ -8,6 +8,6 @@ install:
   - pip install git+https://github.com/allegro/ralph_assets.git@develop
   - pip install . --use-mirrors
 before_script:
-  - flake8 --exclude="migrations" src/ralph_pricing
+  - flake8 --exclude="migrations" --statistics src/ralph_pricing
 # command to run tests, e.g. python setup.py test
 script: DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
