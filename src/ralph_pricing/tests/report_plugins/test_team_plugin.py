@@ -115,7 +115,7 @@ class TestTeamPlugin(TestCase):
         up = models.UsagePrice(
             type=self.usage_type,
             cost=300,
-            forecast_cost=200,
+            forecast_cost=600,
             start=date(2013, 10, 1),
             end=date(2013, 10, 30),
             team=self.team_devices_cores,
@@ -125,7 +125,7 @@ class TestTeamPlugin(TestCase):
         up = models.UsagePrice(
             type=self.usage_type,
             cost=800,
-            forecast_cost=500,
+            forecast_cost=1600,
             start=date(2013, 10, 1),
             end=date(2013, 10, 10),
             team=self.team_devices,
@@ -134,7 +134,7 @@ class TestTeamPlugin(TestCase):
         up = models.UsagePrice(
             type=self.usage_type,
             cost=100,
-            forecast_cost=300,
+            forecast_cost=200,
             start=date(2013, 10, 11),
             end=date(2013, 10, 30),
             team=self.team_devices,
@@ -144,7 +144,7 @@ class TestTeamPlugin(TestCase):
         up = models.UsagePrice(
             type=self.usage_type,
             cost=3000,
-            forecast_cost=600,
+            forecast_cost=1500,
             start=date(2013, 10, 1),
             end=date(2013, 10, 15),
             team=self.team_distribute,
@@ -153,7 +153,7 @@ class TestTeamPlugin(TestCase):
         up = models.UsagePrice(
             type=self.usage_type,
             cost=6000,
-            forecast_cost=500,
+            forecast_cost=3000,
             start=date(2013, 10, 16),
             end=date(2013, 10, 30),
             team=self.team_distribute,
@@ -378,7 +378,9 @@ class TestTeamPlugin(TestCase):
         devices_key = 'team_{0}_devices'.format(self.team_devices_cores.id)
         cores_key = 'team_{0}_cores'.format(self.team_devices_cores.id)
         cost_key = 'team_{0}_cost'.format(self.team_devices_cores.id)
-        # daily cost: 10
+        # cost (1-30): 300
+        # cost (3-27): 250
+        # daily cost: 250 / 25 = 10
         # devices cost in period: 10 * 25 / 2 = 125
         # cores cost in period: 10 * 25 / 2 = 125
         self.assertEquals(result, {
@@ -396,6 +398,64 @@ class TestTeamPlugin(TestCase):
                 devices_key: 4,
                 cores_key: 1.6,
                 cost_key: D('75'),  # 0.4 * 125 + 0.2 * 125
+            },
+        })
+
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_cores_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_cores_count_by_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_devices_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_devices_count_by_venture')  # noqa
+    def test_team_devices_cores_cost_forecast(
+        self,
+        devices_count_mock,
+        total_devices_mock,
+        cores_count_mock,
+        total_cores_mock
+    ):
+        devices_count_mock.return_value = {
+            self.venture1.id: 200,
+            self.venture2.id: 200,
+            self.venture3.id: 100,
+        }
+        total_devices_mock.return_value = 500
+        cores_count_mock.return_value = {
+            self.venture1.id: 20,
+            self.venture2.id: 40,
+            self.venture3.id: 40,
+        }
+        total_cores_mock.return_value = 100
+
+        result = self.plugin._get_team_cost_per_venture(
+            start=date(2013, 10, 3),
+            end=date(2013, 10, 27),
+            team=self.team_devices_cores,
+            usage_type=self.usage_type,
+            ventures=self.ventures,
+            forecast=True,
+        )
+        devices_key = 'team_{0}_devices'.format(self.team_devices_cores.id)
+        cores_key = 'team_{0}_cores'.format(self.team_devices_cores.id)
+        cost_key = 'team_{0}_cost'.format(self.team_devices_cores.id)
+        # forecast (1-30): 600
+        # forecast (3-27): 500
+        # daily cost: 500 / 25 = 20
+        # devices cost in period: 20 * 25 / 2 = 250
+        # cores cost in period: 20 * 25 / 2 = 250
+        self.assertEquals(result, {
+            self.venture1.id: {
+                devices_key: 8,
+                cores_key: 0.8,
+                cost_key: D('150'),  # 0.4 * 250 + 0.2 * 250
+            },
+            self.venture2.id: {
+                devices_key: 8,
+                cores_key: 1.6,
+                cost_key: D('200'),  # 0.4 * 250 + 0.4 * 250
+            },
+            self.venture3.id: {
+                devices_key: 4,
+                cores_key: 1.6,
+                cost_key: D('150'),  # 0.4 * 250 + 0.2 * 250
             },
         })
 
@@ -530,7 +590,8 @@ class TestTeamPlugin(TestCase):
         )
         devices_key = 'team_{0}_devices'.format(self.team_devices.id)
         cost_key = 'team_{0}_cost'.format(self.team_devices.id)
-        # daily cost: 10
+        # cost (1-10): 800
+        # cost (11-30): 100
         # devices daily cost (1-10): 800 / 10 = 80
         # devices daily cost (11-30): 100 / 20 = 5
         # devices cost in period: (3-10): 8 / 10 * 800 = 640
@@ -547,6 +608,50 @@ class TestTeamPlugin(TestCase):
             self.venture3.id: {
                 devices_key: 7.2,  # (90 + 90) / 25
                 cost_key: D('217.5'),  # 0.3 * 640 + 0.3 * 85
+            },
+        })
+
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_devices_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_devices_count_by_venture')  # noqa
+    def test_team_devices_cost_forecast(
+        self,
+        devices_count_mock,
+        total_devices_mock,
+    ):
+        devices_count_mock.return_value = {
+            self.venture1.id: 30,
+            self.venture2.id: 180,
+            self.venture3.id: 90,
+        }
+        total_devices_mock.return_value = 300
+        result = self.plugin._get_team_cost_per_venture(
+            start=date(2013, 10, 3),
+            end=date(2013, 10, 27),
+            team=self.team_devices,
+            usage_type=self.usage_type,
+            ventures=self.ventures,
+            forecast=True,
+        )
+        devices_key = 'team_{0}_devices'.format(self.team_devices.id)
+        cost_key = 'team_{0}_cost'.format(self.team_devices.id)
+        # cost (1-10): 1600
+        # cost (11-30): 200
+        # devices daily cost (1-10): 1600 / 10 = 160
+        # devices daily cost (11-30): 200 / 20 = 10
+        # devices cost in period: (3-10): 8 / 10 * 1600 = 1280
+        # devices cost in period: (11-27): 17 / 20 * 200 = 170
+        self.assertEquals(result, {
+            self.venture1.id: {
+                devices_key: 2.4,  # (30 + 30) / 25
+                cost_key: D('145'),  # 0.1 * 1280 + 0.1 * 170
+            },
+            self.venture2.id: {
+                devices_key: 14.4,  # (180 + 180) / 25
+                cost_key: D('870'),  # 0.6 * 1280 + 0.6 * 170
+            },
+            self.venture3.id: {
+                devices_key: 7.2,  # (90 + 90) / 25
+                cost_key: D('435'),  # 0.3 * 1280 + 0.3 * 170
             },
         })
 
@@ -753,6 +858,54 @@ class TestTeamPlugin(TestCase):
             },
             self.venture3.id: {
                 cost_key: D('3250'),
+            },
+        })
+
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_cores_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_cores_count_by_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_devices_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_devices_count_by_venture')  # noqa
+    def test_team_distribute_cost_forecast(
+        self,
+        devices_count_mock,
+        total_devices_mock,
+        cores_count_mock,
+        total_cores_mock
+    ):
+        devices_count_mock.return_value = {
+            self.venture1.id: 30,
+            self.venture2.id: 30,
+            self.venture3.id: 60,
+        }
+        total_devices_mock.return_value = 120
+        cores_count_mock.return_value = {
+            self.venture1.id: 30,
+            self.venture2.id: 60,
+            self.venture3.id: 60,
+        }
+        total_cores_mock.return_value = 150
+
+        result = self.plugin._get_team_cost_per_venture(
+            start=date(2013, 10, 3),
+            end=date(2013, 10, 27),
+            team=self.team_distribute,
+            usage_type=self.usage_type,
+            ventures=self.ventures,
+            forecast=True,
+            no_price_msg=True,
+        )
+        cost_key = 'team_{0}_cost'.format(self.team_distribute.id)
+        # forecast costs are half of costs
+        # detailed calculations in `test_team_distribute_cost`
+        self.assertEquals(result, {
+            self.venture1.id: {
+                cost_key: D('865'),
+            },
+            self.venture2.id: {
+                cost_key: D('1210'),
+            },
+            self.venture3.id: {
+                cost_key: D('1625'),
             },
         })
 
