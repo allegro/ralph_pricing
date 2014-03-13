@@ -34,7 +34,7 @@ class AllVenturesBeta(Report):
     """
     template_name = 'ralph_pricing/ventures_all.html'
     Form = DateRangeForm
-    section = 'all-ventures'
+    section = 'all-ventures-beta'
     report_name = _('All Ventures Report Beta')
     currency = 'PLN'
 

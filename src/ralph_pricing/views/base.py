@@ -47,6 +47,12 @@ MAIN_MENU = [
         fugue_icon='fugue-beaker',
         view_name='usages',
     ),
+    MenuItem(
+        _("Teams"),
+        name='teams',
+        fugue_icon='fugue-users',
+        view_name='teams',
+    ),
 ]
 
 

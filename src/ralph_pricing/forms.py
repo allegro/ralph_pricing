@@ -14,7 +14,14 @@ from django.utils.translation import ugettext_lazy as _
 from mptt.forms import TreeNodeChoiceField
 
 from ralph.ui.widgets import DateWidget
-from ralph_pricing.models import ExtraCost, UsagePrice, Venture, Warehouse
+from ralph_pricing.models import (
+    ExtraCost,
+    TeamDaterange,
+    TeamVenturePercent,
+    UsagePrice,
+    Venture,
+    Warehouse,
+)
 
 
 class ExtraCostForm(forms.ModelForm):
@@ -182,6 +189,117 @@ UsagesFormSet = forms.models.modelformset_factory(
     form=UsagePriceForm,
     formset=UsagesBaseFormSet,
     can_delete=True,
+)
+
+
+class TeamDaterangeForm(forms.ModelForm):
+    class Meta:
+        model = TeamDaterange
+
+        fields = [
+            'start',
+            'end',
+        ]
+
+        widgets = {
+            'start': DateWidget(attrs={'class': 'input-small'}),
+            'end': DateWidget(attrs={'class': 'input-small'}),
+        }
+
+    def clean_end(self):
+        """
+        Test if end date is later or equal to the start date
+
+        :returns string: the end of the time interval
+        :rtype string:
+        """
+        start = self.cleaned_data['start']
+        end = self.cleaned_data['end']
+        if start > end:
+            raise forms.ValidationError(
+                _("End date must be later than or equal to the start date."),
+            )
+        return end
+
+
+class TeamDaterangeBaseFormSet(forms.models.BaseModelFormSet):
+    """
+    Used by factory to create TeamDaterangeFormSet.
+    Contains rules to validate correctness of dateranges.
+    """
+    def clean(self):
+        if any(self.errors):
+            return
+        # check if dates are not-overlaping
+        dates = []
+        for form in self.forms:
+            start = form.cleaned_data.get('start')
+            end = form.cleaned_data.get('end')
+            if start and end:
+                dates.append((start, False))
+                dates.append((end, True))
+        dates = sorted(dates)
+        for form in self.forms:
+            open_intervals = 0
+            start = form.cleaned_data.get('start')
+            end = form.cleaned_data.get('end')
+            if not (start and end):
+                continue
+            for date, is_end in dates:
+                if date > end:
+                    break
+                if not is_end:
+                    open_intervals += 1
+                if date == end and open_intervals > 1:
+                    form._errors['end'] = form.error_class([
+                        "Overlaping intervals"
+                    ])
+                    break
+                if is_end:
+                    open_intervals -= 1
+
+TeamDaterangeFormSet = forms.models.modelformset_factory(
+    TeamDaterange,
+    form=TeamDaterangeForm,
+    formset=TeamDaterangeBaseFormSet,
+    can_delete=True,
+)
+
+
+class TeamVenturePercentForm(forms.ModelForm):
+    class Meta:
+        model = TeamVenturePercent
+
+        fields = [
+            'venture',
+            'percent',
+        ]
+
+
+class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
+    """
+    Used by factory to create TeamVenturePercentFormSet.
+    Contains rules to validate correctness of
+    """
+    def clean(self):
+        if any(self.errors):
+            return
+        # check if sum of percents is 100
+        percent = [f.cleaned_data.get('percent') or 0 for f in self.forms]
+        if sum(percent) != 100.0:
+            for form in self.forms:
+                if form.cleaned_data.get('percent') is not None:
+                    form._errors['percent'] = form.error_class([
+                        "Sum of percent different than 100"
+                    ])
+
+
+TeamVenturePercentFormSet = forms.models.modelformset_factory(
+    TeamVenturePercent,
+    form=TeamVenturePercentForm,
+    formset=TeamVenturePercentBaseFormSet,
+    can_delete=True,
+    extra=5,
 )
 
 

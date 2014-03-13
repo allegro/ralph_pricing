@@ -8,29 +8,14 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Team'
-        db.create_table('ralph_pricing_team', (
+        # Adding model 'TeamDaterange'
+        db.create_table('ralph_pricing_teamdaterange', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('cache_version', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
-            ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
-            ('show_in_report', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('billing_type', self.gf('django.db.models.fields.CharField')(default=u'TIME', max_length=15)),
+            ('team', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'dateranges', to=orm['ralph_pricing.Team'])),
+            ('start', self.gf('django.db.models.fields.DateField')()),
+            ('end', self.gf('django.db.models.fields.DateField')()),
         ))
-        db.send_create_signal('ralph_pricing', ['Team'])
-
-        # Adding field 'UsagePrice.team'
-        db.add_column('ralph_pricing_usageprice', 'team',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Team'], null=True, on_delete=models.PROTECT, blank=True),
-                      keep_default=False)
-
-        # Adding field 'UsageType.by_team'
-        db.add_column('ralph_pricing_usagetype', 'by_team',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
+        db.send_create_signal('ralph_pricing', ['TeamDaterange'])
 
         # Adding model 'TeamMembersCount'
         db.create_table('ralph_pricing_teammemberscount', (
@@ -45,15 +30,47 @@ class Migration(SchemaMigration):
         # Adding model 'TeamVenturePercent'
         db.create_table('ralph_pricing_teamventurepercent', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('team', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Team'])),
+            ('team_daterange', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'percentage', to=orm['ralph_pricing.TeamDaterange'])),
             ('venture', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Venture'])),
-            ('start', self.gf('django.db.models.fields.DateField')()),
-            ('end', self.gf('django.db.models.fields.DateField')()),
             ('percent', self.gf('django.db.models.fields.FloatField')()),
         ))
         db.send_create_signal('ralph_pricing', ['TeamVenturePercent'])
 
+        # Adding model 'Team'
+        db.create_table('ralph_pricing_team', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('cache_version', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
+            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
+            ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
+            ('show_in_report', self.gf('django.db.models.fields.BooleanField')(default=True)),
+            ('billing_type', self.gf('django.db.models.fields.CharField')(default=u'TIME', max_length=15)),
+        ))
+        db.send_create_signal('ralph_pricing', ['Team'])
+
+        # Adding field 'UsagePrice.team'
+        db.add_column('ralph_pricing_usageprice', 'team',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Team'], null=True, on_delete=models.PROTECT, blank=True),
+                      keep_default=False)
+
+        # Adding field 'UsageType.by_team'
+        db.add_column('ralph_pricing_usagetype', 'by_team',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+
     def backwards(self, orm):
+        # Deleting model 'TeamDaterange'
+        db.delete_table('ralph_pricing_teamdaterange')
+
+        # Deleting model 'TeamMembersCount'
+        db.delete_table('ralph_pricing_teammemberscount')
+
+        # Deleting model 'TeamVenturePercent'
+        db.delete_table('ralph_pricing_teamventurepercent')
+
         # Deleting model 'Team'
         db.delete_table('ralph_pricing_team')
 
@@ -63,11 +80,6 @@ class Migration(SchemaMigration):
         # Deleting field 'UsageType.by_team'
         db.delete_column('ralph_pricing_usagetype', 'by_team')
 
-        # Deleting model 'TeamMembersCount'
-        db.delete_table('ralph_pricing_teammemberscount')
-
-        # Deleting model 'TeamVenturePercent'
-        db.delete_table('ralph_pricing_teamventurepercent')
 
     models = {
         'account.profile': {
@@ -219,8 +231,14 @@ class Migration(SchemaMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
-            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'ventures_percent': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['ralph_pricing.Venture']", 'through': "orm['ralph_pricing.TeamVenturePercent']", 'symmetrical': 'False'})
+            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
+        },
+        'ralph_pricing.teamdaterange': {
+            'Meta': {'object_name': 'TeamDaterange'},
+            'end': ('django.db.models.fields.DateField', [], {}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'start': ('django.db.models.fields.DateField', [], {}),
+            'team': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'dateranges'", 'to': "orm['ralph_pricing.Team']"})
         },
         'ralph_pricing.teammemberscount': {
             'Meta': {'object_name': 'TeamMembersCount'},
@@ -232,11 +250,9 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.teamventurepercent': {
             'Meta': {'object_name': 'TeamVenturePercent'},
-            'end': ('django.db.models.fields.DateField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'percent': ('django.db.models.fields.FloatField', [], {}),
-            'start': ('django.db.models.fields.DateField', [], {}),
-            'team': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Team']"}),
+            'team_daterange': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'percentage'", 'to': "orm['ralph_pricing.TeamDaterange']"}),
             'venture': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Venture']"})
         },
         'ralph_pricing.usageprice': {

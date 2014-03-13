@@ -108,10 +108,10 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         choices=BILLING_TYPES,
         default='TIME',
     )
-    ventures_percent = db.ManyToManyField(
-        'Venture',
-        through='TeamVenturePercent',
-    )
+    # ventures_percent = db.ManyToManyField(
+    #     'Venture',
+    #     through='TeamVenturePercent',
+    # )
 
     class Meta:
         verbose_name = _("Team")
@@ -145,17 +145,44 @@ class TeamMembersCount(db.Model):
         )
 
 
-class TeamVenturePercent(db.Model):
+class TeamDaterange(db.Model):
     team = db.ForeignKey(
         Team,
         verbose_name=_("Team"),
+        related_name="dateranges",
+        limit_choices_to={
+            'billing_type': 'TIME',
+        },
+    )
+    start = db.DateField()
+    end = db.DateField()
+
+    class Meta:
+        verbose_name = _("Team daterange")
+        verbose_name_plural = _("Teams dateranges")
+
+    def __unicode__(self):
+        return '{} ({} - {})'.format(
+            self.team,
+            self.start,
+            self.end,
+        )
+
+    def clean(self):
+        if self.start > self.end:
+            raise ValidationError('Start greater than start')
+
+
+class TeamVenturePercent(db.Model):
+    team_daterange = db.ForeignKey(
+        TeamDaterange,
+        verbose_name=_("Team daterange"),
+        related_name="percentage",
     )
     venture = db.ForeignKey(
         'Venture',
         verbose_name=_("Venture"),
     )
-    start = db.DateField()
-    end = db.DateField()
     percent = db.FloatField(
         verbose_name=_("Percent"),
         validators=[
@@ -170,10 +197,10 @@ class TeamVenturePercent(db.Model):
 
     def __unicode__(self):
         return '{}/{} ({} - {})'.format(
-            self.team,
+            self.team_daterange.team,
             self.venture,
-            self.start,
-            self.end,
+            self.team_daterange.start,
+            self.team_daterange.end,
         )
 
 

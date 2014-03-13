@@ -121,8 +121,8 @@ class TeamMembersCountInline(admin.TabularInline):
     model = models.TeamMembersCount
 
 
-class TeamVenturesPercentInline(admin.TabularInline):
-    model = models.TeamVenturePercent
+class TeamDaterangesInline(admin.TabularInline):
+    model = models.TeamDaterange
 
 
 @register(models.Team)
@@ -132,5 +132,15 @@ class TeamAdmin(ModelAdmin):
     inlines = [
         TeamMembersCountInline,
         UsagePriceInline,
-        TeamVenturesPercentInline
+        TeamDaterangesInline
     ]
+
+
+class TeamVenturesPercentInline(admin.TabularInline):
+    model = models.TeamVenturePercent
+
+
+@register(models.TeamDaterange)
+class TeamDateranges(ModelAdmin):
+    list_display = ('team', 'start', 'end')
+    inlines = [TeamVenturesPercentInline]

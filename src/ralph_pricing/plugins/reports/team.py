@@ -55,6 +55,7 @@ from ralph_pricing.models import (
     DailyUsage,
     Team as TeamModel,
     TeamMembersCount,
+    TeamVenturePercent,
     UsageType
 )
 from ralph_pricing.plugins.base import register
@@ -99,31 +100,44 @@ class Team(UsageBasePlugin):
 
         :rtype: dict (key: (start, end) tuple; value: dict venture-percent )
         """
-        # get all percents between that overlap time between start and end
-        percentage = team.teamventurepercent_set.filter(
-            start__lte=end,
-            end__gte=start,
-        )
-        dates = defaultdict(lambda: defaultdict(list))
-        for percent in percentage:
-            dates[max(percent.start, start)]['start'].append(percent)
-            dates[min(percent.end, end)]['end'].append(percent)
-
         result = {}
-        current_percentage = {}
-        current_start = None
+        for daterange in team.dateranges.filter(
+            start__lte=end,
+            end__gte=start
+        ):
+            dstart = max(daterange.start, start)
+            dend = min(daterange.end, end)
 
-        # iterate through dict items sorted by key (date)
-        for date, percent in sorted(dates.items(), key=lambda k: k[0]):
-            if percent['start']:
-                current_start = date
-            for tvp in percent['start']:
-                current_percentage[tvp.venture.id] = tvp.percent
+            subresult = {}
+            for vp in daterange.percentage.all():
+                subresult[vp.venture.id] = vp.percent
+            result[(dstart, dend)] = subresult
 
-            if percent['end']:
-                result[(current_start, date)] = current_percentage.copy()
-            for tvp in percent['end']:
-                del current_percentage[tvp.venture.id]
+        # # get all percents between that overlap time between start and end
+        # percentage = team.teamventurepercent_set.filter(
+        #     start__lte=end,
+        #     end__gte=start,
+        # )
+        # dates = defaultdict(lambda: defaultdict(list))
+        # for percent in percentage:
+        #     dates[max(percent.start, start)]['start'].append(percent)
+        #     dates[min(percent.end, end)]['end'].append(percent)
+
+        # result = {}
+        # current_percentage = {}
+        # current_start = None
+
+        # # iterate through dict items sorted by key (date)
+        # for date, percent in sorted(dates.items(), key=lambda k: k[0]):
+        #     if percent['start']:
+        #         current_start = date
+        #     for tvp in percent['start']:
+        #         current_percentage[tvp.venture.id] = tvp.percent
+
+        #     if percent['end']:
+        #         result[(current_start, date)] = current_percentage.copy()
+        #     for tvp in percent['end']:
+        #         del current_percentage[tvp.venture.id]
         return result
 
     def _get_teams_dateranges_members_count(self, start, end, teams):
@@ -326,9 +340,10 @@ class Team(UsageBasePlugin):
                     add_subcosts(dpstart, dpend, subcost, percent)
         else:
             # if price was not provided at all
-            percentage = team.teamventurepercent_set.filter(
-                start__lte=end,
-                end__gte=start,
+            percentage = TeamVenturePercent.objects.filter(
+                team_daterange__team=team,
+                team_daterange__start__lte=end,
+                team_daterange__end__gte=start,
                 venture__in=ventures,
             )
             percentage = dict([(p.venture.id, p.percent) for p in percentage])

@@ -91,6 +91,20 @@ class TestTeamPlugin(TestCase):
         )
         mc.save()
 
+        # dateranges
+        self.daterange1 = models.TeamDaterange(
+            team=self.team_time,
+            start=date(2013, 10, 1),
+            end=date(2013, 10, 10),
+        )
+        self.daterange1.save()
+        self.daterange2 = models.TeamDaterange(
+            team=self.team_time,
+            start=date(2013, 10, 11),
+            end=date(2013, 10, 30),
+        )
+        self.daterange2.save()
+
         # costs
         # team time
         up = models.UsagePrice(
@@ -171,16 +185,14 @@ class TestTeamPlugin(TestCase):
 
         # ventures percentage (only for time team)
         percentage = (
-            (date(2013, 10, 1), date(2013, 10, 10), [30, 30, 40]),
-            (date(2013, 10, 11), date(2013, 10, 30), [20, 50, 30]),
+            (self.daterange1, [30, 30, 40]),
+            (self.daterange2, [20, 50, 30]),
         )
-        for start, end, percent in percentage:
+        for team_daterange, percent in percentage:
             for venture, p in zip(self.ventures, percent):
                 tvp = models.TeamVenturePercent(
-                    team=self.team_time,
+                    team_daterange=team_daterange,
                     venture=venture,
-                    start=start,
-                    end=end,
                     percent=p,
                 )
                 tvp.save()
@@ -282,12 +294,16 @@ class TestTeamPlugin(TestCase):
         })
 
     def test_team_time_cost_no_price(self):
+        daterange = models.TeamDaterange(
+            team=self.team_time,
+            start=date(2013, 11, 1),
+            end=date(2013, 11, 10),
+        )
+        daterange.save()
         for venture, percent in zip(self.ventures, [30, 20, 50]):
             tvp = models.TeamVenturePercent(
-                team=self.team_time,
+                team_daterange=daterange,
                 venture=venture,
-                start=date(2013, 11, 1),
-                end=date(2013, 11, 10),
                 percent=percent,
             )
             tvp.save()

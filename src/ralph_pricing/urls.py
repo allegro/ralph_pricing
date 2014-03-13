@@ -12,6 +12,8 @@ from ralph_pricing.views.devices import Devices
 from ralph_pricing.views.extra_costs import ExtraCosts
 from ralph_pricing.views.home import Home
 from ralph_pricing.views.usages import Usages
+from ralph_pricing.views.teams import Teams
+from ralph_pricing.views.teams_percent import TeamsPercent
 from ralph_pricing.views.ventures import AllVentures
 from ralph_pricing.views.ventures_beta import AllVenturesBeta
 
@@ -41,6 +43,23 @@ urlpatterns = patterns(
         login_required(Usages.as_view()),
         name='usages',
         kwargs={'type': 'price'},
+    ),
+    url(
+        r'^teams/$',
+        login_required(Teams.as_view()),
+        name='teams',
+        kwargs={'team': None, 'daterange': None},
+    ),
+    url(
+        r'^teams/(?P<team>[^/]+)/$',
+        login_required(Teams.as_view()),
+        name='teams',
+        kwargs={'daterange': None},
+    ),
+    url(
+        r'^teams/(?P<team>[^/]+)/(?P<daterange>[^/]+)/$',
+        login_required(TeamsPercent.as_view()),
+        name='teams',
     ),
     url(
         r'^all-ventures/$',
