@@ -96,9 +96,9 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
     BILLING_TYPES = (
         ('TIME', 'By time'),
         ('DEVICES_CORES', 'By devices and cores count'),
-        ('DEVICES', 'By devices'),
+        ('DEVICES', 'By devices count'),
         ('DISTRIBUTE', (
-            'Distribute cost to other teams proportionally to'
+            'Distribute cost to other teams proportionally to '
             'team members count'
         )),
     )
