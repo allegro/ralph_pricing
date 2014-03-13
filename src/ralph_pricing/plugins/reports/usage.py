@@ -44,7 +44,6 @@ class UsageBasePlugin(BaseReportPlugin):
             return _('No price')
         if ut_days != total_days:
             return _('Incomplete price')
-        return None
 
     def _get_total_cost_by_warehouses(
         self,
