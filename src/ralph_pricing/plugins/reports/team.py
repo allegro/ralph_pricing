@@ -13,7 +13,7 @@ For each team, that should be billed based on time model, should be provided
 information about percentage division of time, that team spent for each
 venture (in some period of time - generally this periods don't have to be the
 same as team cost period). It's assumed, that team cost, that is defined for
-some period of time, is splitted between all days in period as some daily cost
+some period of time, is split between all days in period as some daily cost
 and then distributed between teams based on their value of time spent.
 
 * Devices-cores
@@ -31,7 +31,7 @@ distributed to ventures proprotionally to the number of devices each own.
 * Distribution
 This model is using other teams (not-distributed) and information about team
 members count (more specifically: proportion of team members number to total
-members number of all teams). Cost of distributed team is splitted between all
+members number of all teams). Cost of distributed team is split between all
 other teams based on members number proportion. Then, based on other team
 model (time, devices-cores or devices), team cost (which is part of total
 distributed cost) is spliited between all ventures and summed with parts of

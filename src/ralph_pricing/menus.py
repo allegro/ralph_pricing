@@ -58,9 +58,9 @@ def usages_menu(href='', selected=None):
     return items
 
 
-def teams_menu(href='', selected=None):
+def teams_menu(href, selected=None):
     """
-    Create menus for usage types for manually entering prices
+    Create menus for teams percent definitions.
     """
     teams = Team.objects.filter(billing_type='TIME').order_by('name')
     items = []
@@ -70,7 +70,7 @@ def teams_menu(href='', selected=None):
             name=team.name,
             subitems=[],
             fugue_icon='fugue-user-worker',
-            href='{}/{}/'.format(href, team.name),
+            href='{}/{}'.format(href, team.name),
             indent=' ',
             collapsed=True,
             collapsible=True,

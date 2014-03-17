@@ -108,10 +108,6 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         choices=BILLING_TYPES,
         default='TIME',
     )
-    # ventures_percent = db.ManyToManyField(
-    #     'Venture',
-    #     through='TeamVenturePercent',
-    # )
 
     class Meta:
         verbose_name = _("Team")

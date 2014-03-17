@@ -196,10 +196,7 @@ class TeamDaterangeForm(forms.ModelForm):
     class Meta:
         model = TeamDaterange
 
-        fields = [
-            'start',
-            'end',
-        ]
+        fields = ['start', 'end']
 
         widgets = {
             'start': DateWidget(attrs={'class': 'input-small'}),
@@ -230,7 +227,7 @@ class TeamDaterangeBaseFormSet(forms.models.BaseModelFormSet):
     def clean(self):
         if any(self.errors):
             return
-        # check if dates are not-overlaping
+        # check if dates are not-overlapping
         dates = []
         for form in self.forms:
             start = form.cleaned_data.get('start')
@@ -270,10 +267,7 @@ class TeamVenturePercentForm(forms.ModelForm):
     class Meta:
         model = TeamVenturePercent
 
-        fields = [
-            'venture',
-            'percent',
-        ]
+        fields = ['venture', 'percent']
 
 
 class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
