@@ -250,22 +250,18 @@ class TestTeamPlugin(TestCase):
             ventures=self.ventures,
             forecast=False,
         )
-        # percent_key = 'team_{0}_percent'.format(self.team_time.id)
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_time.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                # percent_key: 23.2,
                 cost_key: D('212'),
             },
             self.venture2.id: {
-                # percent_key: 43.6,
                 cost_key: D('458'),
             },
             self.venture3.id: {
-                # percent_key: 33.2,
                 cost_key: D('310'),
             },
         })
@@ -280,22 +276,18 @@ class TestTeamPlugin(TestCase):
             forecast=False,
             no_price_msg=True,
         )
-        # percent_key = 'team_{0}_percent'.format(self.team_time.id)
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_time.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                # percent_key: 18.82,
                 cost_key: _('Incomplete price'),
             },
             self.venture2.id: {
-                # percent_key: 36.47,
                 cost_key: _('Incomplete price'),
             },
             self.venture3.id: {
-                # percent_key: 27.06,
                 cost_key: _('Incomplete price'),
             },
         })
@@ -323,22 +315,18 @@ class TestTeamPlugin(TestCase):
             forecast=False,
             no_price_msg=True,
         )
-        # percent_key = 'team_{0}_percent'.format(self.team_time.id)
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_time.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                # percent_key: 30,
                 cost_key: _('No price'),
             },
             self.venture2.id: {
-                # percent_key: 20,
                 cost_key: _('No price'),
             },
             self.venture3.id: {
-                # percent_key: 50,
                 cost_key: _('No price'),
             },
         })
@@ -352,22 +340,18 @@ class TestTeamPlugin(TestCase):
             ventures=self.ventures,
             forecast=True,
         )
-        # percent_key = 'team_{0}_percent'.format(self.team_time.id)
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_time.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                # percent_key: 23.2,
                 cost_key: D('208'),
             },
             self.venture2.id: {
-                # percent_key: 43.6,
                 cost_key: D('376'),
             },
             self.venture3.id: {
-                # percent_key: 33.2,
                 cost_key: D('296'),
             },
         })
@@ -404,14 +388,6 @@ class TestTeamPlugin(TestCase):
             ventures=self.ventures,
             forecast=False,
         )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
-        cores_key = 'ut_{0}_team_{1}_cores'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_devices_cores.id,
@@ -423,18 +399,12 @@ class TestTeamPlugin(TestCase):
         # cores cost in period: 10 * 25 / 2 = 125
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 8,
-                cores_key: 0.8,
                 cost_key: D('75'),  # 0.4 * 125 + 0.2 * 125
             },
             self.venture2.id: {
-                devices_key: 8,
-                cores_key: 1.6,
                 cost_key: D('100'),  # 0.4 * 125 + 0.4 * 125
             },
             self.venture3.id: {
-                devices_key: 4,
-                cores_key: 1.6,
                 cost_key: D('75'),  # 0.4 * 125 + 0.2 * 125
             },
         })
@@ -471,14 +441,6 @@ class TestTeamPlugin(TestCase):
             ventures=self.ventures,
             forecast=True,
         )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
-        cores_key = 'ut_{0}_team_{1}_cores'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_devices_cores.id,
@@ -490,18 +452,12 @@ class TestTeamPlugin(TestCase):
         # cores cost in period: 20 * 25 / 2 = 250
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 8,
-                cores_key: 0.8,
                 cost_key: D('150'),  # 0.4 * 250 + 0.2 * 250
             },
             self.venture2.id: {
-                devices_key: 8,
-                cores_key: 1.6,
                 cost_key: D('200'),  # 0.4 * 250 + 0.4 * 250
             },
             self.venture3.id: {
-                devices_key: 4,
-                cores_key: 1.6,
                 cost_key: D('150'),  # 0.4 * 250 + 0.2 * 250
             },
         })
@@ -539,32 +495,18 @@ class TestTeamPlugin(TestCase):
             forecast=False,
             no_price_msg=True,
         )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
-        cores_key = 'ut_{0}_team_{1}_cores'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_devices_cores.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 5.88,
-                cores_key: 0.59,
                 cost_key: _('Incomplete price'),
             },
             self.venture2.id: {
-                devices_key: 5.88,
-                cores_key: 1.18,
                 cost_key: _('Incomplete price'),
             },
             self.venture3.id: {
-                devices_key: 2.94,
-                cores_key: 1.18,
                 cost_key: _('Incomplete price'),
             },
         })
@@ -602,32 +544,18 @@ class TestTeamPlugin(TestCase):
             forecast=False,
             no_price_msg=True,
         )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
-        cores_key = 'ut_{0}_team_{1}_cores'.format(
-            self.usage_type.id,
-            self.team_devices_cores.id,
-        )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_devices_cores.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 10,
-                cores_key: 10,
                 cost_key: _('No price'),
             },
             self.venture2.id: {
-                devices_key: 10,
-                cores_key: 20,
                 cost_key: _('No price'),
             },
             self.venture3.id: {
-                devices_key: 20,
-                cores_key: 20,
                 cost_key: _('No price'),
             },
         })
@@ -640,11 +568,11 @@ class TestTeamPlugin(TestCase):
         total_devices_mock,
     ):
         devices_count_mock.return_value = {
-            self.venture1.id: 30,
-            self.venture2.id: 180,
-            self.venture3.id: 90,
+            self.venture1.id: 200,
+            self.venture2.id: 200,
+            self.venture3.id: 100,
         }
-        total_devices_mock.return_value = 300
+        total_devices_mock.return_value = 500
         result = self.plugin._get_team_cost_per_venture(
             start=date(2013, 10, 3),
             end=date(2013, 10, 27),
@@ -652,10 +580,6 @@ class TestTeamPlugin(TestCase):
             usage_type=self.usage_type,
             ventures=self.ventures,
             forecast=False,
-        )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices.id,
         )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
@@ -669,16 +593,13 @@ class TestTeamPlugin(TestCase):
         # devices cost in period: (11-27): 17 / 20 * 100 = 85
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 2.4,  # (30 + 30) / 25
-                cost_key: D('72.5'),  # 0.1 * 640 + 0.1 * 85
+                cost_key: D('290'),  # 0.4 * 640 + 0.4 * 85
             },
             self.venture2.id: {
-                devices_key: 14.4,  # (180 + 180) / 25
-                cost_key: D('435'),  # 0.6 * 640 + 0.6 * 85
+                cost_key: D('290'),  # 0.4 * 640 + 0.4 * 85
             },
             self.venture3.id: {
-                devices_key: 7.2,  # (90 + 90) / 25
-                cost_key: D('217.5'),  # 0.3 * 640 + 0.3 * 85
+                cost_key: D('145'),  # 0.2 * 640 + 0.2 * 85
             },
         })
 
@@ -703,10 +624,6 @@ class TestTeamPlugin(TestCase):
             ventures=self.ventures,
             forecast=True,
         )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices.id,
-        )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_devices.id,
@@ -719,15 +636,12 @@ class TestTeamPlugin(TestCase):
         # devices cost in period: (11-27): 17 / 20 * 200 = 170
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 2.4,  # (30 + 30) / 25
                 cost_key: D('145'),  # 0.1 * 1280 + 0.1 * 170
             },
             self.venture2.id: {
-                devices_key: 14.4,  # (180 + 180) / 25
                 cost_key: D('870'),  # 0.6 * 1280 + 0.6 * 170
             },
             self.venture3.id: {
-                devices_key: 7.2,  # (90 + 90) / 25
                 cost_key: D('435'),  # 0.3 * 1280 + 0.3 * 170
             },
         })
@@ -755,25 +669,18 @@ class TestTeamPlugin(TestCase):
             forecast=False,
             no_price_msg=True,
         )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices.id,
-        )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_devices.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 11.76,
                 cost_key: _('Incomplete price'),
             },
             self.venture2.id: {
-                devices_key: 11.76,
                 cost_key: _('Incomplete price'),
             },
             self.venture3.id: {
-                devices_key: 5.88,
                 cost_key: _('Incomplete price'),
             },
         })
@@ -801,25 +708,22 @@ class TestTeamPlugin(TestCase):
             forecast=False,
             no_price_msg=True,
         )
-        devices_key = 'ut_{0}_team_{1}_devices'.format(
-            self.usage_type.id,
-            self.team_devices.id,
-        )
+        # devices_key = 'ut_{0}_team_{1}_devices'.format(
+        #     self.usage_type.id,
+        #     self.team_devices.id,
+        # )
         cost_key = 'ut_{0}_team_{1}_cost'.format(
             self.usage_type.id,
             self.team_devices.id,
         )
         self.assertEquals(result, {
             self.venture1.id: {
-                devices_key: 10,
                 cost_key: _('No price'),
             },
             self.venture2.id: {
-                devices_key: 10,
                 cost_key: _('No price'),
             },
             self.venture3.id: {
-                devices_key: 20,
                 cost_key: _('No price'),
             },
         })
@@ -1102,6 +1006,61 @@ class TestTeamPlugin(TestCase):
             },
         })
 
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_cores_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_cores_count_by_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_devices_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_devices_count_by_venture')  # noqa
+    def test_usages(
+        self,
+        devices_count_mock,
+        total_devices_mock,
+        cores_count_mock,
+        total_cores_mock
+    ):
+        devices_count_mock.return_value = {
+            self.venture1.id: 200,
+            self.venture2.id: 200,
+            self.venture3.id: 100,
+        }
+        total_devices_mock.return_value = 500
+        cores_count_mock.return_value = {
+            self.venture1.id: 20,
+            self.venture2.id: 40,
+            self.venture3.id: 40,
+        }
+        total_cores_mock.return_value = 100
+        result = self.plugin.usages(
+            start=date(2013, 10, 3),
+            end=date(2013, 10, 27),
+            usage_type=self.usage_type,
+            ventures=self.ventures,
+            forecast=False,
+            no_price_msg=True,
+        )
+        self.assertEquals(result, {
+            self.venture1.id: {
+                'ut_1_team_1_cost': D('212'),
+                'ut_1_team_2_cost': D('75'),
+                'ut_1_team_3_cost': D('290'),
+                'ut_1_team_4_cost': D('2360'),
+                'ut_1_total_cost': D('2937'),
+            },
+            self.venture2.id: {
+                'ut_1_team_1_cost': D('458'),
+                'ut_1_team_2_cost': D('100'),
+                'ut_1_team_3_cost': D('290'),
+                'ut_1_team_4_cost': D('3050'),
+                'ut_1_total_cost': D('3898'),
+            },
+            self.venture3.id: {
+                'ut_1_team_1_cost': D('310'),
+                'ut_1_team_2_cost': D('75'),
+                'ut_1_team_3_cost': D('145'),
+                'ut_1_team_4_cost': D('1990'),
+                'ut_1_total_cost': D('2520'),
+            },
+        })
+
     def test_schema(self):
         result = self.plugin.schema(self.usage_type)
         ut_id = self.usage_type.id
@@ -1114,27 +1073,9 @@ class TestTeamPlugin(TestCase):
                 'currency': True,
                 'total_cost': False,
             }),
-            ('ut_{0}_team_{1}_devices'.format(
-                    ut_id,
-                    self.team_devices_cores.id
-                ), {
-                'name': _("{0} - {1} devices".format(
-                    self.usage_type.name,
-                    self.team_devices_cores.name,
-                )),
-            }),
-            ('ut_{0}_team_{1}_cores'.format(
-                    ut_id,
-                    self.team_devices_cores.id
-                ), {
-                'name': _("{0} - {1} cores".format(
-                    self.usage_type.name,
-                    self.team_devices_cores.name,
-                )),
-            }),
             ('ut_{0}_team_{1}_cost'.format(
-                    ut_id,
-                    self.team_devices_cores.id
+                ut_id,
+                self.team_devices_cores.id
                 ), {
                 'name': _("{0} - {1} cost".format(
                     self.usage_type.name,
@@ -1142,12 +1083,6 @@ class TestTeamPlugin(TestCase):
                 )),
                 'currency': True,
                 'total_cost': False,
-            }),
-            ('ut_{0}_team_{1}_devices'.format(ut_id, self.team_devices.id), {
-                'name': _("{0} - {1} devices".format(
-                    self.usage_type.name,
-                    self.team_devices.name,
-                )),
             }),
             ('ut_{0}_team_{1}_cost'.format(ut_id, self.team_devices.id), {
                 'name': _("{0} - {1} cost".format(

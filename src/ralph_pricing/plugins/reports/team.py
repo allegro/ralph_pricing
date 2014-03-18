@@ -355,7 +355,7 @@ class Team(UsageBasePlugin):
         """
         result = defaultdict(lambda: defaultdict(int))
         cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
-        total_days = (end - start).days + 1
+        # total_days = (end - start).days + 1
         price_undefined = no_price_msg and self._incomplete_price(
             usage_type,
             start,
@@ -365,7 +365,7 @@ class Team(UsageBasePlugin):
         funcs = funcs or []
 
         def add_subcosts(sstart, send, cost):
-            for count_func, total_count_func, key in funcs:
+            for count_func, total_count_func in funcs:
                 count_per_venture = count_func(sstart, send, ventures)
                 total = total_count_func(sstart, send, ventures)
                 # if there is more than one resource, calculate 1/n of total
@@ -379,7 +379,7 @@ class Team(UsageBasePlugin):
                             cost_part * D(count) / D(total)
                         )
                     # store usage count to calculate average usage per day
-                    result[venture][key] += count
+                    # result[venture][key] += count
 
         usageprices = team.usageprice_set.filter(
             start__lte=end,
@@ -427,12 +427,12 @@ class Team(UsageBasePlugin):
                 (
                     self._get_devices_count_by_venture,
                     self._get_total_devices_count,
-                    'ut_{0}_team_{1}_devices'.format(usage_type.id, team.id)
+                    # 'ut_{0}_team_{1}_devices'.format(usage_type.id, team.id)
                 ),
                 (
                     self._get_cores_count_by_venture,
                     self._get_total_cores_count,
-                    'ut_{0}_team_{1}_cores'.format(usage_type.id, team.id)
+                    # 'ut_{0}_team_{1}_cores'.format(usage_type.id, team.id)
                 ),
             ),
             *args,
@@ -456,7 +456,7 @@ class Team(UsageBasePlugin):
                 (
                     self._get_devices_count_by_venture,
                     self._get_total_devices_count,
-                    'ut_{0}_team_{1}_devices'.format(usage_type.id, team.id)
+                    # 'ut_{0}_team_{1}_devices'.format(usage_type.id, team.id)
                 ),
             ),
             *args,
@@ -605,21 +605,6 @@ class Team(UsageBasePlugin):
         teams = self._get_teams()
         ut_id = usage_type.id
         for team in teams:
-            if team.billing_type in ('DEVICES_CORES', 'DEVICES'):
-                schema['ut_{0}_team_{1}_devices'.format(ut_id, team.id)] = {
-                    'name': _("{0} - {1} devices".format(
-                        usage_type.name,
-                        team.name,
-                    ))
-                }
-            if team.billing_type == 'DEVICES_CORES':
-                schema['ut_{0}_team_{1}_cores'.format(ut_id, team.id)] = {
-                    'name': _("{0} - {1} cores".format(
-                        usage_type.name,
-                        team.name,
-                    ))
-                }
-
             schema['ut_{0}_team_{1}_cost'.format(ut_id, team.id)] = {
                 'name': _("{0} - {1} cost".format(
                     usage_type.name,
