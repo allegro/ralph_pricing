@@ -174,17 +174,6 @@ def get_power_consumption_usage():
     return usage_type
 
 
-def get_power_consumption_usage():
-    """Creates power consumption usage type if not created."""
-    usage_type, created = UsageType.objects.get_or_create(
-        name="Power consumption",
-        symbol='power_consumption',
-        by_warehouse=True,
-        by_cost=True,
-    )
-    return usage_type
-
-
 def get_height_of_device_usage():
     """Creates power consumption usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
