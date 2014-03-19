@@ -13,6 +13,8 @@ import paramiko
 from django.conf import settings
 
 from ralph.util import plugin
+from ralph.util.api_pricing import get_ip_addresses
+from ralph_pricing.models import UsageType, Venture, DailyUsage
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +47,7 @@ def get_ssh_client(address, login, password):
     :rtype object:
     """
     logger.debug(
-        'Getting client for {0} {1} ****'.format(
+        'Client {0} {1} ****'.format(
             address,
             login,
             password,
@@ -98,7 +100,7 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     splited_date = str(date).split('-')
     nfdump_str = "nfdump -M /data/nfsen/profiles-data/live/{0} "\
         " -T  -R {1}/{2}/{3}/{4}:{1}/{2}/{3}/{5} -a  -A"\
-        " {6} -o \"fmt:%sa | %da | %byt\"".format(
+        " {6} -o \"fmt:%sa | %da | %byt\" -c 10".format(
             channel,
             splited_date[0],
             splited_date[1],
@@ -158,7 +160,7 @@ def get_network_usage(ssh_client, channel, date, file_names, input_output):
     Collect usages for given channel, date and input/output. Used by
     get_network_usages method. Returned data struct looks like:
 
-    Returned_data = {
+    returned_data = {
         'ip_address': 'usage_in_bytes',
         ...
     }
@@ -185,7 +187,7 @@ def get_network_usages(date):
     Based on settings, collect data from remote server. Returned data struct
     looks like:
 
-    Returned_data = {
+    returned_data = {
         'ip_address': 'usage_in_bytes',
         ...
     }
@@ -213,6 +215,87 @@ def get_network_usages(date):
     return network_usages
 
 
+def get_usage_type():
+    """
+    Creates network usage type if not created.
+    
+    :returns object: Network Bytes usage type
+    :rtype object:
+    """
+    usage_type, created = UsageType.objects.get_or_create(
+        name="Network Bytes",
+        symbol='network_bytes_bytes',
+    )
+    return usage_type
+
+
+def get_ventures_and_ips():
+    """
+    Gets ip per venture. Use ralph API to get list of ips and ventures
+    and convert it to dict where ip is a key and venture is value
+    
+    :returns dict: Dict with ip as key and venture as value
+    :rtype dict:
+    """
+    logger.debug('Getting list of ips and ventures')
+    return {ip.keys()[0]: ip.values()[0] for ip in get_ip_addresses(True)}
+
+
+def sort_per_venture(network_usages, ventures_and_ips):
+    """
+    Matches ips to ventures and create list of usages where venture is a key
+    and value of usage is a value
+
+    :param dict network_usages: Usages per IP
+    :param dict ventures_and_ips: Venture per IP
+    :returns dict: Usage per Venture
+    :rtype dict:
+    """
+    usage_per_venture = defaultdict(int)
+    for ip, usage in network_usages.iteritems():
+        if ip in ventures_and_ips:
+            if ventures_and_ips[ip]:
+                usage_per_venture[ventures_and_ips[ip]] += usage
+            else:
+                logger.warning('IP {0} without venture'.format(ip))
+        else:
+            logger.warning('Unknown ip address {0}'.format(ip))
+    return usage_per_venture
+
+
+def update(network_usages, ventures_and_ips, usage_type, date):
+    """
+    Match ips to ventures and updates (or creates) usage of given usage_type.
+
+    :param dict network_usages: Usages per IP
+    :param dict ventures_and_ips: Venture per IP
+    :param object usage_type: UsageType object
+    :param datetime date: Date for which dailyusage will be update
+    """
+    logger.debug('Saving usages as a daily usages per venture')
+    for venture_id, value in sort_per_venture(
+        network_usages, ventures_and_ips).iteritems():
+        try:
+            pricing_venture = Venture.objects.get(
+                venture_id=venture_id,
+            )
+        except Venture.DoesNotExist:
+            logger.warning(
+                'Ralph venture id {0} does not exist'.format(
+                    venture_id
+                )
+            )
+            continue
+
+        usage, usage_created = DailyUsage.objects.get_or_create(
+            date=date,
+            type=usage_type,
+            pricing_venture=pricing_venture,
+        )
+        usage.value = value
+        usage.save()
+
+
 @plugin.register(chain='pricing', requires=['ventures'])
 def network(**kwargs):
     """
@@ -238,6 +321,11 @@ def network(**kwargs):
 
     date = kwargs['today']
 
-    network_usages = get_network_usages(date)
+    update(
+        get_network_usages(date),
+        get_ventures_and_ips(),
+        get_usage_type(),
+        date,
+    )
 
-    return True, "Status: ", kwargs
+    return True, "Network usage update", kwargs

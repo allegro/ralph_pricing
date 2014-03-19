@@ -48,11 +48,29 @@ class TestNetwork(TestCase):
     def test_extract_ip_and_bytes(self):
         pass
 
-    def get_network_usage_when_ip_and_byte_is_none(self)
+    def test_get_network_usage_when_ip_and_byte_is_none(self):
         pass
 
-    def get_network_usage(self)
+    def test_get_network_usage(self):
         pass
 
-    def get_network_usages(self)
+    def test_get_network_usages(self):
+        pass
+
+    def test_get_usages_type(self):
+        pass
+
+    def test_sort_per_venture_when_venture_is_none(self):
+        pass
+
+    def test_sort_per_venture_when_there_is_no_ip(self):
+        pass
+
+    def test_sort_per_venture(self):
+        pass
+
+    def test_update_when_venture_is_not_found(self):
+        pass
+
+    def test_update(self):
         pass
