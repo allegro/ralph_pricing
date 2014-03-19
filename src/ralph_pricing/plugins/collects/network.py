@@ -37,7 +37,7 @@ def RemoteServerError(Exception):
 
 def get_ssh_client(address, login, password):
     """
-    Create ssh client and connect them to give address by using given 
+    Create ssh client and connect them to give address by using given
     credentials
 
     :param string address: Remote server address
@@ -138,7 +138,7 @@ def extract_ip_and_bytes(row, input_output):
             return int(float(bytes_list[0]) * 1073741824)
         else:
             raise UnknowDataFormatError(
-                'Data cannot be unificated. Unknow field format'\
+                'Data cannot be unificated. Unknow field format'
                 ' \'{0} {1}\''.format(
                     bytes_list[0],
                     bytes_list[1],
@@ -175,7 +175,13 @@ def get_network_usage(ssh_client, channel, date, file_names, input_output):
     :rtype dict:
     """
     ip_and_bytes = defaultdict(int)
-    for row in execute_nfdump(ssh_client, channel, date, file_names, input_output):
+    for row in execute_nfdump(
+        ssh_client,
+        channel,
+        date,
+        file_names,
+        input_output,
+    ):
         ip_and_byte = extract_ip_and_bytes(row, input_output)
         if ip_and_byte:
             ip_and_bytes[ip_and_byte[0]] = ip_and_byte[1]
@@ -205,20 +211,20 @@ def get_network_usages(date):
                 logging.debug("Serwer:{0} Channel:{1} I/O:{2}".format(
                     address, channel, input_output))
                 for ip, value in get_network_usage(
-                        ssh_client,
-                        channel,
-                        date,
-                        get_names_of_data_files(ssh_client, channel, date),
-                        input_output,
-                    ).iteritems():
+                    ssh_client,
+                    channel,
+                    date,
+                    get_names_of_data_files(ssh_client, channel, date),
+                    input_output,
+                ).iteritems():
                     network_usages[ip] += value
     return network_usages
 
 
 def get_usage_type():
     """
-    Creates network usage type if not created.
-    
+    Creates network usage type if not created
+
     :returns object: Network Bytes usage type
     :rtype object:
     """
@@ -233,7 +239,7 @@ def get_ventures_and_ips():
     """
     Gets ip per venture. Use ralph API to get list of ips and ventures
     and convert it to dict where ip is a key and venture is value
-    
+
     :returns dict: Dict with ip as key and venture as value
     :rtype dict:
     """
@@ -274,7 +280,9 @@ def update(network_usages, ventures_and_ips, usage_type, date):
     """
     logger.debug('Saving usages as a daily usages per venture')
     for venture_id, value in sort_per_venture(
-        network_usages, ventures_and_ips).iteritems():
+        network_usages, ventures_and_ips
+    ).iteritems():
+
         try:
             pricing_venture = Venture.objects.get(
                 venture_id=venture_id,
