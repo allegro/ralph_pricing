@@ -91,6 +91,13 @@ class TestTeamPlugin(TestCase):
             members_count=10,
         )
         mc.save()
+        mc = models.TeamMembersCount(
+            team=self.team_distribute,
+            start=date(2013, 10, 1),
+            end=date(2013, 10, 30),
+            members_count=10,
+        )
+        mc.save()
 
         # dateranges
         self.daterange1 = models.TeamDaterange(
@@ -228,16 +235,19 @@ class TestTeamPlugin(TestCase):
                 self.team_time.id: 10,
                 self.team_devices_cores.id: 10,
                 self.team_devices.id: 20,
+                self.team_distribute.id: 10,
             },
             (date(2013, 10, 11), date(2013, 10, 20)): {
                 self.team_time.id: 10,
                 self.team_devices_cores.id: 20,
                 self.team_devices.id: 20,
+                self.team_distribute.id: 10,
             },
             (date(2013, 10, 21), date(2013, 10, 27)): {
                 self.team_time.id: 10,
                 self.team_devices_cores.id: 20,
                 self.team_devices.id: 10,
+                self.team_distribute.id: 10,
             },
         })
 

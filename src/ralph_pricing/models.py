@@ -178,6 +178,9 @@ class TeamVenturePercent(db.Model):
     venture = db.ForeignKey(
         'Venture',
         verbose_name=_("Venture"),
+        limit_choices_to={
+            'is_active': True,
+        },
     )
     percent = db.FloatField(
         verbose_name=_("Percent"),
@@ -542,6 +545,7 @@ class Venture(MPTTModel):
     class Meta:
         verbose_name = _("venture")
         verbose_name_plural = _("ventures")
+        ordering = ["name"]
 
     class MPTTMeta:
         order_insertion_by = ['name']

@@ -269,6 +269,12 @@ class TeamVenturePercentForm(forms.ModelForm):
 
         fields = ['venture', 'percent']
 
+    def __init__(self, *args, **kwargs):
+        super(TeamVenturePercentForm, self).__init__(*args, **kwargs)
+        self.fields['venture'].queryset = Venture.objects.filter(
+            is_active=True,
+        ).order_by('name')
+
 
 class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
     """
