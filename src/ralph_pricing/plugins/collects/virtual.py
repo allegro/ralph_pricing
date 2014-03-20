@@ -34,7 +34,8 @@ def update(data, usages, date):
             venture_id=data['venture_id'],
         )
     else:
-        venture = None
+        logger.warning('Device {0} have no venture'.format(data['device_id']))
+        return
     for key, usage in usages.iteritems():
         update_usage(device, venture, usage, date, data.get(key))
 
