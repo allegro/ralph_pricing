@@ -25,17 +25,28 @@ class TestAssetPlugin(TestCase):
 
         self.core_usage_type, created = UsageType.objects.get_or_create(
             name="Physical CPU cores",
+            symbol='physical_cpu_cores',
+            average=True,
         )
-        self.core_usage_type.average = True
         self.core_usage_type.save()
 
         self.power_consumption_usage_type, created = \
             UsageType.objects.get_or_create(
                 name="Power consumption",
+                symbol='power_consumption',
                 by_warehouse=True,
                 by_cost=True,
             )
         self.power_consumption_usage_type.save()
+
+        self.height_of_device_usage_type, created = \
+            UsageType.objects.get_or_create(
+                name="Height of Device",
+                symbol='height_of_device',
+                by_warehouse=True,
+                by_cost=True,
+            )
+        self.height_of_device_usage_type.save()
 
         self.warehouse, created = Warehouse.objects.get_or_create(
             name="Sample warehouse"
@@ -49,6 +60,7 @@ class TestAssetPlugin(TestCase):
             'ralph_id': 13342,
             'slots': 10.0,
             'power_consumption': 1000,
+            'height_of_device': 10.00,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
@@ -65,8 +77,11 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.core_usage_type,
-                self.power_consumption_usage_type,
+                {
+                    'core': self.core_usage_type,
+                    'power_consumption': self.power_consumption_usage_type,
+                    'height_of_device': self.height_of_device_usage_type,
+                },
             ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
@@ -83,8 +98,11 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.core_usage_type,
-                self.power_consumption_usage_type,
+                {
+                    'core': self.core_usage_type,
+                    'power_consumption': self.power_consumption_usage_type,
+                    'height_of_device': self.height_of_device_usage_type,
+                },
             ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
@@ -98,8 +116,11 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.core_usage_type,
-                self.power_consumption_usage_type,
+                {
+                    'core': self.core_usage_type,
+                    'power_consumption': self.power_consumption_usage_type,
+                    'height_of_device': self.height_of_device_usage_type,
+                },
             ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
@@ -117,8 +138,11 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.core_usage_type,
-                self.power_consumption_usage_type,
+                {
+                    'core': self.core_usage_type,
+                    'power_consumption': self.power_consumption_usage_type,
+                    'height_of_device': self.height_of_device_usage_type,
+                },
             ) for data in self._get_asset()
         )
         self.assertEqual(count, 1)
