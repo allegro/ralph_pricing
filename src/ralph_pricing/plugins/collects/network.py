@@ -20,14 +20,14 @@ from ralph_pricing.models import UsageType, Venture, DailyUsage
 logger = logging.getLogger(__name__)
 
 
-def UnknowDataFormatError(Exception):
+class UnknowDataFormatError(Exception):
     """
     Raise this exception when data contains any different format like except
     """
     pass
 
 
-def RemoteServerError(Exception):
+class RemoteServerError(Exception):
     """
     Raise this exception when command executed on remote server trigger the
     error
@@ -244,7 +244,7 @@ def get_ventures_and_ips():
     :rtype dict:
     """
     logger.debug('Getting list of ips and ventures')
-    return {ip.keys()[0]: ip.values()[0] for ip in get_ip_addresses(True)}
+    return {key:value for key, value in get_ip_addresses(True).iteritems()}
 
 
 def sort_per_venture(network_usages, ventures_and_ips):
@@ -282,7 +282,6 @@ def update(network_usages, ventures_and_ips, usage_type, date):
     for venture_id, value in sort_per_venture(
         network_usages, ventures_and_ips
     ).iteritems():
-
         try:
             pricing_venture = Venture.objects.get(
                 venture_id=venture_id,
@@ -317,15 +316,15 @@ def network(**kwargs):
     """
     if (not hasattr(settings, 'SSH_NFSEN_CREDENTIALS')
             or not settings.SSH_NFSEN_CREDENTIALS):
-        return False, "Not configured credentials", kwargs
+        return False, "Credentials not configured", kwargs
 
     if (not hasattr(settings, 'NFSEN_CHANNELS')
             or not settings.NFSEN_CHANNELS):
-        return False, "Not configured channels", kwargs
+        return False, "Channels not configured", kwargs
 
     if (not hasattr(settings, 'NFSEN_CLASS_ADDRESS')
             or not settings.NFSEN_CLASS_ADDRESS):
-        return False, "Not configured class address", kwargs
+        return False, "Class address not configured", kwargs
 
     date = kwargs['today']
 
@@ -336,4 +335,4 @@ def network(**kwargs):
         date,
     )
 
-    return True, "Network usage update", kwargs
+    return True, "Network usages update", kwargs
