@@ -132,61 +132,76 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(usage.type, self.power_consumption_usage_type)
 
     def test_sync_asset_device_without_ralph_id(self):
-        data = yield {
+        data = {
             'asset_id': 1123,
             'ralph_id': None,
             'slots': 10.0,
             'power_consumption': 1000,
+            'height_of_device': 10.00,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
             'barcode': '4321-4321-4321-4321',
             'deprecation_rate': 0,
+            'warehouse_id': 1,
+            'is_blade': True,
+            'cores_count': 0,
         }
-        count = sum(
+        self.assertFalse(
             update_assets(
-                item,
+                data,
                 self.today,
                 self.core_usage_type,
                 self.power_consumption_usage_type,
-            ) for item in data
+            ),
+            False
         )
-        self.assertFalse(count > 0)
 
     def test_sync_asset_device_update(self):
-        data = yield {
+        data = {
             'asset_id': 1123,
             'ralph_id': 123,
             'slots': 10.0,
             'power_consumption': 1000,
+            'height_of_device': 10.00,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
             'barcode': '4321-4321-4321-4321',
             'deprecation_rate': 0,
+            'warehouse_id': 1,
+            'is_blade': True,
+            'cores_count': 0,
         }
-        count = sum(
-            update_assets(
-                item,
-                self.today,
-                self.core_usage_type,
-                self.power_consumption_usage_type,
-            ) for item in data
+        update_assets(
+            data,
+            self.today,
+            self.core_usage_type,
+            self.power_consumption_usage_type,
         )
-        self.assertFalse(count == 1)
         device = Device.objects.get(device_id=123)
         self.assertEqual(device.sn, '1234-1234-1234-1234')
 
-        data = yield {
+        data = {
             'asset_id': 1123,
             'ralph_id': 123,
             'slots': 10.0,
             'power_consumption': 1000,
+            'height_of_device': 10.00,
             'price': 100,
             'is_deprecated': True,
             'sn': '5555-5555-5555-5555',
             'barcode': '4321-4321-4321-4321',
             'deprecation_rate': 0,
+            'warehouse_id': 1,
+            'is_blade': False,
+            'cores_count': 2,
         }
+        update_assets(
+            data,
+            self.today,
+            self.core_usage_type,
+            self.power_consumption_usage_type,
+        )
         device = Device.objects.get(device_id=123)
-        self.assertEqual(device.sn, '5556-5555-5555-5555')
+        self.assertEqual(device.sn, '5555-5555-5555-5555')
