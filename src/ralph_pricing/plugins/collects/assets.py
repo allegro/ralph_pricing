@@ -177,7 +177,7 @@ def assets(**kwargs):
             data,
             date,
             core_usage_type,
-            power_consumption_usage_type
+            power_consumption_usage_type,
         ):
             new_assets += 1
         total += 1
