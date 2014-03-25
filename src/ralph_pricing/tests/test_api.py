@@ -40,10 +40,27 @@ class TestServiceUsagesApi(ResourceTestCase):
         self.service = Service(name='Service1', symbol='s1')
         self.service.save()
 
-        self.venture1 = Venture(name='Venture1', venture_id=1, symbol='v1')
+        self.venture1 = Venture(
+            name='Venture1',
+            venture_id=1,
+            symbol='v1',
+            is_active=True,
+        )
         self.venture1.save()
-        self.venture2 = Venture(name='Venture2', venture_id=2, symbol='v2')
+        self.venture2 = Venture(
+            name='Venture2',
+            venture_id=2,
+            symbol='v2',
+            is_active=True,
+        )
         self.venture2.save()
+        self.inactive_venture = Venture(
+            name='Venture3',
+            venture_id=3,
+            symbol='v3',
+            is_active=False,
+        )
+        self.inactive_venture.save()
 
         self.usage_type1 = UsageType(name='UsageType1', symbol='ut1')
         self.usage_type1.save()
@@ -186,7 +203,10 @@ class TestServiceUsagesApi(ResourceTestCase):
             data=data
         )
         self.assertEquals(resp.status_code, 400)
-        self.assertEquals(resp.content, 'Invalid venture symbol')
+        self.assertEquals(
+            resp.content,
+            'Invalid venture symbol or venture is inactive'
+        )
         self.assertEquals(DailyUsage.objects.count(), 0)
 
     def test_api_invalid_usage(self):
@@ -201,4 +221,21 @@ class TestServiceUsagesApi(ResourceTestCase):
         )
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(resp.content, 'Invalid usage type symbol')
+        self.assertEquals(DailyUsage.objects.count(), 0)
+
+    def test_api_inactive_venture(self):
+        service_usages = self._get_sample_service_usages_object()
+        service_usages.venture_usages[0].venture = self.inactive_venture.symbol
+        data = service_usages.to_dict()
+        resp = self.api_client.post(
+            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            format='json',
+            authentication=self.api_key,
+            data=data
+        )
+        self.assertEquals(resp.status_code, 400)
+        self.assertEquals(
+            resp.content,
+            'Invalid venture symbol or venture is inactive'
+        )
         self.assertEquals(DailyUsage.objects.count(), 0)

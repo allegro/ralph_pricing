@@ -237,7 +237,10 @@ class ServiceUsageResource(Resource):
 
         for venture_usages in service_usages.venture_usages:
             try:
-                venture = Venture.objects.get(symbol=venture_usages.venture)
+                venture = Venture.objects.get(
+                    symbol=venture_usages.venture,
+                    is_active=True,
+                )
                 for usage in venture_usages.usages:
                     try:
                         usage_type = usage_types.get(
@@ -258,7 +261,9 @@ class ServiceUsageResource(Resource):
                         )
             except Venture.DoesNotExist:
                 raise ImmediateHttpResponse(
-                    response=http.HttpBadRequest("Invalid venture symbol")
+                    response=http.HttpBadRequest(
+                        "Invalid venture symbol or venture is inactive"
+                    )
                 )
         logger.error(
             "Saving usages for service {0}".format(service_usages.service)
