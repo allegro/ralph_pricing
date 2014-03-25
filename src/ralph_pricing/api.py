@@ -73,21 +73,20 @@ class ServiceUsageObject(object):
     Container for service resources usages per venture
     """
     service = None
+    date = None
     venture_usages = []  # list of VentureUsageObject
 
     def __init__(self, service=None, venture_usages=None, date=None, **kwargs):
         self.service = service
-        if date:
-            self.date = date
+        self.date = date
         self.venture_usages = venture_usages or []
 
     def to_dict(self):
         result = {
+            'date': self.date,
             'service': self.service,
             'venture_usages': [vu.to_dict() for vu in self.venture_usages]
         }
-        if hasattr(self, 'date'):
-            result['date'] = self.date
         return result
 
 
@@ -123,7 +122,7 @@ class ServiceUsageResource(Resource):
     This endpoint supports only POST HTTP method. API format is as follows:
     {
         "service": "<service_symbol>",
-        "date": "<date> (default: today)",
+        "date": "<date>",
         "venture_usages": [
             {
                 "venture": "<venture_symbol>",
@@ -139,13 +138,12 @@ class ServiceUsageResource(Resource):
         ]
     }
 
-    Date is not required. If date is not provided, 'today' will be used
-    instead. Service, venture and usage symbol are symbols defined in Scrooge
-    models.
+    Service, venture and usage symbol are symbols defined in Scrooge models.
 
     Example:
     {
         "service": "service_symbol",
+        "date": "2013-10-10",
         "venture_usages": [
             {
                 "venture": "venture1",
@@ -196,7 +194,7 @@ class ServiceUsageResource(Resource):
     500 - error during parsing request/data.
     """
     service = fields.CharField(attribute='service')
-    date = fields.DateTimeField(default=datetime.date.today, attribute='date')
+    date = fields.DateTimeField(attribute='date')
     venture_usages = fields.ToManyField(
         VentureUsageResource,
         'venture_usages',

@@ -159,25 +159,6 @@ class TestServiceUsagesApi(ResourceTestCase):
         self.assertEquals(daily_usage_1.type, self.usage_type1)
         self.assertEquals(daily_usage_1.value, 123)
 
-    def test_api_default_date(self):
-        service_usages = self._get_sample_service_usages_object()
-        del service_usages.date
-        data = service_usages.to_dict()
-        resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
-            format='json',
-            authentication=self.api_key,
-            data=data
-        )
-        self.assertEquals(resp.status_code, 201)
-        self.assertEquals(DailyUsage.objects.count(), 4)
-
-        daily_usage_1 = DailyUsage.objects.order_by('id')[3]
-        self.assertEquals(daily_usage_1.pricing_venture, self.venture2)
-        self.assertEquals(daily_usage_1.date, self.today_datetime)
-        self.assertEquals(daily_usage_1.type, self.usage_type2)
-        self.assertEquals(daily_usage_1.value, 44.0)
-
     def test_api_invalid_service(self):
         service_usages = self._get_sample_service_usages_object()
         data = service_usages.to_dict()
