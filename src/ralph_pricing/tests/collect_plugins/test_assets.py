@@ -153,7 +153,18 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(usage.value, 1000)
         self.assertEqual(usage.pricing_device_id, 1)
         self.assertEqual(usage.warehouse_id, self.warehouse.id)
-        self.assertEqual(usage.type, self.power_consumption_usage_type)
+
+        usage = DailyUsage.objects.get(
+            date=self.today,
+            type=self.core_usage_type,
+        )
+        self.assertEqual(usage.value, 8)
+
+        usage = DailyUsage.objects.get(
+            date=self.today,
+            type=self.height_of_device_usage_type,
+        )
+        self.assertEqual(usage.value, 10.00)
 
     def test_sync_asset_device_without_ralph_id(self):
         data = yield {
