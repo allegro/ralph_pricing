@@ -160,9 +160,9 @@ def get_core_usage():
     """Creates physical cpu cores usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
         name="Physical CPU cores",
-        symbol='physical_cpu_cores',
         average=True,
     )
+    usage_type.symbol = 'physical_cpu_cores'
     usage_type.save()
     return usage_type
 
@@ -171,10 +171,10 @@ def get_power_consumption_usage():
     """Creates power consumption usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
         name="Power consumption",
-        symbol='power_consumption',
         by_warehouse=True,
         by_cost=True,
     )
+    usage_type.symbol = 'power_consumption'
     return usage_type
 
 
@@ -199,12 +199,13 @@ def assets(**kwargs):
         'power_consumption': get_power_consumption_usage(),
         'height_of_device': get_height_of_device_usage(),
     }
-    count = sum(
-        update_assets(
+    new_assets = total = 0
+    for data in get_assets(date):
+        if update_assets(
             data,
             date,
             usages,
-        )
-        for data in get_assets(date)
-    )
-    return True, '%d new devices' % count, kwargs
+        ):
+            new_assets += 1
+        total += 1
+    return True, '%d new assets, %d total' % (new_assets, total), kwargs
