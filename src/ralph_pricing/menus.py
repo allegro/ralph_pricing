@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from bob.menu import MenuItem
 from django.db.models import Q
 
-from ralph_pricing.models import Venture, UsageType
+from ralph_pricing.models import Team, Venture, UsageType
 
 
 def ventures_menu(href='', selected=None):
@@ -55,4 +55,39 @@ def usages_menu(href='', selected=None):
             href='{}/{}/'.format(href, usage_type.name),
         ) for usage_type in usage_types
     ]
+    return items
+
+
+def teams_menu(href, selected=None):
+    """
+    Create menus for teams percent definitions.
+    """
+    teams = Team.objects.filter(billing_type='TIME').order_by('name')
+    items = []
+    for team in teams:
+        item = MenuItem(
+            team.name,
+            name=team.name,
+            subitems=[],
+            fugue_icon='fugue-user-worker',
+            href='{}/{}'.format(href, team.name),
+            indent=' ',
+            collapsed=True,
+            collapsible=True,
+        )
+        if item.name == selected:
+            item.kwargs['collapsed'] = False
+        for dates in team.dateranges.values('start', 'end', 'id'):
+            daterange = '{0} - {1}'.format(dates['start'], dates['end'])
+            subitem = MenuItem(
+                daterange,
+                name=dates['id'],
+                subitems=[],
+                fugue_icon='fugue-clock',
+                href='{}/{}/{}'.format(href, team.name, dates['id']),
+                indent=' '
+            )
+            subitem.parent = item
+            item.subitems.append(subitem)
+        items.append(item)
     return items

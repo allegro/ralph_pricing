@@ -12,7 +12,7 @@ from decimal import Decimal as D
 from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin as plugin_runner
-from ralph_pricing.models import UsageType
+
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
@@ -26,6 +26,9 @@ class ServiceBasePlugin(BaseReportPlugin):
     * schema - schema (output format) of usages method
     * total_cost - returns total cost of service
     """
+    distribute_count_key_tmpl = 'sut_{0}_count'
+    distribute_cost_key_tmpl = 'sut_{0}_cost'
+
     def _get_usage_type_cost(self, start, end, usage_type, forecast, ventures):
         """
         Calculates total cost of usage of given type for specified ventures in
@@ -164,49 +167,6 @@ class ServiceBasePlugin(BaseReportPlugin):
                 del current_percentage[usage_type.usage_type.id]
         return result
 
-    def _distribute_costs(
-        self,
-        start,
-        end,
-        service,
-        ventures,
-        cost,
-        percentage,
-    ):
-        """
-        Distributes some cost between all ventures proportionally to usages of
-        service resources (taken from percentage).
-        """
-        # first level: venture
-        # second level: usage type key (count or cost)
-        result = defaultdict(lambda: defaultdict(int))
-
-        for usage_type_id, percent in percentage.items():
-            usage_type = UsageType.objects.get(id=usage_type_id)
-            usages_per_venture = self._get_usages_in_period_per_venture(
-                start,
-                end,
-                usage_type,
-                ventures=ventures,
-            )
-            total_usage = self._get_total_usage_in_period(
-                start,
-                end,
-                usage_type,
-            )
-            cost_part = D(percent) * cost / D(100)
-
-            count_key = 'sut_{0}_count'.format(usage_type_id)
-            cost_key = 'sut_{0}_cost'.format(usage_type_id)
-
-            for venture_usage in usages_per_venture:
-                venture = venture_usage['pricing_venture']
-                usage = venture_usage['usage']
-                result[venture][count_key] = usage
-                venture_cost = D(usage) / D(total_usage) * cost_part
-                result[venture][cost_key] = venture_cost
-        return result
-
     def total_cost(self, start, end, service, forecast, ventures):
         """
         Calculates total cost of service (in period of time), assuming, that
@@ -275,7 +235,6 @@ class ServiceBasePlugin(BaseReportPlugin):
             service_report_in_daterange = self._distribute_costs(
                 start,
                 end,
-                service,
                 ventures,
                 service_cost,
                 percentage

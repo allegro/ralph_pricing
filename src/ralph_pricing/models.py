@@ -9,6 +9,7 @@ from decimal import Decimal as D
 from dateutil import rrule
 from lck.cache import memoize
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
@@ -87,6 +88,121 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
         return self.name
 
 
+class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
+    show_in_report = db.BooleanField(
+        verbose_name=_("Show team in report"),
+        default=True,
+    )
+    BILLING_TYPES = (
+        ('TIME', 'By time'),
+        ('DEVICES_CORES', 'By devices and cores count'),
+        ('DEVICES', 'By devices count'),
+        ('DISTRIBUTE', (
+            'Distribute cost to other teams proportionally to '
+            'team members count'
+        )),
+    )
+    billing_type = db.CharField(
+        verbose_name=_("Billing type"),
+        max_length=15,
+        choices=BILLING_TYPES,
+        default='TIME',
+    )
+
+    class Meta:
+        verbose_name = _("Team")
+        verbose_name_plural = _("Teams")
+
+    def __unicode__(self):
+        return self.name
+
+
+class TeamMembersCount(db.Model):
+    team = db.ForeignKey(
+        Team,
+        verbose_name=_("Team"),
+    )
+    start = db.DateField()
+    end = db.DateField()
+    members_count = db.IntegerField(
+        verbose_name=_("Members count"),
+        default=0,
+    )
+
+    class Meta:
+        verbose_name = _("Team members count")
+        verbose_name_plural = _("Teams members count")
+
+    def __unicode__(self):
+        return '{} ({}-{})'.format(
+            self.team,
+            self.start,
+            self.end,
+        )
+
+
+class TeamDaterange(db.Model):
+    team = db.ForeignKey(
+        Team,
+        verbose_name=_("Team"),
+        related_name="dateranges",
+        limit_choices_to={
+            'billing_type': 'TIME',
+        },
+    )
+    start = db.DateField()
+    end = db.DateField()
+
+    class Meta:
+        verbose_name = _("Team daterange")
+        verbose_name_plural = _("Teams dateranges")
+
+    def __unicode__(self):
+        return '{} ({} - {})'.format(
+            self.team,
+            self.start,
+            self.end,
+        )
+
+    def clean(self):
+        if self.start > self.end:
+            raise ValidationError('Start greater than start')
+
+
+class TeamVenturePercent(db.Model):
+    team_daterange = db.ForeignKey(
+        TeamDaterange,
+        verbose_name=_("Team daterange"),
+        related_name="percentage",
+    )
+    venture = db.ForeignKey(
+        'Venture',
+        verbose_name=_("Venture"),
+        limit_choices_to={
+            'is_active': True,
+        },
+    )
+    percent = db.FloatField(
+        verbose_name=_("Percent"),
+        validators=[
+            MaxValueValidator(100.0),
+            MinValueValidator(0.0)
+        ]
+    )
+
+    class Meta:
+        verbose_name = _("Team venture percent")
+        verbose_name_plural = _("Teams ventures percent")
+
+    def __unicode__(self):
+        return '{}/{} ({} - {})'.format(
+            self.team_daterange.team,
+            self.venture,
+            self.team_daterange.start,
+            self.team_daterange.end,
+        )
+
+
 class UsageType(db.Model):
     """
     Model contains usage types
@@ -112,6 +228,10 @@ class UsageType(db.Model):
     )
     by_warehouse = db.BooleanField(
         verbose_name=_("Usage type is by warehouse"),
+        default=False,
+    )
+    by_team = db.BooleanField(
+        verbose_name=_("Usage type is by team"),
         default=False,
     )
     is_manually_type = db.BooleanField(
@@ -425,6 +545,7 @@ class Venture(MPTTModel):
     class Meta:
         verbose_name = _("venture")
         verbose_name_plural = _("ventures")
+        ordering = ["name"]
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -845,6 +966,12 @@ class UsagePrice(db.Model):
         blank=True,
         on_delete=db.PROTECT,
     )
+    team = db.ForeignKey(
+        Team,
+        null=True,
+        blank=True,
+        on_delete=db.PROTECT,
+    )
 
     class Meta:
         verbose_name = _("usage price")
@@ -857,12 +984,31 @@ class UsagePrice(db.Model):
         ordering = ('type', '-start')
 
     def __unicode__(self):
-        return '{}-{} ({}-{})'.format(
-            self.warehouse,
+        if self.type and self.type.by_warehouse:
+            return '{}-{} ({}-{})'.format(
+                self.warehouse,
+                self.type,
+                self.start,
+                self.end,
+            )
+        if self.type and self.type.by_team:
+            return '{}-{} ({}-{})'.format(
+                self.team,
+                self.type,
+                self.start,
+                self.end,
+            )
+        return '{} ({}-{})'.format(
             self.type,
             self.start,
             self.end,
         )
+
+    def clean(self):
+        if self.type.by_warehouse and not self.warehouse:
+            raise ValidationError('Warehouse is required')
+        if self.type.by_team and not self.team:
+            raise ValidationError('Team is required')
 
 
 class DailyUsage(db.Model):
