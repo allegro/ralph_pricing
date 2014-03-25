@@ -258,6 +258,17 @@ class Team(UsageBasePlugin):
         * assumed, that in period of time percent of time spent to venture is
             equal for each day
         """
+
+        result = defaultdict(lambda: defaultdict(int))
+        cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
+        # check if price is undefined for any time between start and end
+        price_undefined = no_price_msg and self._incomplete_price(
+            usage_type,
+            start,
+            end,
+            team=team,
+        )
+
         def add_subcosts(sstart, send, cost, percentage):
             """
             Helper to add subcost for every venture for single, integral period
@@ -271,15 +282,6 @@ class Team(UsageBasePlugin):
                 else:
                     result[venture][cost_key] += cost * D(percent) / 100
 
-        result = defaultdict(lambda: defaultdict(int))
-        cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
-        # check if price is undefined for any time between start and end
-        price_undefined = no_price_msg and self._incomplete_price(
-            usage_type,
-            start,
-            end,
-            team=team,
-        )
         usageprices = team.usageprice_set.filter(
             start__lte=end,
             end__gte=start,
@@ -351,6 +353,17 @@ class Team(UsageBasePlugin):
         * if there is more than one funcs (resources), that total cost is
             distributed in equal parts to all resources (1/n)
         """
+
+        result = defaultdict(lambda: defaultdict(int))
+        cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
+        price_undefined = no_price_msg and self._incomplete_price(
+            usage_type,
+            start,
+            end,
+            team=team,
+        )
+        funcs = funcs or []
+
         def add_subcosts(sstart, send, cost):
             for count_func, total_count_func in funcs:
                 count_per_venture = count_func(sstart, send, ventures)
@@ -366,15 +379,6 @@ class Team(UsageBasePlugin):
                             cost_part * D(count) / D(total)
                         )
 
-        result = defaultdict(lambda: defaultdict(int))
-        cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
-        price_undefined = no_price_msg and self._incomplete_price(
-            usage_type,
-            start,
-            end,
-            team=team,
-        )
-        funcs = funcs or []
         usageprices = team.usageprice_set.filter(
             start__lte=end,
             end__gte=start,
