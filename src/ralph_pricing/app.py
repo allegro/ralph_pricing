@@ -55,4 +55,3 @@ class Scrooge(RalphModule):
                 'propagate': True,
                 'level': 'DEBUG',
             })
-        self.settings['SOUTH_TESTS_MIGRATE'] = False

@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 
 import logging
 
+from django.conf import settings
+
 from ralph.util import plugin, api_pricing
 from ralph_pricing.models import UsageType, DailyUsage, Device, Venture
 
@@ -45,19 +47,22 @@ def update(data, usages, date):
         update_usage(device, venture, usage, date, data.get(key))
 
 
-def get_usages():
+def get_or_create_usages(usage_names):
     cpu_usage, created = UsageType.objects.get_or_create(
-        name="Virtual CPU cores",
+        name=usage_names['virtual_cores'],
+        symbol=usage_names['virtual_cores'].replace(' ', '_').lower(),
     )
     cpu_usage.average = True
     cpu_usage.save()
     memory_usage, created = UsageType.objects.get_or_create(
-        name="Virtual memory MB",
+        name=usage_names['virtual_memory'],
+        symbol=usage_names['virtual_memory'].replace(' ', '_').lower(),
     )
     memory_usage.average = True
     memory_usage.save()
     disk_usage, created = UsageType.objects.get_or_create(
-        name="Virtual disk MB",
+        name=usage_names['virtual_disk'],
+        symbol=usage_names['virtual_disk'].replace(' ', '_').lower(),
     )
     disk_usage.average = True
     disk_usage.save()
@@ -75,7 +80,13 @@ def virtual_usages(**kwargs):
     """Updates the virtual usages from Ralph."""
 
     date = kwargs['today']
-    usages = get_usages()
-    for data in api_pricing.get_virtual_usages():
-        update(data, usages, date)
+    for venture_name in settings.VIRTUAL_VENTURE_NAMES:
+        usage_names = {
+            'virtual_cores': '{0} Virtual CPU cores'.format(venture_name),
+            'virtual_memory': '{0} Virtual memory MB'.format(venture_name),
+            'virtual_disk': '{0} Virtual disk MB'.format(venture_name),
+        }
+        usages = get_or_create_usages(usage_names)
+        for data in api_pricing.get_virtual_usages(venture_name):
+            update(data, usages, date)
     return True, 'virtual usages updated', kwargs
