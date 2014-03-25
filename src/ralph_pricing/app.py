@@ -37,3 +37,4 @@ class Scrooge(RalphModule):
             'propagate': True,
             'level': 'DEBUG',
         })
+        self.settings['VIRTUAL_VENTURE_NAMES'] = []
