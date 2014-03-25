@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
+"""
+ReST API for Scrooge
+------------------------------------
 
-"""ReST API for Scrooge
-   ------------------------------------
+Done with TastyPie.
 
-Done with TastyPie."""
+Scrooge API provide endpoint for services to push usages of their resources
+by ventures.
+
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -24,7 +29,13 @@ from ralph_pricing.models import DailyUsage, Service, Venture, UsageType
 logger = logging.getLogger(__name__)
 
 
+# =============================================================================
+# SERVICES USAGES PUSH API
+# =============================================================================
 class UsageObject(object):
+    """
+    Single usage of usage type
+    """
     symbol = None
     value = None
 
@@ -40,8 +51,11 @@ class UsageObject(object):
 
 
 class VentureUsageObject(object):
+    """
+    Container for venture usages
+    """
     venture = None
-    usages = []
+    usages = []  # list of UsageObject
 
     def __init__(self, venture=None, usages=None, **kwargs):
         self.venture = venture
@@ -55,9 +69,11 @@ class VentureUsageObject(object):
 
 
 class ServiceUsageObject(object):
+    """
+    Container for service resources usages per venture
+    """
     service = None
-    # date = None
-    venture_usages = []
+    venture_usages = []  # list of VentureUsageObject
 
     def __init__(self, service=None, venture_usages=None, date=None, **kwargs):
         self.service = service
@@ -75,6 +91,7 @@ class ServiceUsageObject(object):
         return result
 
 
+# Tastypie resources
 class UsageResource(Resource):
     symbol = fields.CharField(attribute='symbol')
     value = fields.FloatField(attribute='value')
@@ -91,12 +108,93 @@ class VentureUsageResource(Resource):
         object_class = VentureUsageObject
 
     def hydrate_usages(self, bundle):
+        # need to use hydrate_m2m due to limitations of tastypie in dealing
+        # with fields.ToManyField hydration
         usages_bundles = self.usages.hydrate_m2m(bundle)
         bundle.obj.usages = [ub.obj for ub in usages_bundles]
         return bundle
 
 
 class ServiceUsageResource(Resource):
+    """
+    Provides PUSH REST API for services. Each service can use this API to post
+    information about usage of service resources by ventures.
+
+    This endpoint supports only POST HTTP method. API format is as follows:
+    {
+        "service": "<service_symbol>",
+        "date": "<date> (default: today)",
+        "venture_usages": [
+            {
+                "venture": "<venture_symbol>",
+                "usages": [
+                    {
+                        "symbol": "<usage_type_1_symbol>",
+                        "value": <usage1>
+                    },
+                ...
+                ]
+            },
+            ...
+        ]
+    }
+
+    Date is not required. If date is not provided, 'today' will be used
+    instead. Service, venture and usage symbol are symbols defined in Scrooge
+    models.
+
+    Example:
+    {
+        "service": "service_symbol",
+        "venture_usages": [
+            {
+                "venture": "venture1",
+                "usages": [
+                    {
+                        "symbol": "requests",
+                        "value": 123
+                    },
+                    {
+                        "symbol": "transfer",
+                        "value": 321
+                    }
+                ]
+            },
+            {
+                "venture": "venture2",
+                "usages": [
+                    {
+                        "symbol": "requests",
+                        "value": 543
+                    },
+                    {
+                        "symbol": "transfer",
+                        "value": 565
+                    }
+                ]
+            },
+            {
+                "venture": "venture3",
+                "usages": [
+                    {
+                        "symbol": "requests",
+                        "value": 788
+                    },
+                    {
+                        "symbol": "transfer",
+                        "value": 234
+                    }
+                ]
+            }
+        ]
+    }
+
+    Possible return HTTP codes:
+    201 - everything ok.
+    400 - invalid symbol (venture, usage or service).
+    401 - authentication/authorization error.
+    500 - error during parsing request/data.
+    """
     service = fields.CharField(attribute='service')
     date = fields.DateTimeField(default=datetime.date.today, attribute='date')
     venture_usages = fields.ToManyField(
@@ -114,6 +212,12 @@ class ServiceUsageResource(Resource):
 
     @classmethod
     def save_usages(cls, service_usages):
+        """
+        Save usages of service resources per venture
+
+        If any error occur during parsing service usages, no usage is saved
+        and Bad Request response is returned.
+        """
         usage_types = {}
         daily_usages = []
 
@@ -125,8 +229,13 @@ class ServiceUsageResource(Resource):
                 response=http.HttpBadRequest("Invalid service symbol")
             )
 
+        # check if date is properly set
+        assert isinstance(
+            service_usages.date,
+            (datetime.date, datetime.datetime)
+        )
+
         for venture_usages in service_usages.venture_usages:
-            venture = None
             try:
                 venture = Venture.objects.get(symbol=venture_usages.venture)
                 for usage in venture_usages.usages:
@@ -151,9 +260,10 @@ class ServiceUsageResource(Resource):
                 raise ImmediateHttpResponse(
                     response=http.HttpBadRequest("Invalid venture symbol")
                 )
-        logger.debug(
+        logger.error(
             "Saving usages for service {0}".format(service_usages.service)
         )
+        # bulk save all usages
         DailyUsage.objects.bulk_create(daily_usages)
 
     def obj_create(self, bundle, request=None, **kwargs):
@@ -174,6 +284,9 @@ class ServiceUsageResource(Resource):
         return {}
 
     def hydrate_venture_usages(self, bundle):
+        # need to use hydrate_m2m due to limitations of tastypie in dealing
+        # with fields.ToManyField hydration
         venture_usages_bundles = self.venture_usages.hydrate_m2m(bundle)
+        # save usages per venture in bundle object
         bundle.obj.venture_usages = [vub.obj for vub in venture_usages_bundles]
         return bundle

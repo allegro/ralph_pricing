@@ -28,7 +28,9 @@ class TestServiceUsagesApi(ResourceTestCase):
             'ralph@ralph.local',
             'ralph'
         )
-        date2datetime = lambda d: datetime.datetime.combine(d, datetime.datetime.min.time())
+        date2datetime = lambda d: datetime.datetime.combine(
+            d, datetime.datetime.min.time()
+        )
         self.date = datetime.date(2013, 10, 10)
         self.datetime = date2datetime(self.date)
 
