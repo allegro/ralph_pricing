@@ -100,7 +100,7 @@ def update_assets(data, date, core_usage_type, power_consumption_usage_type):
         )
         daily_device.pricing_venture = venture
     else:
-        logger.warning('Asset {0}  have no venture'.format(data['asset_id']))
+        logger.warning('Asset {0} has no venture'.format(data['asset_id']))
         return False
 
     daily_device.price = data['price']
