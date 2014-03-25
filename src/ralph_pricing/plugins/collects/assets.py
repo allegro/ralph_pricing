@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @commit_on_success
-def update_assets(data, date, core_usage_type, power_consumption_usage_type):
+def update_assets(data, date, usages):
     """
     Updates single asset.
 
@@ -114,7 +114,7 @@ def update_assets(data, date, core_usage_type, power_consumption_usage_type):
         date,
         daily_device.pricing_venture,
         warehouse,
-        core_usage_type,
+        usages['core'],
         device,
     )
 
@@ -124,7 +124,17 @@ def update_assets(data, date, core_usage_type, power_consumption_usage_type):
         date,
         daily_device.pricing_venture,
         warehouse,
-        power_consumption_usage_type,
+        usages['power_consumption'],
+        device,
+    )
+
+    # height of device usage
+    update_usage(
+        data['height_of_device'],
+        date,
+        daily_device.pricing_venture,
+        warehouse,
+        usages['height_of_device'],
         device,
     )
 
@@ -168,19 +178,32 @@ def get_power_consumption_usage():
     return usage_type
 
 
+def get_height_of_device_usage():
+    """Creates power consumption usage type if not created."""
+    usage_type, created = UsageType.objects.get_or_create(
+        name="Height of Device",
+        symbol='height_of_device',
+        by_warehouse=True,
+        by_cost=True,
+    )
+    return usage_type
+
+
 @plugin.register(chain='pricing', requires=['ventures', 'warehouse'])
 def assets(**kwargs):
     """Updates the devices from Ralph Assets."""
-    core_usage_type = get_core_usage()
-    power_consumption_usage_type = get_power_consumption_usage()
 
     date = kwargs['today']
+    usages = {
+        'core': get_core_usage(),
+        'power_consumption': get_power_consumption_usage(),
+        'height_of_device': get_height_of_device_usage(),
+    }
     count = sum(
         update_assets(
             data,
             date,
-            core_usage_type,
-            power_consumption_usage_type,
+            usages,
         )
         for data in get_assets(date)
     )
