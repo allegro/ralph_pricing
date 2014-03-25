@@ -186,8 +186,11 @@ class TestAssetPlugin(TestCase):
             update_assets(
                 data,
                 self.today,
-                self.core_usage_type,
-                self.power_consumption_usage_type,
+                {
+                    'core': self.core_usage_type,
+                    'power_consumption': self.power_consumption_usage_type,
+                    'height_of_device': self.height_of_device_usage_type,
+                },
             ),
             False
         )
@@ -211,8 +214,11 @@ class TestAssetPlugin(TestCase):
         update_assets(
             data,
             self.today,
-            self.core_usage_type,
-            self.power_consumption_usage_type,
+            {
+                'core': self.core_usage_type,
+                'power_consumption': self.power_consumption_usage_type,
+                'height_of_device': self.height_of_device_usage_type,
+            },
         )
         device = Device.objects.get(device_id=123)
         self.assertEqual(device.sn, '1234-1234-1234-1234')
@@ -235,8 +241,11 @@ class TestAssetPlugin(TestCase):
         update_assets(
             data,
             self.today,
-            self.core_usage_type,
-            self.power_consumption_usage_type,
+            {
+                'core': self.core_usage_type,
+                'power_consumption': self.power_consumption_usage_type,
+                'height_of_device': self.height_of_device_usage_type,
+            },
         )
         device = Device.objects.get(device_id=123)
         self.assertEqual(device.sn, '5555-5555-5555-5555')

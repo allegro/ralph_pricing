@@ -85,7 +85,7 @@ class TestAssetPlugin(TestCase):
         update(data, self._get_usages(), date.today())
 
         daily_usages = DailyUsage.objects.all()
-        self.assertEqual(daily_usages.count(), 3)
+        self.assertEqual(daily_usages.count(), 0)
         for daily_usage in daily_usages:
             self.assertEqual(daily_usage.pricing_venture, None)
 
