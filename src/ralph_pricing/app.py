@@ -6,7 +6,24 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
+
 from ralph.app import RalphModule
+
+
+def setup_scrooge_logger(level='ERROR'):
+    from django.conf import settings
+    if 'raven.contrib.django' in settings.INSTALLED_APPS:
+        from raven import Client
+        from raven.handlers.logging import SentryHandler
+        SCROOGE_SENTRY_DSN = getattr(settings, 'SCROOGE_SENTRY_DSN', False)
+        if SCROOGE_SENTRY_DSN:
+            client = Client(SCROOGE_SENTRY_DSN)
+            handler = SentryHandler(client, level=level)
+            logger = logging.getLogger('ralph_pricing')
+            logger.addHandler(handler)
+            return True
+    return False
 
 
 class Scrooge(RalphModule):
@@ -27,14 +44,14 @@ class Scrooge(RalphModule):
         )
         self.append_app()
         self.insert_templates(__file__)
-        self.register_logger('ralph_pricing', {
-            'handlers': ['file'],
-            'propagate': True,
-            'level': 'DEBUG',
-        })
-        self.register_logger('ralph_pricing.plugins', {
-            'handlers': ['file', 'console'],
-            'propagate': True,
-            'level': 'DEBUG',
-        })
-        self.settings['VIRTUAL_VENTURE_NAMES'] = []
+        if not setup_scrooge_logger():
+            self.register_logger('ralph_pricing', {
+                'handlers': ['file'],
+                'propagate': True,
+                'level': 'DEBUG',
+            })
+            self.register_logger('ralph_pricing.plugins', {
+                'handlers': ['file', 'console'],
+                'propagate': True,
+                'level': 'DEBUG',
+            })

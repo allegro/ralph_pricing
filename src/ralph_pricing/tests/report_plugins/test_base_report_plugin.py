@@ -338,3 +338,83 @@ class TestBaseReportPlugin(TestCase):
         self.assertEquals(result, [
             {'usage': 240.0, 'pricing_venture': 2}  # 6 * 40 = 240
         ])
+
+    # =========================================================================
+    # _distribute_costs
+    # =========================================================================
+    @mock.patch('ralph_pricing.plugins.reports.service.BaseReportPlugin._get_usages_in_period_per_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.service.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    def test_distribute_costs(self, total_usage_mock, usages_per_venture_mock):
+        percentage = {
+            self.usage_type.id: 20,
+            self.usage_type_cost_wh.id: 80,
+        }
+
+        def sample_usages(
+            start,
+            end,
+            usage_type,
+            warehouse=None,
+            ventures=None
+        ):
+            usages = {
+                self.usage_type.id: [
+                    {'pricing_venture': self.venture1.id, 'usage': 0},
+                    {'pricing_venture': self.venture2.id, 'usage': 0},
+                    {'pricing_venture': self.venture3.id, 'usage': 900},
+                    {'pricing_venture': self.venture4.id, 'usage': 100},
+                ],
+                self.usage_type_cost_wh.id: [
+                    {'pricing_venture': self.venture3.id, 'usage': 1200},
+                    {'pricing_venture': self.venture4.id, 'usage': 400},
+                ]
+            }
+            return usages[usage_type.id]
+
+        def sample_total_usage(start, end, usage_type):
+            total_usages = {
+                self.usage_type.id: 1000,
+                self.usage_type_cost_wh.id: 1600,
+            }
+            return total_usages[usage_type.id]
+
+        usages_per_venture_mock.side_effect = sample_usages
+        total_usage_mock.side_effect = sample_total_usage
+
+        result = self.plugin._distribute_costs(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            ventures=self.ventures,
+            cost=10000,
+            percentage=percentage,
+        )
+        usage_type_count = 'ut_{0}_count'.format(self.usage_type.id)
+        usage_type_cost = 'ut_{0}_cost'.format(self.usage_type.id)
+        usage_type_cost_wh_count = 'ut_{0}_count'.format(
+            self.usage_type_cost_wh.id
+        )
+        usage_type_cost_wh_cost = 'ut_{0}_cost'.format(
+            self.usage_type_cost_wh.id
+        )
+        self.assertEquals(result, {
+            self.venture1.id: {
+                usage_type_count: 0,
+                usage_type_cost: D(0),
+            },
+            self.venture2.id: {
+                usage_type_count: 0,
+                usage_type_cost: D(0),
+            },
+            self.venture3.id: {
+                usage_type_count: 900,
+                usage_type_cost: D('1800'),
+                usage_type_cost_wh_count: 1200,
+                usage_type_cost_wh_cost: D('6000'),
+            },
+            self.venture4.id: {
+                usage_type_count: 100,
+                usage_type_cost: D('200'),
+                usage_type_cost_wh_count: 400,
+                usage_type_cost_wh_cost: D('2000'),
+            },
+        })

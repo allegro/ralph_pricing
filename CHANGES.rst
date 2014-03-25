@@ -1,6 +1,12 @@
 Change Log
 ----------
 
+2.1.1
+~~~~~
+
+* Added scrooge logger sentry
+
+
 2.1.0
 ~~~~~
 
