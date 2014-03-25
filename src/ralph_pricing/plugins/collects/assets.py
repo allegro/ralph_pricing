@@ -99,6 +99,10 @@ def update_assets(data, date, core_usage_type, power_consumption_usage_type):
             venture_id=data['venture_id'],
         )
         daily_device.pricing_venture = venture
+    else:
+        logger.warning('Asset {0} has no venture'.format(data['asset_id']))
+        return False
+
     daily_device.price = data['price']
     daily_device.deprecation_rate = data['deprecation_rate']
     daily_device.is_deprecated = data['is_deprecated']

@@ -5,8 +5,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
+
 from ralph.util import plugin, api_pricing
 from ralph_pricing.models import UsageType, DailyUsage, Device, Venture
+
+
+logger = logging.getLogger(__name__)
 
 
 def update_usage(device, venture, usage_type, date, value):
@@ -34,7 +39,8 @@ def update(data, usages, date):
             venture_id=data['venture_id'],
         )
     else:
-        venture = None
+        logger.warning('Device {0} has no venture'.format(data['device_id']))
+        return
     for key, usage in usages.iteritems():
         update_usage(device, venture, usage, date, data.get(key))
 
