@@ -75,16 +75,6 @@ class Team(UsageBasePlugin):
         return TeamModel.objects.filter(show_in_report=True)
 
     @memoize(skip_first=True)
-    def _get_teams_distrubuted_to_others(self):
-        """
-        Returns all teams that have billing type DISTRIBUTE
-        """
-        return TeamModel.objects.filter(
-            show_in_report=True,
-            billing_type='DISTRIBUTE',
-        )
-
-    @memoize(skip_first=True)
     def _get_teams_not_distributes_to_others(self):
         """
         Returns all teams that have billing type different than DISTRIBUTE
