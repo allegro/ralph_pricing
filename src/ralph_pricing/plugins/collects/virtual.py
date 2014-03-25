@@ -5,8 +5,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
+
 from ralph.util import plugin, api_pricing
 from ralph_pricing.models import UsageType, DailyUsage, Device, Venture
+
+
+logger = logging.getLogger(__name__)
 
 
 def update_usage(device, venture, usage_type, date, value):
