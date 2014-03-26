@@ -14,6 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +54,6 @@ class UsageBasePlugin(BaseReportPlugin):
             return _('No price')
         if ut_days != total_days:
             return _('Incomplete price')
-        return None
 
     def _get_total_cost_by_warehouses(
         self,

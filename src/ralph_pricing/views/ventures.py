@@ -9,8 +9,6 @@ import logging
 from decimal import Decimal as D
 
 from lck.cache import memoize
-from django.conf import settings
-from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.reports import Report
@@ -41,7 +39,7 @@ class AllVentures(Report):
     @classmethod
     def _get_base_usage_types(cls):
         """
-        Returns base usage types which should be visible on report
+        Returns usage types which should be visible on report
         """
         logger.debug("Getting usage types")
         return UsageType.objects.filter(
@@ -50,27 +48,7 @@ class AllVentures(Report):
         ).order_by('-order', 'name')
 
     @classmethod
-    def _get_regular_usage_types(cls):
-        """
-        Returns regular usage types which should be visible on report
-        """
-        return UsageType.objects.filter(
-            show_in_report=True,
-            type='RU',
-        ).order_by('-order', 'name')
-
-    @classmethod
-    def _get_services(cls):
-        """
-        Returns services which should be visible on report
-        """
-        return Service.objects.order_by('name')
-
-    @classmethod
     def _get_base_usage_types_plugins(cls):
-        """
-        Returns plugins information (name and arguments) for base usage types
-        """
         base_usage_types = cls._get_base_usage_types()
         result = []
         for but in base_usage_types:
@@ -86,11 +64,14 @@ class AllVentures(Report):
         return result
 
     @classmethod
+    def _get_regular_usage_types(cls):
+        return UsageType.objects.filter(
+            show_in_report=True,
+            type='RU',
+        ).order_by('-order', 'name')
+
+    @classmethod
     def _get_regular_usage_types_plugins(cls):
-        """
-        Returns plugins information (name and arguments) for regular usage
-        types
-        """
         regular_usage_types = cls._get_regular_usage_types()
         result = []
         for rut in regular_usage_types:
@@ -106,10 +87,11 @@ class AllVentures(Report):
         return result
 
     @classmethod
+    def _get_services(cls):
+        return Service.objects.order_by('name')
+
+    @classmethod
     def _get_services_plugins(cls):
-        """
-        Returns plugins information (name and arguments) for services
-        """
         services = cls._get_services()
         result = []
         for service in services:
@@ -126,12 +108,9 @@ class AllVentures(Report):
     @classmethod
     @memoize
     def _get_plugins(cls):
-        """
-        Returns list of plugins to call, with information about each, such as
-        name and arguments
-        """
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
+            # AttributeDict(name='Deprecation', plugin_name='deprecation'),
         ]
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
@@ -290,11 +269,9 @@ class AllVentures(Report):
         :rtype dict:
         """
         logger.debug("Getting report date")
-        old_queries_count = len(connection.queries)
         data = {venture.id: {} for venture in ventures}
         for i, plugin in enumerate(cls._get_plugins()):
             try:
-                plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
                     'reports',
                     plugin.plugin_name,
@@ -308,20 +285,13 @@ class AllVentures(Report):
                 for venture_id, venture_usage in plugin_report.iteritems():
                     if venture_id in data:
                         data[venture_id].update(venture_usage)
-                plugin_queries_count = (
-                    len(connection.queries) - plugin_old_queries_count
-                )
-                if settings.DEBUG:
-                    logger.debug('Total SQL queries: {0}\n'.format(
-                        plugin_queries_count
-                    ))
             except KeyError:
                 logger.warning(
                     "Usage '{0}' have no usage plugin".format(plugin.name)
                 )
-        queries_count = len(connection.queries) - old_queries_count
-        if settings.DEBUG:
-            logger.debug('Total SQL queries: {0}'.format(queries_count))
+            except BaseException as e:
+                logger.error("Report generate error: {0}".format(e))
+
         return data
 
     @classmethod
