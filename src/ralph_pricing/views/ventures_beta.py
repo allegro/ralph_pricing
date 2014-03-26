@@ -289,6 +289,8 @@ class AllVenturesBeta(Report):
                 logger.warning(
                     "Usage '{0}' have no usage plugin".format(plugin.name)
                 )
+            except BaseException as e:
+                logger.error("Report generate error: {0}".format(e))
 
         return data
 

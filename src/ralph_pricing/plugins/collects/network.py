@@ -70,13 +70,13 @@ def get_names_of_data_files(ssh_client, channel, date):
     :returns list: list of file names
     :rtype list:
     """
-    splited_date = str(date).split('-')
+    split_date = str(date).split('-')
     stdin, stdout, stderr = ssh_client.exec_command(
         "ls /data/nfsen/profiles-data/live/{0}/{1}/{2}/{3}/".format(
             channel,
-            splited_date[0],
-            splited_date[1],
-            splited_date[2],
+            split_date[0],
+            split_date[1],
+            split_date[2],
         ),
     )
     if stderr.read():
@@ -97,14 +97,14 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     :returns list: list of rows from stdout from remote server
     :rtype list:
     """
-    splited_date = str(date).split('-')
+    split_date = str(date).split('-')
     nfdump_str = "nfdump -M /data/nfsen/profiles-data/live/{0} "\
         " -T  -R {1}/{2}/{3}/{4}:{1}/{2}/{3}/{5} -a  -A"\
         " {6} -o \"fmt:%sa | %da | %byt\" -c 10".format(
             channel,
-            splited_date[0],
-            splited_date[1],
-            splited_date[2],
+            split_date[0],
+            split_date[1],
+            split_date[2],
             file_names[0],
             file_names[-1],
             input_output,
@@ -120,7 +120,7 @@ def extract_ip_and_bytes(row, input_output):
     Extract/process ip address and usage in bytes from string. String is taken
     from executing nfdump commend on remote server and looks like:
 
-    'scrip_ip_address | dstip_ip_address | usage_in_bytes'
+    'srcip_ip_address | dstip_ip_address | usage_in_bytes'
 
     :param string row: Single row gain from remote server by execute nfdump
     commands
@@ -130,6 +130,7 @@ def extract_ip_and_bytes(row, input_output):
     """
     def unification(bytes_string):
         bytes_list = bytes_string.split(' ')
+        # there is no K option becouse KB is wrote like a bytes by nfdump
         if len(bytes_list) == 1:
             return int(bytes_list[0])
         elif bytes_list[1] == 'M':
@@ -145,14 +146,14 @@ def extract_ip_and_bytes(row, input_output):
                 )
             )
 
-    splited_row = [cell.replace('\x01', '').strip() for cell in row.split('|')]
-    ip_address = splited_row[0]
+    split_row = [cell.replace('\x01', '').strip() for cell in row.split('|')]
+    ip_address = split_row[0]
     if input_output == 'dstip':
-        ip_address = splited_row[1]
+        ip_address = split_row[1]
 
     for class_address in settings.NFSEN_CLASS_ADDRESS:
         if re.search(class_address, ip_address):
-            return (ip_address, unification(splited_row[2]))
+            return (ip_address, unification(split_row[2]))
 
 
 def get_network_usage(ssh_client, channel, date, file_names, input_output):
@@ -208,7 +209,7 @@ def get_network_usages(date):
         ssh_client = get_ssh_client(address, **credentials)
         for channel in settings.NFSEN_CHANNELS:
             for input_output in ['srcip', 'dstip']:
-                logging.debug("Serwer:{0} Channel:{1} I/O:{2}".format(
+                logging.debug("Server:{0} Channel:{1} I/O:{2}".format(
                     address, channel, input_output))
                 for ip, value in get_network_usage(
                     ssh_client,
@@ -279,6 +280,7 @@ def update(network_usages, ventures_and_ips, usage_type, date):
     :param datetime date: Date for which dailyusage will be update
     """
     logger.debug('Saving usages as a daily usages per venture')
+    count = 0
     for venture_id, value in sort_per_venture(
         network_usages, ventures_and_ips
     ).iteritems():
@@ -301,38 +303,28 @@ def update(network_usages, ventures_and_ips, usage_type, date):
         )
         usage.value = value
         usage.save()
+        count += 1
+    return count
 
 
 @plugin.register(chain='pricing', requires=['ventures'])
 def network(**kwargs):
     """
-    Getting network usage per venture is included in the two steppes.
-    First of them is collect usages per ip and the second one is match
+    Getting network usage per venture is included in the two steps.
+    First of them is collecting usages per ip and the second one is matching
     ip with venture
 
-    :param datetime today: Date for which usages will collects
+    :param datetime today: Date for which usages will be collects
     :returns tuple: Status, message and kwargs
     :rtype tuple:
     """
-    if (not hasattr(settings, 'SSH_NFSEN_CREDENTIALS')
-            or not settings.SSH_NFSEN_CREDENTIALS):
-        return False, "Credentials not configured", kwargs
-
-    if (not hasattr(settings, 'NFSEN_CHANNELS')
-            or not settings.NFSEN_CHANNELS):
-        return False, "Channels not configured", kwargs
-
-    if (not hasattr(settings, 'NFSEN_CLASS_ADDRESS')
-            or not settings.NFSEN_CLASS_ADDRESS):
-        return False, "Class address not configured", kwargs
-
     date = kwargs['today']
 
-    update(
+    count = update(
         get_network_usages(date),
         get_ventures_and_ips(),
         get_usage_type(),
         date,
     )
 
-    return True, "Network usages update", kwargs
+    return True, "Create/Update {0} usages".format(count), kwargs

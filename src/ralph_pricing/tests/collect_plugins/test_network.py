@@ -51,9 +51,9 @@ def get_ssh_client_mock(address, login, password):
 
 class TestNetwork(TestCase):
     def setUp(self):
-        setattr(settings, 'NFSEN_CLASS_ADDRESS', [])
-        setattr(settings, 'SSH_NFSEN_CREDENTIALS', [])
-        setattr(settings, 'NFSEN_CHANNELS', [])
+        settings.NFSEN_CLASS_ADDRESS = []
+        settings.SSH_NFSEN_CREDENTIALS = []
+        settings.NFSEN_CHANNELS = []
 
     def test_get_names_of_data_files_when_executed_commend_return_error(self):
         self.assertRaises(
