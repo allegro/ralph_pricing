@@ -72,7 +72,8 @@ def get_names_of_data_files(ssh_client, channel, date):
     """
     split_date = str(date).split('-')
     stdin, stdout, stderr = ssh_client.exec_command(
-        "ls /data/nfsen/profiles-data/live/{0}/{1}/{2}/{3}/".format(
+        "ls {0}/{1}/{2}/{3}/{4}/".format(
+            settings.NFSEN_FILES_PATH,
             channel,
             split_date[0],
             split_date[1],
@@ -98,9 +99,10 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     :rtype list:
     """
     split_date = str(date).split('-')
-    nfdump_str = "nfdump -M /data/nfsen/profiles-data/live/{0} "\
-        " -T  -R {1}/{2}/{3}/{4}:{1}/{2}/{3}/{5} -a  -A"\
+    nfdump_str = "nfdump -M {0}/{1} "\
+        " -T  -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -a  -A"\
         " {6} -o \"fmt:%sa | %da | %byt\" -c 10".format(
+            settings.NFSEN_FILES_PATH,
             channel,
             split_date[0],
             split_date[1],
@@ -327,4 +329,4 @@ def network(**kwargs):
         date,
     )
 
-    return True, "Create/Update {0} usages".format(count), kwargs
+    return True, "Create/Update {0} venture usages".format(count), kwargs

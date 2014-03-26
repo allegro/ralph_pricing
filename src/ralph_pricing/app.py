@@ -55,6 +55,7 @@ class Scrooge(RalphModule):
                 'propagate': True,
                 'level': 'DEBUG',
             })
-        self.settings['SSH_NFSEN_CREDENTIALS'] = []
+        self.settings['SSH_NFSEN_CREDENTIALS'] = {}
         self.settings['NFSEN_CHANNELS'] = []
         self.settings['NFSEN_CLASS_ADDRESS'] = []
+        self.settings['NFSEN_FILES_PATH'] = ''

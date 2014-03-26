@@ -52,7 +52,7 @@ def get_ssh_client_mock(address, login, password):
 class TestNetwork(TestCase):
     def setUp(self):
         settings.NFSEN_CLASS_ADDRESS = []
-        settings.SSH_NFSEN_CREDENTIALS = []
+        settings.SSH_NFSEN_CREDENTIALS = {}
         settings.NFSEN_CHANNELS = []
 
     def test_get_names_of_data_files_when_executed_commend_return_error(self):
@@ -267,46 +267,6 @@ class TestNetwork(TestCase):
     def test_update(self):
         self.assertEqual(self._update_daily_usage(True), 1)
 
-    @patch.object(settings, 'NFSEN_CHANNELS', ['test-channel'])
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
-    def test_network_when_SSH_NFSEN_CREDENTIALS_is_not_configured(self):
-        self.assertEqual(
-            network.network(today=date(year=2014, month=1, day=1))[1],
-            'Credentials not configured',
-        )
-
-    @patch.object(
-        settings,
-        'SSH_NFSEN_CREDENTIALS', {
-            'address': {
-                'login': 'login',
-                'password': 'password',
-            },
-        },
-    )
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
-    def test_network_when_NFSEN_CHANNELS_is_not_configured(self):
-        self.assertEqual(
-            network.network(today=date(year=2014, month=1, day=1))[1],
-            'Channels not configured',
-        )
-
-    @patch.object(
-        settings,
-        'SSH_NFSEN_CREDENTIALS', {
-            'address': {
-                'login': 'login',
-                'password': 'password',
-            },
-        },
-    )
-    @patch.object(settings, 'NFSEN_CHANNELS', ['test-channel'])
-    def test_network_when_NFSEN_CLASS_ADDRESS_is_not_configured(self):
-        self.assertEqual(
-            network.network(today=date(year=2014, month=1, day=1))[1],
-            'Class address not configured',
-        )
-
     @patch.object(
         settings,
         'NFSEN_CLASS_ADDRESS',
@@ -328,7 +288,7 @@ class TestNetwork(TestCase):
         Venture.objects.create(venture_id=1)
         self.assertEqual(
             network.network(today=date(year=2014, month=1, day=1))[1],
-            'Network usages update',
+            'Create/Update 1 venture usages',
         )
         self.assertEqual(DailyUsage.objects.get().value, 60)
 
