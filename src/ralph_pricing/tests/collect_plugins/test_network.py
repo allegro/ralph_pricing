@@ -38,7 +38,7 @@ def get_ip_addresses_mock(only_public):
 
 def get_ssh_client_mock(address, login, password):
     return SshClientMock(
-        stdout= [
+        stdout=[
             '',
             '10.10.10.10 | 20.20.20.20 | 30',
             '',
@@ -152,8 +152,8 @@ class TestNetwork(TestCase):
         self.assertRaises(
             network.UnknowDataFormatError,
             network.extract_ip_and_bytes,
-            row = '10.10.10.10 | 20.20.20.20 | 1 X',
-            input_output = 'scrip',
+            row='10.10.10.10 | 20.20.20.20 | 1 X',
+            input_output='scrip',
         )
 
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['30.30.30.30'])
@@ -170,7 +170,7 @@ class TestNetwork(TestCase):
         self.assertEqual(
             network.get_network_usage(
                 SshClientMock(
-                    stdout= [
+                    stdout=[
                         '',
                         '10.10.10.10 | 20.20.20.20 | 30',
                         '',
@@ -192,7 +192,7 @@ class TestNetwork(TestCase):
         self.assertEqual(
             network.get_network_usage(
                 SshClientMock(
-                    stdout= [
+                    stdout=[
                         '',
                         '10.10.10.10 | 20.20.20.20 | 30',
                         '',

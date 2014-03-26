@@ -247,7 +247,7 @@ def get_ventures_and_ips():
     :rtype dict:
     """
     logger.debug('Getting list of ips and ventures')
-    return {key:value for key, value in get_ip_addresses(True).iteritems()}
+    return {key: value for key, value in get_ip_addresses(True).iteritems()}
 
 
 def sort_per_venture(network_usages, ventures_and_ips):
