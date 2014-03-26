@@ -24,12 +24,6 @@ MAIN_MENU = [
         view_name='all_ventures',
     ),
     MenuItem(
-        _("All ventures BETA"),
-        name='all-ventures-beta',
-        fugue_icon='fugue-store-medium',
-        view_name='all_ventures_beta',
-    ),
-    MenuItem(
         _("Devices"),
         name='devices',
         fugue_icon='fugue-wooden-box',
@@ -46,6 +40,12 @@ MAIN_MENU = [
         name='usages',
         fugue_icon='fugue-beaker',
         view_name='usages',
+    ),
+    MenuItem(
+        _("Teams"),
+        name='teams',
+        fugue_icon='fugue-users',
+        view_name='teams',
     ),
 ]
 

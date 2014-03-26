@@ -5,19 +5,26 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls.defaults import include, patterns, url
 from django.contrib.auth.decorators import login_required
+from tastypie.api import Api
 
+from ralph_pricing.api import ServiceUsageResource
 from ralph_pricing.views.devices import Devices
 from ralph_pricing.views.extra_costs import ExtraCosts
 from ralph_pricing.views.home import Home
 from ralph_pricing.views.usages import Usages
+from ralph_pricing.views.teams import Teams
+from ralph_pricing.views.teams_percent import TeamsPercent
 from ralph_pricing.views.ventures import AllVentures
-from ralph_pricing.views.ventures_beta import AllVenturesBeta
 
+v09_api = Api(api_name='v0.9')
+for r in (ServiceUsageResource, ):
+    v09_api.register(r())
 
 urlpatterns = patterns(
     '',
+    url(r'^api/', include(v09_api.urls)),
     url(r'^$', login_required(Home.as_view()), name='home'),
     url(
         r'^extra-costs/$',
@@ -43,14 +50,26 @@ urlpatterns = patterns(
         kwargs={'type': 'price'},
     ),
     url(
+        r'^teams/$',
+        login_required(Teams.as_view()),
+        name='teams',
+        kwargs={'team': None, 'daterange': None},
+    ),
+    url(
+        r'^teams/(?P<team>[^/]+)/$',
+        login_required(Teams.as_view()),
+        name='teams',
+        kwargs={'daterange': None},
+    ),
+    url(
+        r'^teams/(?P<team>[^/]+)/(?P<daterange>[^/]+)/$',
+        login_required(TeamsPercent.as_view()),
+        name='teams',
+    ),
+    url(
         r'^all-ventures/$',
         login_required(AllVentures.as_view()),
         name='all_ventures',
-    ),
-    url(
-        r'^all-ventures-beta/$',
-        login_required(AllVenturesBeta.as_view()),
-        name='all_ventures_beta',
     ),
     url(
         r'^devices/$',
