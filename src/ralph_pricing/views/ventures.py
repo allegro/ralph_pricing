@@ -26,14 +26,14 @@ from ralph_pricing.plugins.reports.base import AttributeDict
 logger = logging.getLogger(__name__)
 
 
-class AllVenturesBeta(Report):
+class AllVentures(Report):
     """
     Reports for all ventures
     """
     template_name = 'ralph_pricing/ventures_all.html'
     Form = DateRangeForm
     section = 'all-ventures'
-    report_name = _('All Ventures Report Beta')
+    report_name = _('All Ventures Report')
     currency = 'PLN'
 
     @classmethod
