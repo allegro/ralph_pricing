@@ -1,6 +1,36 @@
 Change Log
 ----------
 
+2.2.0
+~~~~~
+
+* Displayed name changed from Ralph Pricing to Scrooge.
+
+* Added service model and plugin for billing service depending on it's usage
+types, base usage types and dependent services.
+
+* Change report plugins architecture (change from function to classes, create
+plugin for base usages (eg. power consumption) and dedicated plugin for
+depreciation).
+
+* Added teams billing. Teams could be billed in 4 models: by time, by devices
+count, by devices and cores count or by cost distribution between other teams
+depending on other teams members count.
+
+* Modified collects virtual plugin for getting usages for more than one virtual
+systems.
+
+* Created plugin for colleting internet usages per IP address (using nfsen).
+
+* Added height of device usage.
+
+* Removed old AllVentures report and warehouse option from report.
+
+* PUSH API for usages of service resources by ventures.
+
+* New white theme.
+
+
 2.1.1
 ~~~~~
 
