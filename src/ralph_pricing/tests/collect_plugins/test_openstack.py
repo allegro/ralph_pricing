@@ -73,7 +73,7 @@ class TestOpenstack(TestCase):
 
     def test_set_usages(self):
         """ OpenStack usages Test Case """
-         # fake setting need to run plugin
+        # fake setting need to run plugin
         settings.OPENSTACK_URL = '/'
         settings.OPENSTACK_USER = 'test'
         settings.OPENSTACK_PASSWORD = 'test'

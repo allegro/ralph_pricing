@@ -111,7 +111,7 @@ def get_ceilometer_usages(client, tenants, date=None):
                     )
                 )
                 continue
-            if not meter in statistics[tenant_venture]:
+            if meter not in statistics[tenant_venture]:
                 statistics[tenant_venture][meter] = 0
             statistics[tenant_venture][meter] += stats.sum
             logger.debug("{}:{}:{}{}".format(
