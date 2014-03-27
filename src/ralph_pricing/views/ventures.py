@@ -312,7 +312,7 @@ class AllVentures(Report):
                     len(connection.queries) - plugin_old_queries_count
                 )
                 if settings.DEBUG:
-                    logger.debug('Total SQL queries: {0}\n'.format(
+                    logger.debug('Plugin SQL queries: {0}\n'.format(
                         plugin_queries_count
                     ))
             except KeyError:
