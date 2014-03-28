@@ -170,7 +170,6 @@ class Team(UsageBasePlugin):
             pricing_device__is_virtual=False,
             date__gte=start,
             date__lte=end,
-            pricing_venture__in=ventures,
         )
         return devices_query.aggregate(count=Count('id')).get('count', 0)
 
@@ -214,7 +213,6 @@ class Team(UsageBasePlugin):
             type=self._get_cores_usage_type(),
             date__gte=start,
             date__lte=end,
-            pricing_venture__in=ventures
         )
         return cores_query.aggregate(
             cores_count=Sum('value')
@@ -553,6 +551,11 @@ class Team(UsageBasePlugin):
             team.billing_type
         ))
         return {}
+
+    def total_cost(self, *args, **kwargs):
+        costs = self.usages(*args, **kwargs)
+        total_cost_key = 'ut_{0}_total_cost'.format(kwargs['usage_type'].id)
+        return sum([u[total_cost_key] for u in costs.values()])
 
     def usages(self, **kwargs):
         """
