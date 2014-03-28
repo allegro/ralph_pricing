@@ -94,8 +94,9 @@ ExtraCostFormSet = forms.models.modelformset_factory(
 
 class UsagePriceForm(forms.ModelForm):
     """
-    Used by factory to create UsagesFormSet. Contain baisc form infromation
-    like fields and widgets
+    Used by factory to create UsagesFormSet. Contain basic form infromation
+    like fields and widgets and simple validation like warehouse and team
+    presence.
     """
     class Meta:
         model = UsagePrice
