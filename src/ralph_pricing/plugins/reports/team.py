@@ -248,6 +248,7 @@ class Team(UsageBasePlugin):
         """
 
         result = defaultdict(lambda: defaultdict(int))
+        ventures_ids = set([v.id for v in ventures])
         cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
         # check if price is undefined for any time between start and end
         price_undefined = no_price_msg and self._incomplete_price(
@@ -264,11 +265,12 @@ class Team(UsageBasePlugin):
             """
             # for every venture-percentage division defined for period of time
             for venture, percent in percentage.items():
-                # store daily percent to calculate average percent
-                if price_undefined:
-                    result[venture][cost_key] = price_undefined
-                else:
-                    result[venture][cost_key] += cost * D(percent) / 100
+                if venture in ventures_ids:
+                    # store daily percent to calculate average percent
+                    if price_undefined:
+                        result[venture][cost_key] = price_undefined
+                    else:
+                        result[venture][cost_key] += cost * D(percent) / 100
 
         usageprices = team.usageprice_set.filter(
             start__lte=end,
