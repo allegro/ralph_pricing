@@ -93,10 +93,10 @@ ExtraCostFormSet = forms.models.modelformset_factory(
 
 
 class UsagePriceForm(forms.ModelForm):
-    '''
+    """
     Used by factory to create UsagesFormSet. Contain baisc form infromation
     like fields and widgets
-    '''
+    """
     class Meta:
         model = UsagePrice
 
@@ -117,28 +117,30 @@ class UsagePriceForm(forms.ModelForm):
         }
 
     def clean_warehouse(self):
+        """
+        If usage type is by_warehouse check if warehouse was provided
+        """
         warehouse = self.cleaned_data.get('warehouse')
         if self.instance.type.by_warehouse and not warehouse:
-            raise forms.ValidationError(
-                _("Warehouse missing"),
-            )
+            raise forms.ValidationError(_("Warehouse missing"))
         return warehouse
 
     def clean_team(self):
+        """
+        If usage type is by_team check if team was provided
+        """
         team = self.cleaned_data.get('team')
         if self.instance.type.by_team and not team:
-            raise forms.ValidationError(
-                _("Team missing"),
-            )
+            raise forms.ValidationError(_("Team missing"))
         return team
 
     def clean_end(self):
-        '''
+        """
         Test if end date is later or equal to the start date
 
         :returns string: the end of the time interval
         :rtype string:
-        '''
+        """
         start = self.cleaned_data['start']
         end = self.cleaned_data['end']
         if start > end:
