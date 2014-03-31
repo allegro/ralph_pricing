@@ -1071,6 +1071,72 @@ class TestTeamPlugin(TestCase):
             },
         })
 
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_cores_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_cores_count_by_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_devices_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_devices_count_by_venture')  # noqa
+    def test_usages_subventures(
+        self,
+        devices_count_mock,
+        total_devices_mock,
+        cores_count_mock,
+        total_cores_mock
+    ):
+        devices_count_mock.return_value = {
+            self.venture1.id: 200,
+        }
+        total_devices_mock.return_value = 500
+        cores_count_mock.return_value = {
+            self.venture1.id: 20,
+        }
+        total_cores_mock.return_value = 100
+        result = self.plugin.usages(
+            start=date(2013, 10, 3),
+            end=date(2013, 10, 27),
+            usage_type=self.usage_type,
+            ventures=[self.venture1],
+            forecast=False,
+            no_price_msg=True,
+        )
+        self.assertEquals(result, {
+            self.venture1.id: {
+                'ut_1_team_1_cost': D('212'),
+                'ut_1_team_2_cost': D('75'),
+                'ut_1_team_3_cost': D('290'),
+                'ut_1_team_4_cost': D('2360'),
+                'ut_1_total_cost': D('2937'),
+            }
+        })
+
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_cores_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_cores_count_by_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_devices_count')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_devices_count_by_venture')  # noqa
+    def test_total_cost(
+        self,
+        devices_count_mock,
+        total_devices_mock,
+        cores_count_mock,
+        total_cores_mock
+    ):
+        devices_count_mock.return_value = {
+            self.venture1.id: 200,
+        }
+        total_devices_mock.return_value = 500
+        cores_count_mock.return_value = {
+            self.venture1.id: 20,
+        }
+        total_cores_mock.return_value = 100
+        result = self.plugin.total_cost(
+            start=date(2013, 10, 3),
+            end=date(2013, 10, 27),
+            usage_type=self.usage_type,
+            ventures=[self.venture1],
+            forecast=False,
+            no_price_msg=True,
+        )
+        self.assertEquals(result, D('2937'))
+
     def test_schema(self):
         result = self.plugin.schema(self.usage_type)
         ut_id = self.usage_type.id
