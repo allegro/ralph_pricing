@@ -233,7 +233,7 @@ def get_usage_type():
     """
     usage_type, created = UsageType.objects.get_or_create(
         name="Network Bytes",
-        symbol='network_bytes_bytes',
+        symbol='network_bytes',
     )
     return usage_type
 
