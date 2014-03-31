@@ -170,6 +170,8 @@ class Team(UsageBasePlugin):
             pricing_device__is_virtual=False,
             date__gte=start,
             date__lte=end,
+        ).exclude(
+            pricing_venture__isnull=True,
         )
         return devices_query.aggregate(count=Count('id')).get('count', 0)
 
@@ -213,6 +215,8 @@ class Team(UsageBasePlugin):
             type=self._get_cores_usage_type(),
             date__gte=start,
             date__lte=end,
+        ).exclude(
+            pricing_venture__isnull=True,
         )
         return cores_query.aggregate(
             cores_count=Sum('value')
