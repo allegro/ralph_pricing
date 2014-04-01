@@ -101,7 +101,7 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     split_date = str(date).split('-')
     nfdump_str = "nfdump -M {0}/{1} "\
         " -T  -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -a  -A"\
-        " {6} -o \"fmt:%sa | %da | %byt\" -c 10".format(
+        " {6} -o \"fmt:%sa | %da | %byt\"".format(
             settings.NFSEN_FILES_PATH,
             channel,
             split_date[0],
@@ -233,7 +233,7 @@ def get_usage_type():
     """
     usage_type, created = UsageType.objects.get_or_create(
         name="Network Bytes",
-        symbol='network_bytes_bytes',
+        symbol='network_bytes',
     )
     return usage_type
 
