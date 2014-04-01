@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
-import json
 import mock
 
 from django.test import TestCase
@@ -34,68 +33,38 @@ ceilometer.settings.OPENSTACK_SITES = [
 
 
 class TestCeilometer(TestCase):
-    @mock.patch.object(ceilometer, "requests")
-    def test_get_tenants(self, requests_mock):
-        response_token_mock = mock.MagicMock()
-        response_token_mock.content = json.dumps(
-            {
-                'access': {
-                    'token': {'id': '12345qwert'},
-                }
-            }
-        )
-        requests_mock.post.return_value = response_token_mock
-        response_tenant_mock = mock.MagicMock()
-        response_tenant_mock.content = json.dumps(
-            {'tenants': ['tenant1', 'tenant2']},
-        )
-        requests_mock.get.return_value = response_tenant_mock
-        res = ceilometer.get_tenants(ceilometer.settings.OPENSTACK_SITES[0])
-        self.assertEqual(['tenant1', 'tenant2'], res)
-        data = json.dumps({
-            "auth": {
-                "passwordCredentials": {
-                    "username": 'testuser',
-                    "password": 'supersecretpass',
-                }
-            }
-        })
-        requests_mock.post.assert_called_with(
-            "http://127.0.0.1:5000/v2.0/tokens",
-            data=data,
-            headers={'content-type': 'application/json'},
-        )
-        requests_mock.get.assert_called_with(
-            "http://127.0.0.1:5000/v2.0/tenants",
-            headers={
-                'content-type': 'application/json',
-                'X-Auth-Token': '12345qwert',
-            }
-        )
-
     def test_get_ceilometer_usages(self):
-        tenants = [{
-            u'description': u'test;ralph;whatever',
-            u'enabled': True,
-            u'id': u'abcdef12345',
-            u'name': u'ralph-test',
-        }]
+        tenant_mock = mock.Mock()
+        tenant_mock.description = 'test;ralph;whatever'
+        tenant_mock.id = 'abcdef12345'
+        tenant_mock.name = 'ralph-test'
+        tenants = [tenant_mock]
         client_mock = mock.MagicMock()
         today = datetime.date(2014, 1, 21)
+        flavors = ['test_flav']
 
-        def statistics_mock(meter_name, q):
+        def statistics_mock(meter_name, q, *args, **kwargs):
             cpu = mock.MagicMock(unit="unit", sum=1234)
             neti = mock.MagicMock(unit="unit", sum=2345)
             neto = mock.MagicMock(unit="unit", sum=3456)
             diskr = mock.MagicMock(unit="unit", sum=5678)
             diskw = mock.MagicMock(unit="unit", sum=4567)
+            inst = [
+                mock.MagicMock(unit="unit", aggregate={
+                    'cardinality/resource_id': 45.0,
+                }),
+                mock.MagicMock(unit="unit", aggregate={
+                    'cardinality/resource_id': 85.0,
+                }),
+            ]
 
             meters = {
-                'cpu': cpu,
-                'network.outgoing.bytes': neto,
-                'network.incoming.bytes': neti,
-                'disk.write.requests': diskw,
-                'disk.read.requests': diskr,
+                'cpu': [cpu],
+                'network.outgoing.bytes': [neto],
+                'network.incoming.bytes': [neti],
+                'disk.write.requests': [diskw],
+                'disk.read.requests': [diskr],
+                'instance:test_flav': inst,
             }
             correct_query = [
                 {
@@ -115,13 +84,14 @@ class TestCeilometer(TestCase):
                 },
             ]
             self.assertEqual(correct_query, q)
-            return [meters[meter_name]]
+            return meters[meter_name]
 
         client_mock.statistics.list.side_effect = statistics_mock
         res = ceilometer.get_ceilometer_usages(
             client_mock,
             tenants,
             date=today,
+            flavors=flavors,
         )
         correct_res = {
             u'ralph': {
@@ -130,6 +100,7 @@ class TestCeilometer(TestCase):
                 u'network.outgoing.bytes': 3456,
                 u'disk.write.requests': 4567,
                 u'disk.read.requests': 5678,
+                u'instance.test_flav': 130.0,
             }
         }
         self.assertEqual(res, correct_res)
