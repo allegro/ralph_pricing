@@ -40,6 +40,7 @@ class Usages(Base):
                 self.request.POST,
                 queryset=self.usage_type.usageprice_set.order_by('start'),
             )
+            self.formset.usage_type = self.usage_type
             for form in self.formset.extra_forms:
                 if form.has_changed():
                     form.instance.type = self.usage_type
