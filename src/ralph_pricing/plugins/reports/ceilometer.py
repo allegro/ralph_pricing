@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 
 import logging
 
+from collectiond import OrderedDict
+
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.service import ServiceBasePlugin
 from ralph_pricing.models import DailyUsage, UsagePrice
@@ -53,16 +55,16 @@ class CeilometerBasePlugin(ServiceBasePlugin):
         return res
 
     def schema(self, service, *args, **kwargs):
-        schema = {
+        schema = OrderedDict({
+            'ceilometer_coin': {
+                'name': "Cloud coins",
+            },
             'ceilometer_cost': {
                 'name': "Cloud 2.0 cost",
                 'currency': True,
                 'total_cost': True,
             },
-            'ceilometer_coin': {
-                'name': "Cloud coins",
-            }
-        }
+        })
         return schema
 
 
