@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from collectiond import OrderedDict
+from collection import OrderedDict
 
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.service import ServiceBasePlugin
