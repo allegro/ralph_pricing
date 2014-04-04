@@ -55,16 +55,16 @@ class CeilometerBasePlugin(ServiceBasePlugin):
         return res
 
     def schema(self, service, *args, **kwargs):
-        schema = OrderedDict({
-            'ceilometer_coin': {
+        schema = OrderedDict([
+            ('ceilometer_coin', {
                 'name': "Cloud coins",
-            },
-            'ceilometer_cost': {
+            }),
+            ('ceilometer_cost', {
                 'name': "Cloud 2.0 cost",
                 'currency': True,
                 'total_cost': True,
-            },
-        })
+            }),
+        ])
         return schema
 
 
