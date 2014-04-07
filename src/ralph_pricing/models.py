@@ -1011,6 +1011,27 @@ class UsagePrice(db.Model):
             raise ValidationError('Team is required')
 
 
+class DailyStatistics(db.Model):
+    date = db.DateTimeField()
+    type = db.ForeignKey(UsageType, verbose_name=_("type"))
+    count = db.IntegerField(verbose_name=_("count"), default=0)
+
+    class Meta:
+        verbose_name = _("daily statistics")
+        verbose_name_plural = _("daily statistics")
+
+    def __unicode__(self):
+        return '{0}/{1} ({2}) {3}'.format(
+            self.type,
+            self.date,
+            self.count,
+        )
+
+    @classmethod
+    def compare_days(cls, first_date, second_date):
+        print (first_date, second_date)
+
+
 class DailyUsage(db.Model):
     """
     DailyUsage model contains daily usage information for each
