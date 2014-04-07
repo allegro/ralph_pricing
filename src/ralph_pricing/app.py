@@ -62,7 +62,7 @@ class Scrooge(RalphModule):
             'NFSEN_FILES_PATH': '',
             'VIRTUAL_VENTURE_NAMES': {},
         }
-        # workaround to not-overriding manually defined settings
+        # workaround to not overwriting manually defined settings
         # check if setting is in global settings - if no, add default
         for key, value in app_settings.iteritems():
             if key not in self.settings:
