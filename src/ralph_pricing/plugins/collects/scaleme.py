@@ -42,7 +42,7 @@ def update_scaleme_usage(usage_types, date, url):
                     venture = Venture.objects.get(symbol=venture_symbol)
                 except Venture.DoesNotExist:
                     logger.warning(
-                        'Venture with venture symbol \'{0}\' does not'
+                        'Venture with venture symbol "{0}" does not'
                         ' exist'.format(venture_symbol)
                     )
                 else:
