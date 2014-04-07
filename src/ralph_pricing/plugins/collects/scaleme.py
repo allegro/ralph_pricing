@@ -41,7 +41,10 @@ def update_scaleme_usage(usage_types, date, url):
                 try:
                     venture = Venture.objects.get(symbol=venture_symbol)
                 except Venture.DoesNotExist:
-                    logger.error('Venture %r does not exist from Scaleme data')
+                    logger.warning(
+                        'Venture with venture symbol \'{0}\' does not'
+                        ' exist'.format(venture_symbol)
+                    )
                 else:
                     for usage_name, usage_type in usage_types.iteritems():
                         usage, created = DailyUsage.objects.get_or_create(
