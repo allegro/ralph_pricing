@@ -77,6 +77,12 @@ class WarehouseAdmin(ModelAdmin):
     search_fields = ('name',)
 
 
+@register(models.InternetProvider)
+class InternetProviderAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+
 class ServiceUsageTypesInline(admin.TabularInline):
     model = models.ServiceUsageTypes
 
