@@ -75,6 +75,11 @@ def get_ceilometer_usages(client, tenants, date=None):
                 "Tenant malformed: {}".format(str(tenant))
             )
             continue
+        except AttributeError:
+            logger.error(
+                "Tenant {0} have no description".format(str(tenant))
+            )
+            continue
         statistics[tenant_venture] = {}
         for meter in meters:
             query = [
