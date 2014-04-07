@@ -39,7 +39,12 @@ def get_ceilometer_usages(client, tenants, date=None, flavors=[]):
             tenant_venture = tenant.description.split(";")[1]
         except (ValueError, IndexError, AttributeError):
             logger.error(
-                "Tenant malformed: {}".format(str(tenant))
+                "Tenant malformed: {}".format(tenant['id'])
+            )
+            continue
+        except AttributeError:
+            logger.error(
+                "Tenant {0} has no description".format(tenant['id'])
             )
             continue
         statistics[tenant_venture] = {}
