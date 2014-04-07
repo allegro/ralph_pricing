@@ -993,6 +993,11 @@ class UsagePrice(db.Model):
     class Meta:
         verbose_name = _("usage price")
         verbose_name_plural = _("usage prices")
+
+        unique_together = [
+            ('warehouse', 'start', 'type'),
+            ('warehouse', 'end', 'type'),
+        ]
         ordering = ('type', '-start')
 
     def __unicode__(self):

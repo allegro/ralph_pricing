@@ -8,12 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'UsagePrice', fields ['warehouse', 'type', 'end']
-        db.delete_unique('ralph_pricing_usageprice', ['warehouse_id', 'type_id', 'end'])
-
-        # Removing unique constraint on 'UsagePrice', fields ['warehouse', 'start', 'type']
-        db.delete_unique('ralph_pricing_usageprice', ['warehouse_id', 'start', 'type_id'])
-
         # Adding model 'InternetProvider'
         db.create_table('ralph_pricing_internetprovider', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -43,12 +37,6 @@ class Migration(SchemaMigration):
 
         # Deleting field 'UsagePrice.internet_provider'
         db.delete_column('ralph_pricing_usageprice', 'internet_provider_id')
-
-        # Adding unique constraint on 'UsagePrice', fields ['warehouse', 'start', 'type']
-        db.create_unique('ralph_pricing_usageprice', ['warehouse_id', 'start', 'type_id'])
-
-        # Adding unique constraint on 'UsagePrice', fields ['warehouse', 'type', 'end']
-        db.create_unique('ralph_pricing_usageprice', ['warehouse_id', 'type_id', 'end'])
 
         # Deleting field 'UsageType.by_internet_provider'
         db.delete_column('ralph_pricing_usagetype', 'by_internet_provider')
@@ -246,7 +234,7 @@ class Migration(SchemaMigration):
             'venture': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Venture']"})
         },
         'ralph_pricing.usageprice': {
-            'Meta': {'ordering': "(u'type', u'-start')", 'object_name': 'UsagePrice'},
+            'Meta': {'ordering': "(u'type', u'-start')", 'unique_together': "[(u'warehouse', u'start', u'type'), (u'warehouse', u'end', u'type')]", 'object_name': 'UsagePrice'},
             'cost': ('django.db.models.fields.DecimalField', [], {'default': '0.0', 'max_digits': '16', 'decimal_places': '6'}),
             'end': ('django.db.models.fields.DateField', [], {}),
             'forecast_cost': ('django.db.models.fields.DecimalField', [], {'default': '0.0', 'max_digits': '16', 'decimal_places': '6'}),
