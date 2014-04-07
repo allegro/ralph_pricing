@@ -1,4 +1,4 @@
-Installation
+Collects Data
 ************
 
 Comming soon...
