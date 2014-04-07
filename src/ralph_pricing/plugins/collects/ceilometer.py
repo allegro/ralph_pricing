@@ -77,7 +77,7 @@ def get_ceilometer_usages(client, tenants, date=None):
             continue
         except AttributeError:
             logger.error(
-                "Tenant {0} have no description".format(str(tenant))
+                "Tenant {0} has no description".format(str(tenant))
             )
             continue
         statistics[tenant_venture] = {}
