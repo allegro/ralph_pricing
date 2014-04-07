@@ -49,23 +49,32 @@ def update(data, usages, date):
 
 def get_or_create_usages(usage_names):
     cpu_usage, created = UsageType.objects.get_or_create(
-        name=usage_names['virtual_cores'],
         symbol=usage_names['virtual_cores'].replace(' ', '_').lower(),
+        defaults=dict(
+            name=usage_names['virtual_cores'],
+            average=True,
+        ),
     )
-    cpu_usage.average = True
     cpu_usage.save()
+
     memory_usage, created = UsageType.objects.get_or_create(
-        name=usage_names['virtual_memory'],
         symbol=usage_names['virtual_memory'].replace(' ', '_').lower(),
+        defaults=dict(
+            name=usage_names['virtual_memory'],
+            average=True,
+        ),
     )
-    memory_usage.average = True
     memory_usage.save()
+
     disk_usage, created = UsageType.objects.get_or_create(
-        name=usage_names['virtual_disk'],
         symbol=usage_names['virtual_disk'].replace(' ', '_').lower(),
+        defaults=dict(
+            name=usage_names['virtual_disk'],
+            average=True,
+        ),
     )
-    disk_usage.average = True
     disk_usage.save()
+
     usages = {
         'virtual_cores': cpu_usage,
         'virtual_memory': memory_usage,
@@ -80,13 +89,27 @@ def virtual_usages(**kwargs):
     """Updates the virtual usages from Ralph."""
 
     date = kwargs['today']
-    for venture_name in settings.VIRTUAL_VENTURE_NAMES:
+    virtual_venture_names = settings.VIRTUAL_VENTURE_NAMES
+    # if venture_name is list or tuple, make dict from it, with key and value
+    # the same
+    if isinstance(virtual_venture_names, (list, tuple)):
+        virtual_venture_names = {k: [k] for k in virtual_venture_names}
+    # key in dict is group name (which is propagated to usages names)
+    # value is list of ventures names (in group)
+    for group_name, ventures in virtual_venture_names.items():
         usage_names = {
-            'virtual_cores': '{0} Virtual CPU cores'.format(venture_name),
-            'virtual_memory': '{0} Virtual memory MB'.format(venture_name),
-            'virtual_disk': '{0} Virtual disk MB'.format(venture_name),
+            'virtual_cores': '{0} Virtual CPU cores'.format(group_name),
+            'virtual_memory': '{0} Virtual memory MB'.format(group_name),
+            'virtual_disk': '{0} Virtual disk MB'.format(group_name),
         }
         usages = get_or_create_usages(usage_names)
-        for data in api_pricing.get_virtual_usages(venture_name):
-            update(data, usages, date)
+        for venture_name in ventures:
+            counter = 0
+            for data in api_pricing.get_virtual_usages(venture_name):
+                update(data, usages, date)
+                counter += 1
+            logger.info('Venture {0} done - {1} devices processed'.format(
+                venture_name,
+                counter,
+            ))
     return True, 'virtual usages updated', kwargs
