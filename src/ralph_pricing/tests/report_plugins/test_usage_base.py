@@ -36,6 +36,15 @@ class TestUsageBasePlugin(TestCase):
             type='BU',
         )
         self.usage_type_cost_wh.save()
+        self.usage_type_cost_sum = models.UsageType(
+            name='UsageType3',
+            symbol='ut3',
+            by_warehouse=False,
+            by_cost=True,
+            type='BU',
+            by_internet_provider=True,
+        )
+        self.usage_type_cost_sum.save()
 
         # warehouses
         self.warehouse1 = models.Warehouse(
@@ -49,6 +58,17 @@ class TestUsageBasePlugin(TestCase):
         )
         self.warehouse2.save()
         self.warehouses = models.Warehouse.objects.all()
+
+        # internet providers
+        self.net_provider1 = models.InternetProvider(
+            name='InternetProvider1',
+        )
+        self.net_provider1.save()
+        self.net_provider2 = models.InternetProvider(
+            name='InternetProvider2',
+        )
+        self.net_provider2.save()
+        self.net_providers = models.InternetProvider.objects.all()
 
         # ventures
         self.venture1 = models.Venture(venture_id=1, name='V1', is_active=True)
@@ -69,6 +89,9 @@ class TestUsageBasePlugin(TestCase):
         # ut2:
         #   venture1: 20 (half in warehouse1, half in warehouse2)
         #   venture2: 40 (half in warehouse1, half in warehouse2)
+        # ut3:
+        #   venture1: 30
+        #   venture2: 60
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
         base_usage_types = models.UsageType.objects.filter(type='BU')
@@ -101,9 +124,18 @@ class TestUsageBasePlugin(TestCase):
                 [(3600, 2400), (5400, 5400), (4800, 12000)],  # warehouse1
                 [(3600, 5400), (3600, 1200), (7200, 3600)],  # warehouse2
             ]),
+            (self.usage_type_cost_sum, [
+                [(1000, 2000), (2000, 3000), (4000, 5000)],  # provider 1
+                [(10000, 20000), (20000, 30000), (40000, 50000)],  # provider 2
+            ])
         ]
 
-        def add_usage_price(usage_type, prices_costs, warehouse=None):
+        def add_usage_price(
+            usage_type,
+            prices_costs,
+            net_provider=None,
+            warehouse=None
+        ):
             for daterange, price_cost in zip(dates, prices_costs):
                 start, end = daterange
                 usage_price = models.UsagePrice(
@@ -113,6 +145,8 @@ class TestUsageBasePlugin(TestCase):
                 )
                 if warehouse is not None:
                     usage_price.warehouse = warehouse
+                if net_provider is not None:
+                    usage_price.internet_provider = net_provider
                 if usage_type.by_cost:
                     usage_price.cost = price_cost[0]
                     usage_price.forecast_cost = price_cost[1]
@@ -125,7 +159,11 @@ class TestUsageBasePlugin(TestCase):
             if ut.by_warehouse:
                 for i, prices_wh in enumerate(prices):
                     warehouse = self.warehouses[i]
-                    add_usage_price(ut, prices_wh, warehouse)
+                    add_usage_price(ut, prices_wh, warehouse=warehouse)
+            elif ut.by_internet_provider:
+                for i, prices_ip in enumerate(prices):
+                    net_provider = self.net_providers[i]
+                    add_usage_price(ut, prices_ip, net_provider=net_provider)
             else:
                 add_usage_price(ut, prices)
 
@@ -319,6 +357,77 @@ class TestUsageBasePlugin(TestCase):
             result,
             [100.0, D('1260'), 120.0, D('720'), D('1980')]
         )
+
+    def test_get_usage_type_cost_sum(self):
+        result = UsagePlugin._get_total_cost_by_warehouses(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures_subset,
+            forecast=False,
+        )
+        # 5-12: (usages are from 8 to 12)
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 1000 + 10000 = 11000;
+        #   price = 11000 / 1500 = 7.(3);
+        # 13-17:
+        #   usage: 5 * (30 + 60) = 1500;
+        #   cost: 2000 + 20000 = 11000;
+        #   price = 22000 / 1500 = 14.(6);
+        # 18-25: (usages are from 18 to 22)
+        #   usage: 5 * (30 + 60) = 1500;
+        #   cost: 4000 + 40000 = 44000;
+        #   price = 11000 / 1500 = 29.(3);
+        #
+        # 10-12:
+        #   usage: 3 * (30 + 60) = 270;
+        #   cost: 270 * 7.(3) = 1980
+        # 13-17:
+        #   usage: 5 * (30 + 60) = 450;
+        #   cost: 450 * 14.(6) = 6600
+        # 18-20:
+        #   usage: 3 * (30 + 60) = 270;
+        #   cost: 270 * 29.(3) = 7920
+        #
+        # total cost: 1980 + 6600 + 7920 = 16500
+        self.assertEquals(result, [990.0, D('16500')])
+
+    def test_get_total_cost_sum(self):
+        result = UsagePlugin.total_cost(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures_subset,
+            forecast=False,
+        )
+        self.assertEquals(result, D('16500'))
+
+    def test_get_usage_type_cost_sum_forecast(self):
+        result = UsagePlugin._get_total_cost_by_warehouses(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_sum,
+            ventures=[self.venture1],
+            forecast=True,
+        )
+        # 5-12: (usages are from 8 to 12)
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 2000 + 20000 = 22000;
+        #   price = 22000 / 1500 = 14.(6);
+        # 13-17:
+        #   usage: 5 * (30 + 60) = 1500;
+        #   cost: 3000 + 30000 = 33000;
+        #   price = 33000 / 1500 = 22;
+        # 18-25: (usages are from 18 to 22)
+        #   usage: 5 * (30 + 60) = 1500;
+        #   cost: 5000 + 50000 = 55000;
+        #   price = 55000 / 1500 = 36.(6);
+        #
+        # 10-12: usage: 3 * 30 = 90; cost: 90 * 14.(6) = 1320
+        # 13-17: usage: 5 * 30 = 150; cost: 150 * 22 = 3300
+        # 18-20: usage: 3 * 30 = 90; cost = 90 * 36.(6) = 3300
+        # total: usage: 330; cost: 7920
+        self.assertEquals(result, [330.0, D('7920')])
 
     def test_get_usages(self):
         result = UsagePlugin.usages(

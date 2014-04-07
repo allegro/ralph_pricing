@@ -88,6 +88,12 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
         return self.name
 
 
+class InternetProvider(TimeTrackable, EditorTrackable, Named,
+                       WithConcurrentGetOrCreate):
+    def __unicode__(self):
+        return self.name
+
+
 class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
     show_in_report = db.BooleanField(
         verbose_name=_("Show team in report"),
@@ -232,6 +238,10 @@ class UsageType(db.Model):
     )
     by_team = db.BooleanField(
         verbose_name=_("Usage type is by team"),
+        default=False,
+    )
+    by_internet_provider = db.BooleanField(
+        verbose_name=_("Cost is given by internet provider"),
         default=False,
     )
     is_manually_type = db.BooleanField(
@@ -972,15 +982,17 @@ class UsagePrice(db.Model):
         blank=True,
         on_delete=db.PROTECT,
     )
+    internet_provider = db.ForeignKey(
+        InternetProvider,
+        null=True,
+        blank=True,
+        on_delete=db.PROTECT,
+        verbose_name=_("Internet Provider"),
+    )
 
     class Meta:
         verbose_name = _("usage price")
         verbose_name_plural = _("usage prices")
-
-        unique_together = [
-            ('warehouse', 'start', 'type'),
-            ('warehouse', 'end', 'type'),
-        ]
         ordering = ('type', '-start')
 
     def __unicode__(self):
@@ -998,6 +1010,13 @@ class UsagePrice(db.Model):
                 self.start,
                 self.end,
             )
+        if self.type and self.type.by_internet_provider:
+            return '{}-{} ({}-{})'.format(
+                self.internet_provider,
+                self.type,
+                self.start,
+                self.end,
+            )
         return '{} ({}-{})'.format(
             self.type,
             self.start,
@@ -1007,6 +1026,8 @@ class UsagePrice(db.Model):
     def clean(self):
         if self.type.by_warehouse and not self.warehouse:
             raise ValidationError('Warehouse is required')
+        if self.type.by_internet_provider and not self.internet_provider:
+            raise ValidationError('Internet Provider is required')
         if self.type.by_team and not self.team:
             raise ValidationError('Team is required')
 
