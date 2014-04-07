@@ -90,10 +90,6 @@ def virtual_usages(**kwargs):
 
     date = kwargs['today']
     virtual_venture_names = settings.VIRTUAL_VENTURE_NAMES
-    # if venture_name is list or tuple, make dict from it, with key and value
-    # the same
-    if isinstance(virtual_venture_names, (list, tuple)):
-        virtual_venture_names = {k: [k] for k in virtual_venture_names}
     # key in dict is group name (which is propagated to usages names)
     # value is list of ventures names (in group)
     for group_name, ventures in virtual_venture_names.items():
