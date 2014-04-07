@@ -39,14 +39,14 @@ class TestAssetPlugin(TestCase):
             )
         self.power_consumption_usage_type.save()
 
-        self.height_of_device_usage_type, created = \
+        self.collocation_usage_type, created = \
             UsageType.objects.get_or_create(
-                name="Height of Device",
-                symbol='height_of_device',
+                name="Collocation",
+                symbol='collocation',
                 by_warehouse=True,
                 by_cost=True,
             )
-        self.height_of_device_usage_type.save()
+        self.collocation_usage_type.save()
 
         self.warehouse, created = Warehouse.objects.get_or_create(
             name="Sample warehouse"
@@ -80,7 +80,7 @@ class TestAssetPlugin(TestCase):
                 {
                     'core': self.core_usage_type,
                     'power_consumption': self.power_consumption_usage_type,
-                    'height_of_device': self.height_of_device_usage_type,
+                    'collocation': self.collocation_usage_type,
                 },
             ) for data in self._get_asset()
         )
@@ -101,7 +101,7 @@ class TestAssetPlugin(TestCase):
                 {
                     'core': self.core_usage_type,
                     'power_consumption': self.power_consumption_usage_type,
-                    'height_of_device': self.height_of_device_usage_type,
+                    'collocation': self.collocation_usage_type,
                 },
             ) for data in self._get_asset()
         )
@@ -119,7 +119,7 @@ class TestAssetPlugin(TestCase):
                 {
                     'core': self.core_usage_type,
                     'power_consumption': self.power_consumption_usage_type,
-                    'height_of_device': self.height_of_device_usage_type,
+                    'collocation': self.collocation_usage_type,
                 },
             ) for data in self._get_asset()
         )
@@ -141,7 +141,7 @@ class TestAssetPlugin(TestCase):
                 {
                     'core': self.core_usage_type,
                     'power_consumption': self.power_consumption_usage_type,
-                    'height_of_device': self.height_of_device_usage_type,
+                    'collocation': self.collocation_usage_type,
                 },
             ) for data in self._get_asset()
         )
@@ -162,7 +162,7 @@ class TestAssetPlugin(TestCase):
 
         usage = DailyUsage.objects.get(
             date=self.today,
-            type=self.height_of_device_usage_type,
+            type=self.collocation_usage_type,
         )
         self.assertEqual(usage.value, 10.00)
 
@@ -172,7 +172,7 @@ class TestAssetPlugin(TestCase):
             'ralph_id': None,
             'slots': 10.0,
             'power_consumption': 1000,
-            'height_of_device': 10.00,
+            'collocation': 10.00,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
@@ -189,7 +189,7 @@ class TestAssetPlugin(TestCase):
                 {
                     'core': self.core_usage_type,
                     'power_consumption': self.power_consumption_usage_type,
-                    'height_of_device': self.height_of_device_usage_type,
+                    'collocation': self.collocation_usage_type,
                 },
             ),
             False
@@ -201,7 +201,7 @@ class TestAssetPlugin(TestCase):
             'ralph_id': 123,
             'slots': 10.0,
             'power_consumption': 1000,
-            'height_of_device': 10.00,
+            'collocation': 10.00,
             'price': 100,
             'is_deprecated': True,
             'sn': '1234-1234-1234-1234',
@@ -217,7 +217,7 @@ class TestAssetPlugin(TestCase):
             {
                 'core': self.core_usage_type,
                 'power_consumption': self.power_consumption_usage_type,
-                'height_of_device': self.height_of_device_usage_type,
+                'collocation': self.collocation_usage_type,
             },
         )
         device = Device.objects.get(device_id=123)
@@ -228,7 +228,7 @@ class TestAssetPlugin(TestCase):
             'ralph_id': 123,
             'slots': 10.0,
             'power_consumption': 1000,
-            'height_of_device': 10.00,
+            'collocation': 10.00,
             'price': 100,
             'is_deprecated': True,
             'sn': '5555-5555-5555-5555',
@@ -244,7 +244,7 @@ class TestAssetPlugin(TestCase):
             {
                 'core': self.core_usage_type,
                 'power_consumption': self.power_consumption_usage_type,
-                'height_of_device': self.height_of_device_usage_type,
+                'collocation': self.collocation_usage_type,
             },
         )
         device = Device.objects.get(device_id=123)

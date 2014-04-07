@@ -134,7 +134,7 @@ def update_assets(data, date, usages):
         date,
         daily_device.pricing_venture,
         warehouse,
-        usages['height_of_device'],
+        usages['collocation'],
         device,
     )
 
@@ -159,32 +159,37 @@ def update_usage(value, date, venture, warehouse, usage_type, device):
 def get_core_usage():
     """Creates physical cpu cores usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
-        name="Physical CPU cores",
-        average=True,
+        symbol='physical_cpu_cores',
+        defaults=dict(
+            name="Physical CPU cores",
+            average=True,
+        )
     )
-    usage_type.symbol = 'physical_cpu_cores'
-    usage_type.save()
     return usage_type
 
 
 def get_power_consumption_usage():
     """Creates power consumption usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
-        name="Power consumption",
-        by_warehouse=True,
-        by_cost=True,
+        symbol='power_consumption',
+        defaults=dict(
+            name="Power consumption",
+            by_warehouse=True,
+            by_cost=True,
+        ),
     )
-    usage_type.symbol = 'power_consumption'
     return usage_type
 
 
-def get_height_of_device_usage():
+def get_collocation_usage():
     """Creates power consumption usage type if not created."""
     usage_type, created = UsageType.objects.get_or_create(
-        name="Height of Device",
-        symbol='height_of_device',
-        by_warehouse=True,
-        by_cost=True,
+        symbol='collocation',
+        defaults=dict(
+            name="Collocation",
+            by_warehouse=True,
+            by_cost=True,
+        ),
     )
     return usage_type
 
@@ -197,8 +202,9 @@ def assets(**kwargs):
     usages = {
         'core': get_core_usage(),
         'power_consumption': get_power_consumption_usage(),
-        'height_of_device': get_height_of_device_usage(),
+        'collocation': get_collocation_usage(),
     }
+
     new_assets = total = 0
     for data in get_assets(date):
         if update_assets(

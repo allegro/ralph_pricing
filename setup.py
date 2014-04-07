@@ -34,7 +34,8 @@ setup(
         'ralph>=2.0.0-rc2',
         'ralph_assets>=1.3.0',  # TODO: bump version when released
         'django-mptt==0.5.5',
-        'python-ceilometerclient>=1.0.8',
+        'python-ceilometerclient>=1.0.10',
+        'python-novaclient==2.17.0',
     ],
     entry_points={
         'django.pluggable_app': [
