@@ -199,6 +199,7 @@ class TeamVenturePercent(db.Model):
     class Meta:
         verbose_name = _("Team venture percent")
         verbose_name_plural = _("Teams ventures percent")
+        unique_together = ('team_daterange', 'venture')
 
     def __unicode__(self):
         return '{}/{} ({} - {})'.format(

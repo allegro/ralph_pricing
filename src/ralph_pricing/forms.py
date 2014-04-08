@@ -312,6 +312,16 @@ class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
                     form._errors['percent'] = form.error_class([
                         "Sum of percent different than 100"
                     ])
+        # check ventures uniqueness
+        seen = set()
+        for form in self.forms:
+            venture = form.cleaned_data.get('venture')
+            if venture:
+                if venture in seen:
+                    form._errors['venture'] = form.error_class([
+                        "Venture not unique"
+                    ])
+                seen.add(venture)
 
 
 TeamVenturePercentFormSet = forms.models.modelformset_factory(
