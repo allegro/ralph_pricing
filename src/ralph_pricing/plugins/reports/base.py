@@ -24,8 +24,9 @@ class AttributeDict(dict):
     """
     Attribute dict. Used to attribute access to dict
     """
-    __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
+    def __init__(self, *args, **kwargs):
+        super(AttributeDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
 
 class BaseReportPlugin(BasePlugin):
