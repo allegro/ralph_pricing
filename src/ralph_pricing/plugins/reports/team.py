@@ -54,8 +54,8 @@ from ralph_pricing.models import (
     DailyDevice,
     DailyUsage,
     Team as TeamModel,
-    TeamMembersCount,
     TeamVenturePercent,
+    UsagePrice,
     UsageType
 )
 from ralph_pricing.plugins.base import register
@@ -111,10 +111,12 @@ class Team(UsageBasePlugin):
 
         :rtype: dict (key: (start, end) tuple; value: dict team-members count )
         """
-        members_count = TeamMembersCount.objects.filter(
+        members_count = UsagePrice.objects.filter(
             start__lte=end,
             end__gte=start,
             team__in=teams,
+        ).exclude(
+            team_members_count=0,
         )
         dates = defaultdict(lambda: defaultdict(list))
         for mc in members_count:
@@ -130,7 +132,7 @@ class Team(UsageBasePlugin):
             if mc['start']:
                 current_start = date
             for tm in mc['start']:
-                current_members_count[tm.team.id] = tm.members_count
+                current_members_count[tm.team.id] = tm.team_members_count
 
             if mc['end']:
                 result[(current_start, date)] = current_members_count.copy()

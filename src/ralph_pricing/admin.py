@@ -123,8 +123,8 @@ class ServiceAdmin(ModelAdmin):
     inlines = [ServiceUsageTypesInline]
 
 
-class TeamMembersCountInline(admin.TabularInline):
-    model = models.TeamMembersCount
+# class TeamMembersCountInline(admin.TabularInline):
+#     model = models.TeamMembersCount
 
 
 class TeamDaterangesInline(admin.TabularInline):
@@ -136,7 +136,7 @@ class TeamAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [
-        TeamMembersCountInline,
+        # TeamMembersCountInline,
         UsagePriceInline,
         TeamDaterangesInline
     ]

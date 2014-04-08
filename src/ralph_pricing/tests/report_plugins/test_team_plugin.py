@@ -53,51 +53,51 @@ class TestTeamPlugin(TestCase):
         self.team_distribute.save()
         self.teams = models.Team.objects.all()
 
-        # members count
-        mc = models.TeamMembersCount(
-            team=self.team_time,
-            start=date(2013, 10, 1),
-            end=date(2013, 10, 30),
-            members_count=10,
-        )
-        mc.save()
+        # # members count
+        # mc = models.TeamMembersCount(
+        #     team=self.team_time,
+        #     start=date(2013, 10, 1),
+        #     end=date(2013, 10, 30),
+        #     members_count=10,
+        # )
+        # mc.save()
 
-        mc = models.TeamMembersCount(
-            team=self.team_devices_cores,
-            start=date(2013, 10, 1),
-            end=date(2013, 10, 10),
-            members_count=10,
-        )
-        mc.save()
-        mc = models.TeamMembersCount(
-            team=self.team_devices_cores,
-            start=date(2013, 10, 11),
-            end=date(2013, 10, 30),
-            members_count=20,
-        )
-        mc.save()
+        # mc = models.TeamMembersCount(
+        #     team=self.team_devices_cores,
+        #     start=date(2013, 10, 1),
+        #     end=date(2013, 10, 10),
+        #     members_count=10,
+        # )
+        # mc.save()
+        # mc = models.TeamMembersCount(
+        #     team=self.team_devices_cores,
+        #     start=date(2013, 10, 11),
+        #     end=date(2013, 10, 30),
+        #     members_count=20,
+        # )
+        # mc.save()
 
-        mc = models.TeamMembersCount(
-            team=self.team_devices,
-            start=date(2013, 10, 1),
-            end=date(2013, 10, 20),
-            members_count=20,
-        )
-        mc.save()
-        mc = models.TeamMembersCount(
-            team=self.team_devices,
-            start=date(2013, 10, 21),
-            end=date(2013, 10, 30),
-            members_count=10,
-        )
-        mc.save()
-        mc = models.TeamMembersCount(
-            team=self.team_distribute,
-            start=date(2013, 10, 1),
-            end=date(2013, 10, 30),
-            members_count=10,
-        )
-        mc.save()
+        # mc = models.TeamMembersCount(
+        #     team=self.team_devices,
+        #     start=date(2013, 10, 1),
+        #     end=date(2013, 10, 20),
+        #     members_count=20,
+        # )
+        # mc.save()
+        # mc = models.TeamMembersCount(
+        #     team=self.team_devices,
+        #     start=date(2013, 10, 21),
+        #     end=date(2013, 10, 30),
+        #     members_count=10,
+        # )
+        # mc.save()
+        # mc = models.TeamMembersCount(
+        #     team=self.team_distribute,
+        #     start=date(2013, 10, 1),
+        #     end=date(2013, 10, 30),
+        #     members_count=10,
+        # )
+        # mc.save()
 
         # dateranges
         self.daterange1 = models.TeamDaterange(
@@ -122,6 +122,7 @@ class TestTeamPlugin(TestCase):
             start=date(2013, 10, 1),
             end=date(2013, 10, 15),
             team=self.team_time,
+            team_members_count=10,
         )
         up.save()
         up = models.UsagePrice(
@@ -131,6 +132,7 @@ class TestTeamPlugin(TestCase):
             start=date(2013, 10, 16),
             end=date(2013, 10, 30),
             team=self.team_time,
+            team_members_count=20,
         )
         up.save()
 
@@ -141,6 +143,7 @@ class TestTeamPlugin(TestCase):
             start=date(2013, 10, 1),
             end=date(2013, 10, 30),
             team=self.team_devices_cores,
+            team_members_count=20,
         )
         up.save()
 
@@ -151,6 +154,7 @@ class TestTeamPlugin(TestCase):
             start=date(2013, 10, 1),
             end=date(2013, 10, 10),
             team=self.team_devices,
+            team_members_count=20,
         )
         up.save()
         up = models.UsagePrice(
@@ -160,6 +164,7 @@ class TestTeamPlugin(TestCase):
             start=date(2013, 10, 11),
             end=date(2013, 10, 30),
             team=self.team_devices,
+            team_members_count=10,
         )
         up.save()
 
@@ -170,6 +175,7 @@ class TestTeamPlugin(TestCase):
             start=date(2013, 10, 1),
             end=date(2013, 10, 15),
             team=self.team_distribute,
+            team_members_count=10,
         )
         up.save()
         up = models.UsagePrice(
@@ -179,6 +185,7 @@ class TestTeamPlugin(TestCase):
             start=date(2013, 10, 16),
             end=date(2013, 10, 30),
             team=self.team_distribute,
+            team_members_count=10,
         )
         up.save()
 
