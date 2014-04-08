@@ -1,6 +1,26 @@
 Change Log
 ----------
 
+2.2.1
+~~~~~
+
+* Upgrade ceilometer collect plugins.
+
+* Added ceilometer report plugin.
+
+* Fixed override configuration by pluggableaps.
+
+* Fixed logging from collect plugins. Now, when venture does not exist log warning.
+
+* Upgrade inserting teams usages. Added total prcent information and button to dynamically add more rows.
+
+* Plugins indentify usages only by symbols. Name and more options are set as defaults.
+
+* Added multiple ventures option for single virtual server usages. settings.VIRTUAL_VENTURE_NAMES must be dict where key is name of groub and value is list of ventures.
+
+* Network cost is by providers.
+
+
 2.2.0
 ~~~~~
 
