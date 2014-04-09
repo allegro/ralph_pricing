@@ -95,12 +95,7 @@ class TestCeilometer(TestCase):
         )
         correct_res = {
             u'ralph': {
-                u'cpu': 1234,
-                u'network.incoming.bytes': 2345,
-                u'network.outgoing.bytes': 3456,
-                u'disk.write.requests': 4567,
-                u'disk.read.requests': 5678,
-                u'instance.test_flav': 130.0,
+                u'openstack.instance.test_flav': 130.0,
             }
         }
         self.assertEqual(res, correct_res)
