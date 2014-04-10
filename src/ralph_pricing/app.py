@@ -55,12 +55,18 @@ class Scrooge(RalphModule):
                 'propagate': True,
                 'level': 'DEBUG',
             })
+            self.register_logger('ralph_pricing.management', {
+                'handlers': ['file', 'console'],
+                'propagate': True,
+                'level': 'DEBUG',
+            })
         app_settings = {
             'SSH_NFSEN_CREDENTIALS': {},
             'NFSEN_CHANNELS': [],
             'NFSEN_CLASS_ADDRESS': [],
             'NFSEN_FILES_PATH': '',
             'VIRTUAL_VENTURE_NAMES': {},
+            'WARNINGS_LIMIT_FOR_USAGES': 40,
         }
         # workaround to not overwriting manually defined settings
         # check if setting is in global settings - if no, add default
