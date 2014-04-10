@@ -7,9 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.conf import settings
-
-from ralph.util import plugin, api_pricing
+from ralph.util import plugin
 from ralph_pricing.models import UsageType, DailyStatistics, DailyUsage
 
 

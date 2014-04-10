@@ -12,8 +12,6 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
-from ralph.util import plugin
-from ralph_pricing.app import setup_scrooge_logger
 from ralph_pricing.models import DailyStatistics
 
 

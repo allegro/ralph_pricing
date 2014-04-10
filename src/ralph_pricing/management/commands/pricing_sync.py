@@ -42,6 +42,7 @@ class Command(BaseCommand):
             help="Run only the selected plugin, ignore dependencies.",
         ),
     )
+
     def _run_plugin(self, name, today):
         print('Running only {0}...'.format(name))
         try:
@@ -78,4 +79,3 @@ class Command(BaseCommand):
         else:
             self._run_plugin(run_only, today)
         self._run_plugin('statistics', today)
-
