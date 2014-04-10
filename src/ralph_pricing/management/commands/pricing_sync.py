@@ -44,7 +44,7 @@ class Command(BaseCommand):
     )
 
     def _run_plugin(self, name, today):
-        print('Running only {0}...'.format(name))
+        logger.info('Running only {0}...'.format(name))
         try:
             success, message, context = plugin.run(
                 'pricing',
@@ -53,10 +53,9 @@ class Command(BaseCommand):
             )
             if not success:
                 raise PluginError(message)
-            print('{0}: Done'.format(message))
+            logger.info('{0}: Done'.format(message))
         except Exception as e:
             logger.error("{0}: {1}".format(name, e))
-            print('Failed: {0}'.format(e))
 
     def handle(self, today, run_only, *args, **options):
         setup_scrooge_logger()
@@ -65,7 +64,7 @@ class Command(BaseCommand):
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:
             today = datetime.date.today()
-        print('Synchronizing for {0}.'.format(today.isoformat()))
+        logger.info('Synchronizing for {0}.'.format(today.isoformat()))
         if not run_only:
             done = set()
             tried = set()

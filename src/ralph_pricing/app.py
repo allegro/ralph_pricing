@@ -55,6 +55,11 @@ class Scrooge(RalphModule):
                 'propagate': True,
                 'level': 'DEBUG',
             })
+            self.register_logger('ralph_pricing.management', {
+                'handlers': ['file', 'console'],
+                'propagate': True,
+                'level': 'DEBUG',
+            })
         self.settings['SSH_NFSEN_CREDENTIALS'] = {}
         self.settings['NFSEN_CHANNELS'] = []
         self.settings['NFSEN_CLASS_ADDRESS'] = []

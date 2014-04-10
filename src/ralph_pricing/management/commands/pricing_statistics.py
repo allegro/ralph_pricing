@@ -81,16 +81,16 @@ class Command(BaseCommand):
         '''
         def draw(data, name, date):
             draw_lines = lambda x: ''.join(['-' for y in xrange(x)])
-            print (
+            logger.info(
                 '{0}[{1} ({2})]{3}'.format(
-                    draw_lines(50),
+                    draw_lines(20),
                     name,
                     date,
-                    draw_lines(50),
+                    draw_lines(20),
                 )
             )
             for key, value in data.iteritems():
-                print ('{0:>50} | {1:<10}'.format(key, value))
+                logger.info('{0:>50} | {1:<10}'.format(key, value))
 
         if flags.get('only_base', False) or flags.get('show_all', False):
             draw(statistics['base'], 'Base', base_date)
