@@ -54,6 +54,7 @@ class Command(BaseCommand):
             if not success:
                 raise PluginError(message)
             logger.info('{0}: Done'.format(message))
+            return True
         except Exception as e:
             logger.error("{0}: {1}".format(name, e))
 
@@ -74,6 +75,7 @@ class Command(BaseCommand):
                     break
                 name = plugin.highest_priority('pricing', to_run)
                 tried.add(name)
-                self._run_plugin(name, today)
+                if self._run_plugin(name, today):
+                    done.add(name)
         else:
             self._run_plugin(run_only, today)
