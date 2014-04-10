@@ -18,6 +18,9 @@
             <th width="20">Warehouse</th>
             {% elif by_team %}
             <th width="20">Team</th>
+            <th width="20">Team Members Count</th>
+            {% elif by_internet_provider %}
+            <th width="20">Internet Provider</th>
             {% endif %}
 
             {% if not by_cost %}
@@ -41,7 +44,7 @@
                 {% for f in form.hidden_fields %}{{ f }}{% endfor %}
             </td>
             {% for f in form.visible_fields %}
-                {% if by_cost and f.name in hidden.by_cost or not by_cost and f.name in hidden.not_by_cost or not by_warehouse and f.name in hidden.not_by_warehouse or not by_team and f.name in hidden.not_by_team %}
+                {% if by_cost and f.name in hidden.by_cost or not by_cost and f.name in hidden.not_by_cost or not by_warehouse and f.name in hidden.not_by_warehouse or not by_team and f.name in hidden.not_by_team  or not by_internet_provider and f.name in hidden.not_by_internet_provider %}
                     <td style="display:none"> {{ f }} </td>
                 {% else %}
                     <td class="control-group {{ f.css_classes }} {% if f.errors %}error{% endif %}" style="vertical-align:middle;text-align:center">

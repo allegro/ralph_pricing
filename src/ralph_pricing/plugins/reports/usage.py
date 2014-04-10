@@ -9,10 +9,11 @@ import logging
 from collections import defaultdict, OrderedDict
 from decimal import Decimal as D
 
+from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.plugins.base import register
-from ralph_pricing.plugins.reports.base import BaseReportPlugin
+from ralph_pricing.plugins.reports.base import AttributeDict, BaseReportPlugin
 
 
 logger = logging.getLogger(__name__)
@@ -85,17 +86,32 @@ class UsageBasePlugin(BaseReportPlugin):
             if warehouse:
                 usage_prices = usage_prices.filter(warehouse=warehouse)
             usage_prices = usage_prices.order_by('start')
+            # total sum of costs in period of time (group by start, end and
+            # type)
+            if usage_type.by_cost and not usage_type.by_warehouse:
+                usage_prices = usage_prices.values(
+                    'start',
+                    'end',
+                    'type',
+                ).annotate(
+                    cost=Sum('cost'),
+                    forecast_cost=Sum('forecast_cost'),
+                )
+                usage_prices = [AttributeDict(up) for up in usage_prices]
+                # sort by start date
+                usage_prices = sorted(usage_prices, key=lambda x: x.start)
             for usage_price in usage_prices:
-                if forecast:
-                    price = usage_price.forecast_price
-                else:
-                    price = usage_price.price
                 if usage_type.by_cost:
                     price = self._get_price_from_cost(
                         usage_price,
                         forecast,
                         warehouse
                     )
+                else:
+                    if forecast:
+                        price = usage_price.forecast_price
+                    else:
+                        price = usage_price.price
 
                 up_start = max(start, usage_price.start)
                 up_end = min(end, usage_price.end)

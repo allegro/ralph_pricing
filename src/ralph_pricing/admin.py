@@ -77,6 +77,12 @@ class WarehouseAdmin(ModelAdmin):
     search_fields = ('name',)
 
 
+@register(models.InternetProvider)
+class InternetProviderAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+
 class ServiceUsageTypesInline(admin.TabularInline):
     model = models.ServiceUsageTypes
 
@@ -117,10 +123,6 @@ class ServiceAdmin(ModelAdmin):
     inlines = [ServiceUsageTypesInline]
 
 
-class TeamMembersCountInline(admin.TabularInline):
-    model = models.TeamMembersCount
-
-
 class TeamDaterangesInline(admin.TabularInline):
     model = models.TeamDaterange
 
@@ -130,7 +132,6 @@ class TeamAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [
-        TeamMembersCountInline,
         UsagePriceInline,
         TeamDaterangesInline
     ]

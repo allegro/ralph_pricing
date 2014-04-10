@@ -66,12 +66,14 @@
 {% if progress > 0 %}
 {%   if header %}
 {%     block table %}
-<table class="table table-striped table-bordered table-condensed">
-    <tr>
-        {% for column in header %}
-        <th>{{ column }}</th>
-        {% endfor %}
-    </tr>
+<table class="table table-striped table-bordered table-condensed report">
+    <thead>
+        <tr>
+            {% for column in header %}
+            <th>{{ column }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
     {% for row in data %}
         <tr>
             {% for value in row %}

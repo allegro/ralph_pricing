@@ -60,8 +60,16 @@ class Scrooge(RalphModule):
                 'propagate': True,
                 'level': 'DEBUG',
             })
-        self.settings['SSH_NFSEN_CREDENTIALS'] = {}
-        self.settings['NFSEN_CHANNELS'] = []
-        self.settings['NFSEN_CLASS_ADDRESS'] = []
-        self.settings['NFSEN_FILES_PATH'] = ''
-        self.settings['WARNINGS_LIMIT_FOR_USAGES'] = 40
+        app_settings = {
+            'SSH_NFSEN_CREDENTIALS': {},
+            'NFSEN_CHANNELS': [],
+            'NFSEN_CLASS_ADDRESS': [],
+            'NFSEN_FILES_PATH': '',
+            'VIRTUAL_VENTURE_NAMES': {},
+            'WARNINGS_LIMIT_FOR_USAGES': 40,
+        }
+        # workaround to not overwriting manually defined settings
+        # check if setting is in global settings - if no, add default
+        for key, value in app_settings.iteritems():
+            if key not in self.settings:
+                self.settings[key] = value

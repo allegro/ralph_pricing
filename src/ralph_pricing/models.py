@@ -88,6 +88,12 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
         return self.name
 
 
+class InternetProvider(TimeTrackable, EditorTrackable, Named,
+                       WithConcurrentGetOrCreate):
+    def __unicode__(self):
+        return self.name
+
+
 class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
     show_in_report = db.BooleanField(
         verbose_name=_("Show team in report"),
@@ -115,30 +121,6 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
 
     def __unicode__(self):
         return self.name
-
-
-class TeamMembersCount(db.Model):
-    team = db.ForeignKey(
-        Team,
-        verbose_name=_("Team"),
-    )
-    start = db.DateField()
-    end = db.DateField()
-    members_count = db.IntegerField(
-        verbose_name=_("Members count"),
-        default=0,
-    )
-
-    class Meta:
-        verbose_name = _("Team members count")
-        verbose_name_plural = _("Teams members count")
-
-    def __unicode__(self):
-        return '{} ({}-{})'.format(
-            self.team,
-            self.start,
-            self.end,
-        )
 
 
 class TeamDaterange(db.Model):
@@ -193,6 +175,7 @@ class TeamVenturePercent(db.Model):
     class Meta:
         verbose_name = _("Team venture percent")
         verbose_name_plural = _("Teams ventures percent")
+        unique_together = ('team_daterange', 'venture')
 
     def __unicode__(self):
         return '{}/{} ({} - {})'.format(
@@ -232,6 +215,10 @@ class UsageType(db.Model):
     )
     by_team = db.BooleanField(
         verbose_name=_("Usage type is by team"),
+        default=False,
+    )
+    by_internet_provider = db.BooleanField(
+        verbose_name=_("Cost is given by internet provider"),
         default=False,
     )
     is_manually_type = db.BooleanField(
@@ -972,6 +959,19 @@ class UsagePrice(db.Model):
         blank=True,
         on_delete=db.PROTECT,
     )
+    team_members_count = db.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Team members count"),
+        default=0,
+    )
+    internet_provider = db.ForeignKey(
+        InternetProvider,
+        null=True,
+        blank=True,
+        on_delete=db.PROTECT,
+        verbose_name=_("Internet Provider"),
+    )
 
     class Meta:
         verbose_name = _("usage price")
@@ -980,6 +980,10 @@ class UsagePrice(db.Model):
         unique_together = [
             ('warehouse', 'start', 'type'),
             ('warehouse', 'end', 'type'),
+            ('team', 'start', 'type'),
+            ('team', 'end', 'type'),
+            ('internet_provider', 'start', 'type'),
+            ('internet_provider', 'end', 'type'),
         ]
         ordering = ('type', '-start')
 
@@ -998,6 +1002,13 @@ class UsagePrice(db.Model):
                 self.start,
                 self.end,
             )
+        if self.type and self.type.by_internet_provider:
+            return '{}-{} ({}-{})'.format(
+                self.internet_provider,
+                self.type,
+                self.start,
+                self.end,
+            )
         return '{} ({}-{})'.format(
             self.type,
             self.start,
@@ -1007,6 +1018,8 @@ class UsagePrice(db.Model):
     def clean(self):
         if self.type.by_warehouse and not self.warehouse:
             raise ValidationError('Warehouse is required')
+        if self.type.by_internet_provider and not self.internet_provider:
+            raise ValidationError('Internet Provider is required')
         if self.type.by_team and not self.team:
             raise ValidationError('Team is required')
 

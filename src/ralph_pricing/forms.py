@@ -104,6 +104,8 @@ class UsagePriceForm(forms.ModelForm):
         fields = [
             'warehouse',
             'team',
+            'team_members_count',
+            'internet_provider',
             'forecast_price',
             'price',
             'forecast_cost',
@@ -135,6 +137,15 @@ class UsagePriceForm(forms.ModelForm):
             raise forms.ValidationError(_("Team missing"))
         return team
 
+    def clean_internet_provider(self):
+        """
+        If usage type is by_team check if team was provided
+        """
+        internet_provider = self.cleaned_data.get('internet_provider')
+        if self.instance.type.by_internet_provider and not internet_provider:
+            raise forms.ValidationError(_("Internet Provider missing"))
+        return internet_provider
+
     def clean_end(self):
         """
         Test if end date is later or equal to the start date
@@ -165,8 +176,11 @@ class UsagesBaseFormSet(forms.models.BaseModelFormSet):
             additional_column = 'warehouse'
         elif self.usage_type.by_team:
             additional_column = 'team'
+        elif self.usage_type.by_internet_provider:
+            additional_column = 'internet_provider'
         msg = _("Another cost time interval with the same type "
-                "(and warehouse/team) overlaps with this time interval.")
+                "(and warehouse/team/internet_provider) overlaps with this "
+                "time interval.")
 
         for i in xrange(self.total_form_count()):
             form = self.forms[i]
@@ -195,6 +209,7 @@ UsagesFormSet = forms.models.modelformset_factory(
     form=UsagePriceForm,
     formset=UsagesBaseFormSet,
     can_delete=True,
+    extra=3,
 )
 
 
@@ -298,6 +313,16 @@ class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
                     form._errors['percent'] = form.error_class([
                         "Sum of percent different than 100"
                     ])
+        # check ventures uniqueness
+        seen = set()
+        for form in self.forms:
+            venture = form.cleaned_data.get('venture')
+            if venture:
+                if venture in seen:
+                    form._errors['venture'] = form.error_class([
+                        "Venture not unique"
+                    ])
+                seen.add(venture)
 
 
 TeamVenturePercentFormSet = forms.models.modelformset_factory(
