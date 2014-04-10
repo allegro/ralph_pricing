@@ -88,7 +88,7 @@ class Usages(Base):
                 'by_cost': ['price', 'forecast_price'],
                 'not_by_cost': ['cost', 'forecast_cost'],
                 'not_by_warehouse': ['warehouse'],
-                'not_by_team': ['team'],
+                'not_by_team': ['team', 'team_members_count'],
                 'not_by_internet_provider': ['internet_provider'],
             }
         })
