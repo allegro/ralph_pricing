@@ -64,3 +64,4 @@ class Scrooge(RalphModule):
         self.settings['NFSEN_CHANNELS'] = []
         self.settings['NFSEN_CLASS_ADDRESS'] = []
         self.settings['NFSEN_FILES_PATH'] = ''
+        self.settings['WARNINGS_LIMIT_FOR_USAGES'] = 40

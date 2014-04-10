@@ -11,6 +11,7 @@ import textwrap
 from datetime import datetime, date, timedelta
 from optparse import make_option
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from ralph_pricing.models import UsageType, DailyUsage
@@ -202,7 +203,7 @@ class Command(BaseCommand):
                 results[key] = math.fabs(defferences_data[key])
         return results
 
-    def compare_days(self, base_date, second_date, percent=50):
+    def compare_days(self, base_date, second_date):
         '''
         Compare data from two given dates and try find errors or warnings
 
@@ -223,7 +224,7 @@ class Command(BaseCommand):
         results['warnings'] = self.get_warnings(
             results['base'],
             results['differences'],
-            percent,
+            settings.WARNINGS_LIMIT_FOR_USAGES,
         )
         results['errors'] = self.get_errors(
             results['base'],
