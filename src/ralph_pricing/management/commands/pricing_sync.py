@@ -42,6 +42,20 @@ class Command(BaseCommand):
             help="Run only the selected plugin, ignore dependencies.",
         ),
     )
+    def _run_plugin(self, name, today):
+        print('Running only {0}...'.format(name))
+        try:
+            success, message, context = plugin.run(
+                'pricing',
+                name,
+                today=today,
+            )
+            if not success:
+                raise PluginError(message)
+            print('{0}: Done'.format(message))
+        except Exception as e:
+            logger.error("{0}: {1}".format(name, e))
+            print('Failed: {0}'.format(e))
 
     def handle(self, today, run_only, *args, **options):
         setup_scrooge_logger()
@@ -51,39 +65,17 @@ class Command(BaseCommand):
         else:
             today = datetime.date.today()
         print('Synchronizing for {0}.'.format(today.isoformat()))
-        if run_only:
-            print('Running only {0}...'.format(run_only))
-            try:
-                success, message, context = plugin.run(
-                    'pricing',
-                    run_only,
-                    today=today,
-                )
-                if not success:
-                    raise PluginError(message)
-                print('{0}: Done'.format(message))
-            except Exception as e:
-                logger.error("{0}: {1}".format(run_only, e))
-                print('Failed: {0}'.format(e))
-            return
+        if not run_only:
+            done = set()
+            tried = set()
+            while True:
+                to_run = plugin.next('pricing', done) - tried
+                if not to_run:
+                    break
+                name = plugin.highest_priority('pricing', to_run)
+                tried.add(name)
+                self._run_plugin(name, today)
+        else:
+            self._run_plugin(run_only, today)
+        self._run_plugin('statistics', today)
 
-        done = set()
-        tried = set()
-        while True:
-            to_run = plugin.next('pricing', done) - tried
-            if not to_run:
-                break
-            name = plugin.highest_priority('pricing', to_run)
-            tried.add(name)
-            print('Running {0}...'.format(name))
-            try:
-                success, message, context = plugin.run(
-                    'pricing', name, today=today,
-                )
-                if not success:
-                    raise PluginError(message)
-                done.add(name)
-                print('{0}: Done'.format(message))
-            except Exception as e:
-                logger.error("{0}: {1}".format(name, e))
-                print('Failed: {0}'.format(e))

@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import math
 from decimal import Decimal as D
 from dateutil import rrule
 from lck.cache import memoize
@@ -1012,6 +1013,10 @@ class UsagePrice(db.Model):
 
 
 class DailyStatistics(db.Model):
+    '''
+    Class for keeps statistics data. Contains method for progress data
+    like generating data list or compare data.
+    '''
     date = db.DateTimeField()
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
     count = db.IntegerField(verbose_name=_("count"), default=0)
@@ -1028,8 +1033,101 @@ class DailyStatistics(db.Model):
         )
 
     @classmethod
-    def compare_days(cls, first_date, second_date):
-        print (first_date, second_date)
+    def get_statistics(cls, date):
+        '''
+        Get data for given date and progress it to UsageName:Count format
+
+        :param datetime second_date: Date for whitch data will be select
+        :returns dict: Dict where key is usage type name and value is total
+        usages count
+        :rtype dict:
+        '''
+
+        results = {}
+        for stats in cls.objects.filter(date=date):
+            results[stats.type.name] = stats.count
+        return results
+
+    @classmethod
+    def compare_data(cls, base_data, second_data):
+        '''
+        Compare two dict with data. Return differences betwen given data.
+
+        :param dict base_data: Statistics data for base date
+        :param dict second_data: Statistics data for second date
+        :returns dict: Dict with differences betwen given data
+        :rtype dict:
+        '''
+        results = {}
+        for key, value in base_data.iteritems():
+            results[key] = int(value) - int(second_data.get(key, 0))
+        return results
+
+    @classmethod
+    def get_warnings(cls, base_data, differences_data, percent):
+        '''
+        Try to find any warnings. If data stroke are more then given percent
+        this should be marks as warning
+
+        :param dict base_data: Statistics data for base date
+        :param dict differences_data: Differences data
+        :param int percent: Percent for defining the warning limits
+        :returns dict: Usage types whitch can be errors
+        :rtype dict:
+        '''
+        results = {}
+        for key, value in base_data.iteritems():
+            differences_value = math.fabs(differences_data.get(key, 0))
+            if (value * percent / 100) < differences_value:
+                results[key] = differences_data.get(key, 0)
+        return results
+
+    @classmethod
+    def get_errors(cls, base_data, defferences_data):
+        '''
+        Try to find any errors. If data from second_date are not null but
+        data from base_date are then we have error.
+
+        :param dict base_data: Statistics data for base date
+        :param dict differences_data: Differences data
+        :returns dict: Error usage types
+        :rtype dict:
+        '''
+        results = {}
+        for key, value in base_data.iteritems():
+            if value == 0 and defferences_data.get(key, 0) != 0:
+                results[key] = math.fabs(defferences_data[key])
+        return results
+
+    @classmethod
+    def compare_days(cls, base_date, second_date, percent=10):
+        '''
+        Compare data from two given dates and try find errors or warnings
+
+        :param datetime base_date: first (higher) date
+        :param datetime second_date: second (lower) date
+        :param int percent: Percent for defining the warning limits
+        :returns dict: Statistics data
+        :rtype dict:
+        '''
+        results = {
+            'base': cls.get_statistics(base_date),
+            'second': cls.get_statistics(second_date),
+        }
+        results['differences'] = cls.compare_data(
+            results['base'],
+            results['second'],
+        )
+        results['warnings'] = cls.get_warnings(
+            results['base'],
+            results['differences'],
+            percent,
+        )
+        results['errors'] = cls.get_errors(
+            results['base'],
+            results['differences'],
+        )
+        return results
 
 
 class DailyUsage(db.Model):
