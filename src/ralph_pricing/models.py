@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import math
 from decimal import Decimal as D
 from dateutil import rrule
 from lck.cache import memoize
