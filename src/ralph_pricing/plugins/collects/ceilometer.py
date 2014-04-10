@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 def get_ceilometer_usages(
     client,
     tenants,
+    flavors,
+    statistics,
     date=None,
-    flavors=[],
-    statistics={},
 ):
     """
     Function which talks with openstack
