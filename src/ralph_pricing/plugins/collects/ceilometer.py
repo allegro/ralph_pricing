@@ -16,25 +16,26 @@ from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
 
 
-logger = logging.getLogger('ralph')
+logger = logging.getLogger(__name__)
 
 
-def get_ceilometer_usages(client, tenants, date=None, flavors=[]):
+def get_ceilometer_usages(
+    client,
+    tenants,
+    flavors,
+    statistics,
+    date=None,
+):
     """
     Function which talks with openstack
     """
     date = date or datetime.date.today()
     today = datetime.datetime.combine(date, datetime.datetime.min.time())
     yesterday = today - datetime.timedelta(days=1)
-    meters = [
-        'cpu',
-        'network.outgoing.bytes',
-        'network.incoming.bytes',
-        'disk.write.requests',
-        'disk.read.requests',
-    ]
-    statistics = {}
     for tenant in tenants:
+        logger.debug('Getting stats for tenant {}: {}/{}'.format(
+            tenant, tenants.index(tenant), len(tenants),
+        ))
         try:
             tenant_venture = tenant.description.split(";")[1]
         except (ValueError, IndexError, AttributeError):
@@ -47,7 +48,7 @@ def get_ceilometer_usages(client, tenants, date=None, flavors=[]):
                 "Tenant {0} has no description".format(tenant.id)
             )
             continue
-        statistics[tenant_venture] = {}
+        statistics[tenant_venture] = statistics.get(tenant_venture, {})
         query = [
             {
                 'field': 'project_id',
@@ -65,29 +66,6 @@ def get_ceilometer_usages(client, tenants, date=None, flavors=[]):
                 "value": today.isoformat(),
             },
         ]
-        for meter in meters:
-            logger.debug(
-                "stats {}-{} tenant: {} metric: {}".format(
-                    yesterday.isoformat(),
-                    today.isoformat(),
-                    tenant_venture,
-                    meter,
-                )
-            )
-            try:
-                stats = client.statistics.list(meter_name=meter, q=query)[0]
-            except IndexError:
-                statistics[tenant_venture][meter] = 0
-                continue
-            if meter not in statistics[tenant_venture]:
-                statistics[tenant_venture][meter] = 0
-            statistics[tenant_venture][meter] += stats.sum
-            logger.debug("{}:{}:{}{}".format(
-                tenant_venture,
-                meter,
-                stats.sum,
-                stats.unit,
-            ))
         aggregates = [{'func': 'cardinality', 'param': 'resource_id'}]
         logger.debug("Getting instance usage for tenant {}".format(
             tenant_venture
@@ -104,7 +82,12 @@ def get_ceilometer_usages(client, tenants, date=None, flavors=[]):
             for sample in stats:
                 icount += sample.aggregate.get('cardinality/resource_id', 0)
             meter_name = 'instance.{}'.format(flav)
-            statistics[tenant_venture][meter_name] = icount
+            statistics[tenant_venture]['openstack.' + meter_name] = statistics[
+                tenant_venture
+            ].get(meter_name, 0) + icount
+            logger.debug("Got statistics {}:{} for tenant {}".format(
+                meter, icount, tenant,
+            ))
     return statistics
 
 
@@ -115,10 +98,10 @@ def save_ceilometer_usages(usages, date):
     def set_usage(usage_symbol, venture, value, date):
         usage_type, created = UsageType.objects.get_or_create(
             symbol=usage_symbol,
+            defaults=dict(
+                name=usage_symbol,
+            ),
         )
-        if not usage_type.name:
-            usage_type.name = "openstack." + usage_symbol
-            usage_type.save()
         usage, created = DailyUsage.objects.get_or_create(
             date=date,
             type=usage_type,
@@ -154,6 +137,7 @@ def ceilometer(**kwargs):
     logger.info("start {}".format(
         datetime.datetime.now().isoformat(),
     ))
+    stats = {}
     for site in settings.OPENSTACK_SITES:
         logger.info("site {}".format(
             site['OS_METERING_URL'],
@@ -187,6 +171,7 @@ def ceilometer(**kwargs):
             tenants,
             date=kwargs['today'],
             flavors=flavors,
+            statistics=stats,
         )
-        save_ceilometer_usages(stats, date=kwargs['today'])
+    save_ceilometer_usages(stats, date=kwargs['today'])
     return True, 'ceilometer usages saved', kwargs

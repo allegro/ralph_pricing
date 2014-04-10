@@ -123,30 +123,6 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         return self.name
 
 
-class TeamMembersCount(db.Model):
-    team = db.ForeignKey(
-        Team,
-        verbose_name=_("Team"),
-    )
-    start = db.DateField()
-    end = db.DateField()
-    members_count = db.IntegerField(
-        verbose_name=_("Members count"),
-        default=0,
-    )
-
-    class Meta:
-        verbose_name = _("Team members count")
-        verbose_name_plural = _("Teams members count")
-
-    def __unicode__(self):
-        return '{} ({}-{})'.format(
-            self.team,
-            self.start,
-            self.end,
-        )
-
-
 class TeamDaterange(db.Model):
     team = db.ForeignKey(
         Team,
@@ -983,6 +959,12 @@ class UsagePrice(db.Model):
         blank=True,
         on_delete=db.PROTECT,
     )
+    team_members_count = db.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Team members count"),
+        default=0,
+    )
     internet_provider = db.ForeignKey(
         InternetProvider,
         null=True,
@@ -998,6 +980,10 @@ class UsagePrice(db.Model):
         unique_together = [
             ('warehouse', 'start', 'type'),
             ('warehouse', 'end', 'type'),
+            ('team', 'start', 'type'),
+            ('team', 'end', 'type'),
+            ('internet_provider', 'start', 'type'),
+            ('internet_provider', 'end', 'type'),
         ]
         ordering = ('type', '-start')
 

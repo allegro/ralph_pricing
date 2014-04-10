@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class CeilometerBasePlugin(ServiceBasePlugin):
     def _calculate_proportion_cost(self, values, total_cost):
-        partial_cost = total_cost / sum(values.values())
+        partial_cost = float(total_cost) / float(sum(values.values()))
         return dict([(s[0], s[1] * partial_cost) for s in values.iteritems()])
 
     def usages(self, service, start, end, ventures, forecast=False, **kwargs):
