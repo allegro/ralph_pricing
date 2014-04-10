@@ -44,7 +44,7 @@ class Command(BaseCommand):
     )
 
     def _run_plugin(self, name, today):
-        logger.info('Running only {0}...'.format(name))
+        logger.info('Running {0}...'.format(name))
         try:
             success, message, context = plugin.run(
                 'pricing',
@@ -77,4 +77,3 @@ class Command(BaseCommand):
                 self._run_plugin(name, today)
         else:
             self._run_plugin(run_only, today)
-        self._run_plugin('statistics', today)
