@@ -115,8 +115,6 @@ class Team(UsageBasePlugin):
             start__lte=end,
             end__gte=start,
             team__in=teams,
-        ).exclude(
-            team_members_count=0,
         )
         dates = defaultdict(lambda: defaultdict(list))
         for mc in members_count:
