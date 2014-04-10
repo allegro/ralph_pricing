@@ -93,11 +93,10 @@ def save_ceilometer_usages(usages, date):
     def set_usage(usage_symbol, venture, value, date):
         usage_type, created = UsageType.objects.get_or_create(
             symbol=usage_symbol,
-            name=usage_symbol,
+            defaults=dict(
+                name=usage_symbol,
+            ),
         )
-        if not usage_type.name:
-            usage_type.name = "openstack." + usage_symbol
-            usage_type.save()
         usage, created = DailyUsage.objects.get_or_create(
             date=date,
             type=usage_type,
