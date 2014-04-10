@@ -92,6 +92,7 @@ class TestCeilometer(TestCase):
             tenants,
             date=today,
             flavors=flavors,
+            statisitcs={},
         )
         correct_res = {
             u'ralph': {
