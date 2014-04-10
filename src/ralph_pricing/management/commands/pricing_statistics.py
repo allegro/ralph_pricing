@@ -53,33 +53,33 @@ class Command(BaseCommand):
         ),
         make_option(
             '-s',
-            dest='only_second',
+            dest='only_compare',
             action='store_true',
             default=False,
-            help="Show second date statistics",
+            help="Show compare date statistics",
         ),
         make_option(
             '--base',
             dest='base',
             default=None,
-            help="Base date to second",
+            help="Base date to compare",
         ),
         make_option(
-            '--second',
-            dest='second',
+            '--compare',
+            dest='compare',
             default=None,
-            help="Date to second",
+            help="Date to compare",
         ),
     )
 
-    def _draw_statistics(self, statistics, flags, base_date, second_date):
+    def _draw_statistics(self, statistics, flags, base_date, compare_date):
         '''
         Draw statistics data on screen in user friendly format
 
         :param dict statistics: dict with generated statistics data
         :param dict flags: dict with flags
         :param datetime base_date: first (higher) date
-        :param datetime second_date: second (lower) date
+        :param datetime compare_date: compare (lower) date
         '''
         def draw(data, name, date):
             draw_lines = lambda x: ''.join(['-' for y in xrange(x)])
@@ -96,34 +96,34 @@ class Command(BaseCommand):
 
         if flags.get('only_base', False) or flags.get('show_all', False):
             draw(statistics['base'], 'Base', base_date)
-        if flags.get('only_second', False) or flags.get('show_all', False):
-            draw(statistics['second'], 'Second', second_date)
+        if flags.get('only_compare', False) or flags.get('show_all', False):
+            draw(statistics['compare'], 'Second', compare_date)
         if flags.get('only_warnings', False) or flags.get('show_all', False):
             draw(
                 statistics['warnings'],
                 'Warnings',
-                '{0} - {1}'.format(base_date, second_date),
+                '{0} - {1}'.format(base_date, compare_date),
             )
         if flags.get('only_errors', False) or flags.get('show_all', False):
             draw(
                 statistics['errors'],
                 'Errors',
-                '{0} - {1}'.format(base_date, second_date),
+                '{0} - {1}'.format(base_date, compare_date),
             )
 
-    def handle(self, base, second, *args, **options):
+    def handle(self, base, compare, *args, **options):
         '''
         Generate/rebuild dates, generate flags and data dicts and print it
         on screen
 
         :param datetime base_date: first (higher) date
-        :param datetime second_date: second (lower) date
+        :param datetime compare_date: compare (lower) date
         '''
         to_date = lambda date: datetime.strptime(date, '%Y-%m-%d').date()
         base = to_date(base) if base else date.today()
-        second = to_date(second) if second else base - timedelta(days=1)
+        compare = to_date(compare) if compare else base - timedelta(days=1)
 
-        flags = ['only_errors', 'only_warnings', 'only_base', 'only_second']
+        flags = ['only_errors', 'only_warnings', 'only_base', 'only_compare']
         flag_settings = {'show_all': True}
         for flag_name in flags:
             flag_settings[flag_name] = options.get(flag_name)
@@ -131,17 +131,17 @@ class Command(BaseCommand):
                 flag_settings['show_all'] = False
 
         self._draw_statistics(
-            self.compare_days(base, second),
+            self.compare_days(base, compare),
             flag_settings,
             base,
-            second,
+            compare,
         )
 
     def get_statistics(self, date):
         '''
         Get data for given date and progress it to UsageName:Count format
 
-        :param datetime second_date: Date for whitch data will be select
+        :param datetime compare_date: Date for whitch data will be select
         :returns dict: Dict where key is usage type name and value is total
         usages count
         :rtype dict:
@@ -155,18 +155,18 @@ class Command(BaseCommand):
             ).count()
         return results
 
-    def compare_data(self, base_data, second_data):
+    def compare_data(self, base_data, compare_data):
         '''
         Compare two dict with data. Return differences betwen given data.
 
         :param dict base_data: Statistics data for base date
-        :param dict second_data: Statistics data for second date
+        :param dict compare_data: Statistics data for compare date
         :returns dict: Dict with differences betwen given data
         :rtype dict:
         '''
         results = {}
         for key, value in base_data.iteritems():
-            results[key] = int(value) - int(second_data.get(key, 0))
+            results[key] = int(value) - int(compare_data.get(key, 0))
         return results
 
     def get_warnings(self, base_data, differences_data, percent):
@@ -189,7 +189,7 @@ class Command(BaseCommand):
 
     def get_errors(self, base_data, defferences_data):
         '''
-        Try to find any errors. If data from second_date are not null but
+        Try to find any errors. If data from compare_date are not null but
         data from base_date are then we have error.
 
         :param dict base_data: Statistics data for base date
@@ -203,23 +203,23 @@ class Command(BaseCommand):
                 results[key] = math.fabs(defferences_data[key])
         return results
 
-    def compare_days(self, base_date, second_date):
+    def compare_days(self, base_date, compare_date):
         '''
         Compare data from two given dates and try find errors or warnings
 
         :param datetime base_date: first (higher) date
-        :param datetime second_date: second (lower) date
+        :param datetime compare_date: compare (lower) date
         :param int percent: Percent for defining the warning limits
         :returns dict: Statistics data
         :rtype dict:
         '''
         results = {
             'base': self.get_statistics(base_date),
-            'second': self.get_statistics(second_date),
+            'compare': self.get_statistics(compare_date),
         }
         results['differences'] = self.compare_data(
             results['base'],
-            results['second'],
+            results['compare'],
         )
         results['warnings'] = self.get_warnings(
             results['base'],
