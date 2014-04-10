@@ -20,6 +20,12 @@ Change Log
 
 * Network cost is by providers.
 
+* Added model to daily statistics and management command to list statistics with compare current day with last one day befor.
+
+* When plugins finish collects data then statistics plugin run.
+
+* Remove teams count table and added count to usage price table.
+
 
 2.2.0
 ~~~~~
