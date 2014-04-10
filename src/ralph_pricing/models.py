@@ -123,30 +123,6 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         return self.name
 
 
-# class TeamMembersCount(db.Model):
-#     team = db.ForeignKey(
-#         Team,
-#         verbose_name=_("Team"),
-#     )
-#     start = db.DateField()
-#     end = db.DateField()
-#     members_count = db.IntegerField(
-#         verbose_name=_("Members count"),
-#         default=0,
-#     )
-
-#     class Meta:
-#         verbose_name = _("Team members count")
-#         verbose_name_plural = _("Teams members count")
-
-#     def __unicode__(self):
-#         return '{} ({}-{})'.format(
-#             self.team,
-#             self.start,
-#             self.end,
-#         )
-
-
 class TeamDaterange(db.Model):
     team = db.ForeignKey(
         Team,

@@ -53,52 +53,6 @@ class TestTeamPlugin(TestCase):
         self.team_distribute.save()
         self.teams = models.Team.objects.all()
 
-        # # members count
-        # mc = models.TeamMembersCount(
-        #     team=self.team_time,
-        #     start=date(2013, 10, 1),
-        #     end=date(2013, 10, 30),
-        #     members_count=10,
-        # )
-        # mc.save()
-
-        # mc = models.TeamMembersCount(
-        #     team=self.team_devices_cores,
-        #     start=date(2013, 10, 1),
-        #     end=date(2013, 10, 10),
-        #     members_count=10,
-        # )
-        # mc.save()
-        # mc = models.TeamMembersCount(
-        #     team=self.team_devices_cores,
-        #     start=date(2013, 10, 11),
-        #     end=date(2013, 10, 30),
-        #     members_count=20,
-        # )
-        # mc.save()
-
-        # mc = models.TeamMembersCount(
-        #     team=self.team_devices,
-        #     start=date(2013, 10, 1),
-        #     end=date(2013, 10, 20),
-        #     members_count=20,
-        # )
-        # mc.save()
-        # mc = models.TeamMembersCount(
-        #     team=self.team_devices,
-        #     start=date(2013, 10, 21),
-        #     end=date(2013, 10, 30),
-        #     members_count=10,
-        # )
-        # mc.save()
-        # mc = models.TeamMembersCount(
-        #     team=self.team_distribute,
-        #     start=date(2013, 10, 1),
-        #     end=date(2013, 10, 30),
-        #     members_count=10,
-        # )
-        # mc.save()
-
         # dateranges
         self.daterange1 = models.TeamDaterange(
             team=self.team_time,
