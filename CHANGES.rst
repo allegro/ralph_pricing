@@ -8,7 +8,7 @@ Change Log
 
 * Added ceilometer report plugin.
 
-* Fixed override configuration by pluggableaps.
+* Fixed overwriting configuration by pluggableaps.
 
 * Fixed logging from collect plugins. Now, when venture does not exist log warning.
 
