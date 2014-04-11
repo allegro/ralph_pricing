@@ -114,8 +114,6 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
         )
     stdin, stdout, stderr = ssh_client.exec_command(nfdump_str)
     if stderr.read():
-        print (nfdump_str)
-        print ('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
         raise RemoteServerError(stderr.read())
     return stdout.readlines()[1:-4]
 

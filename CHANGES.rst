@@ -1,6 +1,12 @@
 Change Log
 ----------
 
+2.2.2
+~~~~~
+
+* Fixed nfdump_str, executed command on remote server.
+
+
 2.2.1
 ~~~~~
 

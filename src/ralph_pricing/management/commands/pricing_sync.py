@@ -56,7 +56,7 @@ class Command(BaseCommand):
             logger.info('{0}: Done'.format(message))
             return True
         except Exception as e:
-            logger.error("{0}: {1}".format(name, e))
+            logger.exception("{0}: {1}".format(name, e))
 
     def handle(self, today, run_only, *args, **options):
         setup_scrooge_logger()

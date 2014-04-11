@@ -39,12 +39,12 @@ def get_ceilometer_usages(
         try:
             tenant_venture = tenant.description.split(";")[1]
         except (ValueError, IndexError, AttributeError):
-            logger.error(
+            logger.warning(
                 "Tenant malformed: {}".format(tenant.id)
             )
             continue
         except AttributeError:
-            logger.error(
+            logger.warning(
                 "Tenant {0} has no description".format(tenant.id)
             )
             continue
@@ -119,7 +119,7 @@ def save_ceilometer_usages(usages, date):
         try:
             venture = Venture.objects.get(symbol=venture_symbol)
         except Venture.DoesNotExist:
-            logger.error(
+            logger.warning(
                 "Venture with symbol {} does not exist".format(
                     venture_symbol,
                 )
