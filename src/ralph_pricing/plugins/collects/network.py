@@ -80,6 +80,7 @@ def get_names_of_data_files(ssh_client, channel, date):
             split_date[2],
         ),
     )
+    print ('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     if stderr.read():
         raise RemoteServerError(stderr.read())
     return sorted([row.strip('\n') for row in stdout.readlines()])
@@ -101,7 +102,7 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     split_date = str(date).split('-')
     nfdump_str = "nfdump -M {0}/{1} "\
         " -T  -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -a  -A"\
-        " {6} -o \"fmt:%sa | %da | %byt\"".format(
+        " {7} -o \"fmt:%sa | %da | %byt\"".format(
             settings.NFSEN_FILES_PATH,
             channel,
             split_date[0],
@@ -113,6 +114,8 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
         )
     stdin, stdout, stderr = ssh_client.exec_command(nfdump_str)
     if stderr.read():
+        print (nfdump_str)
+        print ('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
         raise RemoteServerError(stderr.read())
     return stdout.readlines()[1:-4]
 
