@@ -80,7 +80,6 @@ def get_names_of_data_files(ssh_client, channel, date):
             split_date[2],
         ),
     )
-    print ('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     if stderr.read():
         raise RemoteServerError(stderr.read())
     return sorted([row.strip('\n') for row in stdout.readlines()])
@@ -102,7 +101,7 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     split_date = str(date).split('-')
     nfdump_str = "nfdump -M {0}/{1} "\
         " -T  -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -a  -A"\
-        " {7} -o \"fmt:%sa | %da | %byt\"".format(
+        " {7} -o \"fmt:%sa | %da | %byt\";exit".format(
             settings.NFSEN_FILES_PATH,
             channel,
             split_date[0],
@@ -113,8 +112,6 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
             input_output,
         )
     stdin, stdout, stderr = ssh_client.exec_command(nfdump_str)
-    if stderr.read():
-        raise RemoteServerError(stderr.read())
     return stdout.readlines()[1:-4]
 
 
@@ -188,7 +185,7 @@ def get_network_usage(ssh_client, channel, date, file_names, input_output):
     ):
         ip_and_byte = extract_ip_and_bytes(row, input_output)
         if ip_and_byte:
-            ip_and_bytes[ip_and_byte[0]] = ip_and_byte[1]
+            ip_and_bytes[ip_and_byte[0]] += ip_and_byte[1]
     return ip_and_bytes
 
 
