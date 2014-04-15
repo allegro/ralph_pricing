@@ -8,15 +8,15 @@ This documentation
 ------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    overview
    installation
    configuration
-   collects
-   reports
+   tutorial
+   servicesandusages
+   plugins
    costs
-   extracosts
    api
    changes
    license
