@@ -32,7 +32,7 @@ setup(
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
         'ralph>=2.0.0-rc2',
-        'ralph_assets>=1.4.1',  # TODO: bump version when released
+        'ralph_assets>=1.4.2',  # TODO: bump version when released
         'django-mptt==0.5.5',
         'python-ceilometerclient>=1.0.10',
         'python-novaclient==2.17.0',

@@ -6,6 +6,8 @@ Change Log
 
 * Fixed nfdump_str, executed command on remote server.
 
+* Added console statistics
+
 
 2.2.1
 ~~~~~
