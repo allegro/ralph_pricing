@@ -120,7 +120,7 @@ class Command(BaseCommand):
         :param datetime compare_date: compare (lower) date
         '''
         to_date = lambda date: datetime.strptime(date, '%Y-%m-%d').date()
-        base = to_date(base) if base else date.today()
+        base = to_date(base) if base else date.today() - timedelta(days=1)
         compare = to_date(compare) if compare else base - timedelta(days=1)
 
         flags = ['only_errors', 'only_warnings', 'only_base', 'only_compare']
