@@ -74,17 +74,6 @@ class TestNetwork(TestCase):
             [u'1', u'2'],
         )
 
-    def test_execute_nfdump_when_executed_command_return_error(self):
-        self.assertRaises(
-            network.RemoteServerError,
-            network.execute_nfdump,
-            ssh_client=SshClientMock(stderr='error'),
-            channel='test-channel',
-            date='2014-10-01',
-            file_names=['file1', 'file2'],
-            input_output='scrip',
-        )
-
     def test_execute_nfdump(self):
         self.assertEqual(
             network.execute_nfdump(
