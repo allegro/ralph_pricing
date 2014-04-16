@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-import re
+import ipaddr
 from collections import defaultdict
 
 import paramiko
@@ -152,7 +152,7 @@ def extract_ip_and_bytes(row, input_output):
         ip_address = split_row[1]
 
     for class_address in settings.NFSEN_CLASS_ADDRESS:
-        if re.search(class_address, ip_address):
+        if ipaddr.IPv4Address(ip_address) in ipaddr.IPv4Network(class_address):
             return (ip_address, unification(split_row[2]))
 
 
