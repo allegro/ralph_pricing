@@ -47,10 +47,11 @@ class UsageBasePlugin(BaseReportPlugin):
             usage_prices = usage_prices.filter(warehouse=warehouse)
         if usage_type.by_team and team:
             usage_prices = usage_prices.filter(team=team)
+        usage_prices = usage_prices.values('start', 'end').distinct()
         # TODO: improve preformance
         for up in usage_prices:
             # add overlapping days
-            ut_days += (min(end, up.end) - max(start, up.start)).days + 1
+            ut_days += (min(end, up['end']) - max(start, up['start'])).days + 1
         if ut_days == 0:
             return _('No price')
         if ut_days != total_days:
