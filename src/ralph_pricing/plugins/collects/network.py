@@ -98,10 +98,17 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     :returns list: list of rows from stdout from remote server
     :rtype list:
     """
+    def get_networks(input_output):
+        direct = input_output.replace('ip', '')
+        networks = []
+        for class_address in settings.NFSEN_CLASS_ADDRESS:
+            networks.append('{0} net '.format(direct) + class_address)
+        return ' or '.join(networks)
+
     split_date = str(date).split('-')
-    nfdump_str = "nfdump -M {0}/{1} "\
-        " -T  -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -a  -A"\
-        " {7} -o \"fmt:%sa | %da | %byt\";exit".format(
+    nfdump_str = "nfdump -M {0}/{1}"\
+        " -T -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -o "\
+        "\"fmt:%sa | %da | %byt\" -a -A {7} '{8}';exit".format(
             settings.NFSEN_FILES_PATH,
             channel,
             split_date[0],
@@ -110,7 +117,9 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
             file_names[0],
             file_names[-1],
             input_output,
+            get_networks(input_output)
         )
+    logger.debug(nfdump_str)
     stdin, stdout, stderr = ssh_client.exec_command(nfdump_str)
     return stdout.readlines()[1:-4]
 
@@ -209,7 +218,7 @@ def get_network_usages(date):
         ssh_client = get_ssh_client(address, **credentials)
         for channel in settings.NFSEN_CHANNELS:
             for input_output in ['srcip', 'dstip']:
-                logging.debug("Server:{0} Channel:{1} I/O:{2}".format(
+                logger.debug("Server:{0} Channel:{1} I/O:{2}".format(
                     address, channel, input_output))
                 for ip, value in get_network_usage(
                     ssh_client,
