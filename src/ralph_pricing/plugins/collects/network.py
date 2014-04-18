@@ -254,7 +254,9 @@ def get_ventures_and_ips():
     :rtype dict:
     """
     logger.debug('Getting list of ips and ventures')
-    return {key: value for key, value in get_ip_addresses(True).iteritems()}
+    res = {key: value for key, value in get_ip_addresses(True).iteritems()}
+    res['0.0.0.0'] = Venture.objects.get(symbol='stock').venture_id
+    return res
 
 
 def sort_per_venture(network_usages, ventures_and_ips):
@@ -273,8 +275,10 @@ def sort_per_venture(network_usages, ventures_and_ips):
             if ventures_and_ips[ip]:
                 usage_per_venture[ventures_and_ips[ip]] += usage
             else:
+                usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
                 logger.warning('IP {0} without venture'.format(ip))
         else:
+            usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
             logger.warning('Unknown ip address {0}'.format(ip))
     return usage_per_venture
 
