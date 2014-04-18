@@ -255,7 +255,9 @@ def get_ventures_and_ips():
     """
     logger.debug('Getting list of ips and ventures')
     res = {key: value for key, value in get_ip_addresses(True).iteritems()}
-    res['0.0.0.0'] = Venture.objects.get(symbol='stock').venture_id
+    res['0.0.0.0'] = Venture.objects.get(
+        symbol=settings.NETWORK_UNKNOWN_VENTURE_SYMBOL,
+    ).venture_id
     return res
 
 
