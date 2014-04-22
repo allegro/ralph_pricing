@@ -200,6 +200,38 @@ class TestUsageBasePlugin(TestCase):
         )
         self.assertEquals(result, 'Incomplete price')
 
+    def test_incomplete_price_internet_providers(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+        )
+        self.assertEquals(result, None)
+
+    def test_incomplete_price_internet_providers_incomplete_price(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 4),
+            end=datetime.date(2013, 10, 25),
+        )
+        self.assertEquals(result, 'Incomplete price')
+
+    def test_incomplete_price_internet_providers_incomplete_price2(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 3),
+            end=datetime.date(2013, 10, 28),
+        )
+        self.assertEquals(result, 'Incomplete price')
+
+    def test_incomplete_price_internet_providers_no_price(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 26),
+            end=datetime.date(2013, 11, 20),
+        )
+        self.assertEquals(result, 'No price')
+
     def test_get_usage_type_cost(self):
         result = UsagePlugin._get_total_cost_by_warehouses(
             start=datetime.date(2013, 10, 10),
@@ -372,7 +404,7 @@ class TestUsageBasePlugin(TestCase):
         #   price = 11000 / 1500 = 7.(3);
         # 13-17:
         #   usage: 5 * (30 + 60) = 1500;
-        #   cost: 2000 + 20000 = 11000;
+        #   cost: 2000 + 20000 = 22000;
         #   price = 22000 / 1500 = 14.(6);
         # 18-25: (usages are from 18 to 22)
         #   usage: 5 * (30 + 60) = 1500;
@@ -401,6 +433,28 @@ class TestUsageBasePlugin(TestCase):
             forecast=False,
         )
         self.assertEquals(result, D('16500'))
+
+    def test_get_total_cost_sum_whole(self):
+        result = UsagePlugin.total_cost(
+            start=datetime.date(2013, 10, 5),
+            end=datetime.date(2013, 10, 25),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures,
+            forecast=False,
+        )
+        self.assertEquals(result, D('77000'))
+
+    def test_get_total_cost_sum_beyond_usageprices(self):
+        # even with no_price_msg total cost should return valid cost
+        result = UsagePlugin.total_cost(
+            start=datetime.date(2013, 10, 1),
+            end=datetime.date(2013, 10, 28),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures,
+            forecast=False,
+            no_price_msg=True,
+        )
+        self.assertEquals(result, D('77000'))
 
     def test_get_usage_type_cost_sum_forecast(self):
         result = UsagePlugin._get_total_cost_by_warehouses(
@@ -569,6 +623,57 @@ class TestUsageBasePlugin(TestCase):
                 'ut_2_count_wh_2': 240.0,  # 6 * 40 (6 is number of even days)
                 'ut_2_cost_wh_2': D('2160'),  # 40 * (2 * 6 + 2 * 9 + 2 * 12)
                 'ut_2_total_cost': D('4080'),  # 1920 + 2160
+            },
+        })
+
+    def test_get_usages_by_internet_provider(self):
+        result = UsagePlugin._get_usages_per_warehouse(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures_subset,
+            forecast=False,
+        )
+        # 5-12: (usages are from 8 to 12)
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 1000 + 10000 = 11000;
+        #   price = 11000 / 1500 = 7.(3);
+        # 13-17:
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 2000 + 20000 = 22000;
+        #   price = 22000 / 1500 = 14.(6);
+        # 18-25: (usages are from 18 to 22)
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 4000 + 40000 = 44000;
+        #   price = 44000 / 1500 = 29.(3);
+        self.assertEquals(result, {
+            1: {
+                'ut_3_count': 330.0,  # 3 * 30 + 5 * 30 + 3 * 30
+                'ut_3_cost': D('5500'),  # 90 * 7.(3) + 150 * 14.(6) + 90 * 29.(3)
+            },
+            2: {
+                'ut_3_count': 660.0,  # 3 * 60 + 5 * 60 + 3 * 60
+                'ut_3_cost': D('11000'),  # 180 * 7.(3) + 300 * 14.(6) + 180 * 29.(3)
+            },
+        })
+
+    def test_get_usages_by_internet_provider_incomplete_price(self):
+        result = UsagePlugin._get_usages_per_warehouse(
+            start=datetime.date(2013, 10, 4),
+            end=datetime.date(2013, 10, 26),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures_subset,
+            forecast=False,
+            no_price_msg=True,
+        )
+        self.assertEquals(result, {
+            1: {
+                'ut_3_count': 450.0,  # 5 * 30 + 5 * 30 + 5 * 30
+                'ut_3_cost': 'Incomplete price',
+            },
+            2: {
+                'ut_3_count': 900.0,  # 5 * 60 + 5 * 60 + 5 * 60
+                'ut_3_cost': 'Incomplete price',
             },
         })
 
