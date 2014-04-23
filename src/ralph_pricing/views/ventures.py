@@ -154,9 +154,8 @@ class AllVentures(Report):
         """
         field_content = D(field_content)
 
-        currency_field = '{0:.2f} {1}'.format(
+        currency_field = '{0:.2f}'.format(
             field_content,
-            cls.currency,
         )
 
         return currency_field, field_content if total_cost else D(0)
@@ -183,13 +182,7 @@ class AllVentures(Report):
         if not isinstance(field_content, (int, D, float, long)):
             return field_content, usage_cost
 
-        if 'currency' in field_rules and field_rules['currency']:
-            field_content, usage_cost = cls._get_as_currency(
-                field_content,
-                field_rules.get('total_cost', False),
-            )
-
-        return field_content, usage_cost
+        return '{0:.2f}'.format(field_content), usage_cost
 
     @classmethod
     def _prepare_venture_row(cls, venture_data):
@@ -392,6 +385,11 @@ class AllVentures(Report):
         header = []
         for schema in cls._get_schema():
             for key, value in schema.iteritems():
+                if 'currency' in value and value['currency']:
+                    value['name'] = "{0} - {1}".format(
+                        value['name'],
+                        cls.currency,
+                    )
                 header.append(value['name'])
         header.append(_("Total cost"))
         return header
