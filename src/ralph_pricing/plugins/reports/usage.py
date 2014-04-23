@@ -12,9 +12,9 @@ from decimal import Decimal as D
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
+from ralph_pricing import utils
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import AttributeDict, BaseReportPlugin
-
 
 logger = logging.getLogger(__name__)
 
@@ -47,10 +47,13 @@ class UsageBasePlugin(BaseReportPlugin):
             usage_prices = usage_prices.filter(warehouse=warehouse)
         if usage_type.by_team and team:
             usage_prices = usage_prices.filter(team=team)
-        # TODO: improve preformance
-        for up in usage_prices:
-            # add overlapping days
-            ut_days += (min(end, up.end) - max(start, up.start)).days + 1
+        usage_prices = usage_prices.values('start', 'end').distinct()
+        intervals = [(v['start'], v['end']) for v in usage_prices]
+        sum_of_intervals = utils.sum_of_intervals(intervals)
+        ut_days = sum(map(
+            lambda k: (min(end, k[1]) - max(start, k[0])).days + 1,
+            sum_of_intervals
+        ))
         if ut_days == 0:
             return _('No price')
         if ut_days != total_days:
@@ -165,13 +168,25 @@ class UsageBasePlugin(BaseReportPlugin):
                 end,
                 warehouse
             )
+            # get sum of cost in equal periods of time (ex. for internet
+            # providers)
             usage_prices = usage_type.usageprice_set.filter(
                 start__lte=end,
                 end__gte=start,
+            ).values(
+                'start',
+                'end',
+                'type'
+            ).annotate(
+                price=Sum('price'),
+                forecast_price=Sum('forecast_price'),
+                forecast_cost=Sum('forecast_cost'),
+                cost=Sum('cost')
             )
             if warehouse:
                 usage_prices = usage_prices.filter(warehouse=warehouse)
             usage_prices = usage_prices.order_by('start')
+            usage_prices = [AttributeDict(up) for up in usage_prices]
 
             if usage_type.by_warehouse:
                 count_key = 'ut_{0}_count_wh_{1}'.format(
