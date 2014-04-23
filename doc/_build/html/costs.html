@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Costs &amp; Extra costs &mdash; Scrooge 2.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bs.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Scrooge 2.2.0 documentation" href="index.html" />
+    <link rel="next" title="API" href="api.html" />
+    <link rel="prev" title="Plugins" href="plugins.html" /> 
+  </head>
+  <body>
+<div class="navbar navbar-fixed-top"><div class="navbar-inner"><div class="container">
+    <a
+        class="brand"
+        
+        href="index.html"
+        
+        >Scrooge 2.2.0 Documentation</a>
+    
+    <form id="searchbox" class="navbar-search pull-right"
+          action="search.html" method="get" style="display:none">
+        <input type="text" name="q" class="search-query"
+            placeholder="Search...">
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+    </form>
+    <script type="text/javascript">$('#searchbox').show(0);</script>
+</div></div></div>
+
+
+<div class="container">
+    <div class="row">
+
+        <div class="span9">
+    <ul class="pager">
+        <li
+            class="index"
+        ><a
+            href="genindex.html"
+            accesskey="I"
+        >General Index</a></li>
+        <li
+            class="next"
+        ><a
+            href="api.html"
+            accesskey="N"
+        >API</a></li>
+        <li
+            class="previous"
+        ><a
+            href="plugins.html"
+            accesskey="P"
+        >Plugins</a></li>
+    </ul>
+                <div class="document">
+                    
+  <div class="section" id="costs-extra-costs">
+<h1>Costs &amp; Extra costs<a class="headerlink" href="#costs-extra-costs" title="Permalink to this headline">¶</a></h1>
+<p>For calculate the cost of venture/usage we need two types of cost. The most important and first of them is base usages cost. Base costs is use to calculating base costs of ventures or service so, when one of base costs will not entered or given cost is not correct, each base cost of ventures and usages are misrepresentation. Second one costs is named as extra costs and there we have a additional costs likes a software license etc. For manage costs should be responsible designated person. Cost should not be changes for the past time period.</p>
+<div class="section" id="costs">
+<h2>Costs<a class="headerlink" href="#costs" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/costs.png" src="_images/costs.png" />
+<p>This type of costs is responsible for calculating base costs of usages and ventures. Usually, here we have invoce costs but it is not a rule. When base costs will not enter correctly then all of calculations are misrepresentation and this is the most important thing to remember. Second one thing to remember is dates continuity. For example if you enter invoce cost from April you should give a date from 2014-04-01 to 2014-04-30 and then when you enter invoce cost from May, you should type start from 2014-05-01. Costs contains two error types:</p>
+<dl class="docutils">
+<dt>No price</dt>
+<dd>When base usage price is not entered at all for given time period for generated report.
+For example: Someone forgot give invoce cost from May</dd>
+<dt>Incomplete price</dt>
+<dd>When given price have no dates continuity for given time period for generated report.
+For example: Given cost for April is from 2014-04-01 to 2014-04-20 and second one cost is from 2014-04-22 to 2014-04-30. There is not price for 2014-04-21.</dd>
+</dl>
+<p>And this errors will be visible on generated report in appropriate cells.</p>
+</div>
+<div class="section" id="extra-costs">
+<h2>Extra costs<a class="headerlink" href="#extra-costs" title="Permalink to this headline">¶</a></h2>
+<p>Comming soon...</p>
+</div>
+</div>
+
+
+                </div>
+    <ul class="pager">
+        <li
+            class="index"
+        ><a
+            href="genindex.html"
+            
+        >General Index</a></li>
+        <li
+            class="next"
+        ><a
+            href="api.html"
+            
+        >API</a></li>
+        <li
+            class="previous"
+        ><a
+            href="plugins.html"
+            
+        >Plugins</a></li>
+    </ul>
+        </div>
+
+        
+        <div class="span3 sidebar">
+                <div class="well toctree sidebar-nav">
+                    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">How to use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="servicesandusages.html">Services &amp; Usages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Costs &amp; Extra costs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+ 
+                </div>
+                <div class="well localtoc">
+                    <ul>
+<li><a class="reference internal" href="#">Costs &amp; Extra costs</a><ul>
+<li><a class="reference internal" href="#costs">Costs</a></li>
+<li><a class="reference internal" href="#extra-costs">Extra costs</a></li>
+</ul>
+</li>
+</ul>
+
+                </div>
+            
+        </div>
+        
+    </div>
+    <div class="row">
+        
+<footer class="footer">
+        &copy; Copyright 2013, Allegro Group.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.
+</footer>
+    </div>
+</div>
+
+<script src="_static/bootstrap/js/bootstrap.min.js"></script>
+<script src="_static/restyle.js"></script>
+  </body>
+</html>

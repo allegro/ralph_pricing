@@ -5,7 +5,9 @@ Configuration
 ::
 
     VIRTUAL_VENTURE_NAMES <list of strings>
-    SCROOGE_SENTRY_DSN = <string> - Full address with API key to sentry
+      ...
+    SCROOGE_SENTRY_DSN <string>
+      Full address with API key to sentry
     CURRENCY <string>
       This currency will be added to each value on report. It is prefix to cost value.
     HAMSTER_API_URL

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API &mdash; Scrooge 2.2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bs.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Scrooge 2.2.0 documentation" href="index.html" />
+    <link rel="next" title="Change Log" href="changes.html" />
+    <link rel="prev" title="Costs &amp; Extra costs" href="costs.html" /> 
+  </head>
+  <body>
+<div class="navbar navbar-fixed-top"><div class="navbar-inner"><div class="container">
+    <a
+        class="brand"
+        
+        href="index.html"
+        
+        >Scrooge 2.2.0 Documentation</a>
+    
+    <form id="searchbox" class="navbar-search pull-right"
+          action="search.html" method="get" style="display:none">
+        <input type="text" name="q" class="search-query"
+            placeholder="Search...">
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+    </form>
+    <script type="text/javascript">$('#searchbox').show(0);</script>
+</div></div></div>
+
+
+<div class="container">
+    <div class="row">
+
+        <div class="span9">
+    <ul class="pager">
+        <li
+            class="index"
+        ><a
+            href="genindex.html"
+            accesskey="I"
+        >General Index</a></li>
+        <li
+            class="next"
+        ><a
+            href="changes.html"
+            accesskey="N"
+        >Change Log</a></li>
+        <li
+            class="previous"
+        ><a
+            href="costs.html"
+            accesskey="P"
+        >Costs &amp; Extra costs</a></li>
+    </ul>
+                <div class="document">
+                    
+  <div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<p>For improve usage and communication with scrooge we prepared api. Currently, there is only push api implemented and use to pushing usages data by services. In the future we plan create pull api for getting report data for single venture/service. For communication with API we use JSON as a message formant and REST API for maintenance of communication standards.</p>
+<div class="section" id="push-api">
+<h2>Push API<a class="headerlink" href="#push-api" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/push_api.png" src="_images/push_api.png" />
+<p>Every service is obligate to pushing usages data to scrooge. Before you start using push api, first you need to create service and usages manually. When you have created service and usages then you can start push to scrooge by using api. <a class="reference external" href="http://ralph.office/scrooge/api/v0.9/serviceusages/">http://ralph.office/scrooge/api/v0.9/serviceusages/</a> this is address for pushing data where current api version is &#8216;v0.9&#8217;. Scrooge prefer collect data every day but if someone forgot do this then usages can be push for different dates.</p>
+<p><strong>JSON FORMAT</strong></p>
+<div class="highlight-python"><div class="highlight"><pre>{
+    &quot;service&quot;: &quot;&lt;service_symbol&gt;&quot;,
+    &quot;date&quot;: &quot;&lt;date&gt;&quot;,
+    &quot;venture_usages&quot;: [
+        {
+            &quot;venture&quot;: &quot;&lt;venture_symbol&gt;&quot;,
+            &quot;usages&quot;: [
+                {
+                    &quot;symbol&quot;: &quot;&lt;usage_type_1_symbol&gt;&quot;,
+                    &quot;value&quot;: &lt;usage1&gt;
+                },
+              ...
+            ]
+        },
+          ...
+    ]
+}
+</pre></div>
+</div>
+<p><strong>JSON EXAMPLE</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s">&quot;service&quot;</span><span class="p">:</span> <span class="s">&quot;service_symbol&quot;</span><span class="p">,</span>
+    <span class="s">&quot;date&quot;</span><span class="p">:</span> <span class="s">&quot;2111-11-11&quot;</span><span class="p">,</span>
+    <span class="s">&quot;venture_usages&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s">&quot;venture&quot;</span><span class="p">:</span> <span class="s">&quot;venture1&quot;</span><span class="p">,</span>
+            <span class="s">&quot;usages&quot;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="p">{</span>
+                <span class="s">&quot;symbol&quot;</span><span class="p">:</span> <span class="s">&quot;requests&quot;</span><span class="p">,</span>
+                <span class="s">&quot;value&quot;</span><span class="p">:</span> <span class="mi">123</span>
+              <span class="p">},</span>
+              <span class="p">{</span>
+                <span class="s">&quot;symbol&quot;</span><span class="p">:</span> <span class="s">&quot;transfer&quot;</span><span class="p">,</span>
+                <span class="s">&quot;value&quot;</span><span class="p">:</span> <span class="mi">321</span>
+              <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;venture&quot;</span><span class="p">:</span> <span class="s">&quot;venture2&quot;</span><span class="p">,</span>
+            <span class="s">&quot;usages&quot;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="p">{</span>
+                <span class="s">&quot;symbol&quot;</span><span class="p">:</span> <span class="s">&quot;requests&quot;</span><span class="p">,</span>
+                <span class="s">&quot;value&quot;</span><span class="p">:</span> <span class="mi">543</span>
+              <span class="p">},</span>
+              <span class="p">{</span>
+                <span class="s">&quot;symbol&quot;</span><span class="p">:</span> <span class="s">&quot;transfer&quot;</span><span class="p">,</span>
+                <span class="s">&quot;value&quot;</span><span class="p">:</span> <span class="mi">565</span>
+              <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;venture&quot;</span><span class="p">:</span> <span class="s">&quot;venture3&quot;</span><span class="p">,</span>
+            <span class="s">&quot;usages&quot;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="p">{</span>
+                <span class="s">&quot;symbol&quot;</span><span class="p">:</span> <span class="s">&quot;requests&quot;</span><span class="p">,</span>
+                <span class="s">&quot;value&quot;</span><span class="p">:</span> <span class="mi">788</span>
+              <span class="p">},</span>
+              <span class="p">{</span>
+                <span class="s">&quot;symbol&quot;</span><span class="p">:</span> <span class="s">&quot;transfer&quot;</span><span class="p">,</span>
+                <span class="s">&quot;value&quot;</span><span class="p">:</span> <span class="mi">234</span>
+              <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pull-api">
+<h2>Pull API<a class="headerlink" href="#pull-api" title="Permalink to this headline">¶</a></h2>
+<p>Coming soon...</p>
+</div>
+</div>
+
+
+                </div>
+    <ul class="pager">
+        <li
+            class="index"
+        ><a
+            href="genindex.html"
+            
+        >General Index</a></li>
+        <li
+            class="next"
+        ><a
+            href="changes.html"
+            
+        >Change Log</a></li>
+        <li
+            class="previous"
+        ><a
+            href="costs.html"
+            
+        >Costs &amp; Extra costs</a></li>
+    </ul>
+        </div>
+
+        
+        <div class="span3 sidebar">
+                <div class="well toctree sidebar-nav">
+                    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">How to use</a></li>
+<li class="toctree-l1"><a class="reference internal" href="servicesandusages.html">Services &amp; Usages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="costs.html">Costs &amp; Extra costs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Change Log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+ 
+                </div>
+                <div class="well localtoc">
+                    <ul>
+<li><a class="reference internal" href="#">API</a><ul>
+<li><a class="reference internal" href="#push-api">Push API</a></li>
+<li><a class="reference internal" href="#pull-api">Pull API</a></li>
+</ul>
+</li>
+</ul>
+
+                </div>
+            
+        </div>
+        
+    </div>
+    <div class="row">
+        
+<footer class="footer">
+        &copy; Copyright 2013, Allegro Group.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.
+</footer>
+    </div>
+</div>
+
+<script src="_static/bootstrap/js/bootstrap.min.js"></script>
+<script src="_static/restyle.js"></script>
+  </body>
+</html>
