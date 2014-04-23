@@ -1,5 +1,84 @@
 ============
 Installation
 ============
+Scrooge is a plugin of ralph so, before you start scrooge installation, you need install ralph and refer to ralph documentation how its work.
 
-Comming soon...
+Install Scrooge
+~~~~~~~~~~~~~~~
+There are two ways to install scrooge, one of them is simple pip installation and it is easy and pleasant way. Second one require download source code from github manually.
+
+Install Scrooge from pip
+------------------------
+There is a standard way to install from pip::
+
+  (ralph)$ pip install scrooge
+
+That's it.
+
+Install Scrooge from sources
+----------------------------
+Also, there is a possible to install scrooge from sources. If you wanna do that, you need to download scrooge from github before.::
+
+  (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
+
+Enter to the project folder::
+
+  (ralph)$ cd ralph_pricing
+
+and install them::
+
+  (ralph)$ pip install -e .
+
+The scrooge requirements will be installed automatically.
+
+Upgrade existing installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For upgrade scrooge you need to stop any Ralph processes that are running. Good practice is not upgrading old version but create separated virtualenv and install them everything from the begin but if you need upgrade old version just be sure that everything is stopped.
+
+Upgrade Scrooge from pip
+------------------------
+If you installed from pip, then you can simply do::
+
+    (ralph)$ pip install --upgrade scrooge
+
+at the and you need to upgrade the static files::
+
+    (ralph)$ ralph collectstatic
+
+Upgrade Scrooge from sources
+----------------------------
+You need to download scrooge from github before.::
+
+  (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
+
+Enter to the project folder::
+
+  (ralph)$ cd ralph_pricing
+
+and upgrade them::
+
+  (ralph)$ pip install --upgrade -e .
+
+at the end you need to upgrade the static files::
+
+    (ralph)$ ralph collectstatic
+
+Migrate the database
+~~~~~~~~~~~~~~~~~~~~
+Some of updates require database migrations. For migrate database just run::
+
+    (ralph)$ ralph migrate ralph_pricing
+
+Be sure that you have backup of your database. Some of migrations could migrate any data or create some complicate changes and unwanted for you changes.
+
+Update the settings
+~~~~~~~~~~~~~~~~~~~~
+Some new features added to Ralph may require additional settings to work
+properly. In order to enable them in your settings, follow the instructions in
+the :doc:`change log <changes>` for the version you installed.
+
+Testing if it works
+~~~~~~~~~~~~~~~~~~~
+For be sure that everything work fine, is recomended run unit tests. For do this just run::
+
+  (ralph)$ ralph test ralph_pricing
