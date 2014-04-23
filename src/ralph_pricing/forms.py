@@ -307,7 +307,7 @@ class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
             return
         # check if sum of percents is 100
         percent = [f.cleaned_data.get('percent') or 0 for f in self.forms]
-        if sum(percent) != 100.0:
+        if "{0:.2f}".format(sum(percent)) != '100.00':
             for form in self.forms:
                 if form.cleaned_data.get('percent') is not None:
                     form._errors['percent'] = form.error_class([
