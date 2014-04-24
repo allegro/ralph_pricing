@@ -143,6 +143,7 @@ class UsageBasePlugin(BaseReportPlugin):
         forecast,
         ventures,
         no_price_msg=False,
+        use_average=True,
     ):
         """
         Returns informations about usage (of usage type) count and cost
@@ -152,6 +153,7 @@ class UsageBasePlugin(BaseReportPlugin):
         price for period of time in undefined of partially defined (incomplete)
         cost will be message what's wrong with price (i.e. 'Incomplete price').
         """
+        total_days = (end - start).days + 1  # total report days
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
         else:
@@ -225,6 +227,10 @@ class UsageBasePlugin(BaseReportPlugin):
             else:
                 add_usages_per_venture(start, end, 0)
 
+            if use_average and usage_type.average:
+                for venture, venture_usages in result.iteritems():
+                    venture_usages[count_key] /= total_days
+
         return result
 
     def total_cost(self, *args, **kwargs):
@@ -239,6 +245,7 @@ class UsageBasePlugin(BaseReportPlugin):
         usage_type,
         forecast=False,
         no_price_msg=False,
+        use_average=True,
         **kwargs
     ):
         logger.debug("Get {0} usages".format(usage_type.name))
@@ -249,6 +256,7 @@ class UsageBasePlugin(BaseReportPlugin):
             usage_type=usage_type,
             forecast=forecast,
             no_price_msg=no_price_msg,
+            use_average=use_average,
         )
 
     def schema(self, usage_type, **kwargs):

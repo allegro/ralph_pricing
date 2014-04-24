@@ -45,6 +45,15 @@ class TestUsageBasePlugin(TestCase):
             by_internet_provider=True,
         )
         self.usage_type_cost_sum.save()
+        self.usage_type_average = models.UsageType(
+            name='UsageType4',
+            symbol='ut4',
+            by_warehouse=False,
+            by_cost=False,
+            type='BU',
+            average=True,
+        )
+        self.usage_type_average.save()
 
         # warehouses
         self.warehouse1 = models.Warehouse(
@@ -92,6 +101,9 @@ class TestUsageBasePlugin(TestCase):
         # ut3:
         #   venture1: 30
         #   venture2: 60
+        # ut4:
+        #   venture1: 40
+        #   venture2: 80
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
         base_usage_types = models.UsageType.objects.filter(type='BU')
@@ -127,7 +139,8 @@ class TestUsageBasePlugin(TestCase):
             (self.usage_type_cost_sum, [
                 [(1000, 2000), (2000, 3000), (4000, 5000)],  # provider 1
                 [(10000, 20000), (20000, 30000), (40000, 50000)],  # provider 2
-            ])
+            ]),
+            (self.usage_type_average, [(10, 20), (20, 30), (30, 40)]),
         ]
 
         def add_usage_price(
@@ -569,6 +582,45 @@ class TestUsageBasePlugin(TestCase):
                 'ut_2_count_wh_2': 240.0,  # 6 * 40 (6 is number of even days)
                 'ut_2_cost_wh_2': D('2160'),  # 40 * (2 * 6 + 2 * 9 + 2 * 12)
                 'ut_2_total_cost': D('4080'),  # 1920 + 2160
+            },
+        })
+
+    def test_usage_type_average(self):
+        result = UsagePlugin.usages(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_average,
+            ventures=self.ventures_subset,
+            forecast=False,
+        )
+        self.assertEquals(result, {
+            1: {
+                'ut_4_count': 40.0,  # average daily usage
+                'ut_4_cost': D('8800'),
+            },
+            2: {
+                'ut_4_count': 80.0,  # average daily usage
+                'ut_4_cost': D('17600'),
+            },
+        })
+
+    def test_usage_type_average_without_average(self):
+        result = UsagePlugin.usages(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_average,
+            ventures=self.ventures_subset,
+            forecast=False,
+            use_average=False,
+        )
+        self.assertEquals(result, {
+            1: {
+                'ut_4_count': 440.0,  # average daily usage
+                'ut_4_cost': D('8800'),
+            },
+            2: {
+                'ut_4_count': 880.0,  # average daily usage
+                'ut_4_cost': D('17600'),
             },
         })
 
