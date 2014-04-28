@@ -54,10 +54,17 @@ class TestServiceUsagesApi(ResourceTestCase):
             is_active=True,
         )
         self.venture2.save()
-        self.inactive_venture = Venture(
+        self.venture3 = Venture(
             name='Venture3',
             venture_id=3,
             symbol='v3',
+            is_active=True,
+        )
+        self.venture3.save()
+        self.inactive_venture = Venture(
+            name='Venture4',
+            venture_id=4,
+            symbol='v4',
             is_active=False,
         )
         self.inactive_venture.save()
@@ -72,7 +79,7 @@ class TestServiceUsagesApi(ResourceTestCase):
             self.user.api_key.key,
         )
 
-    def _get_sample_service_usages_object(self):
+    def _get_sample_service_usages_object(self, overwrite=None):
         service_usages = ServiceUsageObject(
             date=self.date,
             service=self.service.symbol,
@@ -93,6 +100,8 @@ class TestServiceUsagesApi(ResourceTestCase):
                 )
             ]
         )
+        if overwrite is not None:
+            service_usages.overwrite = overwrite
         return service_usages
 
     def test_save_usages(self):
@@ -111,6 +120,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         self.assertEquals(service_usages.to_dict(), {
             'service': self.service.symbol,
             'date': self.date,
+            'overwrite': None,
             'venture_usages': [
                 {
                     'venture': self.venture1.symbol,
@@ -220,3 +230,97 @@ class TestServiceUsagesApi(ResourceTestCase):
             'Invalid venture symbol or venture is inactive'
         )
         self.assertEquals(DailyUsage.objects.count(), 0)
+
+    def _basic_call(self):
+        service_usages = self._get_sample_service_usages_object()
+        data = service_usages.to_dict()
+        resp = self.api_client.post(
+            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            format='json',
+            authentication=self.api_key,
+            data=data
+        )
+        self.assertEquals(resp.status_code, 201)
+        usages = DailyUsage.objects.filter(type=self.usage_type1).values_list(
+            'pricing_venture__symbol',
+            'value',
+        )
+        self.assertEquals(dict(usages), {
+            self.venture1.symbol: 123.0,
+            self.venture2.symbol: 3.3,
+        })
+
+    def test_overwrite_values_only(self):
+        self._basic_call()
+
+        service_usages = self._get_sample_service_usages_object(
+            overwrite='values_only'
+        )
+        service_usages.venture_usages[0].venture = self.venture3.symbol
+        data = service_usages.to_dict()
+        resp = self.api_client.post(
+            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            format='json',
+            authentication=self.api_key,
+            data=data
+        )
+        self.assertEquals(resp.status_code, 201)
+        usages = DailyUsage.objects.filter(type=self.usage_type1).values_list(
+            'pricing_venture__symbol',
+            'value',
+        )
+        self.assertEquals(dict(usages), {
+            self.venture1.symbol: 123.0,
+            self.venture2.symbol: 3.3,
+            self.venture3.symbol: 123.0,
+        })
+
+    def test_overwrite_delete_all_previous(self):
+        self._basic_call()
+
+        service_usages = self._get_sample_service_usages_object(
+            overwrite='delete_all_previous'
+        )
+        service_usages.venture_usages[0].venture = self.venture3.symbol
+        data = service_usages.to_dict()
+        resp = self.api_client.post(
+            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            format='json',
+            authentication=self.api_key,
+            data=data
+        )
+        self.assertEquals(resp.status_code, 201)
+        usages = DailyUsage.objects.filter(type=self.usage_type1).values_list(
+            'pricing_venture__symbol',
+            'value',
+        )
+        self.assertEquals(dict(usages), {
+            self.venture2.symbol: 3.3,
+            self.venture3.symbol: 123.0,
+        })
+
+    def test_not_overwriting(self):
+        self._basic_call()
+
+        service_usages = self._get_sample_service_usages_object(
+            overwrite='no'
+        )
+        service_usages.venture_usages[0].venture = self.venture3.symbol
+        data = service_usages.to_dict()
+        resp = self.api_client.post(
+            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            format='json',
+            authentication=self.api_key,
+            data=data
+        )
+        self.assertEquals(resp.status_code, 201)
+        usages = DailyUsage.objects.filter(type=self.usage_type1).values_list(
+            'pricing_venture__symbol',
+            'value',
+        )
+        self.assertEquals([a for a in usages], [
+            (self.venture1.symbol, 123.0),
+            (self.venture2.symbol, 3.3),
+            (self.venture3.symbol, 123.0),
+            (self.venture2.symbol, 3.3)]
+        )
