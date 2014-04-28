@@ -640,7 +640,7 @@ class TestUsageBasePlugin(TestCase):
         })
 
     def test_usage_type_average(self):
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_average,
@@ -659,7 +659,7 @@ class TestUsageBasePlugin(TestCase):
         })
 
     def test_usage_type_average_without_average(self):
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_average,
