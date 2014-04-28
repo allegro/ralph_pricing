@@ -369,12 +369,12 @@ class TestReportVenturesBeta(TestCase):
                 'aaaa',  # department
                 # 12,  # asset_count
                 # '213.00 PLN',  # asset_cost
-                213,  # ut3_count_warehouse_1
-                3234,  # ut3_cost_warehouse_1
+                213.00,  # ut3_count_warehouse_1
+                3234.00,  # ut3_cost_warehouse_1
                 '434.21',  # ut3_count_warehouse_2
                 '123.21',  # ut3_cost_warehouse_2
                 '557.42',  # ut3_cost_total
-                123,  # ut1_count
+                123.00,  # ut1_count
                 '23.23',  # ut1_cost
                 0.0,  # sut_3_count
                 '0.00',  # sut_3_cost,

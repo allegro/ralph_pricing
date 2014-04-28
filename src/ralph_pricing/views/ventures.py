@@ -162,7 +162,13 @@ class AllVentures(Report):
         if not isinstance(field_content, (int, D, float, long)):
             return field_content, usage_cost
 
-        return '{0:.2f}'.format(field_content), D(field_content)
+        if 'total_cost' in field_rules and field_rules['total_cost']:
+            usage_cost = D(field_content)
+
+        if 'currency' in field_rules and field_rules['currency']:
+            field_content = '{0:.2f}'.format(field_content)
+
+        return field_content,  usage_cost
 
     @classmethod
     def _prepare_venture_row(cls, venture_data):
@@ -187,7 +193,7 @@ class AllVentures(Report):
                 plugin_fields.append(field_content)
                 total_cost += usage_cost
             venture_row.extend(plugin_fields)
-        venture_row.append('{0:.2f} {1}'.format(total_cost, cls.currency))
+        venture_row.append('{0:.2f}'.format(total_cost))
         return venture_row
 
     @classmethod
