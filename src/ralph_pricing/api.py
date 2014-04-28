@@ -17,6 +17,7 @@ from __future__ import unicode_literals
 
 import datetime
 import logging
+from collections import defaultdict
 
 from tastypie import http, fields
 from tastypie.authentication import ApiKeyAuthentication
@@ -74,17 +75,20 @@ class ServiceUsageObject(object):
     """
     service = None
     date = None
+    overwrite = None
     venture_usages = []  # list of VentureUsageObject
 
     def __init__(self, service=None, venture_usages=None, date=None, **kwargs):
         self.service = service
         self.date = date
         self.venture_usages = venture_usages or []
+        self.overwrite = None
 
     def to_dict(self):
         result = {
             'date': self.date,
             'service': self.service,
+            'overwrite': self.overwrite,
             'venture_usages': [vu.to_dict() for vu in self.venture_usages]
         }
         return result
@@ -195,6 +199,7 @@ class ServiceUsageResource(Resource):
     """
     service = fields.CharField(attribute='service')
     date = fields.DateTimeField(attribute='date')
+    overwrite = fields.CharField(attribute='overwrite', default='values_only')
     venture_usages = fields.ToManyField(
         VentureUsageResource,
         'venture_usages',
@@ -232,7 +237,7 @@ class ServiceUsageResource(Resource):
             service_usages.date,
             (datetime.date, datetime.datetime)
         )
-
+        usages_ventures = defaultdict(list)
         for venture_usages in service_usages.venture_usages:
             try:
                 venture = Venture.objects.get(
@@ -245,6 +250,7 @@ class ServiceUsageResource(Resource):
                             usage.symbol,
                             UsageType.objects.get(symbol=usage.symbol)
                         )
+                        usages_ventures[usage_type].append(venture)
                         daily_usages.append(DailyUsage(
                             date=service_usages.date,
                             pricing_venture=venture,
@@ -266,6 +272,20 @@ class ServiceUsageResource(Resource):
         logger.error(
             "Saving usages for service {0}".format(service_usages.service)
         )
+
+        # remove previous daily usages
+        if service_usages.overwrite in ('values_only', 'delete_all_previous'):
+            for usage_type, ventures in usages_ventures.iteritems():
+                previuos_usages = DailyUsage.objects.filter(
+                    date=service_usages.date,
+                    type=usage_type,
+                )
+                if service_usages.overwrite == 'values_only':
+                    previuos_usages = previuos_usages.filter(
+                        pricing_venture__in=ventures
+                    )
+                previuos_usages.delete()
+
         # bulk save all usages
         DailyUsage.objects.bulk_create(daily_usages)
 
