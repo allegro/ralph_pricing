@@ -92,20 +92,6 @@ class TestReportVenturesBeta(TestCase):
             ),
         ])
 
-    def test_get_as_currency(self):
-        """
-        Test if decimal is properly 'transformed' to currency
-        """
-        currency = AllVentures._get_as_currency('1234', False)
-        self.assertEquals(currency, ('1234.00 PLN', D('0')))
-
-    def test_get_as_currency_total_cost(self):
-        """
-        Test if total cost decimal is properly 'transformed' to currency
-        """
-        currency = AllVentures._get_as_currency(1234, True)
-        self.assertEquals(currency, ('1234.00 PLN', D('1234')))
-
     def test_prepare_field_value_in_venture_data(self):
         """
         Test if field is properly prepared for placing it in report. Value
@@ -133,7 +119,7 @@ class TestReportVenturesBeta(TestCase):
             'total_cost': True,
         }
         result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('1234.00 PLN', D('1234')))
+        self.assertEquals(result, ('1234.00', D('1234')))
 
     def test_prepare_field_value_not_in_venture_date_default(self):
         """
@@ -147,7 +133,7 @@ class TestReportVenturesBeta(TestCase):
             'default': 3,
         }
         result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('3.00 PLN', D('3')))
+        self.assertEquals(result, ('3.00', D('3')))
 
     def test_prepare_field_value_not_in_venture_date(self):
         """
@@ -160,7 +146,7 @@ class TestReportVenturesBeta(TestCase):
             'total_cost': True,
         }
         result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('0.00 PLN', D('0')))
+        self.assertEquals(result, ('0.00', D('0')))
 
     def test_prepare_field_value_basestring(self):
         """
@@ -212,7 +198,7 @@ class TestReportVenturesBeta(TestCase):
         result = AllVentures._prepare_venture_row(venture_data)
         self.assertEquals(
             result,
-            [123, '3.00 PLN', 3123, '33.00 PLN', '36.00 PLN']
+            [123, '3.00', 3123, '33.00', '36.00']
         )
 
     def test_get_ventures(self):
@@ -365,17 +351,17 @@ class TestReportVenturesBeta(TestCase):
                 # '23.00 PLN',  # asset_cost
                 267,  # ut3_count_warehouse_1
                 36774,  # ut3_cost_warehouse_1
-                '4764.21 PLN',  # ut3_count_warehouse_2
+                '4764.21',  # ut3_count_warehouse_2
                 'Incomplete price',  # ut3_cost_warehouse_2
-                '4764.21 PLN',  # ut3_cost_total
+                '4764.21',  # ut3_cost_total
                 0.0,  # ut1_count
-                '0.00 PLN',  # ut1_cost
+                '0.00',  # ut1_cost
                 10.0,  # sut_3_count
-                '20.22 PLN',  # sut_3_cost,
+                '20.22',  # sut_3_cost,
                 20.0,  # sut_4_count
-                '1212.11 PLN',  # sut_4_count
-                '1232.33 PLN',  # 1_sercive_cost
-                '5996.54 PLN',  # total_cost
+                '1212.11',  # sut_4_count
+                '1232.33',  # 1_sercive_cost
+                '5996.54',  # total_cost
             ],
             [
                 1,  # venture_id
@@ -383,19 +369,19 @@ class TestReportVenturesBeta(TestCase):
                 'aaaa',  # department
                 # 12,  # asset_count
                 # '213.00 PLN',  # asset_cost
-                213,  # ut3_count_warehouse_1
-                3234,  # ut3_cost_warehouse_1
-                '434.21 PLN',  # ut3_count_warehouse_2
-                '123.21 PLN',  # ut3_cost_warehouse_2
-                '557.42 PLN',  # ut3_cost_total
-                123,  # ut1_count
-                '23.23 PLN',  # ut1_cost
+                213.00,  # ut3_count_warehouse_1
+                3234.00,  # ut3_cost_warehouse_1
+                '434.21',  # ut3_count_warehouse_2
+                '123.21',  # ut3_cost_warehouse_2
+                '557.42',  # ut3_cost_total
+                123.00,  # ut1_count
+                '23.23',  # ut1_cost
                 0.0,  # sut_3_count
-                '0.00 PLN',  # sut_3_cost,
+                '0.00',  # sut_3_cost,
                 40.0,  # sut_4_count
-                '2212.11 PLN',  # sut_4_count
-                '2212.11 PLN',  # 1_sercive_cost
-                '2792.76 PLN',  # total_cost
+                '2212.11',  # sut_4_count
+                '2212.11',  # 1_sercive_cost
+                '2792.76',  # total_cost
             ]
         ])
 
@@ -408,5 +394,5 @@ class TestReportVenturesBeta(TestCase):
         result = AllVentures.get_header()
         self.assertEquals(
             result,
-            ['Field1', 'Field2', 'Field3', 'Field4', 'Total cost']
+            ['Field1', 'Field2 - PLN', 'Field3', 'Field4 - PLN', 'Total cost']
         )
