@@ -1,6 +1,32 @@
 Change Log
 ----------
 
+2.2.3
+~~~~~
+
+* nfdump get only ips from given network.
+
+* Changed logging to logger in network plugin.
+
+* Only usage types wtih is_manually_type flag are show in menu.
+
+* Fixed calculating price. Massage incomplete_price was incorrect sometime.
+
+* Fixed percent rounding for teams.
+
+* Remove PLN from fields and add it to name of column.
+
+* Average option for usages is now available.
+
+* Fixed is_blade. Now it is truly boolean value.
+
+* Added overwriting in push API.
+
+* Added ventures daily usages report.
+
+* Fixed usages columns width.
+
+
 2.2.2
 ~~~~~
 
