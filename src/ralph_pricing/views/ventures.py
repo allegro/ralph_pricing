@@ -162,7 +162,7 @@ class AllVentures(Report):
         if not isinstance(field_content, (int, D, float, long)):
             return field_content, usage_cost
 
-        return '{0:.2f}'.format(field_content), usage_cost
+        return '{0:.2f}'.format(field_content), D(field_content)
 
     @classmethod
     def _prepare_venture_row(cls, venture_data):
