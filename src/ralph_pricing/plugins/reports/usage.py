@@ -12,9 +12,9 @@ from decimal import Decimal as D
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
+from ralph_pricing import utils
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import AttributeDict, BaseReportPlugin
-
 
 logger = logging.getLogger(__name__)
 
@@ -47,10 +47,13 @@ class UsageBasePlugin(BaseReportPlugin):
             usage_prices = usage_prices.filter(warehouse=warehouse)
         if usage_type.by_team and team:
             usage_prices = usage_prices.filter(team=team)
-        # TODO: improve preformance
-        for up in usage_prices:
-            # add overlapping days
-            ut_days += (min(end, up.end) - max(start, up.start)).days + 1
+        usage_prices = usage_prices.values('start', 'end').distinct()
+        intervals = [(v['start'], v['end']) for v in usage_prices]
+        sum_of_intervals = utils.sum_of_intervals(intervals)
+        ut_days = sum(map(
+            lambda k: (min(end, k[1]) - max(start, k[0])).days + 1,
+            sum_of_intervals
+        ))
         if ut_days == 0:
             return _('No price')
         if ut_days != total_days:
@@ -143,6 +146,7 @@ class UsageBasePlugin(BaseReportPlugin):
         forecast,
         ventures,
         no_price_msg=False,
+        use_average=True,
     ):
         """
         Returns informations about usage (of usage type) count and cost
@@ -152,6 +156,7 @@ class UsageBasePlugin(BaseReportPlugin):
         price for period of time in undefined of partially defined (incomplete)
         cost will be message what's wrong with price (i.e. 'Incomplete price').
         """
+        total_days = (end - start).days + 1  # total report days
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
         else:
@@ -165,13 +170,25 @@ class UsageBasePlugin(BaseReportPlugin):
                 end,
                 warehouse
             )
+            # get sum of cost in equal periods of time (ex. for internet
+            # providers)
             usage_prices = usage_type.usageprice_set.filter(
                 start__lte=end,
                 end__gte=start,
+            ).values(
+                'start',
+                'end',
+                'type'
+            ).annotate(
+                price=Sum('price'),
+                forecast_price=Sum('forecast_price'),
+                forecast_cost=Sum('forecast_cost'),
+                cost=Sum('cost')
             )
             if warehouse:
                 usage_prices = usage_prices.filter(warehouse=warehouse)
             usage_prices = usage_prices.order_by('start')
+            usage_prices = [AttributeDict(up) for up in usage_prices]
 
             if usage_type.by_warehouse:
                 count_key = 'ut_{0}_count_wh_{1}'.format(
@@ -225,6 +242,10 @@ class UsageBasePlugin(BaseReportPlugin):
             else:
                 add_usages_per_venture(start, end, 0)
 
+            if use_average and usage_type.average:
+                for venture, venture_usages in result.iteritems():
+                    venture_usages[count_key] /= total_days
+
         return result
 
     def total_cost(self, *args, **kwargs):
@@ -239,6 +260,7 @@ class UsageBasePlugin(BaseReportPlugin):
         usage_type,
         forecast=False,
         no_price_msg=False,
+        use_average=True,
         **kwargs
     ):
         logger.debug("Get {0} usages".format(usage_type.name))
@@ -249,6 +271,7 @@ class UsageBasePlugin(BaseReportPlugin):
             usage_type=usage_type,
             forecast=forecast,
             no_price_msg=no_price_msg,
+            use_average=use_average,
         )
 
     def schema(self, usage_type, **kwargs):

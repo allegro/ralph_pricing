@@ -86,7 +86,7 @@ def update_assets(data, date, usages):
     device.slots = data['slots']
     device.sn = data['sn']
     device.barcode = data['barcode']
-    device.is_blade = data['is_blade']
+    device.is_blade = bool(data['is_blade'])
     device.save()
 
     # daily device 'snapshot'

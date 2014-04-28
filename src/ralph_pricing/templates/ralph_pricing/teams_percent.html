@@ -74,6 +74,7 @@
         $("input[name$='percent']").each(function(i, f){
             total += parseFloat($(f).val() || 0);
         });
+        total = +total.toFixed(2);
         cssClass = (total != 100.0) ? 'text-error' : 'text-success';
         $("#total_percent").html(total).removeClass().addClass(cssClass);
     }

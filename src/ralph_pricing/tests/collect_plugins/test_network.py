@@ -54,6 +54,7 @@ class TestNetwork(TestCase):
         settings.NFSEN_CLASS_ADDRESS = []
         settings.SSH_NFSEN_CREDENTIALS = {}
         settings.NFSEN_CHANNELS = []
+        settings.NETWORK_UNKNOWN_VENTURE_SYMBOL = ''
 
     def test_get_names_of_data_files_when_executed_commend_return_error(self):
         self.assertRaises(
@@ -227,18 +228,24 @@ class TestNetwork(TestCase):
         self.assertEqual(
             network.sort_per_venture(
                 {'10.10.10.10': 30},
-                {'10.10.10.10': None},
+                {
+                    '10.10.10.10': None,
+                    '0.0.0.0': 1,
+                },
             ),
-            {},
+            {1: 30},
         )
 
     def test_sort_per_venture_when_there_is_no_ip(self):
         self.assertEqual(
             network.sort_per_venture(
                 {'10.10.10.10': 30},
-                {'20.20.20.20': 1},
+                {
+                    '20.20.20.20': 1,
+                    '0.0.0.0': 2,
+                },
             ),
-            {},
+            {2: 30},
         )
 
     def test_sort_per_venture(self):
