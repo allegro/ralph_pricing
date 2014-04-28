@@ -254,11 +254,11 @@ def get_ventures_and_ips():
     :rtype dict:
     """
     logger.debug('Getting list of ips and ventures')
-    res = {key: value for key, value in get_ip_addresses(True).iteritems()}
-    res['0.0.0.0'] = Venture.objects.get(
+    ventures_and_ips = get_ip_addresses(True)
+    ventures_and_ips['0.0.0.0'] = Venture.objects.get(
         symbol=settings.NETWORK_UNKNOWN_VENTURE_SYMBOL,
     ).venture_id
-    return res
+    return ventures_and_ips
 
 
 def sort_per_venture(network_usages, ventures_and_ips):
