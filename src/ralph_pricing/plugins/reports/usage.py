@@ -269,7 +269,7 @@ class UsageBasePlugin(BaseReportPlugin):
 
     def dailyusages(self, start, end, usage_type, ventures):
         """
-        Returns dailyusages of usage type per venture. Result format:
+        Returns sum of usage type per venture per day. Result format:
             result = {
                 day: {
                     venture: value,

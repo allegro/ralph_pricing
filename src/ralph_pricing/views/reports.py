@@ -109,6 +109,9 @@ class Report(Base):
         return context
 
     def _format_header(self):
+        """
+        Format header to make tuple of (text, options dict) for each cell.
+        """
         result = []
         for row in self.header:
             output_row = []
@@ -120,6 +123,9 @@ class Report(Base):
         self.header = result
 
     def _format_csv_header(self):
+        """
+        Format csv header rows. Insert empty cells to show rowspan and colspan.
+        """
         result = []
         for row in self.header:
             output_row = []
