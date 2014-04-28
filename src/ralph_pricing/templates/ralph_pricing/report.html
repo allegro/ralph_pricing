@@ -68,11 +68,17 @@
 {%     block table %}
 <table class="table table-striped table-bordered table-condensed report">
     <thead>
+        {% for row in header %}
         <tr>
-            {% for column in header %}
-            <th>{{ column }}</th>
+            {% for column, opt in row %}
+                <th
+                    {% for key,value in opt.items %}
+                    {{key}}="{{ value }}"
+                    {% endfor %}
+                >{{ column }}</th>
             {% endfor %}
         </tr>
+        {% endfor %}
     </thead>
     {% for row in data %}
         <tr>

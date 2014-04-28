@@ -17,6 +17,7 @@ from ralph_pricing.views.usages import Usages
 from ralph_pricing.views.teams import Teams
 from ralph_pricing.views.teams_percent import TeamsPercent
 from ralph_pricing.views.ventures import AllVentures
+from ralph_pricing.views.ventures_daily_usages import VenturesDailyUsages
 
 v09_api = Api(api_name='v0.9')
 for r in (ServiceUsageResource, ):
@@ -70,6 +71,11 @@ urlpatterns = patterns(
         r'^all-ventures/$',
         login_required(AllVentures.as_view()),
         name='all_ventures',
+    ),
+    url(
+        r'^ventures-daily-usages-report/$',
+        login_required(VenturesDailyUsages.as_view()),
+        name='ventures_daily_usages',
     ),
     url(
         r'^devices/$',

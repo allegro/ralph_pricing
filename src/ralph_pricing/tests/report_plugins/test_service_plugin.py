@@ -414,7 +414,7 @@ class TestServicePlugin(TestCase):
                     'sut_2_cost': {'total_cost': False, 'currency': True},
                     '2_service_cost': {'total_cost': True, 'currency': True},
                 },
-                'Service2_usages': {
+                'Service2_costs': {
                     1: {
                         'sut_1_count': 10,
                         'sut_1_cost': D(100),
@@ -432,7 +432,7 @@ class TestServicePlugin(TestCase):
                     'sut_1_count': {},
                     'sut_1_cost': {'total_cost': True, 'currency': True},
                 },
-                'Service3_usages': {
+                'Service3_costs': {
                     1: {
                         'sut_1_count': 10,
                         'sut_1_cost': D(300),
@@ -467,7 +467,7 @@ class TestServicePlugin(TestCase):
             start=start,
             end=end,
             forecast=forecast,
-            type='usages',
+            type='costs',
         )
         plugin_run_mock.assert_any_call(
             'reports',
@@ -477,7 +477,7 @@ class TestServicePlugin(TestCase):
             start=start,
             end=end,
             forecast=forecast,
-            type='usages',
+            type='costs',
         )
 
     def test_usage(self):

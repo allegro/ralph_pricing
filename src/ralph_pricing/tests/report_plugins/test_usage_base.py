@@ -484,7 +484,7 @@ class TestUsageBasePlugin(TestCase):
         self.assertEquals(result, [330.0, D('7920')])
 
     def test_get_usages(self):
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
@@ -504,7 +504,7 @@ class TestUsageBasePlugin(TestCase):
         })
 
     def test_get_usages_incomplete_price(self):
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 30),
             usage_type=self.usage_type,
@@ -542,7 +542,7 @@ class TestUsageBasePlugin(TestCase):
                             self.warehouses[j % len(self.warehouses)]
                         )
                     daily_usage.save()
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 11, 10),
             end=datetime.date(2013, 11, 20),
             usage_type=self.usage_type,
@@ -677,6 +677,41 @@ class TestUsageBasePlugin(TestCase):
             },
         })
 
+    def test_get_dailyusages(self):
+        # test if sum of usages per day if properly calculated
+        du = models.DailyUsage(
+            date=datetime.date(2013, 10, 11),
+            pricing_venture=self.venture2,
+            value=100,
+            type=self.usage_type,
+        )
+        du.save()
+        result = UsagePlugin(
+            usage_type=self.usage_type,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 13),
+            ventures=self.ventures_subset,
+            type='dailyusages',
+        )
+        self.assertEquals(result, {
+            datetime.date(2013, 10, 10): {
+                self.venture1.id: 10,
+                self.venture2.id: 20,
+            },
+            datetime.date(2013, 10, 11): {
+                self.venture1.id: 10,
+                self.venture2.id: 120,  # additional usage!
+            },
+            datetime.date(2013, 10, 12): {
+                self.venture1.id: 10,
+                self.venture2.id: 20,
+            },
+            datetime.date(2013, 10, 13): {
+                self.venture1.id: 10,
+                self.venture2.id: 20,
+            },
+        })
+
     def test_schema(self):
         result = UsagePlugin(
             usage_type=self.usage_type,
@@ -713,3 +748,10 @@ class TestUsageBasePlugin(TestCase):
                 'total_cost': True,
             }),
         ]))
+
+    def test_usages_schema(self):
+        result = UsagePlugin(
+            usage_type=self.usage_type_cost_wh,
+            type='dailyusages_header'
+        )
+        self.assertEquals(result, self.usage_type_cost_wh.name)

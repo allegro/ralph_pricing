@@ -125,7 +125,7 @@ class Devices(Report):
         :returns list: label names for devices report
         :rtype list:
         '''
-        header = [
+        header = [[
             _("Device"),
             _("Component name"),
             _("Usage name"),
@@ -135,5 +135,5 @@ class Devices(Report):
             _("Price"),
             _("Cost"),
             _("Usage count"),
-        ]
+        ]]
         return header

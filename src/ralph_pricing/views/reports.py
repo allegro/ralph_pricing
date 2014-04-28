@@ -47,6 +47,7 @@ class Report(Base):
     """
     template_name = None
     Form = None
+    initial = None
     section = ''
     report_name = ''
 
@@ -64,7 +65,7 @@ class Report(Base):
             self.form = self.Form(get)
             self.got_query = True
         else:
-            self.form = self.Form()
+            self.form = self.Form(initial=self.initial)
         if self.form.is_valid():
             if 'clear' in get:
                 self.progress = 0
@@ -77,10 +78,13 @@ class Report(Base):
                 self.progress, self.header, self.data = self._get_cached(
                     **self.form.cleaned_data
                 )
+                self._format_header()
+
                 if get.get('format', '').lower() == 'csv':
+                    self._format_csv_header()
                     if self.progress == 100:
                         return make_csv_response(
-                            itertools.chain([self.header], self.data),
+                            itertools.chain(self.header, self.data),
                             '{}.csv'.format(self.section),
                         )
                     else:
@@ -103,6 +107,36 @@ class Report(Base):
             'got_query': self.got_query,
         })
         return context
+
+    def _format_header(self):
+        result = []
+        for row in self.header:
+            output_row = []
+            for col in row:
+                if not isinstance(col, (tuple, list)):
+                    col = (col, {})
+                output_row.append(col)
+            result.append(output_row)
+        self.header = result
+
+    def _format_csv_header(self):
+        result = []
+        for row in self.header:
+            output_row = []
+            for col in row:
+                output_row.append(col[0])
+                for colspan in range((col[1].get('colspan') or 1) - 1):
+                    output_row.append('')
+            result.append(output_row)
+        # rowspans
+        for row_num, row in enumerate(self.header):
+            i = 0
+            for col in row:
+                if 'rowspan' in col[1]:
+                    for rowspan in range(1, (col[1]['rowspan'] or 1)):
+                        result[row_num + rowspan].insert(i, '')
+                i += col[1].get('colspan', 1)
+        self.header = result
 
     def _clear_cache(self, **kwargs):
         cache = get_cache(CACHE_NAME)
@@ -183,6 +217,7 @@ class Report(Base):
         """
         Override this static method to provide header for the report.
         It gets called with the form's data as arguments.
-        Make sure it's a static method.
+        Make sure it's a static method. Result should be list of list, where
+        each (sub)list is row in header.
         """
         return []

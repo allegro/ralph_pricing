@@ -559,11 +559,11 @@ class Team(UsageBasePlugin):
         return {}
 
     def total_cost(self, *args, **kwargs):
-        costs = self.usages(*args, **kwargs)
+        costs = self.costs(*args, **kwargs)
         total_cost_key = 'ut_{0}_total_cost'.format(kwargs['usage_type'].id)
         return sum([u[total_cost_key] for u in costs.values()])
 
-    def usages(self, **kwargs):
+    def costs(self, **kwargs):
         """
         Calculates teams costs.
         """
