@@ -72,8 +72,8 @@
         <tr>
             {% for column, opt in row %}
                 <th
-                    {% for key,value in opt.items %}
-                    {{key}}="{{ value }}"
+                    {% for attr_name, attr_value in opt.items %}
+                        {{ attr_name }}="{{ attr_value }}"
                     {% endfor %}
                 >{{ column }}</th>
             {% endfor %}
