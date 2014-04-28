@@ -281,7 +281,7 @@ class AllVentures(Report):
                     start=start,
                     end=end,
                     forecast=forecast,
-                    type='usages',
+                    type='costs',
                     **plugin.get('plugin_kwargs', {})
                 )
                 for venture_id, venture_usage in plugin_report.iteritems():
@@ -378,4 +378,4 @@ class AllVentures(Report):
                     )
                 header.append(value['name'])
         header.append(_("Total cost"))
-        return header
+        return [header]

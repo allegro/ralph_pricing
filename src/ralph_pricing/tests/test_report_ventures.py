@@ -233,7 +233,7 @@ class TestReportVenturesBeta(TestCase):
                         ('venture', {'name': 'Venture'}),
                         ('department', {'name': 'Department'}),
                     ]),
-                    'usages': {
+                    'costs': {
                         1: {
                             'venture_id': 1,
                             'venture': 'b',
@@ -255,7 +255,7 @@ class TestReportVenturesBeta(TestCase):
                             'total_cost': True,
                         })
                     ]),
-                    'usages': {
+                    'costs': {
                         1: {'ut1_count': 123, 'ut1_cost': D('23.23')},
                     },
                 },
@@ -277,7 +277,7 @@ class TestReportVenturesBeta(TestCase):
                             'total_cost': True,
                         })
                     ]),
-                    'usages': {
+                    'costs': {
                         1: {
                             'ut3_count_warehouse_1': 213,
                             'ut3_cost_warehouse_1': D('434.21'),
@@ -313,7 +313,7 @@ class TestReportVenturesBeta(TestCase):
                             'total_cost': True,
                         })
                     ]),
-                    'usages': {
+                    'costs': {
                         1: {
                             'sut_4_count': 40.0,
                             'sut_4_cost': D('2212.11'),
@@ -392,7 +392,10 @@ class TestReportVenturesBeta(TestCase):
         """
         get_schema_mock.return_value = self._sample_schema()
         result = AllVentures.get_header()
-        self.assertEquals(
-            result,
-            ['Field1', 'Field2 - PLN', 'Field3', 'Field4 - PLN', 'Total cost']
-        )
+        self.assertEquals(result, [[
+            'Field1',
+            'Field2 - PLN',
+            'Field3',
+            'Field4 - PLN',
+            'Total cost'
+        ]])

@@ -17,7 +17,7 @@ from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
 
 class SampleReportPlugin(BaseReportPlugin):
-    def usages(self, *args, **kwargs):
+    def costs(self, *args, **kwargs):
         pass
 
     def schema(self, *args, **kwargs):

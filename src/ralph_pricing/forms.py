@@ -19,6 +19,7 @@ from ralph_pricing.models import (
     TeamDaterange,
     TeamVenturePercent,
     UsagePrice,
+    UsageType,
     Venture,
 )
 from ralph_pricing.utils import ranges_overlap
@@ -366,4 +367,31 @@ class DateRangeVentureForm(DateRangeForm):
         queryset=Venture.tree.all(),
         level_indicator='|---',
         empty_label="---",
+    )
+
+
+class VenturesDailyUsagesForm(forms.Form):
+    '''Form schema. Used to generate venture daily usages reports'''
+    start = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='',
+        initial=lambda: datetime.date.today() - datetime.timedelta(days=30),
+    )
+    end = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='',
+        initial=datetime.date.today,
+    )
+    is_active = forms.BooleanField(
+        required=False,
+        label=_("Show only active"),
+    )
+    usage_types = forms.ModelMultipleChoiceField(
+        required=True,
+        queryset=UsageType.objects.order_by('-order', 'name'),
+        label=_("Usage types"),
     )

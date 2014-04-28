@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 from collections import defaultdict, OrderedDict
+from datetime import datetime
 from decimal import Decimal as D
 
 from django.db.models import Sum
@@ -252,7 +253,7 @@ class UsageBasePlugin(BaseReportPlugin):
         costs_by_wh = self._get_total_cost_by_warehouses(*args, **kwargs)
         return costs_by_wh[-1]
 
-    def usages(
+    def costs(
         self,
         start,
         end,
@@ -273,6 +274,44 @@ class UsageBasePlugin(BaseReportPlugin):
             no_price_msg=no_price_msg,
             use_average=use_average,
         )
+
+    def dailyusages(self, start, end, usage_type, ventures):
+        """
+        Returns sum of usage type per venture per day. Result format:
+            result = {
+                day: {
+                    venture: value,
+                    veture: value,
+                    ...
+                },
+                ...
+            }
+
+        :rtype: dict
+        """
+        logger.debug(
+            "Getting {0} daily usages per venture".format(usage_type.name)
+        )
+        result = defaultdict(dict)
+        dailyusages = usage_type.dailyusage_set.filter(
+            pricing_venture__in=ventures,
+            date__gte=start,
+            date__lte=end,
+        ).extra({
+            'day': "date(date)"
+        }).values(
+            'day',
+            'pricing_venture',
+        ).annotate(
+            usage=Sum('value')
+        )
+        for d in dailyusages:
+            day = d['day']
+            # on sqlite string is returned from query instead of datetime
+            if isinstance(day, basestring):
+                day = datetime.strptime(day, "%Y-%m-%d").date()
+            result[day][d['pricing_venture']] = d['usage']
+        return result
 
     def schema(self, usage_type, **kwargs):
         logger.debug("Get {0} schema".format(usage_type.name))
@@ -317,6 +356,12 @@ class UsageBasePlugin(BaseReportPlugin):
                 }),
             ])
         return schema
+
+    def dailyusages_header(self, usage_type):
+        """
+        Header for usage type column on dailyusages report.
+        """
+        return usage_type.name
 
 
 @register(chain='reports')

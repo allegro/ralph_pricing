@@ -21,7 +21,7 @@ class CeilometerBasePlugin(ServiceBasePlugin):
         partial_cost = float(total_cost) / float(sum(values.values()))
         return dict([(s[0], s[1] * partial_cost) for s in values.iteritems()])
 
-    def usages(self, service, start, end, ventures, forecast=False, **kwargs):
+    def costs(self, service, start, end, ventures, forecast=False, **kwargs):
         total_cost = self.total_cost(
             start,
             end,

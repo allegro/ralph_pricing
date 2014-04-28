@@ -114,7 +114,7 @@ class ServiceBasePlugin(BaseReportPlugin):
                         start=start,
                         end=end,
                         forecast=forecast,
-                        type='usages',
+                        type='costs',
                     )
 
                     for venture, venture_data in dependent_usages.items():
@@ -194,7 +194,7 @@ class ServiceBasePlugin(BaseReportPlugin):
         )
         return total_cost
 
-    def usages(self, service, start, end, ventures, forecast=False, **kwargs):
+    def costs(self, service, start, end, ventures, forecast=False, **kwargs):
         """
         Calculates usages and costs of service usages per venture.
 
