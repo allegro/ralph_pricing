@@ -15,7 +15,6 @@ from mptt.forms import TreeNodeChoiceField
 
 from ralph.ui.widgets import DateWidget
 from ralph_pricing.models import (
-    Statement,
     ExtraCost,
     TeamDaterange,
     TeamVenturePercent,
@@ -24,29 +23,6 @@ from ralph_pricing.models import (
     Venture,
 )
 from ralph_pricing.utils import ranges_overlap
-
-
-class StatementForm(forms.ModelForm):
-    class Meta:
-        model = Statement
-        fields = 'forecast', 'is_active', 'start', 'end'
-        widgets = {
-            'start': DateWidget(attrs={'class': 'input-small'}),
-            'end': DateWidget(attrs={'class': 'input-small'}),
-        }
-
-class StatementBaseFormSet(forms.models.BaseModelFormSet):
-    def clean(self):
-        if any(self.errors):
-            return
-
-
-StatementFormSet = forms.models.modelformset_factory(
-    Statement,
-    form=StatementForm,
-    formset=StatementBaseFormSet,
-    can_delete=True,
-)
 
 
 class ExtraCostForm(forms.ModelForm):

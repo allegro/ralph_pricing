@@ -112,13 +112,11 @@ class Report(Base):
                 "Statement for this report already exist!",
             )
         except Statement.DoesNotExist:
-            for i, header in enumerate(self.header):
-                for k, field in enumerate(header):
-                    self.header[i][k] = [unicode(field)]
-            for i, data in enumerate(self.data):
-                for k, field in enumerate(data):
-                    self.data[i][k] = unicode(field)
-
+            self.header = self._convert_to_unicode(
+                self.header,
+                lambda x: [unicode(x)],
+            )
+            self.data = self._convert_to_unicode(self.data, unicode)
             statement = Statement.objects.create(
                 start=self.form.cleaned_data['start'],
                 end=self.form.cleaned_data['end'],
@@ -132,6 +130,12 @@ class Report(Base):
                 self.request,
                 "Statement has been created!",
             )
+
+    def _convert_to_unicode(self, data, unicode_func):
+        for i, row in enumerate(data):
+            for k, field in enumerate(row):
+                data[i][k] = unicode_func(field)
+        return data
 
     def get_context_data(self, **kwargs):
         context = super(Report, self).get_context_data(**kwargs)
