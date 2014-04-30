@@ -34,7 +34,7 @@ def get_usages_count_price(
     warehouse_id=None,
     forecast=False
 ):
-    '''
+    """
     Generate count and price from te DayliUsage query
 
     :param object query: DailyUsage query
@@ -44,7 +44,7 @@ def get_usages_count_price(
     :param boolean forecast: Information about use forecast or real price
     :returns tuple: count and price
     :rtype tuple:
-    '''
+    """
     days = (end - start).days + 1
     count = 0
     price = D(0)
@@ -187,6 +187,9 @@ class TeamVenturePercent(db.Model):
 
 
 class Statement(db.Model):
+    """
+    Model contains statements
+    """
     start = db.DateField()
     end = db.DateField()
 

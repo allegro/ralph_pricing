@@ -15,16 +15,16 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.app import Scrooge
-from ralph_pricing.forms import ExtraCostFormSet
-from ralph_pricing.menus import ventures_menu, statement_menu
+from ralph_pricing.menus import statement_menu
 from ralph_pricing.models import Venture, Statement
 from ralph_pricing.views.base import Base
-from ralph_pricing.forms import DateRangeForm
 
 
 class Statements(Base):
+    """
+    Statement view with generate to csv option.
+    """
     template_name = 'ralph_pricing/statement.html'
-    Form = DateRangeForm
     section = 'all-ventures-statement'
 
     def __init__(self, *args, **kwargs):
@@ -35,6 +35,10 @@ class Statements(Base):
         self.data = None
 
     def init_args(self):
+        """
+        Init statement class field when given statement_id and statement with
+        given id exist.
+        """
         self.statement_id = self.kwargs.get('statement_id')
         if self.statement_id is not None:
             try:
@@ -45,6 +49,10 @@ class Statements(Base):
                 )
 
     def get(self, *args, **kwargs):
+        """
+        If statement exist then set header and data of current statement.
+        Generate csv from current statement.
+        """
         self.init_args()
         if self.statement:
             self.header = json.loads(self.statement.header)
@@ -58,6 +66,9 @@ class Statements(Base):
         return super(Statements, self).get(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        """
+        Generate submenu for statements with active row.
+        """
         context = super(Statements, self).get_context_data(**kwargs)
         context.update({
             'data': self.data,
@@ -67,7 +78,6 @@ class Statements(Base):
                 '/{0}/statement'.format(Scrooge.url_prefix),
                 self.statement_id
             ),
-            'sidebar_selected': self.statement_id,
-            'form': DateRangeForm()
+            'sidebar_selected': str(self.statement),
         })
         return context

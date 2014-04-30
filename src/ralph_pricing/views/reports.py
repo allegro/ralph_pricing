@@ -11,6 +11,7 @@ import json
 
 from django.conf import settings
 from django.core.cache import get_cache
+from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
@@ -94,12 +95,15 @@ class Report(Base):
                 else:
                     messages.warning(
                         self.request,
-                        "Please wait for the report "
-                        "to finish calculating.",
+                        _("Please wait for the report "
+                          "to finish calculating."),
                     )
         return super(Report, self).get(*args, **kwargs)
 
     def _create_statement(self):
+        """
+        Create statement from current report. Distinguishes different params.
+        """
         try:
             Statement.objects.get(
                 start=self.form.cleaned_data['start'],
@@ -109,14 +113,14 @@ class Report(Base):
             )
             messages.error(
                 self.request,
-                "Statement for this report already exist!",
+                _("Statement for this report already exist!"),
             )
         except Statement.DoesNotExist:
-            self.header = self._convert_to_unicode(
+            self.header = self._convert_fields_to(
                 self.header,
                 lambda x: [unicode(x)],
             )
-            self.data = self._convert_to_unicode(self.data, unicode)
+            self.data = self._convert_fields_to(self.data, unicode)
             statement = Statement.objects.create(
                 start=self.form.cleaned_data['start'],
                 end=self.form.cleaned_data['end'],
@@ -128,10 +132,18 @@ class Report(Base):
             statement.save()
             messages.info(
                 self.request,
-                "Statement has been created!",
+                _("Statement has been created!"),
             )
 
-    def _convert_to_unicode(self, data, unicode_func):
+    def _convert_fields_to(self, data, unicode_func):
+        """
+        Convert each of fields to another format by using given function
+
+        :param list data: list of dicts or lists. For example headers
+        :param function unicode_func: function to converting each field
+        :returns list: The same list as in beginning with converted fields
+        :rtype list:
+        """
         for i, row in enumerate(data):
             for k, field in enumerate(row):
                 data[i][k] = unicode_func(field)
