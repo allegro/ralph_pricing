@@ -36,6 +36,7 @@ def currency(value):
 
     return '{:,.2f} {}'.format(value or 0, settings.CURRENCY).replace(',', ' ')
 
+
 def _get_cache_key(section, **kwargs):
     return b'{}?{}'.format(section, urllib.urlencode(kwargs))
 

@@ -55,7 +55,11 @@ def statement_menu(href='', selected=None):
     :returns list: list of menu items
     :rtype list:
     """
-    statements = Statement.objects.all().order_by('forecast','-is_active', 'start')
+    statements = Statement.objects.all().order_by(
+        'forecast',
+        '-is_active',
+        'start',
+    )
     items = [
         MenuItem(
             str(statement),

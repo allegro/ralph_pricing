@@ -9,14 +9,12 @@ import itertools
 import json
 
 from bob.csvutil import make_csv_response
-from django.shortcuts import get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.app import Scrooge
 from ralph_pricing.menus import statement_menu
-from ralph_pricing.models import Venture, Statement
+from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
 
 
@@ -45,7 +43,7 @@ class Statements(Base):
                 self.statement = Statement.objects.get(id=self.statement_id)
             except Statement.DoesNotExist:
                 messages.error(
-                    self.request, "Statement does not exist!",
+                    self.request, _("Statement does not exist!"),
                 )
 
     def get(self, *args, **kwargs):
