@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 from bob.menu import MenuItem
 
-from ralph_pricing.models import Team, Venture, UsageType
+from ralph_pricing.models import Team, Venture, UsageType, Statement
 
 
 def ventures_menu(href='', selected=None):
@@ -36,6 +36,20 @@ def ventures_menu(href='', selected=None):
                     item.kwargs['collapsed'] = False
                     item = item.parent
     return top_items
+
+
+def statement_menu(href='', selected=None):
+    statements = Statement.objects.all().order_by('forecast','-is_active', 'start')
+    items = [
+        MenuItem(
+            str(statement),
+            name=str(statement),
+            subitems=[],
+            fugue_icon='fugue-beaker',
+            href='{}/{}/'.format(href, statement.id),
+        ) for statement in statements
+    ]
+    return items
 
 
 def usages_menu(href='', selected=None):

@@ -1,0 +1,40 @@
+{% extends "ralph_pricing/base.html" %}
+{% load url from future %}
+{% load icons %}
+{% load formats %}
+{% load bob %}
+
+{% block content %}
+
+<form class="form form-inline daterange-form">
+    <div class="btn-toolbar">
+        <button type="submit" class="btn" name="format" value="csv">{% spaceless %}
+            {% icon 'fugue-document-excel-csv' %}&nbsp;Download CSV
+            {% endspaceless %}</button>
+    </div>
+</form>
+<table class="table table-striped table-bordered table-condensed report">
+    <thead>
+        {% for row in header %}
+        <tr>
+            {% for column, opt in row %}
+                <th
+                    {% for attr_name, attr_value in opt.items %}
+                        {{ attr_name }}="{{ attr_value }}"
+                    {% endfor %}
+                >{{ column }}</th>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </thead>
+    {% for row in data %}
+        <tr>
+            {% for value in row %}
+            <td
+                {% if forloop.counter > 3 %}style="text-align:right"{% endif %}
+            >{{ value }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+{% endblock content %}

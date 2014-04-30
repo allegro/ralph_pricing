@@ -53,6 +53,12 @@ MAIN_MENU = [
         fugue_icon='fugue-users',
         view_name='teams',
     ),
+    MenuItem(
+        _("Statement"),
+        name='statement',
+        fugue_icon='fugue-clock-history',
+        view_name='statement',
+    ),
 ]
 
 

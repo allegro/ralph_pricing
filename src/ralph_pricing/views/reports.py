@@ -7,10 +7,12 @@ from __future__ import unicode_literals
 
 import itertools
 import urllib
+import json
 
 from django.conf import settings
 from django.core.cache import get_cache
 
+from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
 from bob.csvutil import make_csv_response
 import django_rq
@@ -32,7 +34,6 @@ def currency(value):
     """Formats currency as string according to the settings."""
 
     return '{:,.2f} {}'.format(value or 0, settings.CURRENCY).replace(',', ' ')
-
 
 def _get_cache_key(section, **kwargs):
     return b'{}?{}'.format(section, urllib.urlencode(kwargs))
@@ -78,22 +79,59 @@ class Report(Base):
                 self.progress, self.header, self.data = self._get_cached(
                     **self.form.cleaned_data
                 )
-                self._format_header()
 
-                if get.get('format', '').lower() == 'csv':
-                    self._format_csv_header()
-                    if self.progress == 100:
+                if self.progress == 100:
+                    self._format_header()
+                    if get.get('format', '').lower() == 'csv':
+                        self._format_csv_header()
                         return make_csv_response(
                             itertools.chain(self.header, self.data),
                             '{}.csv'.format(self.section),
                         )
-                    else:
-                        messages.warning(
-                            self.request,
-                            "Please wait for the report "
-                            "to finish calculating.",
-                        )
+                    if get.get('format', '').lower() == 'statement':
+                        self._format_csv_header()
+                        self._create_statement()
+                else:
+                    messages.warning(
+                        self.request,
+                        "Please wait for the report "
+                        "to finish calculating.",
+                    )
         return super(Report, self).get(*args, **kwargs)
+
+    def _create_statement(self):
+        try:
+            Statement.objects.get(
+                start=self.form.cleaned_data['start'],
+                end=self.form.cleaned_data['end'],
+                forecast=self.form.cleaned_data['forecast'],
+                is_active=self.form.cleaned_data['is_active'],
+            )
+            messages.error(
+                self.request,
+                "Statement for this report already exist!",
+            )
+        except Statement.DoesNotExist:
+            for i, header in enumerate(self.header):
+                for k, field in enumerate(header):
+                    self.header[i][k] = [unicode(field)]
+            for i, data in enumerate(self.data):
+                for k, field in enumerate(data):
+                    self.data[i][k] = unicode(field)
+
+            statement = Statement.objects.create(
+                start=self.form.cleaned_data['start'],
+                end=self.form.cleaned_data['end'],
+                forecast=self.form.cleaned_data['forecast'],
+                is_active=self.form.cleaned_data['is_active'],
+                header=json.dumps(self.header),
+                data=json.dumps(self.data)
+            )
+            statement.save()
+            messages.info(
+                self.request,
+                "Statement has been created!",
+            )
 
     def get_context_data(self, **kwargs):
         context = super(Report, self).get_context_data(**kwargs)
