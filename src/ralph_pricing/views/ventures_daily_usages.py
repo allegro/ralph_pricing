@@ -221,6 +221,6 @@ class VenturesDailyUsages(Report):
             usage_types_headers.append(usage_type_header)
 
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            header[0].append((day.date(), {'colspan': 2}))
+            header[0].append((day.date(), {'colspan': len(usage_types)}))
             header[1].extend(usage_types_headers)
         return header
