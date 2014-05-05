@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
             ('end', self.gf('django.db.models.fields.DateField')()),
             ('header', self.gf('django.db.models.fields.TextField')()),
             ('data', self.gf('django.db.models.fields.TextField')()),
-            ('forecast', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6)),
+            ('forecast', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('is_active', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal('ralph_pricing', ['Statement'])
@@ -193,7 +193,7 @@ class Migration(SchemaMigration):
             'Meta': {'unique_together': "((u'start', u'end', u'forecast', u'is_active'),)", 'object_name': 'Statement'},
             'data': ('django.db.models.fields.TextField', [], {}),
             'end': ('django.db.models.fields.DateField', [], {}),
-            'forecast': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
+            'forecast': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'header': ('django.db.models.fields.TextField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),

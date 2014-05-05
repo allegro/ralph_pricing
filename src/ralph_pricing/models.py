@@ -205,9 +205,7 @@ class Statement(db.Model):
         null=False,
     )
 
-    forecast = db.DecimalField(
-        max_digits=PRICE_DIGITS,
-        decimal_places=PRICE_PLACES,
+    forecast = db.BooleanField(
         verbose_name=_("Forecast price"),
         default=0,
     )
