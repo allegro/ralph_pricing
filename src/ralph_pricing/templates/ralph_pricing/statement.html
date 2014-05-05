@@ -6,6 +6,7 @@
 
 {% block content %}
 
+{% if data and header %}
 <form class="form form-inline daterange-form">
     <div class="btn-toolbar">
         <button type="submit" class="btn" name="format" value="csv">{% spaceless %}
@@ -37,4 +38,5 @@
         </tr>
     {% endfor %}
 </table>
+{% endif %}
 {% endblock content %}
