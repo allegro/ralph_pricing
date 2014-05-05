@@ -402,6 +402,9 @@ class Device(db.Model):
     device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
+        null=True,
+        blank=True,
+        default=None,
     )
     asset_id = db.IntegerField(
         verbose_name=_("asset id"),
@@ -419,7 +422,11 @@ class Device(db.Model):
         verbose_name_plural = _("devices")
 
     def __unicode__(self):
-        return '{} - {}'.format(self.name, self.device_id)
+        return '{} - {} / {}'.format(
+            self.name,
+            self.asset_id,
+            self.device_id,
+        )
 
     def get_deprecated_status(self, start, end, venture):
         query = self.dailydevice_set.filter(
