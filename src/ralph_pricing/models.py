@@ -34,7 +34,7 @@ def get_usages_count_price(
     warehouse_id=None,
     forecast=False
 ):
-    '''
+    """
     Generate count and price from te DayliUsage query
 
     :param object query: DailyUsage query
@@ -44,7 +44,7 @@ def get_usages_count_price(
     :param boolean forecast: Information about use forecast or real price
     :returns tuple: count and price
     :rtype tuple:
-    '''
+    """
     days = (end - start).days + 1
     count = 0
     price = D(0)
@@ -184,6 +184,49 @@ class TeamVenturePercent(db.Model):
             self.team_daterange.start,
             self.team_daterange.end,
         )
+
+
+class Statement(db.Model):
+    """
+    Model contains statements
+    """
+    start = db.DateField()
+    end = db.DateField()
+
+    header = db.TextField(
+        verbose_name=_("Report header"),
+        blank=False,
+        null=False,
+    )
+
+    data = db.TextField(
+        verbose_name=_("Report data"),
+        blank=False,
+        null=False,
+    )
+
+    forecast = db.BooleanField(
+        verbose_name=_("Forecast price"),
+        default=0,
+    )
+
+    is_active = db.BooleanField(
+        verbose_name=_("Show only active"),
+        default=False,
+    )
+
+    class Meta:
+        verbose_name = _("Statement")
+        verbose_name_plural = _("Statement")
+        unique_together = ('start', 'end', 'forecast', 'is_active')
+
+    def __unicode__(self):
+        string = '{} - {}'.format(self.start, self.end)
+        if self.forecast or self.is_active:
+            flags = ['forecast'] if self.forecast else []
+            flags = flags + ['active'] if self.is_active else flags
+            string = '{} ({})'.format(string, ",".join(flags))
+        return string
 
 
 class UsageType(db.Model):
