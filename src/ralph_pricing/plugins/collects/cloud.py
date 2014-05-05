@@ -37,13 +37,13 @@ def set_cloud_daily_costs(data, date, usage_type):
             'Venture with id {} does not exist'.format(data['venture_id'])
         )
         if settings.CLOUD_UNKNOWN_VENTURE:
-            logger.warning('Using {} venture instead'.format(
-                settings.CLOUD_UNKNOWN_VENTURE
-            ))
             try:
                 venture = Venture.objects.get(
                     symbol=settings.CLOUD_UNKNOWN_VENTURE
                 )
+                logger.warning('Using {} venture instead'.format(
+                    settings.CLOUD_UNKNOWN_VENTURE
+                ))
             except Venture.DoesNotExist:
                 return False
         else:
