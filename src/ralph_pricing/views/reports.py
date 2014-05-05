@@ -91,7 +91,7 @@ class Report(Base):
                             '{}.csv'.format(self.section),
                         )
                     if get.get('format', '').lower() == 'statement':
-                        self._format_csv_header()
+                        self._format_statement_header()
                         self._create_statement()
                 else:
                     messages.warning(
@@ -101,39 +101,39 @@ class Report(Base):
                     )
         return super(Report, self).get(*args, **kwargs)
 
+    def _format_statement_header(self):
+        """
+        Format statement header rows.
+        """
+        self.header = self._convert_fields_to(
+            self.header,
+            lambda x: (unicode(x[0]), x[1]),
+        )
+        self.data = self._convert_fields_to(self.data, unicode)
+
     def _create_statement(self):
         """
         Create statement from current report. Distinguishes different params.
         """
-        try:
-            Statement.objects.get(
-                start=self.form.cleaned_data['start'],
-                end=self.form.cleaned_data['end'],
-                forecast=self.form.cleaned_data['forecast'],
-                is_active=self.form.cleaned_data['is_active'],
-            )
-            messages.error(
-                self.request,
-                _("Statement for this report already exist!"),
-            )
-        except Statement.DoesNotExist:
-            self.header = self._convert_fields_to(
-                self.header,
-                lambda x: [unicode(x)],
-            )
-            self.data = self._convert_fields_to(self.data, unicode)
-            statement = Statement.objects.create(
-                start=self.form.cleaned_data['start'],
-                end=self.form.cleaned_data['end'],
-                forecast=self.form.cleaned_data['forecast'],
-                is_active=self.form.cleaned_data['is_active'],
+        usage_type, created = Statement.objects.get_or_create(
+            start=self.form.cleaned_data['start'],
+            end=self.form.cleaned_data['end'],
+            forecast=self.form.cleaned_data['forecast'],
+            is_active=self.form.cleaned_data['is_active'],
+            defaults=dict(
                 header=json.dumps(self.header),
-                data=json.dumps(self.data)
+                data=json.dumps(self.data),
             )
-            statement.save()
+        )
+        if created:
             messages.info(
                 self.request,
                 _("Statement has been created!"),
+            )
+        else:
+            messages.error(
+                self.request,
+                _("Statement for this report already exist!"),
             )
 
     def _convert_fields_to(self, data, unicode_func):
