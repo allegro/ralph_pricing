@@ -140,7 +140,13 @@ class ServiceBasePlugin(BaseReportPlugin):
         service,
     ):
         """
-        Calculates cost of dependent services used by service.
+        Calculates total cost of extra costs for given service.
+
+        :param datatime start: Begin of time interval
+        :param datatime end: End of time interval
+        :param list ventures: List of ventures
+        :returns decimal: price
+        :rtype decimal:
         """
         try:
             return plugin_runner.run(

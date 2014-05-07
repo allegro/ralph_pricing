@@ -26,12 +26,19 @@ from ralph_pricing.utils import ranges_overlap
 
 
 class ExtraCostForm(forms.ModelForm):
+    """
+    Used by factory to create ExtraCostFormSet. Contain basic form infromation
+    like fields.
+    """
     class Meta:
         model = ExtraCost
         fields = 'type', 'price'
 
 
 class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
+    """
+    Used by factory to create ExtraCostFormSet. Contains validation.
+    """
     def clean(self):
         if any(self.errors):
             return
@@ -116,10 +123,10 @@ class UsagePriceForm(forms.ModelForm):
 
 
 class UsagesBaseFormSet(forms.models.BaseModelFormSet):
-    '''
+    """
     Used by factory to create UsagesFormSet. Contains rules to validate
     unique and correct data for each type of usage
-    '''
+    """
     def clean(self):
         if any(self.errors):
             return
@@ -323,7 +330,7 @@ class DateRangeVentureForm(DateRangeForm):
 
 
 class VenturesDailyUsagesForm(forms.Form):
-    '''Form schema. Used to generate venture daily usages reports'''
+    """Form schema. Used to generate venture daily usages reports"""
     start = forms.DateField(
         widget=DateWidget(
             attrs={'class': 'input-small'},

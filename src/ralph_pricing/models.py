@@ -332,7 +332,7 @@ class UsageType(db.Model):
         return D(cost / total_usage / ((usage.end - usage.start).days + 1))
 
     def get_price_at(self, date, warehouse_id, forecast):
-        '''
+        """
         Get price for the specified warehouse for the given day
 
         :param datetime date: Day for which the price will be returned
@@ -340,7 +340,7 @@ class UsageType(db.Model):
         :param boolean forecast: Information about use forecast or real price
         :returns decimal: price
         :rtype decimal:
-        '''
+        """
         usage = self.usageprice_set.get(
             start__lte=date,
             end__gte=date,
@@ -1116,6 +1116,9 @@ class DailyUsage(db.Model):
 
 
 class ExtraCostType(db.Model):
+    """
+    Contains all type of extra costs like license or call center.
+    """
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
 
     class Meta:
@@ -1125,11 +1128,14 @@ class ExtraCostType(db.Model):
     def __unicode__(self):
         return self.name
 
-    def get_cost_at(self, date):
-        return 1  # XXX
-
 
 class ExtraCost(db.Model):
+    """
+    Contains information about cost of extra cost types per venture.
+    This is a static value without any time interval becouse this
+    value (cost) is accumulate each day by collect plugin in
+    DailyExtraCost model.
+    """
     type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
     price = db.DecimalField(
         max_digits=PRICE_DIGITS,
@@ -1166,12 +1172,12 @@ class ExtraCost(db.Model):
 
 class DailyExtraCost(db.Model):
     """
-    DailyExtraCost model contains cost for each venture.
+    DailyExtraCost model contains cost per venture for each day.
     """
     date = db.DateTimeField()
     pricing_venture = db.ForeignKey(
         Venture,
-        verbose_name=_("venture"),
+        verbose_name=_("pricing venture"),
         null=False,
         blank=False,
     )
