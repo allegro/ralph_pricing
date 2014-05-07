@@ -176,7 +176,6 @@ class TestPrices(TestCase):
         self.assertIsNone(price)
 
     def test_extra_costs(self):
-        day = datetime.date(2013, 4, 25)
         venture = models.Venture(venture_id=3)
         venture.save()
         extra_cost_type = models.ExtraCostType(name='waciki')

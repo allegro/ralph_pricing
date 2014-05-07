@@ -673,7 +673,6 @@ class Venture(MPTTModel):
         :returns decimal: price
         :rtype decimal:
         """
-        price = D('0')
         query = ExtraCost.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
         return query[0].price
