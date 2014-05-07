@@ -1144,6 +1144,13 @@ class ExtraCost(db.Model):
         null=False,
         blank=False,
     )
+    pricing_device = db.ForeignKey(
+        Device,
+        verbose_name=_("pricing device"),
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     class Meta:
         verbose_name = _("extra cost")
@@ -1159,7 +1166,7 @@ class ExtraCost(db.Model):
 
 class DailyExtraCost(db.Model):
     """
-    DailyExtraCost model contains cost for each venture saved every day
+    DailyExtraCost model contains cost for each venture.
     """
     date = db.DateTimeField()
     pricing_venture = db.ForeignKey(

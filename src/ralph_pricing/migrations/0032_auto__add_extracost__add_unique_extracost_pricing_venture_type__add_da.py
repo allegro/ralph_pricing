@@ -14,6 +14,7 @@ class Migration(SchemaMigration):
             ('type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.ExtraCostType'])),
             ('price', self.gf('django.db.models.fields.DecimalField')(max_digits=16, decimal_places=6)),
             ('pricing_venture', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Venture'])),
+            ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Device'], null=True, blank=True)),
         ))
         db.send_create_signal('ralph_pricing', ['ExtraCost'])
 
@@ -173,6 +174,7 @@ class Migration(SchemaMigration):
             'Meta': {'unique_together': "[(u'pricing_venture', u'type')]", 'object_name': 'ExtraCost'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
+            'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'blank': 'True'}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Venture']"}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.ExtraCostType']"})
         },
