@@ -5,22 +5,20 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import datetime
-import decimal
 from calendar import monthrange
 
-from ralph.util import plugin, api_pricing
-from ralph_pricing.models import ExtraCost, Venture, DailyExtraCost
+from ralph.util import plugin
+from ralph_pricing.models import ExtraCost, DailyExtraCost
 
 
 def update_extra_cost(data, date):
     """
-    Create daily imprint from given data. 
+    Create daily imprint from given data.
 
     :param datetime date: Date for which imprint will be created
     :param dict data: Dict with data from ExtraCost.
     :returns boolean: Information about succest get/create imprints
-    :rtype :
+    :rtype:
     """
     daily_extra_cost, created = DailyExtraCost.objects.get_or_create(
         date=date,

@@ -8,11 +8,19 @@ from __future__ import unicode_literals
 from django.test import TestCase
 
 
-class TestExtraCostCollectPlugin(TestCase):
-    def update_extra_cost(self):
+class TestExtraCostReportPlugin(TestCase):
+    def test_get_extra_costs(self):
         # TODO
         pass
 
-    def extracost(self):
+    def test_costs(self):
+        # TODO
+        pass
+
+    def test_schema(self):
+        # TODO
+        pass
+
+    def test_total_cost(self):
         # TODO
         pass

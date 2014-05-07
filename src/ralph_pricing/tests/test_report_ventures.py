@@ -65,6 +65,7 @@ class TestReportVenturesBeta(TestCase):
         Test plugins list based on visible usage types
         """
         plugins = AllVentures._get_plugins()
+        self.maxDiff = None
         self.assertEquals(plugins, [
             dict(name='Information', plugin_name='information'),
             dict(
@@ -90,6 +91,7 @@ class TestReportVenturesBeta(TestCase):
                     service=self.service,
                 ),
             ),
+            dict(name='ExtraCostsPlugin', plugin_name='extra_cost_plugin'),
         ])
 
     def test_prepare_field_value_in_venture_data(self):

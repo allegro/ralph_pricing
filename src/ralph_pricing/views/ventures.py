@@ -127,20 +127,23 @@ class AllVentures(Report):
     @memoize
     def _get_plugins(cls):
         """
-        Returns list of plugins to call, with information about each, such as
-        name and arguments
+        Returns list of plugins to call, with information and extra cost about
+        each, such as name and arguments
         """
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
         ]
         extra_cost_plugins = [
-            AttributeDict(name='ExtraCostsPlugin', plugin_name='extra_cost_plugin'),
+            AttributeDict(
+                name='ExtraCostsPlugin',
+                plugin_name='extra_cost_plugin',
+            ),
         ]
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
         services_plugins = cls._get_services_plugins()
         plugins = (base_plugins + base_usage_types_plugins +
-                   regular_usage_types_plugins + services_plugins + 
+                   regular_usage_types_plugins + services_plugins +
                    extra_cost_plugins)
         return plugins
 

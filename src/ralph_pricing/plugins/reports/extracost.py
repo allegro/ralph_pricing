@@ -10,7 +10,6 @@ from collections import OrderedDict, defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum
-from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.models import ExtraCostType, DailyExtraCost
 from ralph_pricing.plugins.base import register
@@ -65,7 +64,7 @@ class ExtraCostPlugin(BaseReportPlugin):
             kwargs['ventures'],
         )
 
-        usages = defaultdict(lambda : defaultdict(int))
+        usages = defaultdict(lambda: defaultdict(int))
         for extra_cost in extra_costs:
             venture_id = extra_cost.pricing_venture.id
             usages[venture_id][extra_cost.type.name] += extra_cost.value

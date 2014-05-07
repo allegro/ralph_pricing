@@ -662,8 +662,8 @@ class Venture(MPTTModel):
             forecast,
         )
 
-    def get_extra_costs(self, start, end, type_, descendants=False):
-        '''
+    def get_extra_costs(self, type_, descendants=False):
+        """
         The filter part of get count and price single type of usage
 
         :param datetime start: Start of the time interval
@@ -672,14 +672,11 @@ class Venture(MPTTModel):
                              count will be returned
         :returns decimal: price
         :rtype decimal:
-        '''
+        """
         price = D('0')
         query = ExtraCost.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            extras = query.filter(start__lte=day, end__gte=day)
-            price += extras.aggregate(db.Sum('price'))['price__sum'] or 0
-        return price
+        return query[0].price
 
     def get_extracost_details(self, start, end):
         extracost = ExtraCost.objects.filter(

@@ -368,6 +368,7 @@ class TestServicePlugin(TestCase):
 
     def test_get_service_extra_cost(self):
         # TODO
+        pass
 
     def test_get_service_base_usage_types_cost(self):
         result = ServicePlugin._get_service_base_usage_types_cost(
@@ -531,3 +532,7 @@ class TestServicePlugin(TestCase):
                 'total_cost': True,
             }),
         ]))
+
+    def test_total_cost(self):
+        # TODO
+        pass
