@@ -367,6 +367,9 @@ class TestServicePlugin(TestCase):
             },
         })
 
+    def test_get_service_extra_cost(self):
+        self.assertEquals(1, 2)
+
     def test_get_service_base_usage_types_cost(self):
         result = ServicePlugin._get_service_base_usage_types_cost(
             start=datetime.date(2013, 10, 10),

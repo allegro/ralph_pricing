@@ -133,11 +133,15 @@ class AllVentures(Report):
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
         ]
+        extra_cost_plugins = [
+            AttributeDict(name='ExtraCostsPlugin', plugin_name='extra_cost_plugin'),
+        ]
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
         services_plugins = cls._get_services_plugins()
-        plugins = (base_plugins + base_usage_types_plugins +
-                   regular_usage_types_plugins + services_plugins)
+        plugins = (base_plugins + extra_cost_plugins +
+                   base_usage_types_plugins + regular_usage_types_plugins +
+                   services_plugins)
         return plugins
 
     @classmethod

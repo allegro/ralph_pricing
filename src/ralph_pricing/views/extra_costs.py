@@ -35,7 +35,7 @@ class ExtraCosts(Base):
         if self.venture:
             self.formset = ExtraCostFormSet(
                 self.request.POST,
-                queryset=self.venture.extracost_set.order_by('start', 'type'),
+                queryset=self.venture.extracost_set.order_by('type'),
             )
             if self.formset.is_valid():
                 for form in self.formset.extra_forms:
@@ -52,7 +52,7 @@ class ExtraCosts(Base):
         self.init_args()
         if self.venture:
             self.formset = ExtraCostFormSet(
-                queryset=self.venture.extracost_set.order_by('start', 'type'),
+                queryset=self.venture.extracost_set.order_by('type'),
             )
         return super(ExtraCosts, self).get(*args, **kwargs)
 

@@ -1130,28 +1130,70 @@ class ExtraCostType(db.Model):
 
 
 class ExtraCost(db.Model):
-    start = db.DateField()
-    end = db.DateField()
     type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
     price = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("price"),
+        null=False,
+        blank=False,
     )
-    pricing_venture = db.ForeignKey(Venture, verbose_name=_("venture"))
+    pricing_venture = db.ForeignKey(
+        Venture,
+        verbose_name=_("venture"),
+        null=False,
+        blank=False,
+    )
 
     class Meta:
         verbose_name = _("extra cost")
         verbose_name_plural = _("extra costs")
-        unique_together = [
-            ('start', 'pricing_venture', 'type'),
-            ('end', 'pricing_venture', 'type'),
-        ]
+        unique_together = [('pricing_venture', 'type')]
 
     def __unicode__(self):
-        return '{}/{} ({} - {})'.format(
+        return '{} - {}'.format(
             self.pricing_venture,
             self.type,
-            self.start,
-            self.end,
+        )
+
+
+class DailyExtraCost(db.Model):
+    """
+    DailyExtraCost model contains cost for each venture saved every day
+    """
+    date = db.DateTimeField()
+    pricing_venture = db.ForeignKey(
+        Venture,
+        verbose_name=_("venture"),
+        null=False,
+        blank=False,
+    )
+    pricing_device = db.ForeignKey(
+        Device,
+        verbose_name=_("pricing device"),
+        null=True,
+        blank=True,
+        default=None,
+    )
+    value = db.FloatField(verbose_name=_("value"), default=0)
+    type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
+    remarks = db.TextField(
+        verbose_name=_("Remarks"),
+        help_text=_("Additional information."),
+        blank=True,
+        default="",
+    )
+
+    class Meta:
+        verbose_name = _("daily extra costs")
+        verbose_name_plural = _("daily extra costs")
+        unique_together = ('date', 'pricing_device', 'type', 'pricing_venture')
+        ordering = ('date', 'type', 'pricing_venture')
+
+    def __unicode__(self):
+        return '{0} {1} ({2}) {3}'.format(
+            self.pricing_venture,
+            self.type,
+            self.date,
+            self.value,
         )
