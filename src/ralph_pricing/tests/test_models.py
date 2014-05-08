@@ -82,14 +82,14 @@ class TestModels(TestCase):
         venture.save()
         cost = models.ExtraCost(
             type=type_,
-            price=3,
+            monthly_cost=3,
             pricing_venture=venture,
         )
         cost.save()
         self.assertEquals(type_.name, 'ziew')
         self.assertEquals(venture.venture_id, 3)
         self.assertEquals(cost.type, type_)
-        self.assertEquals(cost.price, 3)
+        self.assertEquals(cost.monthly_cost, 3)
         self.assertEquals(cost.pricing_venture, venture)
 
 
@@ -183,8 +183,8 @@ class TestPrices(TestCase):
         extra_cost = models.ExtraCost(
             pricing_venture=venture,
             type=extra_cost_type,
-            price='65535',
+            monthly_cost='65535',
         )
         extra_cost.save()
-        price = venture.get_extra_costs(extra_cost_type)
-        self.assertEqual(price, decimal.Decimal('65535'))
+        monthly_cost = venture.get_extra_costs(extra_cost_type)
+        self.assertEqual(monthly_cost, decimal.Decimal('65535'))

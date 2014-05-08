@@ -682,7 +682,7 @@ class Venture(MPTTModel):
         """
         query = ExtraCost.objects.filter(type=type_)
         query = self._by_venture(query, descendants)
-        return query[0].price
+        return query[0].monthly_cost
 
     def get_extracost_details(self, start, end):
         extracost = ExtraCost.objects.filter(
@@ -1140,7 +1140,7 @@ class ExtraCost(db.Model):
     DailyExtraCost model.
     """
     type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
-    price = db.DecimalField(
+    monthly_cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("monthly price"),
@@ -1177,7 +1177,7 @@ class DailyExtraCost(db.Model):
     """
     DailyExtraCost model contains cost per venture for each day.
     """
-    date = db.DateTimeField()
+    date = db.DateField()
     pricing_venture = db.ForeignKey(
         Venture,
         verbose_name=_("pricing venture"),

@@ -25,7 +25,9 @@ def update_extra_cost(data, date):
         pricing_venture=data.pricing_venture,
         type=data.type,
     )
-    daily_extra_cost.value = data.price/monthrange(date.year, date.month)[1]
+    daily_extra_cost.value = (
+        data.monthly_cost/monthrange(date.year, date.month)[1]
+    )
     daily_extra_cost.save()
     return created
 

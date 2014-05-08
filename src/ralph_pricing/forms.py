@@ -31,7 +31,7 @@ class ExtraCostForm(forms.ModelForm):
     """
     class Meta:
         model = ExtraCost
-        fields = 'type', 'price'
+        fields = 'type', 'monthly_cost'
 
 
 class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
