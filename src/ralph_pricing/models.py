@@ -1136,7 +1136,7 @@ class ExtraCost(db.Model):
     price = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
-        verbose_name=_("price"),
+        verbose_name=_("monthly price"),
         null=False,
         blank=False,
     )
