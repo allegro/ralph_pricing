@@ -67,6 +67,7 @@ class Scrooge(RalphModule):
             'NFSEN_FILES_PATH': '',
             'VIRTUAL_VENTURE_NAMES': {},
             'WARNINGS_LIMIT_FOR_USAGES': 40,
+            'CLOUD_UNKNOWN_VENTURE': None,
         }
         # workaround to not overwriting manually defined settings
         # check if setting is in global settings - if no, add default
