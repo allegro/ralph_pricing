@@ -25,6 +25,8 @@ class ExtraCostPlugin(BaseReportPlugin):
     Extra cost plugin, generate schema, total cost and cost from daily extra
     cost model.
     """
+    key_name = 'extra_cost_{}'
+
     def get_extra_costs(self, start, end, ventures):
         """
         Get daily extra costs for given dates and ventures
@@ -35,14 +37,13 @@ class ExtraCostPlugin(BaseReportPlugin):
         :returns dict: query with selected extra costs for give ventures
         :rtype dict:
         """
-        daily_extra_costs = DailyExtraCost.objects.filter(
+        return DailyExtraCost.objects.filter(
             date__gte=start,
             date__lte=end,
             pricing_venture__in=ventures,
-        )
-        return daily_extra_costs
+        ).values('pricing_venture', 'type').annotate(total_cost=Sum('value')) 
 
-    def costs(self, *args, **kwargs):
+    def costs(self, start, end, ventures, *args, **kwargs):
         """
         Return usages and costs for given ventures. Format of
         returned data looks like:
@@ -58,17 +59,17 @@ class ExtraCostPlugin(BaseReportPlugin):
         :returns dict: usages and costs
         """
         logger.debug("Get extra costs usages")
-        extra_costs = self.get_extra_costs(
-            kwargs['start'],
-            kwargs['end'],
-            kwargs['ventures'],
-        )
+        extra_costs = self.get_extra_costs(start, end, ventures)
 
         usages = defaultdict(lambda: defaultdict(int))
         for extra_cost in extra_costs:
-            venture_id = extra_cost.pricing_venture.id
-            usages[venture_id][extra_cost.type.name] += extra_cost.value
-            usages[venture_id]['extra_costs_total_cost'] += extra_cost.value
+            usages[extra_cost['pricing_venture']][self.key_name.format(extra_cost['type'])] += (
+                extra_cost['total_cost']
+            )
+            usages[extra_cost['pricing_venture']]['extra_costs_total_cost'] += (
+                extra_cost['total_cost']
+            )
+
         return usages
 
     def schema(self, *args, **kwargs):
@@ -90,7 +91,7 @@ class ExtraCostPlugin(BaseReportPlugin):
         logger.debug("Get extra costs schema")
         schema = OrderedDict()
         for extra_cost_type in ExtraCostType.objects.all():
-            schema[extra_cost_type.name] = {
+            schema[self.key_name.format(extra_cost_type.id)] = {
                 'name': extra_cost_type.name,
                 'currency': True,
             }
