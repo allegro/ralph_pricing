@@ -368,6 +368,8 @@ class Team(UsageBasePlugin):
                 for venture, count in count_per_venture.items():
                     if price_undefined:
                         result[venture][cost_key] = price_undefined
+                    elif not total:
+                        result[venture][cost_key] = D(0)
                     else:
                         result[venture][cost_key] += (
                             cost_part * D(count) / D(total)
