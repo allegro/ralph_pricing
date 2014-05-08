@@ -41,7 +41,7 @@ class ExtraCostPlugin(BaseReportPlugin):
             date__gte=start,
             date__lte=end,
             pricing_venture__in=ventures,
-        ).values('pricing_venture', 'type').annotate(total_cost=Sum('value')) 
+        ).values('pricing_venture', 'type').annotate(total_cost=Sum('value'))
 
     def costs(self, start, end, ventures, *args, **kwargs):
         """
@@ -63,10 +63,12 @@ class ExtraCostPlugin(BaseReportPlugin):
 
         usages = defaultdict(lambda: defaultdict(int))
         for extra_cost in extra_costs:
-            usages[extra_cost['pricing_venture']][self.key_name.format(extra_cost['type'])] += (
+            usages[extra_cost['pricing_venture']][
+                self.key_name.format(extra_cost['type'])
+            ] += (
                 extra_cost['total_cost']
             )
-            usages[extra_cost['pricing_venture']]['extra_costs_total_cost'] += (
+            usages[extra_cost['pricing_venture']]['extra_costs_total'] += (
                 extra_cost['total_cost']
             )
 
@@ -95,7 +97,7 @@ class ExtraCostPlugin(BaseReportPlugin):
                 'name': extra_cost_type.name,
                 'currency': True,
             }
-        schema['extra_costs_total_cost'] = {
+        schema['extra_costs_total'] = {
             'name': 'Extra Costs Total',
             'currency': True,
             'total_cost': True,
