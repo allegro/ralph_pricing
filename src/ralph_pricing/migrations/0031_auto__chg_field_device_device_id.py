@@ -6,6 +6,7 @@ from django.db import models
 
 
 class Migration(SchemaMigration):
+    no_dry_run = True
 
     def forwards(self, orm):
 
@@ -13,9 +14,9 @@ class Migration(SchemaMigration):
         db.alter_column('ralph_pricing_device', 'device_id', self.gf('django.db.models.fields.IntegerField')(unique=True, null=True))
 
     def backwards(self, orm):
-
-        # User chose to not deal with backwards NULL issues for 'Device.device_id'
-        raise RuntimeError("Cannot reverse this migration. 'Device.device_id' and its values cannot be restored.")
+        # remove all devices with null device_id
+        orm.Device.objects.filter(device_id__isnull=True).delete()
+        db.alter_column('ralph_pricing_device', 'device_id', self.gf('django.db.models.fields.IntegerField')(unique=True, null=False))
 
     models = {
         'account.profile': {
@@ -173,6 +174,16 @@ class Migration(SchemaMigration):
             'service': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Service']"}),
             'start': ('django.db.models.fields.DateField', [], {}),
             'usage_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'service_division'", 'to': "orm['ralph_pricing.UsageType']"})
+        },
+        'ralph_pricing.statement': {
+            'Meta': {'unique_together': "((u'start', u'end', u'forecast', u'is_active'),)", 'object_name': 'Statement'},
+            'data': ('django.db.models.fields.TextField', [], {}),
+            'end': ('django.db.models.fields.DateField', [], {}),
+            'forecast': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'header': ('django.db.models.fields.TextField', [], {}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'start': ('django.db.models.fields.DateField', [], {})
         },
         'ralph_pricing.team': {
             'Meta': {'object_name': 'Team'},
