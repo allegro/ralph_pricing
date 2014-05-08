@@ -112,9 +112,9 @@ class ExtraCostPlugin(BaseReportPlugin):
         :returns dict: total cost for given time period and ventures
         :rtype dict:
         """
-        extra_costs_query = self.get_extra_costs(
-            start,
-            end,
-            ventures,
-        ).aggregate(total_cost=Sum('value'))
-        return D(extra_costs_query['total_cost'] or 0)
+        extra_costs = self.get_extra_costs(start, end, ventures)
+        extra_costs_query = D(0)
+
+        for extra_cost in extra_costs:
+            extra_costs_query += extra_cost['total_cost']
+        return D(extra_costs_query)
