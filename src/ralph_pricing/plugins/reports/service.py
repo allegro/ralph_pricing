@@ -13,7 +13,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin as plugin_runner
 
-from ralph_pricing.models import Venture
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
@@ -137,7 +136,7 @@ class ServiceBasePlugin(BaseReportPlugin):
         self,
         start,
         end,
-        service,
+        ventures,
     ):
         """
         Calculates total cost of extra costs for given service.
@@ -155,7 +154,7 @@ class ServiceBasePlugin(BaseReportPlugin):
                 type='total_cost',
                 start=start,
                 end=end,
-                ventures=Venture.objects.filter(service=service),
+                ventures=ventures,
             )
         except (KeyError, AttributeError):
             logger.warning('Invalid call for total extra cost')
@@ -226,7 +225,7 @@ class ServiceBasePlugin(BaseReportPlugin):
         total_cost += self._get_service_extra_cost(
             start,
             end,
-            service,
+            venture_set.all(),
         )
         return total_cost
 
