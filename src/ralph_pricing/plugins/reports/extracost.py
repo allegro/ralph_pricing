@@ -116,5 +116,5 @@ class ExtraCostPlugin(BaseReportPlugin):
         """
         extra_costs_query = D(0)
         for extra_cost in self.get_extra_costs(start, end, ventures):
-            extra_costs_query += extra_cost['total_cost']
+            extra_costs_query += D(extra_cost['total_cost'])
         return D(extra_costs_query)

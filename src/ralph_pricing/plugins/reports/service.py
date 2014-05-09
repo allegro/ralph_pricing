@@ -225,7 +225,7 @@ class ServiceBasePlugin(BaseReportPlugin):
         total_cost += self._get_service_extra_cost(
             start,
             end,
-            venture_set.all(),
+            service.venture_set.all(),
         )
         return total_cost
 
