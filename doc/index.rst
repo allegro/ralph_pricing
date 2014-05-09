@@ -18,6 +18,7 @@ This documentation
    plugins
    costs
    api
+   statements
    changes
    license
 
