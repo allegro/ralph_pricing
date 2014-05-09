@@ -14,9 +14,11 @@ from ralph_pricing.views.devices import Devices
 from ralph_pricing.views.extra_costs import ExtraCosts
 from ralph_pricing.views.home import Home
 from ralph_pricing.views.usages import Usages
+from ralph_pricing.views.statement import Statements
 from ralph_pricing.views.teams import Teams
 from ralph_pricing.views.teams_percent import TeamsPercent
 from ralph_pricing.views.ventures import AllVentures
+from ralph_pricing.views.ventures_daily_usages import VenturesDailyUsages
 
 v09_api = Api(api_name='v0.9')
 for r in (ServiceUsageResource, ):
@@ -72,6 +74,11 @@ urlpatterns = patterns(
         name='all_ventures',
     ),
     url(
+        r'^ventures-daily-usages-report/$',
+        login_required(VenturesDailyUsages.as_view()),
+        name='ventures_daily_usages',
+    ),
+    url(
         r'^devices/$',
         login_required(Devices.as_view()),
         name='devices',
@@ -80,5 +87,15 @@ urlpatterns = patterns(
         r'^devices/(?P<venture>\d+)/$',
         login_required(Devices.as_view()),
         name='devices',
+    ),
+    url(
+        r'^statement/$',
+        login_required(Statements.as_view()),
+        name='statement',
+    ),
+    url(
+        r'^statement/(?P<statement_id>\d+)/$',
+        login_required(Statements.as_view()),
+        name='statement',
     ),
 )

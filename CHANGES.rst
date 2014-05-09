@@ -1,6 +1,62 @@
 Change Log
 ----------
 
+2.2.3
+~~~~~
+
+* nfdump get only ips from given network.
+
+* Changed logging to logger in network plugin.
+
+* Only usage types wtih is_manually_type flag are show in menu.
+
+* Fixed calculating price. Massage incomplete_price was incorrect sometime.
+
+* Fixed percent rounding for teams.
+
+* Remove PLN from fields and add it to name of column.
+
+* Average option for usages is now available.
+
+* Fixed is_blade. Now it is truly boolean value.
+
+* Added overwriting in push API.
+
+* Added ventures daily usages report.
+
+* Fixed usages columns width.
+
+
+2.2.2
+~~~~~
+
+* Fixed nfdump_str, executed command on remote server.
+
+* Added console statistics
+
+
+2.2.1
+~~~~~
+
+* Upgrade ceilometer collect plugins.
+
+* Added ceilometer report plugin.
+
+* Fixed overwriting configuration by pluggableaps.
+
+* Fixed logging from collect plugins. Now, when venture does not exist log warning.
+
+* Upgrade inserting teams usages. Added total prcent information and button to dynamically add more rows.
+
+* Plugins indentify usages only by symbols. Name and more options are set as defaults.
+
+* Added multiple ventures option for single virtual server usages. settings.VIRTUAL_VENTURE_NAMES must be dict where key is name of groub and value is list of ventures.
+
+* Network cost is by providers.
+
+* Remove teams count table and added count to usage price table.
+
+
 2.2.0
 ~~~~~
 

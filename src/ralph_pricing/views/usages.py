@@ -65,8 +65,10 @@ class Usages(Base):
 
         if self.usage_type:
             by_warehouse = self.usage_type.by_warehouse
+            by_internet_provider = self.usage_type.by_internet_provider
         else:
             by_warehouse = None
+            by_internet_provider = None
 
         by_cost = self.usage_type.by_cost if self.usage_type else None
         by_team = self.usage_type.by_team if self.usage_type else None
@@ -80,12 +82,14 @@ class Usages(Base):
             'by_cost': by_cost,
             'by_warehouse': by_warehouse,
             'by_team': by_team,
+            'by_internet_provider': by_internet_provider,
             'formset': self.formset,
             'hidden': {
                 'by_cost': ['price', 'forecast_price'],
                 'not_by_cost': ['cost', 'forecast_cost'],
                 'not_by_warehouse': ['warehouse'],
-                'not_by_team': ['team'],
+                'not_by_team': ['team', 'team_members_count'],
+                'not_by_internet_provider': ['internet_provider'],
             }
         })
         return context

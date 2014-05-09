@@ -249,3 +249,42 @@ class TestAssetPlugin(TestCase):
         )
         device = Device.objects.get(device_id=123)
         self.assertEqual(device.sn, '5555-5555-5555-5555')
+
+    def test_sync_asset_sn_barcode_device_id_update(self):
+        data = self._get_asset().next()
+        created = update_assets(
+            data,
+            self.today,
+            {
+                'core': self.core_usage_type,
+                'power_consumption': self.power_consumption_usage_type,
+                'collocation': self.collocation_usage_type,
+            },
+        )
+        self.assertEqual(created, True)
+        asset = Device.objects.get(asset_id=1123)
+        self.assertEqual(asset.device_id, 13342)
+        self.assertEqual(asset.sn, '1234-1234-1234-1234')
+        self.assertEqual(asset.barcode, '4321-4321-4321-4321')
+
+        # try to create new asset with sn, barcode, device_id from old one
+        data['asset_id'] = 1124
+        created = update_assets(
+            data,
+            self.today,
+            {
+                'core': self.core_usage_type,
+                'power_consumption': self.power_consumption_usage_type,
+                'collocation': self.collocation_usage_type,
+            },
+        )
+        self.assertEqual(created, True)
+        asset = Device.objects.get(asset_id=1124)
+        self.assertEqual(asset.device_id, 13342)
+        self.assertEqual(asset.sn, '1234-1234-1234-1234')
+        self.assertEqual(asset.barcode, '4321-4321-4321-4321')
+
+        old_asset = Device.objects.get(asset_id=1123)
+        self.assertEqual(old_asset.device_id, None)
+        self.assertEqual(old_asset.sn, None)
+        self.assertEqual(old_asset.barcode, None)

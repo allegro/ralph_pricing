@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @register(chain='reports')
 class Information(BaseReportPlugin):
-    def usages(self, *args, **kwargs):
+    def costs(self, *args, **kwargs):
         """
         Return informations about given ventures
 

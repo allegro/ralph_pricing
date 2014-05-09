@@ -54,8 +54,8 @@ from ralph_pricing.models import (
     DailyDevice,
     DailyUsage,
     Team as TeamModel,
-    TeamMembersCount,
     TeamVenturePercent,
+    UsagePrice,
     UsageType
 )
 from ralph_pricing.plugins.base import register
@@ -111,7 +111,7 @@ class Team(UsageBasePlugin):
 
         :rtype: dict (key: (start, end) tuple; value: dict team-members count )
         """
-        members_count = TeamMembersCount.objects.filter(
+        members_count = UsagePrice.objects.filter(
             start__lte=end,
             end__gte=start,
             team__in=teams,
@@ -130,7 +130,7 @@ class Team(UsageBasePlugin):
             if mc['start']:
                 current_start = date
             for tm in mc['start']:
-                current_members_count[tm.team.id] = tm.members_count
+                current_members_count[tm.team.id] = tm.team_members_count
 
             if mc['end']:
                 result[(current_start, date)] = current_members_count.copy()
@@ -559,11 +559,11 @@ class Team(UsageBasePlugin):
         return {}
 
     def total_cost(self, *args, **kwargs):
-        costs = self.usages(*args, **kwargs)
+        costs = self.costs(*args, **kwargs)
         total_cost_key = 'ut_{0}_total_cost'.format(kwargs['usage_type'].id)
         return sum([u[total_cost_key] for u in costs.values()])
 
-    def usages(self, **kwargs):
+    def costs(self, **kwargs):
         """
         Calculates teams costs.
         """

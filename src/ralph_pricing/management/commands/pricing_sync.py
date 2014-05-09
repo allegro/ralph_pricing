@@ -43,6 +43,21 @@ class Command(BaseCommand):
         ),
     )
 
+    def _run_plugin(self, name, today):
+        logger.info('Running {0}...'.format(name))
+        try:
+            success, message, context = plugin.run(
+                'pricing',
+                name,
+                today=today,
+            )
+            if not success:
+                raise PluginError(message)
+            logger.info('{0}: Done'.format(message))
+            return True
+        except Exception as e:
+            logger.exception("{0}: {1}".format(name, e))
+
     def handle(self, today, run_only, *args, **options):
         setup_scrooge_logger()
         from ralph_pricing.plugins import collects  # noqa
@@ -50,40 +65,17 @@ class Command(BaseCommand):
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:
             today = datetime.date.today()
-        print('Synchronizing for {0}.'.format(today.isoformat()))
-        if run_only:
-            print('Running only {0}...'.format(run_only))
-            try:
-                success, message, context = plugin.run(
-                    'pricing',
-                    run_only,
-                    today=today,
-                )
-                if not success:
-                    raise PluginError(message)
-                print('{0}: Done'.format(message))
-            except Exception as e:
-                logger.error("{0}: {1}".format(run_only, e))
-                print('Failed: {0}'.format(e))
-            return
-
-        done = set()
-        tried = set()
-        while True:
-            to_run = plugin.next('pricing', done) - tried
-            if not to_run:
-                break
-            name = plugin.highest_priority('pricing', to_run)
-            tried.add(name)
-            print('Running {0}...'.format(name))
-            try:
-                success, message, context = plugin.run(
-                    'pricing', name, today=today,
-                )
-                if not success:
-                    raise PluginError(message)
-                done.add(name)
-                print('{0}: Done'.format(message))
-            except Exception as e:
-                logger.error("{0}: {1}".format(name, e))
-                print('Failed: {0}'.format(e))
+        logger.info('Synchronizing for {0}.'.format(today.isoformat()))
+        if not run_only:
+            done = set()
+            tried = set()
+            while True:
+                to_run = plugin.next('pricing', done) - tried
+                if not to_run:
+                    break
+                name = plugin.highest_priority('pricing', to_run)
+                tried.add(name)
+                if self._run_plugin(name, today):
+                    done.add(name)
+        else:
+            self._run_plugin(run_only, today)

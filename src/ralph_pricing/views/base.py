@@ -30,6 +30,12 @@ MAIN_MENU = [
         view_name='devices',
     ),
     MenuItem(
+        _("Ventures Daily Usages"),
+        name='ventures-daily-usages',
+        fugue_icon='fugue-store-medium',
+        view_name='ventures_daily_usages',
+    ),
+    MenuItem(
         _("Extra costs"),
         name='extra-costs',
         fugue_icon='fugue-money-coin',
@@ -46,6 +52,12 @@ MAIN_MENU = [
         name='teams',
         fugue_icon='fugue-users',
         view_name='teams',
+    ),
+    MenuItem(
+        _("Statement"),
+        name='statement',
+        fugue_icon='fugue-clock-history',
+        view_name='statement',
     ),
 ]
 

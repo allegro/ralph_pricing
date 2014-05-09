@@ -6,12 +6,19 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from bob.menu import MenuItem
-from django.db.models import Q
 
-from ralph_pricing.models import Team, Venture, UsageType
+from ralph_pricing.models import Team, Venture, UsageType, Statement
 
 
 def ventures_menu(href='', selected=None):
+    """
+    Generate ventures submenu
+
+    :param string href: base url for submenu items
+    :param string selected: name of selected row
+    :returns list: list of menu items
+    :rtype list:
+    """
     top_items = []
     stack = [
         (None, top_items, Venture.objects.root_nodes()),
@@ -39,12 +46,43 @@ def ventures_menu(href='', selected=None):
     return top_items
 
 
+def statement_menu(href='', selected=None):
+    """
+    Generate statements submenu
+
+    :param string href: base url for submenu items
+    :param string selected: name of selected row
+    :returns list: list of menu items
+    :rtype list:
+    """
+    statements = Statement.objects.all().order_by(
+        'forecast',
+        '-is_active',
+        'start',
+    )
+    items = [
+        MenuItem(
+            str(statement),
+            name=str(statement),
+            subitems=[],
+            fugue_icon='fugue-clock-history',
+            href='{}/{}/'.format(href, statement.id),
+        ) for statement in statements
+    ]
+    return items
+
+
 def usages_menu(href='', selected=None):
     """
-    Create menus for usage types for manually entering prices
+    Generate usages submenu
+
+    :param string href: base url for submenu items
+    :param string selected: name of selected row
+    :returns list: list of menu items
+    :rtype list:
     """
     usage_types = UsageType.objects.filter(
-        Q(is_manually_type=True) | Q(type='BU'),
+        is_manually_type=True,
     ).order_by('name')
     items = [
         MenuItem(
@@ -60,7 +98,12 @@ def usages_menu(href='', selected=None):
 
 def teams_menu(href, selected=None):
     """
-    Create menus for teams percent definitions.
+    Generate teams percent definitions submenu
+
+    :param string href: base url for submenu items
+    :param string selected: name of selected row
+    :returns list: list of menu items
+    :rtype list:
     """
     teams = Team.objects.filter(billing_type='TIME').order_by('name')
     items = []

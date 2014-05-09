@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum, Count
@@ -53,7 +53,7 @@ class Deprecation(UsageBasePlugin):
         ).aggregate(assets_cost=Sum('daily_cost'))
         return D(assets_report_query['assets_cost'] or 0)
 
-    def usages(self, **kwargs):
+    def costs(self, **kwargs):
         """
         Return usages and costs for given ventures. Format of
         returned data must looks like:
@@ -85,6 +85,36 @@ class Deprecation(UsageBasePlugin):
             }
         return usages
 
+    def dailyusages(self, start, end, ventures, **kwargs):
+        """
+        Returns count of devices per venture per day. Result format:
+            result = {
+                day: {
+                    venture: value,
+                    veture: value,
+                    ...
+                },
+                ...
+            }
+
+        :rtype: dict
+        """
+        logger.debug("Getting deprecation daily usages per venture")
+        result = defaultdict(dict)
+        dailyusages = DailyDevice.objects.filter(
+            pricing_venture__in=ventures,
+            date__gte=start,
+            date__lte=end,
+        ).values(
+            'date',
+            'pricing_venture',
+        ).annotate(
+            devices=Count('id')
+        )
+        for d in dailyusages:
+            result[d['date']][d['pricing_venture']] = d['devices']
+        return result
+
     def schema(self, **kwargs):
         """
         Build schema for this usage. Format of schema looks like:
@@ -111,3 +141,9 @@ class Deprecation(UsageBasePlugin):
             'total_cost': True,
         }
         return schema
+
+    def dailyusages_header(self, usage_type):
+        """
+        Header for assets count column on dailyusages report.
+        """
+        return _('Assets count')

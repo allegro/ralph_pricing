@@ -7,10 +7,13 @@ from __future__ import unicode_literals
 
 import itertools
 import urllib
+import json
 
 from django.conf import settings
 from django.core.cache import get_cache
+from django.utils.translation import ugettext_lazy as _
 
+from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
 from bob.csvutil import make_csv_response
 import django_rq
@@ -47,6 +50,7 @@ class Report(Base):
     """
     template_name = None
     Form = None
+    initial = None
     section = ''
     report_name = ''
 
@@ -64,7 +68,7 @@ class Report(Base):
             self.form = self.Form(get)
             self.got_query = True
         else:
-            self.form = self.Form()
+            self.form = self.Form(initial=self.initial)
         if self.form.is_valid():
             if 'clear' in get:
                 self.progress = 0
@@ -77,19 +81,74 @@ class Report(Base):
                 self.progress, self.header, self.data = self._get_cached(
                     **self.form.cleaned_data
                 )
-                if get.get('format', '').lower() == 'csv':
-                    if self.progress == 100:
+
+                if self.progress == 100:
+                    self._format_header()
+                    if get.get('format', '').lower() == 'csv':
+                        self._format_csv_header()
                         return make_csv_response(
-                            itertools.chain([self.header], self.data),
+                            itertools.chain(self.header, self.data),
                             '{}.csv'.format(self.section),
                         )
-                    else:
-                        messages.warning(
-                            self.request,
-                            "Please wait for the report "
-                            "to finish calculating.",
-                        )
+                    if get.get('format', '').lower() == 'statement':
+                        self._format_statement_header()
+                        self._create_statement()
+                else:
+                    messages.warning(
+                        self.request,
+                        _("Please wait for the report "
+                          "to finish calculating."),
+                    )
         return super(Report, self).get(*args, **kwargs)
+
+    def _format_statement_header(self):
+        """
+        Format statement header rows.
+        """
+        self.header = self._convert_fields_to(
+            self.header,
+            lambda x: (unicode(x[0]), x[1]),
+        )
+        self.data = self._convert_fields_to(self.data, unicode)
+
+    def _create_statement(self):
+        """
+        Create statement from current report. Distinguishes different params.
+        """
+        usage_type, created = Statement.objects.get_or_create(
+            start=self.form.cleaned_data['start'],
+            end=self.form.cleaned_data['end'],
+            forecast=self.form.cleaned_data['forecast'],
+            is_active=self.form.cleaned_data['is_active'],
+            defaults=dict(
+                header=json.dumps(self.header),
+                data=json.dumps(self.data),
+            )
+        )
+        if created:
+            messages.info(
+                self.request,
+                _("Statement has been created!"),
+            )
+        else:
+            messages.error(
+                self.request,
+                _("Statement for this report already exist!"),
+            )
+
+    def _convert_fields_to(self, data, unicode_func):
+        """
+        Convert each of fields to another format by using given function
+
+        :param list data: list of dicts or lists. For example headers
+        :param function unicode_func: function to converting each field
+        :returns list: The same list as in beginning with converted fields
+        :rtype list:
+        """
+        for i, row in enumerate(data):
+            for k, field in enumerate(row):
+                data[i][k] = unicode_func(field)
+        return data
 
     def get_context_data(self, **kwargs):
         context = super(Report, self).get_context_data(**kwargs)
@@ -103,6 +162,42 @@ class Report(Base):
             'got_query': self.got_query,
         })
         return context
+
+    def _format_header(self):
+        """
+        Format header to make tuple of (text, options dict) for each cell.
+        """
+        result = []
+        for row in self.header:
+            output_row = []
+            for col in row:
+                if not isinstance(col, (tuple, list)):
+                    col = (col, {})
+                output_row.append(col)
+            result.append(output_row)
+        self.header = result
+
+    def _format_csv_header(self):
+        """
+        Format csv header rows. Insert empty cells to show rowspan and colspan.
+        """
+        result = []
+        for row in self.header:
+            output_row = []
+            for col in row:
+                output_row.append(col[0])
+                for colspan in range((col[1].get('colspan') or 1) - 1):
+                    output_row.append('')
+            result.append(output_row)
+        # rowspans
+        for row_num, row in enumerate(self.header):
+            i = 0
+            for col in row:
+                if 'rowspan' in col[1]:
+                    for rowspan in range(1, (col[1]['rowspan'] or 1)):
+                        result[row_num + rowspan].insert(i, '')
+                i += col[1].get('colspan', 1)
+        self.header = result
 
     def _clear_cache(self, **kwargs):
         cache = get_cache(CACHE_NAME)
@@ -183,6 +278,7 @@ class Report(Base):
         """
         Override this static method to provide header for the report.
         It gets called with the form's data as arguments.
-        Make sure it's a static method.
+        Make sure it's a static method. Result should be list of list, where
+        each (sub)list is row in header.
         """
         return []

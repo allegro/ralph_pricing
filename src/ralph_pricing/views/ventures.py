@@ -141,27 +141,6 @@ class AllVentures(Report):
         return plugins
 
     @classmethod
-    def _get_as_currency(cls, field_content, total_cost):
-        """
-        Change field content to currency format. Returned format looks like
-        <field_content as two decimal value> <currency>
-
-        :param decimal field_content: Value to reformat
-        :param boolean total_cost: Information about return value as total
-        cost or D(0)
-        :returns tuple: Reformated field content and value for total cost
-        :rtype tuple:
-        """
-        field_content = D(field_content)
-
-        currency_field = '{0:.2f} {1}'.format(
-            field_content,
-            cls.currency,
-        )
-
-        return currency_field, field_content if total_cost else D(0)
-
-    @classmethod
     def _prepare_field(cls, field_name, field_rules, venture_data):
         """
         Prepare single field for one row for single column. For example,
@@ -183,13 +162,13 @@ class AllVentures(Report):
         if not isinstance(field_content, (int, D, float, long)):
             return field_content, usage_cost
 
-        if 'currency' in field_rules and field_rules['currency']:
-            field_content, usage_cost = cls._get_as_currency(
-                field_content,
-                field_rules.get('total_cost', False),
-            )
+        if 'total_cost' in field_rules and field_rules['total_cost']:
+            usage_cost = D(field_content)
 
-        return field_content, usage_cost
+        if 'currency' in field_rules and field_rules['currency']:
+            field_content = '{0:.2f}'.format(field_content)
+
+        return field_content,  usage_cost
 
     @classmethod
     def _prepare_venture_row(cls, venture_data):
@@ -214,7 +193,7 @@ class AllVentures(Report):
                 plugin_fields.append(field_content)
                 total_cost += usage_cost
             venture_row.extend(plugin_fields)
-        venture_row.append('{0:.2f} {1}'.format(total_cost, cls.currency))
+        venture_row.append('{0:.2f}'.format(total_cost))
         return venture_row
 
     @classmethod
@@ -302,7 +281,7 @@ class AllVentures(Report):
                     start=start,
                     end=end,
                     forecast=forecast,
-                    type='usages',
+                    type='costs',
                     **plugin.get('plugin_kwargs', {})
                 )
                 for venture_id, venture_usage in plugin_report.iteritems():
@@ -392,6 +371,11 @@ class AllVentures(Report):
         header = []
         for schema in cls._get_schema():
             for key, value in schema.iteritems():
+                if 'currency' in value and value['currency']:
+                    value['name'] = "{0} - {1}".format(
+                        value['name'],
+                        cls.currency,
+                    )
                 header.append(value['name'])
         header.append(_("Total cost"))
-        return header
+        return [header]
