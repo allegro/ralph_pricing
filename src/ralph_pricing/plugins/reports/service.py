@@ -205,7 +205,11 @@ class ServiceBasePlugin(BaseReportPlugin):
         and extra costs.
         services costs (for specified ventures).
 
-        :rtype: Decimal
+        :param datatime start: Begin of time interval
+        :param datatime end: End of time interval
+        :param list ventures: List of service ventures
+        :returns decimal: total cost of service
+        :rtype decimal:
         """
         # total cost of base usage types for ventures providing this service
         total_cost = self._get_service_base_usage_types_cost(
@@ -225,7 +229,7 @@ class ServiceBasePlugin(BaseReportPlugin):
         total_cost += self._get_service_extra_cost(
             start,
             end,
-            service.venture_set.all(),
+            ventures,
         )
         return total_cost
 

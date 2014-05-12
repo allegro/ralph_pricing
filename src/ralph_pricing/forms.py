@@ -31,7 +31,7 @@ class ExtraCostForm(forms.ModelForm):
     """
     class Meta:
         model = ExtraCost
-        fields = 'type', 'monthly_cost'
+        fields = 'pricing_venture', 'monthly_cost'
 
 
 class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
@@ -48,6 +48,7 @@ ExtraCostFormSet = forms.models.modelformset_factory(
     form=ExtraCostForm,
     formset=ExtraCostBaseFormSet,
     can_delete=True,
+    max_num=5
 )
 
 

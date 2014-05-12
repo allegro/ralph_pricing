@@ -7,7 +7,13 @@ from __future__ import unicode_literals
 
 from bob.menu import MenuItem
 
-from ralph_pricing.models import Team, Venture, UsageType, Statement
+from ralph_pricing.models import (
+    Team,
+    Venture,
+    UsageType,
+    Statement,
+    ExtraCostType
+)
 
 
 def ventures_menu(href='', selected=None):
@@ -44,6 +50,19 @@ def ventures_menu(href='', selected=None):
                     item.kwargs['collapsed'] = False
                     item = item.parent
     return top_items
+
+
+def extra_costs_menu(href='', selected=None):
+    extra_costs_type = ExtraCostType.objects.all().order_by('name')
+    return [
+        MenuItem(
+            str(extra_cost_type.name),
+            name=str(extra_cost_type.name),
+            subitems=[],
+            fugue_icon='fugue-money-coin',
+            href='{}/{}/'.format(href, extra_cost_type.id),
+        ) for extra_cost_type in extra_costs_type
+    ]
 
 
 def statement_menu(href='', selected=None):
