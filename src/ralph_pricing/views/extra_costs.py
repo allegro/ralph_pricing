@@ -12,7 +12,7 @@ from django.http import HttpResponseRedirect
 from ralph_pricing.app import Scrooge
 from ralph_pricing.forms import ExtraCostFormSet
 from ralph_pricing.menus import extra_costs_menu
-from ralph_pricing.models import Venture, ExtraCostType
+from ralph_pricing.models import ExtraCostType
 from ralph_pricing.views.base import Base
 
 
