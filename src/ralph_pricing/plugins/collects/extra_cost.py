@@ -5,37 +5,43 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import datetime
-import decimal
+from calendar import monthrange
 
-from ralph.util import plugin, api_pricing
-from ralph_pricing.models import ExtraCost, ExtraCostType, Venture
+from ralph.util import plugin
+from ralph_pricing.models import ExtraCost, DailyExtraCost
 
 
 def update_extra_cost(data, date):
-    if not data['cost']:
-        return False  # False = 0 in sum function
-    cost_type, created = ExtraCostType.objects.get_or_create(name=data['type'])
-    venture, created = Venture.objects.get_or_create(
-        venture_id=data['venture_id'],
-        defaults={'name': data['venture']},
+    """
+    Create daily imprint from given data.
+
+    :param datetime date: Date for which imprint will be created
+    :param dict data: Dict with data from ExtraCost.
+    :returns boolean: Information about succest get/create imprints
+    :rtype:
+    """
+    daily_extra_cost, created = DailyExtraCost.objects.get_or_create(
+        date=date,
+        pricing_venture=data.pricing_venture,
+        type=data.type,
     )
-    extracost, created = ExtraCost.objects.get_or_create(
-        start=data['start'],
-        end=data['end'] if data['end'] else datetime.date(2048, 10, 24),
-        type=cost_type,
-        pricing_venture=venture,
-        defaults={'price': decimal.Decimal('0')},
+    daily_extra_cost.value = (
+        data.monthly_cost/monthrange(date.year, date.month)[1]
     )
-    extracost.price = decimal.Decimal(data['cost'] / 30.5)
-    extracost.save()
+    daily_extra_cost.save()
     return created
 
 
-@plugin.register(chain='pricing', requires=['never run'])
+@plugin.register(chain='pricing', requires=['ventures'])
 def extracost(**kwargs):
+    """
+    Main method of daily imprint create.
+    """
     date = kwargs['today']
     count = sum(
-        update_extra_cost(data, date) for data in api_pricing.get_extra_cost()
+        (
+            update_extra_cost(data, date)
+            for data in ExtraCost.objects.all()
+        )
     )
     return True, '%d new extracosts' % count, kwargs

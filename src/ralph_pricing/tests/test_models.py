@@ -82,18 +82,14 @@ class TestModels(TestCase):
         venture.save()
         cost = models.ExtraCost(
             type=type_,
-            start=datetime.datetime(2013, 4, 24),
-            end=datetime.datetime(2013, 4, 26),
-            price=3,
+            monthly_cost=3,
             pricing_venture=venture,
         )
         cost.save()
         self.assertEquals(type_.name, 'ziew')
         self.assertEquals(venture.venture_id, 3)
         self.assertEquals(cost.type, type_)
-        self.assertEquals(cost.start, datetime.datetime(2013, 4, 24))
-        self.assertEquals(cost.end, datetime.datetime(2013, 4, 26))
-        self.assertEquals(cost.price, 3)
+        self.assertEquals(cost.monthly_cost, 3)
         self.assertEquals(cost.pricing_venture, venture)
 
 
@@ -178,26 +174,3 @@ class TestPrices(TestCase):
         count, price = venture.get_usages_count_price(day, day, usage_type)
         self.assertEquals(count, 32)
         self.assertIsNone(price)
-
-    def test_extra_costs(self):
-        day = datetime.date(2013, 4, 25)
-        venture = models.Venture(venture_id=3)
-        venture.save()
-        extra_cost_type = models.ExtraCostType(name='waciki')
-        extra_cost_type.save()
-        extra_cost = models.ExtraCost(
-            pricing_venture=venture,
-            start=day,
-            end=day,
-            type=extra_cost_type,
-            price='65535',
-        )
-        extra_cost.save()
-        price = venture.get_extra_costs(day, day, extra_cost_type)
-        self.assertEqual(price, decimal.Decimal('65535'))
-        price = venture.get_extra_costs(
-            datetime.date(2013, 4, 24),
-            datetime.date(2013, 4, 24),
-            extra_cost_type,
-        )
-        self.assertEqual(price, decimal.Decimal('0'))

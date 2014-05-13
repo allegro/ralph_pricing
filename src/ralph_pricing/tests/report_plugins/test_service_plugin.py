@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
 from __future__ import division
@@ -367,6 +366,27 @@ class TestServicePlugin(TestCase):
             },
         })
 
+    @mock.patch('ralph.util.plugin.run')
+    def test_get_service_extra_cost(self, plugin_run_mock):
+        plugin_run_mock.side_effect = [122]
+        self.assertEqual(
+            122,
+            ServicePlugin._get_service_extra_cost(
+                datetime.date(2013, 10, 10),
+                datetime.date(2013, 10, 20),
+                [self.venture1]
+            )
+        )
+        plugin_run_mock.side_effect = KeyError()
+        self.assertEqual(
+            D(0),
+            ServicePlugin._get_service_extra_cost(
+                datetime.date(2013, 10, 10),
+                datetime.date(2013, 10, 20),
+                [self.venture1]
+            )
+        )
+
     def test_get_service_base_usage_types_cost(self):
         result = ServicePlugin._get_service_base_usage_types_cost(
             start=datetime.date(2013, 10, 10),
@@ -529,3 +549,15 @@ class TestServicePlugin(TestCase):
                 'total_cost': True,
             }),
         ]))
+
+    def test_total_cost(self):
+        self.assertEqual(
+            D(4240),
+            ServicePlugin.total_cost(
+                datetime.date(2013, 10, 10),
+                datetime.date(2013, 10, 20),
+                self.service,
+                False,
+                [self.venture1]
+            )
+        )

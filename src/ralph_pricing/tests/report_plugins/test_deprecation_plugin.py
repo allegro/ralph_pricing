@@ -14,7 +14,7 @@ from ralph_pricing import models
 from ralph_pricing.plugins.reports.deprecation import Deprecation
 
 
-class TestDeprecationPlugin(TestCase):
+class TestDeprecationReportPlugin(TestCase):
     def setUp(self):
         # ventures
         self.venture1 = models.Venture(venture_id=1, name='V1', is_active=True)

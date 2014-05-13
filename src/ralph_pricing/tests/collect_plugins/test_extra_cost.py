@@ -6,37 +6,38 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
-import decimal
 
 from django.test import TestCase
+from ralph_pricing.plugins.collects.extra_cost import (
+    update_extra_cost,
+    extracost,
+)
+from ralph_pricing.models import ExtraCost, DailyExtraCost
+from ralph_pricing.tests.utils import (
+    get_or_create_extra_cost_type,
+    get_or_create_venture,
+)
 
-from ralph_pricing.models import ExtraCostType, ExtraCost, Venture
-from ralph_pricing.plugins.collects.extra_cost import update_extra_cost
 
-
-class TestExtraCostPlugin(TestCase):
+class TestExtraCostCollectPlugin(TestCase):
     def setUp(self):
-        self.date = datetime.date(2013, 01, 04)
-
-    def get_extra_cost(self):
-        """Simulated api result"""
-        yield {
-            'venture_id': 1,
-            'venture': 'Venture1',
-            'type': 'extracost_1',
-            'cost': 100,
-            'start': datetime.date(2013, 01, 01),
-            'end': datetime.date(2013, 01, 05),
-        }
-
-    def test_sync_extra_cost(self):
-        count = sum(
-            update_extra_cost(data, self.date)
-            for data in self.get_extra_cost()
+        self.date = datetime.date(year=2014, month=5, day=1)
+        self.extracost = ExtraCost.objects.create(
+            pricing_venture=get_or_create_venture(),
+            type=get_or_create_extra_cost_type(),
+            monthly_cost=3100,
         )
-        self.assertEqual(count, 1)
-        usage_type = ExtraCostType.objects.get(name='extracost_1')
-        extra_cost = ExtraCost.objects.get(type=usage_type)
-        venture = Venture.objects.get(name='Venture1')
-        self.assertEqual(extra_cost.pricing_venture, venture)
-        self.assertEqual(extra_cost.price, decimal.Decimal('3.278689'))
+
+    def test_update_extra_cost(self):
+        update_extra_cost(self.extracost, self.date)
+        self.assertEqual(1, ExtraCost.objects.all().count())
+
+    def test_update_extra_cost_calculate_price(self):
+        update_extra_cost(self.extracost, self.date)
+        self.assertEqual(100, DailyExtraCost.objects.all()[0].value)
+
+    def test_extracost(self):
+        self.assertEqual(
+            (True, u'1 new extracosts', {u'today': datetime.date(2014, 5, 1)}),
+            extracost(**{'today': self.date})
+        )
