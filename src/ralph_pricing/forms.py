@@ -395,3 +395,27 @@ class VenturesDailyUsagesForm(forms.Form):
         queryset=UsageType.objects.order_by('-order', 'name'),
         label=_("Usage types"),
     )
+
+
+class DevicesVenturesChangesForm(forms.Form):
+    '''Form schema. Used to generate venture daily usages reports'''
+    start = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='',
+        initial=lambda: datetime.date.today() - datetime.timedelta(days=30),
+    )
+    end = forms.DateField(
+        widget=DateWidget(
+            attrs={'class': 'input-small'},
+        ),
+        label='',
+        initial=datetime.date.today,
+    )
+    venture = TreeNodeChoiceField(
+        required=False,
+        queryset=Venture.tree.all(),
+        level_indicator='|---',
+        empty_label="---",
+    )
