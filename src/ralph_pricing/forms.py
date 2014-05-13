@@ -41,7 +41,7 @@ class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
     def clean(self):
         if any(self.errors):
             return
-        ventures_list = []
+        ventures_list = set()
         for form in self.forms:
             venture = form.cleaned_data.get('pricing_venture')
             if venture in ventures_list:
