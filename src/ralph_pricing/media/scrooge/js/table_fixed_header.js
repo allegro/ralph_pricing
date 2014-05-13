@@ -66,5 +66,5 @@ Fixed table header on scroll
 })(jQuery);
 
 $(document).ready(function(){
-   $("table.fixed-heder").fixedHeader();
+   $("table.fixed-header").fixedHeader();
 });
