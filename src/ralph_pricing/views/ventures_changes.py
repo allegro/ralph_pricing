@@ -16,12 +16,20 @@ from ralph_pricing.forms import DevicesVenturesChangesForm
 
 logger = logging.getLogger(__name__)
 
-
-MYSQL_DAY_SUB = lambda col: 'DATE_SUB({}, INTERVAL 1 DAY)'.format(col)
-SQLITE_DAY_SUB = lambda col: "DATE({}, '-1 days')".format(col)
+SQL_DAY_SUB = {
+    'sqlite3': lambda col: "DATE({}, '-1 days')".format(col),
+    'mysql': lambda col: "DATE_SUB({}, INTERVAL 1 DAY)".format(col),
+    'postgresql_psycopg2': lambda col: "{} - INTERVAL '1 day'".format(col),
+    'oracle': lambda col: "{} - 1".format(col),
+}
 
 
 class VenturesChanges(Report):
+    """
+    Report with listing of devices ventures changes. Contains basic information
+    about change such as device info (sn, barcode, name), change date and
+    ventures (before and after change).
+    """
     template_name = 'ralph_pricing/ventures_daily_usages.html'
     Form = DevicesVenturesChangesForm
     section = 'ventures-changes'
@@ -30,7 +38,16 @@ class VenturesChanges(Report):
 
     @classmethod
     def _get_data(cls, start, end, venture=None):
+        """
+        Returns devices ventures changes based on daily devices imprints.
+        """
         venture_id = venture.id if venture is not None else None
+        # query explanation:
+        # join dailydevice table with self in such way, that joined record's
+        # date is one day sooner than original record - then filter only rows
+        # that have different venture in two following days
+        # after filtering, join ventures and device to get device info and
+        # ventures names
         query = """
             SELECT dev.sn, dev.barcode, dev.name, dd1.date,
                    v2.name as before_change, v1.name as after_change
@@ -49,7 +66,7 @@ class VenturesChanges(Report):
                 AND dev.id = dd1.pricing_device_id
                 AND dev.asset_id IS NOT NULL
         """
-        if venture is not None:
+        if venture_id is not None:
             query += """
                 AND (
                     dd1.pricing_venture_id = {venture_id}
@@ -57,37 +74,29 @@ class VenturesChanges(Report):
                 )
             """
         query += """
-        ORDER BY dd1.date, before_change, after_change
+        ORDER BY dd1.date, before_change, after_change;
         """
         cursor = connection.cursor()
-        if cursor.db.settings_dict['ENGINE'].split('.')[-1] == 'sqlite3':
-            dates_sub = SQLITE_DAY_SUB('dd1.date')
-        else:
-            dates_sub = MYSQL_DAY_SUB('dd1.date')
+        # all db engines has differ way of days subtraction syntax
+        db_engine = cursor.db.settings_dict['ENGINE'].split('.')[-1]
+        dates_sub = SQL_DAY_SUB[db_engine]('dd1.date')
         cursor.execute(query.format(**locals()))
         return map(list, cursor.fetchall())
 
     @classmethod
-    def get_data(
-        cls,
-        start,
-        end,
-        venture=None,
-        **kwargs
-    ):
+    def get_data(cls, start, end, venture=None, **kwargs):
         """
-        Main method. Create a full report for daily usages by ventures.
-        Process of creating report consists of two parts. First of them is
-        collecting all required data. Second step is preparing data to render
-        in html.
+        Main method. Create a full report for devices ventures changes. Notice
+        that this method is a generator.
 
         :returns tuple: percent of progress and report data
         :rtype tuple:
         """
         logger.info(
-            "Generating venture changes report from {0} to {1}".format(
+            "Generating venture changes report ({0}-{1}, venture: {2}".format(
                 start,
                 end,
+                venture,
             )
         )
         yield 100, cls._get_data(start, end, venture)
@@ -95,12 +104,12 @@ class VenturesChanges(Report):
     @classmethod
     def get_header(cls, start, end, venture, **kwargs):
         """
-        Return all headers for daily usages report.
+        Return all headers for ventures changes report.
 
         :returns list: Complete collection of headers for report
         :rtype list:
         """
-        logger.debug("Getting headers for report")
+        logger.debug("Getting headers for ventures changes report")
         header = [
             [
                 _('SN'),
