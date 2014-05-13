@@ -56,7 +56,7 @@ class TestExtraCostReportPlugin(TestCase):
                 self.start,
                 self.end,
                 [self.venture],
-            )[1]['extra_cost_1']
+            )[1]['extra_cost_{}'.format(self.type.id)]
         )
         self.assertEqual(
             self.value,
@@ -70,11 +70,15 @@ class TestExtraCostReportPlugin(TestCase):
     def test_schema(self):
         self.assertEqual(
             True,
-            ExtraCostPlugin.schema()['extra_cost_1']['currency']
+            ExtraCostPlugin.schema()[
+                'extra_cost_{}'.format(self.type.id)
+            ]['currency']
         )
         self.assertEqual(
             self.type.name,
-            ExtraCostPlugin.schema()['extra_cost_1']['name']
+            ExtraCostPlugin.schema()[
+                'extra_cost_{}'.format(self.type.id)
+            ]['name']
         )
         self.assertEqual(
             True,
