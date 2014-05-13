@@ -174,17 +174,3 @@ class TestPrices(TestCase):
         count, price = venture.get_usages_count_price(day, day, usage_type)
         self.assertEquals(count, 32)
         self.assertIsNone(price)
-
-    def test_extra_costs(self):
-        venture = models.Venture(venture_id=3)
-        venture.save()
-        extra_cost_type = models.ExtraCostType(name='waciki')
-        extra_cost_type.save()
-        extra_cost = models.ExtraCost(
-            pricing_venture=venture,
-            type=extra_cost_type,
-            monthly_cost='65535',
-        )
-        extra_cost.save()
-        monthly_cost = venture.get_extra_costs(extra_cost_type)
-        self.assertEqual(monthly_cost, decimal.Decimal('65535'))

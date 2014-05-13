@@ -669,21 +669,6 @@ class Venture(MPTTModel):
             forecast,
         )
 
-    def get_extra_costs(self, type_, descendants=False):
-        """
-        The filter part of get count and price single type of usage
-
-        :param datetime start: Start of the time interval
-        :param datetime end: End of the time interval
-        :param object type_: UsageType object for whitch price and
-                             count will be returned
-        :returns decimal: price
-        :rtype decimal:
-        """
-        query = ExtraCost.objects.filter(type=type_)
-        query = self._by_venture(query, descendants)
-        return query[0].monthly_cost
-
     def get_extracost_details(self, start, end):
         extracost = ExtraCost.objects.filter(
             start__gte=start,
@@ -1143,7 +1128,7 @@ class ExtraCost(db.Model):
     monthly_cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
-        verbose_name=_("monthly price"),
+        verbose_name=_("monthly cost"),
         null=False,
         blank=False,
     )

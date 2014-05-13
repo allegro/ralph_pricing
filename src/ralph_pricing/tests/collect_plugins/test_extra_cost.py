@@ -10,12 +10,12 @@ import datetime
 from django.test import TestCase
 from ralph_pricing.plugins.collects.extra_cost import (
     update_extra_cost,
-    extracost
+    extracost,
 )
 from ralph_pricing.models import ExtraCost, DailyExtraCost
 from ralph_pricing.tests.utils import (
     get_or_create_extra_cost_type,
-    get_or_create_venture
+    get_or_create_venture,
 )
 
 

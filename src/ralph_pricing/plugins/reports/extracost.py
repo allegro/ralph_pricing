@@ -41,7 +41,7 @@ class ExtraCostPlugin(BaseReportPlugin):
             date__gte=start,
             date__lte=end,
             pricing_venture__in=ventures,
-        ).values('pricing_venture', 'type').annotate(total_cost=Sum('value'))
+        )
 
     def costs(self, start, end, ventures, *args, **kwargs):
         """
@@ -59,7 +59,13 @@ class ExtraCostPlugin(BaseReportPlugin):
         :returns dict: usages and costs
         """
         logger.debug("Get extra costs usages")
-        extra_costs = self.get_extra_costs(start, end, ventures)
+        extra_costs = self.get_extra_costs(
+            start,
+            end,
+            ventures,
+        ).values('pricing_venture', 'type').annotate(
+            total_cost=Sum('value')
+        )
 
         usages = defaultdict(lambda: defaultdict(int))
         for extra_cost in extra_costs:
@@ -114,7 +120,6 @@ class ExtraCostPlugin(BaseReportPlugin):
         :returns dict: total cost for given time period and ventures
         :rtype dict:
         """
-        extra_costs_query = D(0)
-        for extra_cost in self.get_extra_costs(start, end, ventures):
-            extra_costs_query += D(extra_cost['total_cost'])
-        return D(extra_costs_query)
+        return D(self.get_extra_costs(start, end, ventures).aggregate(
+            total_cost=Sum('value')
+        )['total_cost'] or 0)

@@ -7,8 +7,8 @@ from __future__ import unicode_literals
 
 import datetime
 
-from django.test import TestCase
 from decimal import Decimal as D
+from django.test import TestCase
 
 from ralph_pricing.plugins.reports.extracost import ExtraCostPlugin
 from ralph_pricing.tests.utils import (
@@ -33,28 +33,20 @@ class TestExtraCostReportPlugin(TestCase):
 
     def test_get_extra_costs(self):
         self.assertEqual(
-            self.venture.id,
+            self.venture,
             ExtraCostPlugin.get_extra_costs(
                 self.start,
                 self.end,
                 [self.venture],
-            )[0]['pricing_venture']
+            )[0].pricing_venture
         )
         self.assertEqual(
-            self.type.id,
+            self.type,
             ExtraCostPlugin.get_extra_costs(
                 self.start,
                 self.end,
                 [self.venture],
-            )[0]['type']
-        )
-        self.assertEqual(
-            self.value,
-            ExtraCostPlugin.get_extra_costs(
-                self.start,
-                self.end,
-                [self.venture],
-            )[0]['total_cost']
+            )[0].type
         )
 
     def test_costs(self):

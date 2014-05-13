@@ -12,7 +12,7 @@ from ralph_pricing.models import (
     Venture,
     UsageType,
     Statement,
-    ExtraCostType
+    ExtraCostType,
 )
 
 
@@ -56,8 +56,8 @@ def extra_costs_menu(href='', selected=None):
     extra_costs_type = ExtraCostType.objects.all().order_by('name')
     return [
         MenuItem(
-            str(extra_cost_type.name),
-            name=str(extra_cost_type.name),
+            extra_cost_type.name,
+            name=extra_cost_type.name,
             subitems=[],
             fugue_icon='fugue-money-coin',
             href='{}/{}/'.format(href, extra_cost_type.id),
