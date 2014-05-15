@@ -9,10 +9,10 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Removing unique constraint on 'ExtraCost', fields ['pricing_venture', 'end', 'type']
-        # db.delete_unique('ralph_pricing_extracost', ['pricing_venture_id', 'end', 'type_id'])
+        db.delete_unique('ralph_pricing_extracost', ['pricing_venture_id', 'end', 'type_id'])
 
         # Removing unique constraint on 'ExtraCost', fields ['start', 'type', 'pricing_venture']
-        # db.delete_unique('ralph_pricing_extracost', ['start', 'type_id', 'pricing_venture_id'])
+        db.delete_unique('ralph_pricing_extracost', ['start', 'type_id', 'pricing_venture_id'])
 
         # Adding model 'DailyExtraCost'
         db.create_table('ralph_pricing_dailyextracost', (
