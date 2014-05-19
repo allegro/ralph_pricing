@@ -14,10 +14,11 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing import models
+from ralph_pricing.tests import utils
 from ralph_pricing.views.ventures import AllVentures
 
 
-class TestReportVenturesBeta(TestCase):
+class TestReportVentures(TestCase):
     def setUp(self):
         self.report_start = datetime.date(2013, 4, 20)
         self.report_end = datetime.date(2013, 4, 30)
@@ -40,7 +41,7 @@ class TestReportVenturesBeta(TestCase):
         usage_type2 = models.UsageType(
             name='UT2',
             symbol='ut2',
-            show_in_report=False,
+            show_in_ventures_report=False,
         )
         usage_type2.save()
 
@@ -64,7 +65,7 @@ class TestReportVenturesBeta(TestCase):
         """
         Test plugins list based on visible usage types
         """
-        plugins = AllVentures._get_plugins()
+        plugins = AllVentures.get_plugins()
         self.maxDiff = None
         self.assertEquals(plugins, [
             dict(name='Information', plugin_name='information'),
@@ -93,115 +94,6 @@ class TestReportVenturesBeta(TestCase):
             ),
             dict(name='ExtraCostsPlugin', plugin_name='extra_cost_plugin'),
         ])
-
-    def test_prepare_field_value_in_venture_data(self):
-        """
-        Test if field is properly prepared for placing it in report. Value
-        in venture data.
-        """
-        venture_data = {
-            'field1': '1234',
-        }
-        rules = {
-            'currency': False
-        }
-        result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('1234', D('0')))
-
-    def test_prepare_field_value_in_venture_data_currency(self):
-        """
-        Test if field is properly prepared for placing it in report. Value
-        in venture data.
-        """
-        venture_data = {
-            'field1': 1234,
-        }
-        rules = {
-            'currency': True,
-            'total_cost': True,
-        }
-        result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('1234.00', D('1234')))
-
-    def test_prepare_field_value_not_in_venture_date_default(self):
-        """
-        Test if field is properly prepared for placing it in report. Value not
-        in venture data and there is no default rule.
-        """
-        venture_data = {}
-        rules = {
-            'currency': True,
-            'total_cost': True,
-            'default': 3,
-        }
-        result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('3.00', D('3')))
-
-    def test_prepare_field_value_not_in_venture_date(self):
-        """
-        Test if field is properly prepared for placing it in report. Value not
-        in venture data and there is default rule.
-        """
-        venture_data = {}
-        rules = {
-            'currency': True,
-            'total_cost': True,
-        }
-        result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('0.00', D('0')))
-
-    def test_prepare_field_value_basestring(self):
-        """
-        Test if field is properly prepared for placing it in report. Value is
-        string.
-        """
-        venture_data = {
-            'field1': '123'
-        }
-        rules = {
-            'currency': True,
-            'total_cost': True,
-        }
-        result = AllVentures._prepare_field('field1', rules, venture_data)
-        self.assertEquals(result, ('123', D('0')))
-
-    def _sample_schema(self):
-        return [
-            OrderedDict([
-                ('field1', {'name': 'Field1'}),
-                ('field2', {
-                    'name': 'Field2',
-                    'currency': True,
-                    'total_cost': True,
-                }),
-            ]),
-            OrderedDict([
-                ('field3', {'name': 'Field3'}),
-                ('field4', {
-                    'name': 'Field4',
-                    'currency': True,
-                    'total_cost': True,
-                }),
-            ]),
-        ]
-
-    @mock.patch.object(AllVentures, '_get_schema')
-    def test_prepare_row(self, get_schema_mock):
-        """
-        Test if whole row is properly prepared for placing it in report
-        """
-        venture_data = {
-            'field1': 123,
-            'field2': D('3'),
-            'field3': 3123,
-            'field4': 33
-        }
-        get_schema_mock.return_value = self._sample_schema()
-        result = AllVentures._prepare_venture_row(venture_data)
-        self.assertEquals(
-            result,
-            [123, '3.00', 3123, '33.00', '36.00']
-        )
 
     def test_get_ventures(self):
         """
@@ -392,7 +284,7 @@ class TestReportVenturesBeta(TestCase):
         """
         Test getting headers for report
         """
-        get_schema_mock.return_value = self._sample_schema()
+        get_schema_mock.return_value = utils.sample_schema()
         result = AllVentures.get_header()
         self.assertEquals(result, [[
             'Field1',

@@ -191,3 +191,33 @@ class BaseReportPlugin(BasePlugin):
         return list(daily_usages.values('pricing_venture').annotate(
             usage=Sum('value'),
         ).order_by('pricing_venture'))
+
+    @memoize(skip_first=True)
+    def _get_usages_in_period_per_device(
+        self,
+        start,
+        end,
+        usage_type,
+        warehouse=None,
+        ventures=None,
+    ):
+        """
+        Method similar to `_get_total_usage_in_period`, but instead of
+        one-number result, it returns total cost per venture in period of time
+        (between start and end). Total usage can be calculated overall, for
+        single warehouse, for selected ventures or for ventures in warehouse.
+
+        :rtype: list
+        """
+        daily_usages = DailyUsage.objects.filter(
+            date__gte=start,
+            date__lte=end,
+            type=usage_type,
+        )
+        if warehouse:
+                daily_usages = daily_usages.filter(warehouse=warehouse)
+        if ventures:
+            daily_usages = daily_usages.filter(pricing_venture__in=ventures)
+        return list(daily_usages.values('pricing_device').annotate(
+            usage=Sum('value'),
+        ).order_by('pricing_device'))

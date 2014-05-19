@@ -10,6 +10,7 @@ from collections import OrderedDict
 
 from django.utils.translation import ugettext_lazy as _
 
+from ralph_pricing.models import DailyDevice, Device
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
@@ -48,6 +49,30 @@ class Information(BaseReportPlugin):
             }
         return usages
 
+    def costs_per_device(self, start, end, venture, *args, **kwargs):
+        """
+        Return informations about given ventures
+
+        usages = {
+            'venture_id': {
+                'field_name': value,
+                ...
+            },
+            ...
+        }
+
+        :returns dict: informations about ventures
+        :rtype dict:
+        """
+        logger.debug("Get devices information")
+        devices = Device.objects.filter(
+            dailydevice__date__gte=start,
+            dailydevice__date__lte=end,
+            dailydevice__pricing_venture=venture,
+        ).distinct().values('id', 'asset_id', 'name', 'sn', 'barcode')
+        result = dict(((device['id'], device) for device in devices))
+        return result
+
     def schema(self, *args, **kwargs):
         """
         Build schema for this usage. Format of schema looks like:
@@ -81,6 +106,36 @@ class Information(BaseReportPlugin):
         schema['profit_center'] = {
             'name': _("Profit center"),
         }
+        return schema
+
+    def schema_devices(self, *args, **kwargs):
+        """
+        Build schema for this usage. Format of schema looks like:
+
+        schema = {
+            'field_name': {
+                'name': 'Verbous name',
+                'next_option': value,
+                ...
+            },
+            ...
+        }
+
+        :returns dict: schema for usage
+        :rtype dict:
+        """
+        logger.debug("Get devices information schema")
+        schema = OrderedDict([
+            ('barcode', {
+                'name': _('Barcode'),
+            }),
+            ('sn', {
+                'name': _('SN'),
+            }),
+            ('name', {
+                'name': _('Device name'),
+            }),
+        ])
         return schema
 
     def total_cost(self, *args, **kwargs):

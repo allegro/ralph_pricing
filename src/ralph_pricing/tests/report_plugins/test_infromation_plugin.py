@@ -14,7 +14,7 @@ from ralph_pricing import models
 from ralph_pricing.plugins.reports.deprecation import Deprecation
 
 
-class TestDeprecationReportPlugin(TestCase):
+class TestInformationPlugin(TestCase):
     def setUp(self):
         # ventures
         self.venture1 = models.Venture(venture_id=1, name='V1', is_active=True)
@@ -52,57 +52,8 @@ class TestDeprecationReportPlugin(TestCase):
                     dd.save()
                     i += 1
 
-    def test_usages(self):
-        device = models.Device(
-            name='Device0',
-            device_id=0,
-        )
-        device.save()
-        models.DailyDevice(
-            date=datetime.date(2013, 10, 12),
-            name='Device0',
-            price=100,
-            deprecation_rate=0.25,
-            is_deprecated=False,
-            pricing_venture=self.venture1,
-            pricing_device=device,
-        ).save()
-        result = Deprecation(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 13),
-            ventures=self.ventures_subset,
-            type='dailyusages',
-        )
-        self.assertEquals(result, {
-            datetime.date(2013, 10, 10): {
-                self.venture1.id: 5,
-                self.venture2.id: 10,
-            },
-            datetime.date(2013, 10, 11): {
-                self.venture1.id: 5,
-                self.venture2.id: 10,
-            },
-            datetime.date(2013, 10, 12): {
-                self.venture1.id: 6,  # additional device!
-                self.venture2.id: 10,
-            },
-            datetime.date(2013, 10, 13): {
-                self.venture1.id: 5,
-                self.venture2.id: 10,
-            },
-        })
-
     def test_costs(self):
         pass
 
     def test_costs_per_device(self):
-        pass
-
-    def test_total_cost(self):
-        pass
-
-    def test_get_asset_count_and_cost(self):
-        pass
-
-    def test_get_asset_count_and_cost_group_by_device(self):
         pass

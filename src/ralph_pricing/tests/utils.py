@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+from collections import OrderedDict
 import datetime
 from decimal import Decimal as D
 
@@ -43,3 +51,24 @@ def get_or_create_daily_extra_cost(
         type=type,
         value=value,
     )[0]
+
+
+def sample_schema():
+    return [
+        OrderedDict([
+            ('field1', {'name': 'Field1'}),
+            ('field2', {
+                'name': 'Field2',
+                'currency': True,
+                'total_cost': True,
+            }),
+        ]),
+        OrderedDict([
+            ('field3', {'name': 'Field3'}),
+            ('field4', {
+                'name': 'Field4',
+                'currency': True,
+                'total_cost': True,
+            }),
+        ]),
+    ]

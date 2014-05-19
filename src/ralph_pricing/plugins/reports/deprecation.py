@@ -9,7 +9,7 @@ import logging
 from collections import OrderedDict, defaultdict
 from decimal import Decimal as D
 
-from django.db.models import Sum, Count
+from django.db.models import Count, Max, Sum
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.models import DailyDevice
@@ -22,7 +22,13 @@ logger = logging.getLogger(__name__)
 
 @register(chain='reports')
 class Deprecation(UsageBasePlugin):
-    def get_assets_count_and_cost(self, start, end, ventures):
+    def get_assets_count_and_cost(
+        self,
+        start,
+        end,
+        ventures,
+        group_by='pricing_venture',
+    ):
         """
         Returns sum of devices price and daily_costs for every venture in given
         time period
@@ -40,7 +46,7 @@ class Deprecation(UsageBasePlugin):
             pricing_venture__in=ventures,
         )
 
-        return assets_report_query.values('pricing_venture')\
+        return assets_report_query.values(group_by)\
             .annotate(assets_price=Sum('price'))\
             .annotate(assets_cost=Sum('daily_cost'))\
             .annotate(assets_count=Count('id'))
@@ -82,6 +88,49 @@ class Deprecation(UsageBasePlugin):
             usages[asset['pricing_venture']] = {
                 'assets_count': asset['assets_count'] / report_days,
                 'assets_cost': asset['assets_cost'],
+            }
+        return usages
+
+    def costs_per_device(self, start, end, venture, **kwargs):
+        """
+        Return usages and costs for given ventures. Format of
+        returned data must looks like:
+
+        usages = {
+            'venture_id': {
+                'field_name': value,
+                ...
+            },
+            ...
+        }
+
+        :returns dict: usages and costs
+        """
+        logger.debug("Get deprecation usage")
+        report_days = (end - start).days + 1
+        assets_count_and_cost = self.get_assets_count_and_cost(
+            start,
+            end,
+            [venture],
+            group_by='pricing_device'
+        ).annotate(is_deprecated_sum=Sum('is_deprecated'))\
+         .annotate(is_deprecated_count=Count('is_deprecated'))\
+         .annotate(deprecation_rate=Max('deprecation_rate'))
+
+        usages = {}
+        for asset in assets_count_and_cost:
+            if asset['is_deprecated_sum'] == 0:
+                deprecation_status = _('No')
+            elif asset['is_deprecated_sum'] == asset['is_deprecated_count']:
+                deprecation_status = _('Yes')
+            else:
+                deprecation_status = _('Partially')
+
+            usages[asset['pricing_device']] = {
+                'assets_count': asset['assets_count'] / report_days,
+                'assets_cost': asset['assets_cost'],
+                'is_deprecated': deprecation_status,
+                'deprecation_rate': asset['deprecation_rate']
             }
         return usages
 
@@ -134,11 +183,23 @@ class Deprecation(UsageBasePlugin):
         schema = OrderedDict()
         schema['assets_count'] = {
             'name': _("Assets count"),
+            'rounding': 3,
         }
         schema['assets_cost'] = {
             'name': _("Assets cost"),
             'currency': True,
             'total_cost': True,
+        }
+        return schema
+
+    def schema_devices(self, **kwargs):
+        schema = self.schema(**kwargs)
+        schema['deprecation_rate'] = {
+            'name': _('Deprecation rate'),
+            'rounding': 1,
+        }
+        schema['is_deprecated'] = {
+            'name': _('Deprecated'),
         }
         return schema
 

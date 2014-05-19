@@ -8,82 +8,19 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'ExtraCost', fields ['pricing_venture', 'end', 'type']
-        db.delete_unique('ralph_pricing_extracost', ['pricing_venture_id', 'end', 'type_id'])
-
-        # Removing unique constraint on 'ExtraCost', fields ['start', 'type', 'pricing_venture']
-        db.delete_unique('ralph_pricing_extracost', ['start', 'type_id', 'pricing_venture_id'])
-
-        # Adding model 'DailyExtraCost'
-        db.create_table('ralph_pricing_dailyextracost', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('date', self.gf('django.db.models.fields.DateField')()),
-            ('pricing_venture', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.Venture'])),
-            ('pricing_device', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Device'], null=True, blank=True)),
-            ('value', self.gf('django.db.models.fields.FloatField')(default=0)),
-            ('type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_pricing.ExtraCostType'])),
-            ('remarks', self.gf('django.db.models.fields.TextField')(default=u'', blank=True)),
-        ))
-        db.send_create_signal('ralph_pricing', ['DailyExtraCost'])
-
-        # Adding unique constraint on 'DailyExtraCost', fields ['date', 'pricing_device', 'type', 'pricing_venture']
-        db.create_unique('ralph_pricing_dailyextracost', ['date', 'pricing_device_id', 'type_id', 'pricing_venture_id'])
-
-        # Deleting field 'ExtraCost.price'
-        db.delete_column('ralph_pricing_extracost', 'price')
-
-        # Adding field 'ExtraCost.monthly_cost'
-        db.add_column('ralph_pricing_extracost', 'monthly_cost',
-                      self.gf('django.db.models.fields.DecimalField')(default=None, max_digits=16, decimal_places=6),
+        # Adding field 'UsageType.show_on_devices_report'
+        db.add_column('ralph_pricing_usagetype', 'show_in_devices_report',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
-        # Adding field 'ExtraCost.pricing_device'
-        db.add_column('ralph_pricing_extracost', 'pricing_device',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_pricing.Device'], null=True, blank=True),
-                      keep_default=False)
-
-
-        # Changing field 'ExtraCost.end'
-        db.alter_column('ralph_pricing_extracost', 'end', self.gf('django.db.models.fields.DateField')(null=True))
-
-        # Changing field 'ExtraCost.start'
-        db.alter_column('ralph_pricing_extracost', 'start', self.gf('django.db.models.fields.DateField')(null=True))
-        # Adding unique constraint on 'ExtraCost', fields ['pricing_venture', 'type']
-        db.create_unique('ralph_pricing_extracost', ['pricing_venture_id', 'type_id'])
+        db.rename_column('ralph_pricing_usagetype', 'show_in_report', 'show_in_ventures_report')
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'ExtraCost', fields ['pricing_venture', 'type']
-        db.delete_unique('ralph_pricing_extracost', ['pricing_venture_id', 'type_id'])
+        # Deleting field 'UsageType.show_on_devices_report'
+        db.delete_column('ralph_pricing_usagetype', 'show_in_devices_report')
 
-        # Removing unique constraint on 'DailyExtraCost', fields ['date', 'pricing_device', 'type', 'pricing_venture']
-        db.delete_unique('ralph_pricing_dailyextracost', ['date', 'pricing_device_id', 'type_id', 'pricing_venture_id'])
-
-        # Deleting model 'DailyExtraCost'
-        db.delete_table('ralph_pricing_dailyextracost')
-
-        # Adding field 'ExtraCost.price'
-        db.add_column('ralph_pricing_extracost', 'price',
-                      self.gf('django.db.models.fields.DecimalField')(default=None, max_digits=16, decimal_places=6),
-                      keep_default=False)
-
-        # Deleting field 'ExtraCost.monthly_cost'
-        db.delete_column('ralph_pricing_extracost', 'monthly_cost')
-
-        # Deleting field 'ExtraCost.pricing_device'
-        db.delete_column('ralph_pricing_extracost', 'pricing_device_id')
-
-
-        # Changing field 'ExtraCost.end'
-        db.alter_column('ralph_pricing_extracost', 'end', self.gf('django.db.models.fields.DateField')(default=None))
-
-        # Changing field 'ExtraCost.start'
-        db.alter_column('ralph_pricing_extracost', 'start', self.gf('django.db.models.fields.DateField')(default=None))
-        # Adding unique constraint on 'ExtraCost', fields ['start', 'type', 'pricing_venture']
-        db.create_unique('ralph_pricing_extracost', ['start', 'type_id', 'pricing_venture_id'])
-
-        # Adding unique constraint on 'ExtraCost', fields ['pricing_venture', 'end', 'type']
-        db.create_unique('ralph_pricing_extracost', ['pricing_venture_id', 'end', 'type_id'])
+        db.rename_column('ralph_pricing_usagetype', 'show_in_ventures_report', 'show_in_report')
 
 
     models = {
@@ -207,12 +144,10 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.extracost': {
             'Meta': {'unique_together': "[(u'pricing_venture', u'type')]", 'object_name': 'ExtraCost'},
-            'end': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'monthly_cost': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'blank': 'True'}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Venture']"}),
-            'start': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.ExtraCostType']"})
         },
         'ralph_pricing.extracosttype': {
@@ -316,7 +251,8 @@ class Migration(SchemaMigration):
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_in_ventures_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_in_devices_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_price_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
