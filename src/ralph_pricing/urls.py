@@ -18,6 +18,7 @@ from ralph_pricing.views.statement import Statements
 from ralph_pricing.views.teams import Teams
 from ralph_pricing.views.teams_percent import TeamsPercent
 from ralph_pricing.views.ventures import AllVentures
+from ralph_pricing.views.ventures_changes import VenturesChanges
 from ralph_pricing.views.ventures_daily_usages import VenturesDailyUsages
 
 v09_api = Api(api_name='v0.9')
@@ -77,6 +78,11 @@ urlpatterns = patterns(
         r'^ventures-daily-usages-report/$',
         login_required(VenturesDailyUsages.as_view()),
         name='ventures_daily_usages',
+    ),
+    url(
+        r'^ventures-changes/$',
+        login_required(VenturesChanges.as_view()),
+        name='ventures_changes',
     ),
     url(
         r'^devices/$',
