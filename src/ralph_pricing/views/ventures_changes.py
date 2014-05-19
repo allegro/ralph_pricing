@@ -37,10 +37,23 @@ class VenturesChanges(Report):
     allow_statement = False
 
     @classmethod
-    def _get_data(cls, start, end, venture=None):
+    def get_data(cls, start, end, venture=None, **kwargs):
         """
-        Returns devices ventures changes based on daily devices imprints.
+        Main method. Create a full report for devices ventures changes. Notice
+        that this method is a generator. Returns devices ventures changes
+        based on daily devices imprints.
+
+        :returns tuple: percent of progress and report data
+        :rtype tuple:
         """
+        logger.info(
+            "Generating venture changes report ({0}-{1}, venture: {2}".format(
+                start,
+                end,
+                venture,
+            )
+        )
+
         venture_id = venture.id if venture is not None else None
         # query explanation:
         # join dailydevice table with self in such way, that joined record's
@@ -81,25 +94,7 @@ class VenturesChanges(Report):
         db_engine = cursor.db.settings_dict['ENGINE'].split('.')[-1]
         dates_sub = SQL_DAY_SUB[db_engine]('dd1.date')
         cursor.execute(query.format(**locals()))
-        return map(list, cursor.fetchall())
-
-    @classmethod
-    def get_data(cls, start, end, venture=None, **kwargs):
-        """
-        Main method. Create a full report for devices ventures changes. Notice
-        that this method is a generator.
-
-        :returns tuple: percent of progress and report data
-        :rtype tuple:
-        """
-        logger.info(
-            "Generating venture changes report ({0}-{1}, venture: {2}".format(
-                start,
-                end,
-                venture,
-            )
-        )
-        yield 100, cls._get_data(start, end, venture)
+        yield 100, map(list, cursor.fetchall())
 
     @classmethod
     def get_header(cls, start, end, venture, **kwargs):
