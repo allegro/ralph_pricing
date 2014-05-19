@@ -16,6 +16,7 @@ from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -131,6 +132,34 @@ class ServiceBasePlugin(BaseReportPlugin):
                 ))
         return dependent_costs
 
+    def _get_service_extra_cost(
+        self,
+        start,
+        end,
+        ventures,
+    ):
+        """
+        Calculates total cost of extra costs for given service.
+
+        :param datatime start: Begin of time interval
+        :param datatime end: End of time interval
+        :param list ventures: List of ventures
+        :returns decimal: price
+        :rtype decimal:
+        """
+        try:
+            return plugin_runner.run(
+                'reports',
+                'extra_cost_plugin',
+                type='total_cost',
+                start=start,
+                end=end,
+                ventures=ventures,
+            )
+        except (KeyError, AttributeError):
+            logger.warning('Invalid call for total extra cost')
+            return D(0)
+
     def _get_date_ranges_percentage(self, start, end, service):
         """
         Returns list of minimum date ranges that have different percentage
@@ -172,10 +201,15 @@ class ServiceBasePlugin(BaseReportPlugin):
         Calculates total cost of service (in period of time), assuming, that
         ventures are service ventures.
 
-        Total cost is sum of cost of base usage types usages and all dependent
+        Total cost is sum of cost of base usage types usages, all dependent
+        and extra costs.
         services costs (for specified ventures).
 
-        :rtype: Decimal
+        :param datatime start: Begin of time interval
+        :param datatime end: End of time interval
+        :param list ventures: List of service ventures
+        :returns decimal: total cost of service
+        :rtype decimal:
         """
         # total cost of base usage types for ventures providing this service
         total_cost = self._get_service_base_usage_types_cost(
@@ -191,6 +225,11 @@ class ServiceBasePlugin(BaseReportPlugin):
             service,
             forecast,
             ventures=ventures,
+        )
+        total_cost += self._get_service_extra_cost(
+            start,
+            end,
+            ventures,
         )
         return total_cost
 

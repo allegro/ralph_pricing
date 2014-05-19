@@ -36,7 +36,7 @@ urlpatterns = patterns(
         kwargs={'venture': None},
     ),
     url(
-        r'^extra-costs/(?P<venture>\d+)/$',
+        r'^extra-costs/(?P<extra_cost>\d+)/$',
         login_required(ExtraCosts.as_view()),
         name='extra_costs',
     ),

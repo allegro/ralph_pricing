@@ -15,20 +15,16 @@ from ralph_pricing.views.ventures_changes import VenturesChanges
 
 class TestReportVenturesChanges(TestCase):
     def setUp(self):
-        self.venture1 = utils.get_or_create_venture('v1', 1)
-        self.venture2 = utils.get_or_create_venture('v2', 2)
+        self.venture1 = utils.get_or_create_venture()
+        self.venture2 = utils.get_or_create_venture()
 
         self.device1 = utils.get_or_create_device(
-            name='d1',
-            device_id=1,
-            asset_id=11,
+            device_id=11,
             sn='1111-1111-1111',
             barcode='12345',
         )
         self.device2 = utils.get_or_create_device(
-            name='d2',
-            device_id=2,
-            asset_id=12,
+            device_id=12,
             sn='1111-1111-1112',
             barcode='12346',
         )
@@ -67,6 +63,20 @@ class TestReportVenturesChanges(TestCase):
             pass
         change_date = datetime.date(2013, 10, 11)
         self.assertEquals(result, [
-            ['1111-1111-1111', '12345', 'd1', change_date, 'v1', 'v2'],
-            ['1111-1111-1112', '12346', 'd2', change_date, 'v2', 'v1'],
+            [
+                '1111-1111-1111',
+                '12345',
+                self.device1.name,
+                change_date,
+                self.venture1.name,
+                self.venture2.name,
+            ],
+            [
+                '1111-1111-1112',
+                '12346',
+                self.device2.name,
+                change_date,
+                self.venture2.name,
+                self.venture1.name,
+            ],
         ])

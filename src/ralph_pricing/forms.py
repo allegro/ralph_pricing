@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import collections
 import datetime
 
 from django import forms
@@ -26,63 +25,31 @@ from ralph_pricing.utils import ranges_overlap
 
 
 class ExtraCostForm(forms.ModelForm):
+    """
+    Used by factory to create ExtraCostFormSet. Contain basic form infromation
+    like fields.
+    """
     class Meta:
         model = ExtraCost
-        fields = 'type', 'price', 'start', 'end'
-        widgets = {
-            'start': DateWidget(attrs={'class': 'input-small'}),
-            'end': DateWidget(attrs={'class': 'input-small'}),
-        }
-
-    def clean_end(self):
-        start = self.cleaned_data['start']
-        end = self.cleaned_data['end']
-        if start > end:
-            raise forms.ValidationError(
-                _("End date must be later than or equal to the start date."),
-            )
-        return end
+        fields = 'pricing_venture', 'monthly_cost'
 
 
 class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
+    """
+    Used by factory to create ExtraCostFormSet. Contains validation.
+    """
     def clean(self):
         if any(self.errors):
             return
-        types = collections.defaultdict(list)
-        for i in xrange(self.total_form_count()):
-            form = self.forms[i]
-            type_ = form.cleaned_data.get('type')
-            start = form.cleaned_data.get('start')
-            end = form.cleaned_data.get('end')
-            if not type_ or not start or not end:
+        ventures_set = set()
+        for form in self.forms:
+            venture = form.cleaned_data.get('pricing_venture')
+            if venture in ventures_set:
+                form._errors['pricing_venture'] = form.error_class(
+                    [_('Duplicated venture!')]
+                )
                 continue
-            for other_start, other_end in types[type_]:
-                if other_start <= start <= other_end:
-                    form._errors['start'] = form.error_class([
-                        _("Start date overlaps with an existing extra "
-                            "cost of the same type."),
-                    ])
-                    break
-                if other_start <= end <= other_end:
-                    form._errors['end'] = form.error_class([
-                        _("End date overlaps with an existing extra "
-                            "cost of the same type."),
-                    ])
-                    break
-                if start <= other_start <= end:
-                    form._errors['start'] = form.error_class([
-                        _("A start date of an existing extra cost of "
-                            "the same type overlaps with this time span."),
-                    ])
-                    break
-                if start <= other_end <= end:
-                    form._errors['start'] = form.error_class([
-                        _("An end date of an existing extra cost of "
-                            "the same type overlaps with this time span."),
-                    ])
-                    break
-            else:
-                types[type_].append((start, end))
+            ventures_set.add(venture)
 
 
 ExtraCostFormSet = forms.models.modelformset_factory(
@@ -90,6 +57,7 @@ ExtraCostFormSet = forms.models.modelformset_factory(
     form=ExtraCostForm,
     formset=ExtraCostBaseFormSet,
     can_delete=True,
+    max_num=5
 )
 
 
@@ -164,10 +132,10 @@ class UsagePriceForm(forms.ModelForm):
 
 
 class UsagesBaseFormSet(forms.models.BaseModelFormSet):
-    '''
+    """
     Used by factory to create UsagesFormSet. Contains rules to validate
     unique and correct data for each type of usage
-    '''
+    """
     def clean(self):
         if any(self.errors):
             return
@@ -371,7 +339,7 @@ class DateRangeVentureForm(DateRangeForm):
 
 
 class VenturesDailyUsagesForm(forms.Form):
-    '''Form schema. Used to generate venture daily usages reports'''
+    """Form schema. Used to generate venture daily usages reports"""
     start = forms.DateField(
         widget=DateWidget(
             attrs={'class': 'input-small'},
