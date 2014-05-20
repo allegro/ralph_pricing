@@ -7,7 +7,7 @@ install:
   - pip install git+https://github.com/quamilek/bob-ajax-selects.git@develop
   - pip install git+https://github.com/allegro/django-bob.git@develop
   - pip install git+https://github.com/allegro/ralph.git@develop --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core --allow-unverified pysphere
-  - pip install git+https://github.com/allegro/ralph_assets.git@release/1.4.2
+  - pip install git+https://github.com/allegro/ralph_assets.git@develop
   - pip install . --use-mirrors
 before_script:
   - flake8 --exclude="migrations" --statistics src/ralph_pricing
