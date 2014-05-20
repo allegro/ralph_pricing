@@ -47,9 +47,9 @@ class Deprecation(UsageBasePlugin):
         )
 
         return assets_report_query.values(group_by)\
-            .annotate(assets_price=Sum('price'))\
             .annotate(assets_cost=Sum('daily_cost'))\
-            .annotate(assets_count=Count('id'))
+            .annotate(assets_count=Count('id'))\
+            .order_by(group_by)
 
     def total_cost(self, start, end, ventures, **kwargs):
         assets_report_query = DailyDevice.objects.filter(
@@ -114,14 +114,13 @@ class Deprecation(UsageBasePlugin):
             [venture],
             group_by='pricing_device'
         ).annotate(is_deprecated_sum=Sum('is_deprecated'))\
-         .annotate(is_deprecated_count=Count('is_deprecated'))\
          .annotate(deprecation_rate=Max('deprecation_rate'))
 
         usages = {}
         for asset in assets_count_and_cost:
             if asset['is_deprecated_sum'] == 0:
                 deprecation_status = _('No')
-            elif asset['is_deprecated_sum'] == asset['is_deprecated_count']:
+            elif asset['is_deprecated_sum'] == asset['assets_count']:
                 deprecation_status = _('Yes')
             else:
                 deprecation_status = _('Partially')

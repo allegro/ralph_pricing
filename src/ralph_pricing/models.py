@@ -1096,7 +1096,7 @@ class DailyUsage(db.Model):
         verbose_name = _("daily usage")
         verbose_name_plural = _("daily usages")
         unique_together = ('date', 'pricing_device', 'type', 'pricing_venture')
-        ordering = ('pricing_device', 'type', 'date')
+        # ordering = ('pricing_device', 'type', 'date')
 
     def __unicode__(self):
         return '{0}/{1} ({2}) {3}'.format(

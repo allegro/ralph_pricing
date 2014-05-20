@@ -9,24 +9,49 @@ from collections import OrderedDict
 import datetime
 from decimal import Decimal as D
 
+
 from ralph_pricing.models import (
-    Device,
-    Venture,
-    ExtraCostType,
+    DailyDevice,
     DailyExtraCost,
+    Device,
+    ExtraCostType,
+    Venture,
 )
 
 
-def get_or_create_device(name=None, device_id=None):
-    device_id = device_id if device_id else Device.objects.all().count()
-    name = name if name else "Default{0}".format(device_id)
-    return Device.objects.get_or_create(name=name, device_id=device_id)[0]
+def get_or_create_device(name=None, asset_id=None, **kwargs):
+    asset_id = asset_id if asset_id else Device.objects.all().count()
+    name = name if name else "Default{0}".format(asset_id)
+    return Device.objects.get_or_create(
+        name=name,
+        asset_id=asset_id,
+        defaults=kwargs,
+    )[0]
 
 
-def get_or_create_venture(name=None, venture_id=None):
+def get_or_create_venture(
+    name=None,
+    venture_id=None,
+    is_active=True,
+    **kwargs
+):
     venture_id = venture_id if venture_id else Venture.objects.all().count()
     name = name if name else "Default{0}".format(venture_id)
-    return Venture.objects.get_or_create(name=name, venture_id=venture_id)[0]
+    return Venture.objects.get_or_create(
+        name=name,
+        venture_id=venture_id,
+        is_active=is_active,
+        defaults=kwargs,
+    )[0]
+
+
+def get_or_create_dailydevice(date, device, venture, **kwargs):
+    return DailyDevice.objects.get_or_create(
+        date=date,
+        pricing_device=device,
+        pricing_venture=venture,
+        **kwargs
+    )[0]
 
 
 def get_or_create_extra_cost_type(name=None):

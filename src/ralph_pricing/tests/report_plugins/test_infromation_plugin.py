@@ -11,7 +11,6 @@ from dateutil import rrule
 from django.test import TestCase
 
 from ralph_pricing import models
-from ralph_pricing.plugins.reports.deprecation import Deprecation
 
 
 class TestInformationPlugin(TestCase):

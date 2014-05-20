@@ -47,9 +47,11 @@
         <button type="submit" class="btn" name="format" value="csv">{% spaceless %}
             {% icon 'fugue-document-excel-csv' %}&nbsp;Download CSV
             {% endspaceless %}</button>
+        {% if allow_statement %}
         <button type="submit" class="btn" name="format" value="statement">{% spaceless %}
             {% icon 'fugue-clock-history' %}&nbsp;Create Statement
             {% endspaceless %}</button>
+        {% endif %}
     </div>
     {% endblock %}
 </div>

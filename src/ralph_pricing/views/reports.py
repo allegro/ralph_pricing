@@ -19,8 +19,7 @@ from django.core.cache.backends.dummy import DummyCache
 from django.utils.translation import ugettext_lazy as _
 from rq.job import Job
 
-from ralph_pricing.models import Service, Statement, UsageType
-from ralph_pricing.plugins.reports.base import AttributeDict
+from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
 
 logger = logging.getLogger(__name__)
@@ -57,6 +56,7 @@ class Report(Base):
     section = ''
     report_name = ''
     currency = 'PLN'
+    allow_statement = True
 
     def __init__(self, *args, **kwargs):
         super(Report, self).__init__(*args, **kwargs)
@@ -94,7 +94,8 @@ class Report(Base):
                             itertools.chain(self.header, self.data),
                             '{}.csv'.format(self.section),
                         )
-                    if get.get('format', '').lower() == 'statement':
+                    if (self.allow_statement
+                       and get.get('format', '').lower() == 'statement'):
                         self._format_statement_header()
                         self._create_statement()
                 else:
@@ -122,8 +123,8 @@ class Report(Base):
         usage_type, created = Statement.objects.get_or_create(
             start=self.form.cleaned_data['start'],
             end=self.form.cleaned_data['end'],
-            forecast=self.form.cleaned_data['forecast'],
-            is_active=self.form.cleaned_data['is_active'],
+            forecast=self.form.cleaned_data.get('forecast', False),
+            is_active=self.form.cleaned_data.get('is_active', False),
             defaults=dict(
                 header=json.dumps(self.header),
                 data=json.dumps(self.data),
@@ -164,6 +165,7 @@ class Report(Base):
             'report_name': self.report_name,
             'form': self.form,
             'got_query': self.got_query,
+            'allow_statement': self.allow_statement,
         })
         return context
 

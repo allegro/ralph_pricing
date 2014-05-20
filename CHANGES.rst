@@ -1,6 +1,26 @@
 Change Log
 ----------
 
+2.3.0
+~~~~~
+
+* Fixed report table header on scroll.
+
+* Exception instan error in logging on report plugin run.
+
+* Fixed raise exception 0/0 by team plugins.
+
+* Added extra costs to report as separated column and service to total cost.
+
+* Fixed saving device_id, sn and barcode
+
+* Added monthly statement
+
+* Added plugin to bill cloud 1.0 from ralph
+
+* Fixed ventures daily usages header colspan
+
+
 2.2.3
 ~~~~~
 

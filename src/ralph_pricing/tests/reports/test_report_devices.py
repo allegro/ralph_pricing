@@ -58,9 +58,7 @@ class TestReportVenturesBeta(TestCase):
         self.device1 = utils.get_or_create_device()
         self.device2 = utils.get_or_create_device()
         self.device3 = utils.get_or_create_device()  # device without daily
-        self.device_virtual = utils.get_or_create_device()
-        self.device_virtual.is_virtual = True
-        self.device_virtual.save()
+        self.device_virtual = utils.get_or_create_device(is_virtual=True)
 
         # dailydevices
         days = rrule.rrule(
@@ -70,10 +68,10 @@ class TestReportVenturesBeta(TestCase):
         )
         for device in (self.device1, self.device2, self.device_virtual):
             for j, day in enumerate(days, start=1):
-                dailydevice = models.DailyDevice(
-                    date = day,
-                    pricing_device=device,
-                    pricing_venture=self.venture
+                dailydevice = utils.get_or_create_dailydevice(
+                    date=day,
+                    device=device,
+                    venture=self.venture
                 )
                 dailydevice.save()
 

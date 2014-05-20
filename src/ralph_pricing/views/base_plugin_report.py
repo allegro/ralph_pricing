@@ -5,13 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import abc
 import logging
 from decimal import Decimal as D
 
 from lck.cache import memoize
-from django.conf import settings
-from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.reports import Report
@@ -20,7 +17,6 @@ from ralph_pricing.models import (
     UsageType,
     Venture,
 )
-from ralph_pricing.forms import DateRangeForm
 from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
 from ralph_pricing.plugins.reports.base import AttributeDict

@@ -208,11 +208,11 @@ class UsageBasePlugin(BaseReportPlugin):
 
             def add_usages_per_venture(up_start, up_end, price, **kwargs):
                 usages_per_venture = self._get_usages_in_period_per_venture(
-                    up_start,
-                    up_end,
-                    usage_type,
-                    warehouse,
-                    ventures,
+                    start=up_start,
+                    end=up_end,
+                    usage_type=usage_type,
+                    warehouse=warehouse,
+                    ventures=ventures,
                 )
                 for v in usages_per_venture:
                     venture = v['pricing_venture']
@@ -227,11 +227,11 @@ class UsageBasePlugin(BaseReportPlugin):
 
             def add_usages_per_device(up_start, up_end, **kwargs):
                 usages_per_device = self._get_usages_in_period_per_device(
-                    up_start,
-                    up_end,
-                    usage_type,
-                    warehouse,
-                    ventures[0],
+                    start=up_start,
+                    end=up_end,
+                    usage_type=usage_type,
+                    venture=ventures[0],
+                    warehouse=warehouse,
                 )
                 for v in usages_per_device:
                     device = v['pricing_device']

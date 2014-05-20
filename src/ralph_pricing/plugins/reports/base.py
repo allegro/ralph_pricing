@@ -198,8 +198,8 @@ class BaseReportPlugin(BasePlugin):
         start,
         end,
         usage_type,
+        venture,
         warehouse=None,
-        ventures=None,
     ):
         """
         Method similar to `_get_total_usage_in_period`, but instead of
@@ -213,11 +213,10 @@ class BaseReportPlugin(BasePlugin):
             date__gte=start,
             date__lte=end,
             type=usage_type,
+            pricing_venture=venture,
         )
         if warehouse:
                 daily_usages = daily_usages.filter(warehouse=warehouse)
-        if ventures:
-            daily_usages = daily_usages.filter(pricing_venture__in=ventures)
         return list(daily_usages.values('pricing_device').annotate(
             usage=Sum('value'),
         ).order_by('pricing_device'))

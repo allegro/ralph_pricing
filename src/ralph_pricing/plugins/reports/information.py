@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_pricing.models import DailyDevice, Device
+from ralph_pricing.models import Device
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 

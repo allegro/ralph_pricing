@@ -14,6 +14,7 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing import models
+from ralph_pricing.tests import utils
 from ralph_pricing.plugins.reports.usage import UsagePlugin
 
 
@@ -107,13 +108,17 @@ class TestUsageBasePlugin(TestCase):
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
         base_usage_types = models.UsageType.objects.filter(type='BU')
-        for i, ut in enumerate(base_usage_types, start=1):
-            days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
-            for j, day in enumerate(days, start=1):
-                for k, venture in enumerate(self.ventures, start=1):
+        self.ventures_devices = {}
+        for k, venture in enumerate(self.ventures, start=1):
+            device = utils.get_or_create_device()
+            self.ventures_devices[venture] = device
+            for i, ut in enumerate(base_usage_types, start=1):
+                days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
+                for j, day in enumerate(days, start=1):
                     daily_usage = models.DailyUsage(
                         date=day,
                         pricing_venture=venture,
+                        pricing_device=device,
                         value=10 * i * k,
                         type=ut,
                     )
@@ -639,6 +644,25 @@ class TestUsageBasePlugin(TestCase):
             },
         })
 
+    def test_get_usages_per_warehouse_by_device(self):
+        result = UsagePlugin._get_usages_per_warehouse(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_wh,
+            ventures=[self.venture1],
+            forecast=False,
+            by_device=True,
+        )
+        self.assertEquals(result, {
+            self.ventures_devices[self.venture1].id: {
+                'ut_2_count_wh_1': 100.0,
+                'ut_2_cost_wh_1': D('960'),
+                'ut_2_count_wh_2': 120.0,
+                'ut_2_cost_wh_2': D('1080'),
+                'ut_2_total_cost': D('2040'),
+            }
+        })
+
     def test_usage_type_average(self):
         result = UsagePlugin.costs(
             start=datetime.date(2013, 10, 10),
@@ -734,6 +758,7 @@ class TestUsageBasePlugin(TestCase):
         du = models.DailyUsage(
             date=datetime.date(2013, 10, 11),
             pricing_venture=self.venture2,
+            pricing_device=utils.get_or_create_device(),
             value=100,
             type=self.usage_type,
         )
