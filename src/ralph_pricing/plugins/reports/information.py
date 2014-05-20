@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class Information(BaseReportPlugin):
     def costs(self, *args, **kwargs):
         """
-        Return informations about given ventures
+        Return information about given ventures
 
         usages = {
             'venture_id': {
@@ -31,7 +31,7 @@ class Information(BaseReportPlugin):
             ...
         }
 
-        :returns dict: informations about ventures
+        :returns dict: information about ventures
         :rtype dict:
         """
         logger.debug("Get information usage")
@@ -51,17 +51,18 @@ class Information(BaseReportPlugin):
 
     def costs_per_device(self, start, end, venture, *args, **kwargs):
         """
-        Return informations about given ventures
+        Return information about devices in given venture. Devies are filtered
+        to match only those, who have any DailyDevice record in period of time.
 
         usages = {
-            'venture_id': {
+            'device_id': {
                 'field_name': value,
                 ...
             },
             ...
         }
 
-        :returns dict: informations about ventures
+        :returns dict: information about devices in venture
         :rtype dict:
         """
         logger.debug("Get devices information")
@@ -110,18 +111,9 @@ class Information(BaseReportPlugin):
 
     def schema_devices(self, *args, **kwargs):
         """
-        Build schema for this usage. Format of schema looks like:
+        Build schema for devices information. Format is the same as in `schema`
 
-        schema = {
-            'field_name': {
-                'name': 'Verbous name',
-                'next_option': value,
-                ...
-            },
-            ...
-        }
-
-        :returns dict: schema for usage
+        :returns dict: schema for devices information
         :rtype dict:
         """
         logger.debug("Get devices information schema")

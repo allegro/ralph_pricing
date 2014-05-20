@@ -93,11 +93,11 @@ class Deprecation(UsageBasePlugin):
 
     def costs_per_device(self, start, end, venture, **kwargs):
         """
-        Return usages and costs for given ventures. Format of
+        Return usages and costs for devices in venture. Format of
         returned data must looks like:
 
         usages = {
-            'venture_id': {
+            'device_id': {
                 'field_name': value,
                 ...
             },
@@ -106,7 +106,7 @@ class Deprecation(UsageBasePlugin):
 
         :returns dict: usages and costs
         """
-        logger.debug("Get deprecation usage")
+        logger.debug("Get deprecation of devices")
         report_days = (end - start).days + 1
         assets_count_and_cost = self.get_assets_count_and_cost(
             start,
@@ -118,10 +118,15 @@ class Deprecation(UsageBasePlugin):
 
         usages = {}
         for asset in assets_count_and_cost:
+            # if there is not is_deprecated=True record, then asset is
+            # definitely not deprecated
             if asset['is_deprecated_sum'] == 0:
                 deprecation_status = _('No')
+            # if all records have is_deprecated=True, then asset is deprecated
             elif asset['is_deprecated_sum'] == asset['assets_count']:
                 deprecation_status = _('Yes')
+            # if asset has some records with is_deprecated=True and some with
+            # is_deprecated=False, then it's partially deprecated
             else:
                 deprecation_status = _('Partially')
 
@@ -192,6 +197,9 @@ class Deprecation(UsageBasePlugin):
         return schema
 
     def schema_devices(self, **kwargs):
+        """
+        Build schema for deprecation columns of devices.
+        """
         schema = self.schema(**kwargs)
         schema['deprecation_rate'] = {
             'name': _('Deprecation rate'),

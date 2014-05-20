@@ -127,19 +127,19 @@ class BasePluginReport(Report):
         return result
 
     @classmethod
-    def _prepare_field(cls, field_name, field_rules, venture_data):
+    def _prepare_field(cls, field_name, field_rules, field_data):
         """
         Prepare single field for one row for single column. For example,
         here is a place for format field as currency or set default value
 
         :param string field_name: Key for define which value must be taken
         :param dict field_rules: Schema for this field
-        :param dict venture_data: Dict which contains data for one row
+        :param dict field_data: Dict which contains data for one row
         :returns tuple: prepared field content and price to include in the
         total cost of
         :rtype tuple:
         """
-        field_content = venture_data.get(
+        field_content = field_data.get(
             field_name,
             field_rules['default'] if 'default' in field_rules else 0.0,
         )
@@ -160,16 +160,16 @@ class BasePluginReport(Report):
         return field_content, usage_cost
 
     @classmethod
-    def _prepare_venture_row(cls, venture_data):
+    def _prepare_row(cls, data):
         """
         Prepare one row for single venture. Return list of lists agreed with
         all columns.
 
-        :param dict venture_data: Dict which contains data for one row
+        :param dict data: Dict which contains data for one row
         :returns list: List of lists with data for each column
         :rtype list:
         """
-        venture_row = []
+        row = []
         total_cost = D(0)
         for schema in cls._get_schema():
             plugin_fields = []
@@ -177,23 +177,23 @@ class BasePluginReport(Report):
                 field_content, usage_cost = cls._prepare_field(
                     field_name,
                     field_rules,
-                    venture_data,
+                    data,
                 )
                 plugin_fields.append(field_content)
                 total_cost += usage_cost
-            venture_row.extend(plugin_fields)
-        venture_row.append('{0:.2f}'.format(total_cost))
-        return venture_row
+            row.extend(plugin_fields)
+        row.append('{0:.2f}'.format(total_cost))
+        return row
 
     @classmethod
-    def _prepare_final_report(cls, data, ventures):
+    def _prepare_final_report(cls, intial_data, data):
         """
         Convert information from dict to list. In this case data must be
         understandable for generating reports in html. Data returned by
         plugins are in format:
 
         data = {
-            'venture_id': {
+            'object_id': {
                 'field1_name': value,
                 'field2_name': value,
                 ...
@@ -206,15 +206,16 @@ class BasePluginReport(Report):
 
         so, we need convert data from first example to second one
 
-        :param dict data: Complete report data for all ventures.
+        :param dict initial_data: inital_data to fill in.
+        :param dict data: complete report data.
         :returns list: prepared data to generating report in html
         :rtype list:
         """
         logger.debug("Preparing final report")
         final_data = []
-        for venture in ventures:
+        for row in data:
             final_data.append(
-                cls._prepare_venture_row(data.get(venture.id, {}))
+                cls._prepare_row(intial_data.get(row.id, {}))
             )
         return final_data
 

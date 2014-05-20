@@ -309,6 +309,9 @@ class UsageBasePlugin(BaseReportPlugin):
         use_average=True,
         **kwargs
     ):
+        """
+        Main method to get information about usages per device in venture.
+        """
         logger.debug("Getting {} costs per device".format(usage_type.name))
         return self._get_usages_per_warehouse(
             start=start,
@@ -404,6 +407,10 @@ class UsageBasePlugin(BaseReportPlugin):
         return schema
 
     def schema_devices(self, **kwargs):
+        """
+        Returns schema for devices usages (which by default is the same as
+        for ventures usages.
+        """
         return self.schema(**kwargs)
 
     def dailyusages_header(self, usage_type):

@@ -202,10 +202,9 @@ class BaseReportPlugin(BasePlugin):
         warehouse=None,
     ):
         """
-        Method similar to `_get_total_usage_in_period`, but instead of
-        one-number result, it returns total cost per venture in period of time
-        (between start and end). Total usage can be calculated overall, for
-        single warehouse, for selected ventures or for ventures in warehouse.
+        Works almost exactly as `_get_usages_in_period_per_venture`, but
+        instead of returning data grouped by venture, it returns usages
+        aggregated by single device.
 
         :rtype: list
         """

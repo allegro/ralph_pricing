@@ -59,60 +59,60 @@ class TestBasePluginReport(TestCase):
         )
         self.service.save()
 
-    def test_prepare_field_value_in_venture_data(self):
+    def test_prepare_field_value_in_data(self):
         """
         Test if field is properly prepared for placing it in report. Value
-        in venture data.
+        in data.
         """
-        venture_data = {
+        data = {
             'field1': '1234',
         }
         rules = {
             'currency': False
         }
-        result = BasePluginReport._prepare_field('field1', rules, venture_data)
+        result = BasePluginReport._prepare_field('field1', rules, data)
         self.assertEquals(result, ('1234', D('0')))
 
-    def test_prepare_field_value_in_venture_data_currency(self):
+    def test_prepare_field_value_in_data_currency(self):
         """
         Test if field is properly prepared for placing it in report. Value
-        in venture data.
+        in data.
         """
-        venture_data = {
+        data = {
             'field1': 1234,
         }
         rules = {
             'currency': True,
             'total_cost': True,
         }
-        result = BasePluginReport._prepare_field('field1', rules, venture_data)
+        result = BasePluginReport._prepare_field('field1', rules, data)
         self.assertEquals(result, ('1234.00', D('1234')))
 
-    def test_prepare_field_value_not_in_venture_date_default(self):
+    def test_prepare_field_value_not_in_data_default(self):
         """
         Test if field is properly prepared for placing it in report. Value not
-        in venture data and there is no default rule.
+        in data and there is no default rule.
         """
-        venture_data = {}
+        data = {}
         rules = {
             'currency': True,
             'total_cost': True,
             'default': 3,
         }
-        result = BasePluginReport._prepare_field('field1', rules, venture_data)
+        result = BasePluginReport._prepare_field('field1', rules, data)
         self.assertEquals(result, ('3.00', D('3')))
 
-    def test_prepare_field_value_not_in_venture_date(self):
+    def test_prepare_field_value_not_in_data(self):
         """
         Test if field is properly prepared for placing it in report. Value not
-        in venture data and there is default rule.
+        in data and there is default rule.
         """
-        venture_data = {}
+        data = {}
         rules = {
             'currency': True,
             'total_cost': True,
         }
-        result = BasePluginReport._prepare_field('field1', rules, venture_data)
+        result = BasePluginReport._prepare_field('field1', rules, data)
         self.assertEquals(result, ('0.00', D('0')))
 
     def test_prepare_field_value_basestring(self):
@@ -120,14 +120,14 @@ class TestBasePluginReport(TestCase):
         Test if field is properly prepared for placing it in report. Value is
         string.
         """
-        venture_data = {
+        data = {
             'field1': '123'
         }
         rules = {
             'currency': True,
             'total_cost': True,
         }
-        result = BasePluginReport._prepare_field('field1', rules, venture_data)
+        result = BasePluginReport._prepare_field('field1', rules, data)
         self.assertEquals(result, ('123', D('0')))
 
     @mock.patch.object(BasePluginReport, '_get_schema')
@@ -135,14 +135,14 @@ class TestBasePluginReport(TestCase):
         """
         Test if whole row is properly prepared for placing it in report
         """
-        venture_data = {
+        data = {
             'field1': 123,
             'field2': D('3'),
             'field3': 3123,
             'field4': 33
         }
         get_schema_mock.return_value = utils.sample_schema()
-        result = BasePluginReport._prepare_venture_row(venture_data)
+        result = BasePluginReport._prepare_row(data)
         self.assertEquals(
             result,
             [123, '3.00', 3123, '33.00', '36.00']

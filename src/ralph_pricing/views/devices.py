@@ -9,12 +9,12 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
+from ralph.util import plugin as plugin_runner
 from ralph_pricing.forms import DateRangeVentureForm
 from ralph_pricing.models import Device
-from ralph_pricing.views.base_plugin_report import BasePluginReport
-from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
 from ralph_pricing.plugins.reports.base import AttributeDict
+from ralph_pricing.views.base_plugin_report import BasePluginReport
 
 logger = logging.getLogger(__name__)
 
