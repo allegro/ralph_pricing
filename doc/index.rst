@@ -14,6 +14,7 @@ This documentation
    installation
    configuration
    tutorial
+   reports
    servicesandusages
    plugins
    costs

@@ -13,7 +13,7 @@ This type of costs is responsible for calculating base costs of usages and ventu
 
 No price
   When base usage price is not entered at all for given time period for generated report.
-  For example: Someone forgot give invoce cost from May
+  For example: Someone forgot give invoce cost from May.
 
 Incomplete price
   When given price have no dates continuity for given time period for generated report.
@@ -24,4 +24,23 @@ And this errors will be visible on generated report in appropriate cells.
 Extra costs
 ~~~~~~~~~~~
 
-Comming soon...
+Extra costs was created for additional costs like a software license etc. Exacly extracost are use to past any unconventional costs to report and services. The most important to remember is convetion of enter the costs. Each extracost cost entered to scrooge is a monthly cost but algorithm calculate daily cost of given extracost and create daily imprint of it. Lets analyze the story:
+
+"Department of internal solutions" in May ordered 10 new keyboards for 3000$. For smooth administrations, cost of keyboards start calculate on 1 June so, daily cost of this order is 100$ (3000$/30days) and 10$ per each keyboard. At the same time, "Python Department" order 20 keyboards by 3000$ (Daily cost 3000/30=100) but this time each keyboard cost only 5$. On 15 June Pythons programers make a deal with people from internal solutions, they transfer 5 cheaper keyboards for 5 expensive keyboards. So whats look like monthly statemenet for orders for this two departments? 
+
+::
+
+    Department of internal solutions:
+    
+    1-15 June = 100$*15days = 1500$                       # daily cost = 100$
+    16-30 June = 50$*15days + 25$*15days = 1125$          # daily cost = 75$
+    Total cost = 2625$
+
+    Python programmers:
+    
+    1-15 June = 100$*15days = 1500$                       # daily cost = 100$
+    16-30 June = 75$*15days + 50$*15days = 1875$          # daily cost = 125$
+    Total cost = 3375$
+
+
+So, based on current monthly cost, daily cost of each extracost is calculate and imprint. At the begin (befor transfer) daily cost was the same (each of demartments buy something for 3000$) but after transfer dailycost was changed becouse python programmers got 5 expensive keybords and lost 5 cheaper keyboards and vice versa for internal solutions demartment.
