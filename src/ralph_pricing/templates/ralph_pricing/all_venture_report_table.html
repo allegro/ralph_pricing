@@ -1,0 +1,24 @@
+<table class="table table-striped table-bordered table-condensed fixed-header report">
+    <thead>
+        {% for row in header %}
+        <tr>
+            {% for column, opt in row %}
+                <th
+                    {% for attr_name, attr_value in opt.items %}
+                        {{ attr_name }}="{{ attr_value }}"
+                    {% endfor %}
+                >{{ column }}</th>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </thead>
+    {% for row in data %}
+        <tr>
+            {% for value in row %}
+            <td
+                {% if forloop.counter > 3 %}style="text-align:right"{% endif %}
+            >{{ value }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>

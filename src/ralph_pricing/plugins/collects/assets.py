@@ -56,37 +56,36 @@ def update_assets(data, date, usages):
         )
         return False
 
-    # clear previous asset assignments
-    # (only if current device_is != previous device_id)
-    try:
-        old_device = Device.objects.exclude(
-            device_id=data['ralph_id'],
-        ).get(
-            asset_id=data['asset_id'],
+    # clear previous assignments of device_id (ralph_id), sn and barcode
+    # for assets with different asset_id than actual
+    for data_key, model_key in [
+        ('ralph_id', 'device_id'),
+        ('sn', 'sn'),
+        ('barcode', 'barcode'),
+    ]:
+        query = Device.objects.exclude(
+            asset_id=data['asset_id']
+        ).filter(
+            **{model_key: data[data_key]}
         )
-    except Device.DoesNotExist:
-        pass
-    else:
-        old_device.asset_id = None
-        old_device.save()
+        for device in query:
+            logger.warning('Replacing {} to None in asset {}'.format(
+                model_key,
+                device,
+            ))
+        query.update(
+            **{model_key: None}
+        )
 
     # get or create asset
-    try:
-        device = Device.objects.get(asset_id=data['asset_id'])
-    except Device.DoesNotExist:
-        try:
-            device = Device.objects.get(sn=data['sn'])
-        except Device.DoesNotExist:
-            created = True
-            device = Device()
-            device.device_id = data['ralph_id']
+    device, created = Device.objects.get_or_create(asset_id=data['asset_id'])
 
     # device info
-    device.asset_id = data['asset_id']
+    device.device_id = data['ralph_id']
     device.slots = data['slots']
     device.sn = data['sn']
     device.barcode = data['barcode']
-    device.is_blade = data['is_blade']
+    device.is_blade = bool(data['is_blade'])
     device.save()
 
     # daily device 'snapshot'

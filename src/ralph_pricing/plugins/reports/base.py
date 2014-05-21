@@ -43,7 +43,7 @@ class BaseReportPlugin(BasePlugin):
     distribute_count_key_tmpl = 'ut_{0}_count'
     distribute_cost_key_tmpl = 'ut_{0}_cost'
 
-    def run(self, type='usages', *args, **kwargs):
+    def run(self, type='costs', *args, **kwargs):
         # find method with name the same as type param
         if hasattr(self, type):
             func = getattr(self, type)
@@ -52,7 +52,7 @@ class BaseReportPlugin(BasePlugin):
         raise AttributeError()
 
     @abc.abstractmethod
-    def usages(self, *args, **kwargs):
+    def costs(self, *args, **kwargs):
         pass
 
     @abc.abstractmethod

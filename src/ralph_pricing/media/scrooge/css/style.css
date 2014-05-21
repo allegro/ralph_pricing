@@ -1,0 +1,21 @@
+table.usages input {
+    width: initial;
+}
+
+thead{
+  background: #FFFFFF;
+}
+
+.fixed{
+  top:0;
+  position:fixed;
+  width:auto;
+  display:none;
+  border:none;
+}
+
+.fixed th {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}

@@ -18,16 +18,28 @@ from ralph_pricing import VERSION
 
 MAIN_MENU = [
     MenuItem(
-        _("All ventures"),
+        _("Ventures report"),
         name='all-ventures',
         fugue_icon='fugue-store-medium',
         view_name='all_ventures',
     ),
     MenuItem(
-        _("Devices"),
+        _("Devices report"),
         name='devices',
         fugue_icon='fugue-wooden-box',
         view_name='devices',
+    ),
+    MenuItem(
+        _("Ventures daily usages"),
+        name='ventures-daily-usages',
+        fugue_icon='fugue-calendar-day',
+        view_name='ventures_daily_usages',
+    ),
+    MenuItem(
+        _("Devices ventures changes"),
+        name='ventures-changes',
+        fugue_icon='fugue-arrow-switch',
+        view_name='ventures_changes',
     ),
     MenuItem(
         _("Extra costs"),
@@ -46,6 +58,12 @@ MAIN_MENU = [
         name='teams',
         fugue_icon='fugue-users',
         view_name='teams',
+    ),
+    MenuItem(
+        _("Statements"),
+        name='statement',
+        fugue_icon='fugue-clock-history',
+        view_name='statement',
     ),
 ]
 

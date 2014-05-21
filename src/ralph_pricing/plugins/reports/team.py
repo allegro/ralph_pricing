@@ -368,6 +368,8 @@ class Team(UsageBasePlugin):
                 for venture, count in count_per_venture.items():
                     if price_undefined:
                         result[venture][cost_key] = price_undefined
+                    elif not total:
+                        result[venture][cost_key] = D(0)
                     else:
                         result[venture][cost_key] += (
                             cost_part * D(count) / D(total)
@@ -559,11 +561,11 @@ class Team(UsageBasePlugin):
         return {}
 
     def total_cost(self, *args, **kwargs):
-        costs = self.usages(*args, **kwargs)
+        costs = self.costs(*args, **kwargs)
         total_cost_key = 'ut_{0}_total_cost'.format(kwargs['usage_type'].id)
         return sum([u[total_cost_key] for u in costs.values()])
 
-    def usages(self, **kwargs):
+    def costs(self, **kwargs):
         """
         Calculates teams costs.
         """

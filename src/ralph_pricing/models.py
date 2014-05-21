@@ -34,7 +34,7 @@ def get_usages_count_price(
     warehouse_id=None,
     forecast=False
 ):
-    '''
+    """
     Generate count and price from te DayliUsage query
 
     :param object query: DailyUsage query
@@ -44,7 +44,7 @@ def get_usages_count_price(
     :param boolean forecast: Information about use forecast or real price
     :returns tuple: count and price
     :rtype tuple:
-    '''
+    """
     days = (end - start).days + 1
     count = 0
     price = D(0)
@@ -186,6 +186,49 @@ class TeamVenturePercent(db.Model):
         )
 
 
+class Statement(db.Model):
+    """
+    Model contains statements
+    """
+    start = db.DateField()
+    end = db.DateField()
+
+    header = db.TextField(
+        verbose_name=_("Report header"),
+        blank=False,
+        null=False,
+    )
+
+    data = db.TextField(
+        verbose_name=_("Report data"),
+        blank=False,
+        null=False,
+    )
+
+    forecast = db.BooleanField(
+        verbose_name=_("Forecast price"),
+        default=0,
+    )
+
+    is_active = db.BooleanField(
+        verbose_name=_("Show only active"),
+        default=False,
+    )
+
+    class Meta:
+        verbose_name = _("Statement")
+        verbose_name_plural = _("Statement")
+        unique_together = ('start', 'end', 'forecast', 'is_active')
+
+    def __unicode__(self):
+        string = '{} - {}'.format(self.start, self.end)
+        if self.forecast or self.is_active:
+            flags = ['forecast'] if self.forecast else []
+            flags = flags + ['active'] if self.is_active else flags
+            string = '{} ({})'.format(string, ",".join(flags))
+        return string
+
+
 class UsageType(db.Model):
     """
     Model contains usage types
@@ -289,7 +332,7 @@ class UsageType(db.Model):
         return D(cost / total_usage / ((usage.end - usage.start).days + 1))
 
     def get_price_at(self, date, warehouse_id, forecast):
-        '''
+        """
         Get price for the specified warehouse for the given day
 
         :param datetime date: Day for which the price will be returned
@@ -297,7 +340,7 @@ class UsageType(db.Model):
         :param boolean forecast: Information about use forecast or real price
         :returns decimal: price
         :rtype decimal:
-        '''
+        """
         usage = self.usageprice_set.get(
             start__lte=date,
             end__gte=date,
@@ -402,6 +445,9 @@ class Device(db.Model):
     device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
+        null=True,
+        blank=True,
+        default=None,
     )
     asset_id = db.IntegerField(
         verbose_name=_("asset id"),
@@ -419,7 +465,11 @@ class Device(db.Model):
         verbose_name_plural = _("devices")
 
     def __unicode__(self):
-        return '{} - {}'.format(self.name, self.device_id)
+        return '{} - {} / {}'.format(
+            self.name,
+            self.asset_id,
+            self.device_id,
+        )
 
     def get_deprecated_status(self, start, end, venture):
         query = self.dailydevice_set.filter(
@@ -618,25 +668,6 @@ class Venture(MPTTModel):
             warehouse_id,
             forecast,
         )
-
-    def get_extra_costs(self, start, end, type_, descendants=False):
-        '''
-        The filter part of get count and price single type of usage
-
-        :param datetime start: Start of the time interval
-        :param datetime end: End of the time interval
-        :param object type_: UsageType object for whitch price and
-                             count will be returned
-        :returns decimal: price
-        :rtype decimal:
-        '''
-        price = D('0')
-        query = ExtraCost.objects.filter(type=type_)
-        query = self._by_venture(query, descendants)
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            extras = query.filter(start__lte=day, end__gte=day)
-            price += extras.aggregate(db.Sum('price'))['price__sum'] or 0
-        return price
 
     def get_extracost_details(self, start, end):
         extracost = ExtraCost.objects.filter(
@@ -1073,6 +1104,9 @@ class DailyUsage(db.Model):
 
 
 class ExtraCostType(db.Model):
+    """
+    Contains all type of extra costs like license or call center.
+    """
     name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
 
     class Meta:
@@ -1082,33 +1116,85 @@ class ExtraCostType(db.Model):
     def __unicode__(self):
         return self.name
 
-    def get_cost_at(self, date):
-        return 1  # XXX
-
 
 class ExtraCost(db.Model):
-    start = db.DateField()
-    end = db.DateField()
+    """
+    Contains information about cost of extra cost types per venture.
+    This is a static value without any time interval becouse this
+    value (cost) is accumulate each day by collect plugin in
+    DailyExtraCost model.
+    """
     type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
-    price = db.DecimalField(
+    monthly_cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
-        verbose_name=_("price"),
+        verbose_name=_("monthly cost"),
+        null=False,
+        blank=False,
     )
-    pricing_venture = db.ForeignKey(Venture, verbose_name=_("venture"))
+    pricing_venture = db.ForeignKey(
+        Venture,
+        verbose_name=_("venture"),
+        null=False,
+        blank=False,
+    )
+    pricing_device = db.ForeignKey(
+        Device,
+        verbose_name=_("pricing device"),
+        null=True,
+        blank=True,
+        default=None,
+    )
 
     class Meta:
         verbose_name = _("extra cost")
         verbose_name_plural = _("extra costs")
-        unique_together = [
-            ('start', 'pricing_venture', 'type'),
-            ('end', 'pricing_venture', 'type'),
-        ]
+        unique_together = [('pricing_venture', 'type')]
 
     def __unicode__(self):
-        return '{}/{} ({} - {})'.format(
+        return '{} - {}'.format(
             self.pricing_venture,
             self.type,
-            self.start,
-            self.end,
+        )
+
+
+class DailyExtraCost(db.Model):
+    """
+    DailyExtraCost model contains cost per venture for each day.
+    """
+    date = db.DateField()
+    pricing_venture = db.ForeignKey(
+        Venture,
+        verbose_name=_("pricing venture"),
+        null=False,
+        blank=False,
+    )
+    pricing_device = db.ForeignKey(
+        Device,
+        verbose_name=_("pricing device"),
+        null=True,
+        blank=True,
+        default=None,
+    )
+    value = db.FloatField(verbose_name=_("value"), default=0)
+    type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
+    remarks = db.TextField(
+        verbose_name=_("Remarks"),
+        help_text=_("Additional information."),
+        blank=True,
+        default="",
+    )
+
+    class Meta:
+        verbose_name = _("daily extra costs")
+        verbose_name_plural = _("daily extra costs")
+        unique_together = ('date', 'pricing_device', 'type', 'pricing_venture')
+        ordering = ('date', 'type', 'pricing_venture')
+
+    def __unicode__(self):
+        return '{0} {1} ({2}) {3}'.format(
+            self.pricing_venture,
+            self.type,
+            self.date,
+            self.value,
         )

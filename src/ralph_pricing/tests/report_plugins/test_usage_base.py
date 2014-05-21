@@ -45,6 +45,15 @@ class TestUsageBasePlugin(TestCase):
             by_internet_provider=True,
         )
         self.usage_type_cost_sum.save()
+        self.usage_type_average = models.UsageType(
+            name='UsageType4',
+            symbol='ut4',
+            by_warehouse=False,
+            by_cost=False,
+            type='BU',
+            average=True,
+        )
+        self.usage_type_average.save()
 
         # warehouses
         self.warehouse1 = models.Warehouse(
@@ -92,6 +101,9 @@ class TestUsageBasePlugin(TestCase):
         # ut3:
         #   venture1: 30
         #   venture2: 60
+        # ut4:
+        #   venture1: 40
+        #   venture2: 80
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
         base_usage_types = models.UsageType.objects.filter(type='BU')
@@ -127,7 +139,8 @@ class TestUsageBasePlugin(TestCase):
             (self.usage_type_cost_sum, [
                 [(1000, 2000), (2000, 3000), (4000, 5000)],  # provider 1
                 [(10000, 20000), (20000, 30000), (40000, 50000)],  # provider 2
-            ])
+            ]),
+            (self.usage_type_average, [(10, 20), (20, 30), (30, 40)]),
         ]
 
         def add_usage_price(
@@ -199,6 +212,38 @@ class TestUsageBasePlugin(TestCase):
             end=datetime.date(2013, 11, 20),
         )
         self.assertEquals(result, 'Incomplete price')
+
+    def test_incomplete_price_internet_providers(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+        )
+        self.assertEquals(result, None)
+
+    def test_incomplete_price_internet_providers_incomplete_price(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 4),
+            end=datetime.date(2013, 10, 25),
+        )
+        self.assertEquals(result, 'Incomplete price')
+
+    def test_incomplete_price_internet_providers_incomplete_price2(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 3),
+            end=datetime.date(2013, 10, 28),
+        )
+        self.assertEquals(result, 'Incomplete price')
+
+    def test_incomplete_price_internet_providers_no_price(self):
+        result = UsagePlugin._incomplete_price(
+            usage_type=self.usage_type_cost_sum,
+            start=datetime.date(2013, 10, 26),
+            end=datetime.date(2013, 11, 20),
+        )
+        self.assertEquals(result, 'No price')
 
     def test_get_usage_type_cost(self):
         result = UsagePlugin._get_total_cost_by_warehouses(
@@ -372,7 +417,7 @@ class TestUsageBasePlugin(TestCase):
         #   price = 11000 / 1500 = 7.(3);
         # 13-17:
         #   usage: 5 * (30 + 60) = 1500;
-        #   cost: 2000 + 20000 = 11000;
+        #   cost: 2000 + 20000 = 22000;
         #   price = 22000 / 1500 = 14.(6);
         # 18-25: (usages are from 18 to 22)
         #   usage: 5 * (30 + 60) = 1500;
@@ -402,6 +447,28 @@ class TestUsageBasePlugin(TestCase):
         )
         self.assertEquals(result, D('16500'))
 
+    def test_get_total_cost_sum_whole(self):
+        result = UsagePlugin.total_cost(
+            start=datetime.date(2013, 10, 5),
+            end=datetime.date(2013, 10, 25),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures,
+            forecast=False,
+        )
+        self.assertEquals(result, D('77000'))
+
+    def test_get_total_cost_sum_beyond_usageprices(self):
+        # even with no_price_msg total cost should return valid cost
+        result = UsagePlugin.total_cost(
+            start=datetime.date(2013, 10, 1),
+            end=datetime.date(2013, 10, 28),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures,
+            forecast=False,
+            no_price_msg=True,
+        )
+        self.assertEquals(result, D('77000'))
+
     def test_get_usage_type_cost_sum_forecast(self):
         result = UsagePlugin._get_total_cost_by_warehouses(
             start=datetime.date(2013, 10, 10),
@@ -430,7 +497,7 @@ class TestUsageBasePlugin(TestCase):
         self.assertEquals(result, [330.0, D('7920')])
 
     def test_get_usages(self):
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
@@ -450,7 +517,7 @@ class TestUsageBasePlugin(TestCase):
         })
 
     def test_get_usages_incomplete_price(self):
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 30),
             usage_type=self.usage_type,
@@ -488,7 +555,7 @@ class TestUsageBasePlugin(TestCase):
                             self.warehouses[j % len(self.warehouses)]
                         )
                     daily_usage.save()
-        result = UsagePlugin.usages(
+        result = UsagePlugin.costs(
             start=datetime.date(2013, 11, 10),
             end=datetime.date(2013, 11, 20),
             usage_type=self.usage_type,
@@ -572,6 +639,131 @@ class TestUsageBasePlugin(TestCase):
             },
         })
 
+    def test_usage_type_average(self):
+        result = UsagePlugin.costs(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_average,
+            ventures=self.ventures_subset,
+            forecast=False,
+        )
+        self.assertEquals(result, {
+            1: {
+                'ut_4_count': 40.0,  # average daily usage
+                'ut_4_cost': D('8800'),
+            },
+            2: {
+                'ut_4_count': 80.0,  # average daily usage
+                'ut_4_cost': D('17600'),
+            },
+        })
+
+    def test_usage_type_average_without_average(self):
+        result = UsagePlugin.costs(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_average,
+            ventures=self.ventures_subset,
+            forecast=False,
+            use_average=False,
+        )
+        self.assertEquals(result, {
+            1: {
+                'ut_4_count': 440.0,  # average daily usage
+                'ut_4_cost': D('8800'),
+            },
+            2: {
+                'ut_4_count': 880.0,  # average daily usage
+                'ut_4_cost': D('17600'),
+            },
+        })
+
+    def test_get_usages_by_internet_provider(self):
+        result = UsagePlugin._get_usages_per_warehouse(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures_subset,
+            forecast=False,
+        )
+        # 5-12: (usages are from 8 to 12)
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 1000 + 10000 = 11000;
+        #   price = 11000 / 1500 = 7.(3);
+        # 13-17:
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 2000 + 20000 = 22000;
+        #   price = 22000 / 1500 = 14.(6);
+        # 18-25: (usages are from 18 to 22)
+        #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
+        #   cost: 4000 + 40000 = 44000;
+        #   price = 44000 / 1500 = 29.(3);
+        self.assertEquals(result, {
+            1: {
+                'ut_3_count': 330.0,  # 3 * 30 + 5 * 30 + 3 * 30
+                'ut_3_cost': D('5500'),  # 90*7.(3) + 150*14.(6) + 90*29.(3)
+            },
+            2: {
+                'ut_3_count': 660.0,  # 3 * 60 + 5 * 60 + 3 * 60
+                'ut_3_cost': D('11000'),  # 180*7.(3) + 300*14.(6) + 180*29.(3)
+            },
+        })
+
+    def test_get_usages_by_internet_provider_incomplete_price(self):
+        result = UsagePlugin._get_usages_per_warehouse(
+            start=datetime.date(2013, 10, 4),
+            end=datetime.date(2013, 10, 26),
+            usage_type=self.usage_type_cost_sum,
+            ventures=self.ventures_subset,
+            forecast=False,
+            no_price_msg=True,
+        )
+        self.assertEquals(result, {
+            1: {
+                'ut_3_count': 450.0,  # 5 * 30 + 5 * 30 + 5 * 30
+                'ut_3_cost': 'Incomplete price',
+            },
+            2: {
+                'ut_3_count': 900.0,  # 5 * 60 + 5 * 60 + 5 * 60
+                'ut_3_cost': 'Incomplete price',
+            },
+        })
+
+    def test_get_dailyusages(self):
+        # test if sum of usages per day if properly calculated
+        du = models.DailyUsage(
+            date=datetime.date(2013, 10, 11),
+            pricing_venture=self.venture2,
+            value=100,
+            type=self.usage_type,
+        )
+        du.save()
+        result = UsagePlugin(
+            usage_type=self.usage_type,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 13),
+            ventures=self.ventures_subset,
+            type='dailyusages',
+        )
+        self.assertEquals(result, {
+            datetime.date(2013, 10, 10): {
+                self.venture1.id: 10,
+                self.venture2.id: 20,
+            },
+            datetime.date(2013, 10, 11): {
+                self.venture1.id: 10,
+                self.venture2.id: 120,  # additional usage!
+            },
+            datetime.date(2013, 10, 12): {
+                self.venture1.id: 10,
+                self.venture2.id: 20,
+            },
+            datetime.date(2013, 10, 13): {
+                self.venture1.id: 10,
+                self.venture2.id: 20,
+            },
+        })
+
     def test_schema(self):
         result = UsagePlugin(
             usage_type=self.usage_type,
@@ -608,3 +800,10 @@ class TestUsageBasePlugin(TestCase):
                 'total_cost': True,
             }),
         ]))
+
+    def test_usages_schema(self):
+        result = UsagePlugin(
+            usage_type=self.usage_type_cost_wh,
+            type='dailyusages_header'
+        )
+        self.assertEquals(result, self.usage_type_cost_wh.name)

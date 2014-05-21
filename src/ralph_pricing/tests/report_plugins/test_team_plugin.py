@@ -984,7 +984,7 @@ class TestTeamPlugin(TestCase):
             self.venture3.id: 40,
         }
         total_cores_mock.return_value = 100
-        result = self.plugin.usages(
+        result = self.plugin.costs(
             start=date(2013, 10, 3),
             end=date(2013, 10, 27),
             usage_type=self.usage_type,
@@ -1035,7 +1035,7 @@ class TestTeamPlugin(TestCase):
             self.venture1.id: 20,
         }
         total_cores_mock.return_value = 100
-        result = self.plugin.usages(
+        result = self.plugin.costs(
             start=date(2013, 10, 3),
             end=date(2013, 10, 27),
             usage_type=self.usage_type,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
 from __future__ import division
@@ -367,6 +366,27 @@ class TestServicePlugin(TestCase):
             },
         })
 
+    @mock.patch('ralph.util.plugin.run')
+    def test_get_service_extra_cost(self, plugin_run_mock):
+        plugin_run_mock.side_effect = [122]
+        self.assertEqual(
+            122,
+            ServicePlugin._get_service_extra_cost(
+                datetime.date(2013, 10, 10),
+                datetime.date(2013, 10, 20),
+                [self.venture1]
+            )
+        )
+        plugin_run_mock.side_effect = KeyError()
+        self.assertEqual(
+            D(0),
+            ServicePlugin._get_service_extra_cost(
+                datetime.date(2013, 10, 10),
+                datetime.date(2013, 10, 20),
+                [self.venture1]
+            )
+        )
+
     def test_get_service_base_usage_types_cost(self):
         result = ServicePlugin._get_service_base_usage_types_cost(
             start=datetime.date(2013, 10, 10),
@@ -414,7 +434,7 @@ class TestServicePlugin(TestCase):
                     'sut_2_cost': {'total_cost': False, 'currency': True},
                     '2_service_cost': {'total_cost': True, 'currency': True},
                 },
-                'Service2_usages': {
+                'Service2_costs': {
                     1: {
                         'sut_1_count': 10,
                         'sut_1_cost': D(100),
@@ -432,7 +452,7 @@ class TestServicePlugin(TestCase):
                     'sut_1_count': {},
                     'sut_1_cost': {'total_cost': True, 'currency': True},
                 },
-                'Service3_usages': {
+                'Service3_costs': {
                     1: {
                         'sut_1_count': 10,
                         'sut_1_cost': D(300),
@@ -467,7 +487,7 @@ class TestServicePlugin(TestCase):
             start=start,
             end=end,
             forecast=forecast,
-            type='usages',
+            type='costs',
         )
         plugin_run_mock.assert_any_call(
             'reports',
@@ -477,7 +497,7 @@ class TestServicePlugin(TestCase):
             start=start,
             end=end,
             forecast=forecast,
-            type='usages',
+            type='costs',
         )
 
     def test_usage(self):
@@ -529,3 +549,15 @@ class TestServicePlugin(TestCase):
                 'total_cost': True,
             }),
         ]))
+
+    def test_total_cost(self):
+        self.assertEqual(
+            D(4240),
+            ServicePlugin.total_cost(
+                datetime.date(2013, 10, 10),
+                datetime.date(2013, 10, 20),
+                self.service,
+                False,
+                [self.venture1]
+            )
+        )

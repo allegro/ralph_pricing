@@ -11,8 +11,8 @@ from django.http import HttpResponseRedirect
 
 from ralph_pricing.app import Scrooge
 from ralph_pricing.forms import ExtraCostFormSet
-from ralph_pricing.menus import ventures_menu
-from ralph_pricing.models import Venture
+from ralph_pricing.menus import extra_costs_menu
+from ralph_pricing.models import ExtraCostType
 from ralph_pricing.views.base import Base
 
 
@@ -22,25 +22,28 @@ class ExtraCosts(Base):
     def __init__(self, *args, **kwargs):
         super(ExtraCosts, self).__init__(*args, **kwargs)
         self.formset = None
-        self.venture = None
-        self.venture_id = None
+        self.extra_cost_type = None
+        self.extra_cost_type_id = None
 
     def init_args(self):
-        self.venture_id = self.kwargs.get('venture')
-        if self.venture_id is not None:
-            self.venture = get_object_or_404(Venture, id=self.venture_id)
+        self.extra_cost_type_id = self.kwargs.get('extra_cost')
+        if self.extra_cost_type_id is not None:
+            self.extra_cost_type = get_object_or_404(
+                ExtraCostType,
+                id=self.extra_cost_type_id
+            )
 
     def post(self, *args, **kwargs):
         self.init_args()
-        if self.venture:
+        if self.extra_cost_type:
             self.formset = ExtraCostFormSet(
                 self.request.POST,
-                queryset=self.venture.extracost_set.order_by('start', 'type'),
+                queryset=self.extra_cost_type.extracost_set.all(),
             )
             if self.formset.is_valid():
                 for form in self.formset.extra_forms:
                     if form.has_changed():
-                        form.instance.pricing_venture = self.venture
+                        form.instance.type = self.extra_cost_type
                 self.formset.save()
                 messages.success(self.request, "Extra costs updated.")
                 return HttpResponseRedirect(self.request.path)
@@ -50,9 +53,9 @@ class ExtraCosts(Base):
 
     def get(self, *args, **kwargs):
         self.init_args()
-        if self.venture:
+        if self.extra_cost_type:
             self.formset = ExtraCostFormSet(
-                queryset=self.venture.extracost_set.order_by('start', 'type'),
+                queryset=self.extra_cost_type.extracost_set.all(),
             )
         return super(ExtraCosts, self).get(*args, **kwargs)
 
@@ -60,11 +63,11 @@ class ExtraCosts(Base):
         context = super(ExtraCosts, self).get_context_data(**kwargs)
         context.update({
             'section': 'extra-costs',
-            'sidebar_items': ventures_menu(
+            'sidebar_items': extra_costs_menu(
                 '/{0}/extra-costs'.format(Scrooge.url_prefix),
-                self.venture_id
+                self.extra_cost_type_id
             ),
-            'sidebar_selected': self.venture_id,
+            'sidebar_selected': self.extra_cost_type_id,
             'formset': self.formset,
         })
         return context
