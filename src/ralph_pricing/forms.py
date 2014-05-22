@@ -44,12 +44,13 @@ class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
         ventures_set = set()
         for form in self.forms:
             venture = form.cleaned_data.get('pricing_venture')
-            if venture in ventures_set:
-                form._errors['pricing_venture'] = form.error_class(
-                    [_('Duplicated venture!')]
-                )
-                continue
-            ventures_set.add(venture)
+            if venture is not None:
+                if venture in ventures_set:
+                    form._errors['pricing_venture'] = form.error_class(
+                        [_('Duplicated venture!')]
+                    )
+                    continue
+                ventures_set.add(venture)
 
 
 ExtraCostFormSet = forms.models.modelformset_factory(
@@ -57,7 +58,7 @@ ExtraCostFormSet = forms.models.modelformset_factory(
     form=ExtraCostForm,
     formset=ExtraCostBaseFormSet,
     can_delete=True,
-    max_num=5
+    extra=5,
 )
 
 
