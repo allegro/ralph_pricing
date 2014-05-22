@@ -41,6 +41,29 @@ def _get_cache_key(section, **kwargs):
     return b'{}?{}'.format(section, urllib.urlencode(kwargs))
 
 
+def format_csv_header(header):
+    """
+    Format csv header rows. Insert empty cells to show rowspan and colspan.
+    """
+    result = []
+    for row in header:
+        output_row = []
+        for col in row:
+            output_row.append(col[0])
+            for colspan in range((col[1].get('colspan') or 1) - 1):
+                output_row.append('')
+        result.append(output_row)
+    # rowspans
+    for row_num, row in enumerate(header):
+        i = 0
+        for col in row:
+            if 'rowspan' in col[1]:
+                for rowspan in range(1, (col[1]['rowspan'] or 1)):
+                    result[row_num + rowspan].insert(i, '')
+            i += col[1].get('colspan', 1)
+    return result
+
+
 class Report(Base):
     """
     A base class for the reports. Override ``template_name``, ``Form``,
@@ -86,7 +109,7 @@ class Report(Base):
                 if self.progress == 100:
                     self._format_header()
                     if get.get('format', '').lower() == 'csv':
-                        self._format_csv_header()
+                        self.header = format_csv_header(self.header)
                         return make_csv_response(
                             itertools.chain(self.header, self.data),
                             '{}.csv'.format(self.section),
@@ -178,28 +201,6 @@ class Report(Base):
                     col = (col, {})
                 output_row.append(col)
             result.append(output_row)
-        self.header = result
-
-    def _format_csv_header(self):
-        """
-        Format csv header rows. Insert empty cells to show rowspan and colspan.
-        """
-        result = []
-        for row in self.header:
-            output_row = []
-            for col in row:
-                output_row.append(col[0])
-                for colspan in range((col[1].get('colspan') or 1) - 1):
-                    output_row.append('')
-            result.append(output_row)
-        # rowspans
-        for row_num, row in enumerate(self.header):
-            i = 0
-            for col in row:
-                if 'rowspan' in col[1]:
-                    for rowspan in range(1, (col[1]['rowspan'] or 1)):
-                        result[row_num + rowspan].insert(i, '')
-                i += col[1].get('colspan', 1)
         self.header = result
 
     def _clear_cache(self, **kwargs):
