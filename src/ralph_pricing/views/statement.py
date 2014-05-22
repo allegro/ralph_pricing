@@ -16,6 +16,7 @@ from ralph_pricing.app import Scrooge
 from ralph_pricing.menus import statement_menu
 from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
+from ralph_pricing.views.reports import format_csv_header
 
 
 class Statements(Base):
@@ -57,6 +58,7 @@ class Statements(Base):
             self.data = json.loads(self.statement.data)
 
         if self.request.GET.get('format', '').lower() == 'csv':
+            self.header = format_csv_header(self.header)
             return make_csv_response(
                 itertools.chain(self.header, self.data),
                 '{}.csv'.format(self.section),
