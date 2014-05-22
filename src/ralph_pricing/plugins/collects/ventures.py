@@ -35,4 +35,5 @@ def ventures(**kwargs):
     """Updates the ventures from Ralph."""
 
     count = sum(update_venture(data) for data in api_pricing.get_ventures())
+    Venture.tree.rebuild()
     return True, '%d new ventures' % count, kwargs
