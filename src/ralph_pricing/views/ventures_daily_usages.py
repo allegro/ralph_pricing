@@ -11,10 +11,7 @@ from dateutil import rrule
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.base_plugin_report import BasePluginReport
-from ralph_pricing.models import (
-    UsageType,
-    Venture,
-)
+from ralph_pricing.models import UsageType
 from ralph_pricing.forms import VenturesDailyUsagesForm
 from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
