@@ -272,9 +272,13 @@ class UsageType(db.Model):
         verbose_name=_("Given value is a cost"),
         default=False,
     )
-    show_in_report = db.BooleanField(
-        verbose_name=_("Show usage type in report"),
+    show_in_ventures_report = db.BooleanField(
+        verbose_name=_("Display usage type in ventures report"),
         default=True,
+    )
+    show_in_devices_report = db.BooleanField(
+        verbose_name=_("Display usage type in devices report"),
+        default=False,
     )
     order = db.IntegerField(
         verbose_name=_("Display order"),
@@ -1092,7 +1096,6 @@ class DailyUsage(db.Model):
         verbose_name = _("daily usage")
         verbose_name_plural = _("daily usages")
         unique_together = ('date', 'pricing_device', 'type', 'pricing_venture')
-        ordering = ('pricing_device', 'type', 'date')
 
     def __unicode__(self):
         return '{0}/{1} ({2}) {3}'.format(

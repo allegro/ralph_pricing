@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+from collections import OrderedDict
 import datetime
 from decimal import Decimal as D
 
@@ -21,16 +29,26 @@ def get_or_create_device(name=None, asset_id=None, **kwargs):
     )[0]
 
 
-def get_or_create_venture(name=None, venture_id=None):
+def get_or_create_venture(
+    name=None,
+    venture_id=None,
+    is_active=True,
+    **kwargs
+):
     venture_id = venture_id if venture_id else Venture.objects.all().count()
     name = name if name else "Default{0}".format(venture_id)
-    return Venture.objects.get_or_create(name=name, venture_id=venture_id)[0]
+    return Venture.objects.get_or_create(
+        name=name,
+        venture_id=venture_id,
+        is_active=is_active,
+        defaults=kwargs,
+    )[0]
 
 
-def get_or_create_dailydevice(date, pricing_device, venture, **kwargs):
+def get_or_create_dailydevice(date, device, venture, **kwargs):
     return DailyDevice.objects.get_or_create(
         date=date,
-        pricing_device=pricing_device,
+        pricing_device=device,
         pricing_venture=venture,
         **kwargs
     )[0]
@@ -58,3 +76,24 @@ def get_or_create_daily_extra_cost(
         type=type,
         value=value,
     )[0]
+
+
+def sample_schema():
+    return [
+        OrderedDict([
+            ('field1', {'name': 'Field1'}),
+            ('field2', {
+                'name': 'Field2',
+                'currency': True,
+                'total_cost': True,
+            }),
+        ]),
+        OrderedDict([
+            ('field3', {'name': 'Field3'}),
+            ('field4', {
+                'name': 'Field4',
+                'currency': True,
+                'total_cost': True,
+            }),
+        ]),
+    ]

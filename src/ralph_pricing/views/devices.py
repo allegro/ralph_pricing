@@ -5,135 +5,136 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
+
 from django.utils.translation import ugettext_lazy as _
 
+from ralph.util import plugin as plugin_runner
 from ralph_pricing.forms import DateRangeVentureForm
-from ralph_pricing.models import DailyDevice, Device
-from ralph_pricing.views.reports import Report, currency
+from ralph_pricing.models import Device
+from ralph_pricing.plugins import reports  # noqa
+from ralph_pricing.plugins.reports.base import AttributeDict
+from ralph_pricing.views.base_plugin_report import BasePluginReport
+
+logger = logging.getLogger(__name__)
 
 
-class Devices(Report):
-    '''
+class Devices(BasePluginReport):
+    """
     Devices raport class for building devices reports. Contains hard coded
     label for columns. This class is sent to a queue in order to generate
     report
-    '''
+    """
     template_name = 'ralph_pricing/devices.html'
     Form = DateRangeVentureForm
     section = 'devices'
     report_name = _('Devices Report')
+    schema_name = 'schema_devices'
 
-    @staticmethod
-    def get_data(start, end, venture, **kwargs):
-        '''
-        Build and return list of lists contains full data for devices raport.
-        Additional return a progress like a total count of rows in raport
+    @classmethod
+    def get_plugins(cls):
+        """
+        Returns list of plugins to call
+        """
+        base_plugins = [
+            AttributeDict(name='Information', plugin_name='information'),
+        ]
+        base_usage_types_plugins = cls._get_base_usage_types_plugins(
+            filter_={'show_in_devices_report':  True}
+        )
+        regular_usage_types_plugins = cls._get_regular_usage_types_plugins(
+            filter_={'show_in_devices_report': True}
+        )
+        plugins = (base_plugins + base_usage_types_plugins +
+                   regular_usage_types_plugins)
+        return plugins
 
-        :param datetime.date start: Start date of the interval for the report
-        :param datetime.date end: End date of the interval for the report
-        :param class venture: Venture pricing model
-        :returns tuple: progress and list of lists contains report data
+    @classmethod
+    def _get_devices(cls, start, end, venture):
+        """
+        Returns devices for given venture. Valid devices are only ones that
+        have some dailydevices with this venture between start and end.
+        """
+        return Device.objects.filter(
+            dailydevice__date__gte=start,
+            dailydevice__date__lte=end,
+            dailydevice__pricing_venture=venture,
+            is_virtual=False,
+        ).distinct().order_by('name')
+
+    @classmethod
+    def _get_report_data(cls, start, end, venture, forecast, devices):
+        """
+        Use plugins to get usages data per device for given venture. Each
+        plugin has to return value in following format:
+
+        data_from_plugin = {
+            'device_id': {
+                'field1_name': value,
+                'field2_name': value,
+                ...
+            },
+            ...
+        }
+
+        :param date start: Start of date interval for report
+        :param date end: End of date interval for report
+        :param boolean forecast: Forecast prices or real
+        :param Venture venture: Venture to generate report for
+        :param list devices: List of devices to generate report for
+        :returns dict: Complete report data for all ventures
+        :rtype dict:
+        """
+        logger.debug("Getting devices report data")
+        data = {device.id: {} for device in devices}
+        for plugin in cls.get_plugins():
+            try:
+                plugin_report = plugin_runner.run(
+                    'reports',
+                    plugin.plugin_name,
+                    venture=venture,
+                    start=start,
+                    end=end,
+                    forecast=forecast,
+                    type='costs_per_device',
+                    **plugin.get('plugin_kwargs', {})
+                )
+                for device_id, device_usage in plugin_report.iteritems():
+                    if device_id in data:
+                        data[device_id].update(device_usage)
+            except KeyError:
+                logger.warning(
+                    "Usage {0} has no plugin connected".format(plugin.name)
+                )
+            except Exception as e:
+                logger.exception("Report generate error: {0}".format(e))
+        return data
+
+    @classmethod
+    def get_data(
+        cls,
+        start,
+        end,
+        venture,
+        forecast=False,
+        **kwargs
+    ):
+        """
+        Main method. Create a full report for devices in venture. Process of
+        creating report consists of two parts. First of them is collecting all
+        required data from plugins. Second step is preparing data to render in
+        html report.
+
+        :returns tuple: percent of progress and report data
         :rtype tuple:
-        '''
-        if not venture:
-            return
-        devices_ids = DailyDevice.objects.filter(
-            date__gte=start,
-            date__lte=end,
-            pricing_venture=venture,
-        ).values_list('pricing_device_id', flat=True).distinct()
-        total_count = len(devices_ids)
-        devices = Device.objects.filter(id__in=devices_ids)
-        data = []
-        for extracost in venture.get_extracost_details(start, end):
-            row = [
-                '{} (Extra Cost)'.format(extracost.type.name),
-                '',
-                '',
-                '{} - {}'.format(extracost.start, extracost.end),
-                '',
-                currency(extracost.price),
-                '',
-                '',
-                '',
-            ]
-            data.append(row)
-        for usage in venture.get_daily_usages(start, end):
-            row = [
-                '',
-                '',
-                usage['name'],
-                '',
-                '',
-                '',
-                '',
-                currency(usage['price']),
-                usage['count'],
-            ]
-            data.append(row)
-        for i, device in enumerate(devices):
-            count, price, cost = venture.get_assets_count_price_cost(
-                start,
-                end,
-                device_id=device.id,
-            )
-            data.append([
-                device.name,
-                '',
-                '',
-                device.sn,
-                device.barcode,
-                device.get_deprecated_status(start, end, venture),
-                currency(price),
-                currency(cost),
-                '',
-            ])
-
-            for part in device.get_daily_parts(start, end):
-                data.append([
-                    '',
-                    part['name'],
-                    '',
-                    '',
-                    '',
-                    part.get('deprecation', ''),
-                    currency(part['price']),
-                    currency(part['cost']),
-                    '',
-                ])
-
-            for usage in device.get_daily_usages(start, end):
-                data.append([
-                    '',
-                    '',
-                    usage['name'],
-                    '',
-                    '',
-                    '',
-                    '',
-                    currency(usage['price']),
-                    usage['count'],
-                ])
-            progress = (100 * i) // total_count
-            yield progress, data
-
-    @staticmethod
-    def get_header(**kwargs):
-        '''
-        Contains hard coded label names for devices report
-
-        :returns list: label names for devices report
-        :rtype list:
-        '''
-        header = [[
-            _("Device"),
-            _("Component name"),
-            _("Usage name"),
-            _("SN"),
-            _("Barcode"),
-            _("Deprecation"),
-            _("Price"),
-            _("Cost"),
-            _("Usage count"),
-        ]]
-        return header
+        """
+        logger.info("Generating report from {0} to {1}".format(start, end))
+        devices = cls._get_devices(start, end, venture)
+        data = cls._get_report_data(
+            start,
+            end,
+            venture,
+            forecast,
+            devices
+        )
+        yield 100, cls._prepare_final_report(data, devices)

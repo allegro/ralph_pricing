@@ -333,6 +333,7 @@ class DateRangeForm(forms.Form):
 
 class DateRangeVentureForm(DateRangeForm):
     venture = TreeNodeChoiceField(
+        required=True,
         queryset=Venture.tree.all(),
         level_indicator='|---',
         empty_label="---",

@@ -6,21 +6,23 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import itertools
-import urllib
 import json
+import logging
+import urllib
 
+import django_rq
+from bob.csvutil import make_csv_response
 from django.conf import settings
+from django.contrib import messages
 from django.core.cache import get_cache
+from django.core.cache.backends.dummy import DummyCache
 from django.utils.translation import ugettext_lazy as _
+from rq.job import Job
 
 from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
-from bob.csvutil import make_csv_response
-import django_rq
-from rq.job import Job
-from django.contrib import messages
-from django.core.cache.backends.dummy import DummyCache
 
+logger = logging.getLogger(__name__)
 
 CACHE_NAME = 'reports_pricing'
 if CACHE_NAME not in settings.CACHES:
@@ -76,6 +78,7 @@ class Report(Base):
     initial = None
     section = ''
     report_name = ''
+    currency = 'PLN'
     allow_statement = True
 
     def __init__(self, *args, **kwargs):
