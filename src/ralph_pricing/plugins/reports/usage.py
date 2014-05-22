@@ -165,6 +165,59 @@ class UsageBasePlugin(BaseReportPlugin):
             warehouses = [None]
         result = defaultdict(lambda: defaultdict(int))
 
+        def add_usages_per_venture(
+            up_start,
+            up_end,
+            price,
+            warehouse,
+            **kwargs
+        ):
+            usages_per_venture = self._get_usages_in_period_per_venture(
+                start=up_start,
+                end=up_end,
+                usage_type=usage_type,
+                warehouse=warehouse,
+                ventures=ventures,
+            )
+            for v in usages_per_venture:
+                venture = v['pricing_venture']
+                result[venture][count_key] += v['usage']
+                cost = D(v['usage']) * price
+                if price_undefined:
+                    result[venture][cost_key] = price_undefined
+                else:
+                    result[venture][cost_key] += cost
+                if usage_type.by_warehouse and not price_undefined:
+                    result[venture][total_cost_key] += cost
+
+        def add_usages_per_device(
+            up_start,
+            up_end,
+            warehouse,
+            **kwargs
+        ):
+            usages_per_device = self._get_usages_in_period_per_device(
+                start=up_start,
+                end=up_end,
+                usage_type=usage_type,
+                venture=ventures[0],
+                warehouse=warehouse,
+            )
+            for v in usages_per_device:
+                device = v['pricing_device']
+                result[device][count_key] += v['usage']
+                cost = D(v['usage']) * price
+                if price_undefined:
+                    result[device][cost_key] = price_undefined
+                else:
+                    result[device][cost_key] += cost
+                if usage_type.by_warehouse and not price_undefined:
+                    result[device][total_cost_key] += cost
+
+        add_function = (
+            add_usages_per_device if by_device else add_usages_per_venture
+        )
+
         for warehouse in warehouses:
             price_undefined = no_price_msg and self._incomplete_price(
                 usage_type,
@@ -206,47 +259,6 @@ class UsageBasePlugin(BaseReportPlugin):
                 count_key = 'ut_{0}_count'.format(usage_type.id)
                 cost_key = 'ut_{0}_cost'.format(usage_type.id)
 
-            def add_usages_per_venture(up_start, up_end, price, **kwargs):
-                usages_per_venture = self._get_usages_in_period_per_venture(
-                    start=up_start,
-                    end=up_end,
-                    usage_type=usage_type,
-                    warehouse=warehouse,
-                    ventures=ventures,
-                )
-                for v in usages_per_venture:
-                    venture = v['pricing_venture']
-                    result[venture][count_key] += v['usage']
-                    cost = D(v['usage']) * price
-                    if price_undefined:
-                        result[venture][cost_key] = price_undefined
-                    else:
-                        result[venture][cost_key] += cost
-                    if usage_type.by_warehouse and not price_undefined:
-                        result[venture][total_cost_key] += cost
-
-            def add_usages_per_device(up_start, up_end, **kwargs):
-                usages_per_device = self._get_usages_in_period_per_device(
-                    start=up_start,
-                    end=up_end,
-                    usage_type=usage_type,
-                    venture=ventures[0],
-                    warehouse=warehouse,
-                )
-                for v in usages_per_device:
-                    device = v['pricing_device']
-                    result[device][count_key] += v['usage']
-                    cost = D(v['usage']) * price
-                    if price_undefined:
-                        result[device][cost_key] = price_undefined
-                    else:
-                        result[device][cost_key] += cost
-                    if usage_type.by_warehouse and not price_undefined:
-                        result[device][total_cost_key] += cost
-
-            add_function = (
-                add_usages_per_device if by_device else add_usages_per_venture
-            )
             if usage_prices:
                 for usage_price in usage_prices:
                     if forecast:
@@ -262,9 +274,14 @@ class UsageBasePlugin(BaseReportPlugin):
 
                     up_start = max(start, usage_price.start)
                     up_end = min(end, usage_price.end)
-                    add_function(up_start, up_end, price=price)
+                    add_function(
+                        up_start,
+                        up_end,
+                        warehouse=warehouse,
+                        price=price
+                    )
             else:
-                add_function(start, end, price=0)
+                add_function(start, end, warehouse=warehouse, price=0)
 
             if use_average and usage_type.average:
                 for venture, venture_usages in result.iteritems():

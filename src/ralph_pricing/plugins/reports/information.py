@@ -71,8 +71,7 @@ class Information(BaseReportPlugin):
             dailydevice__date__lte=end,
             dailydevice__pricing_venture=venture,
         ).distinct().values('id', 'asset_id', 'name', 'sn', 'barcode')
-        result = dict(((device['id'], device) for device in devices))
-        return result
+        return dict(((device['id'], device) for device in devices))
 
     def schema(self, *args, **kwargs):
         """
@@ -117,17 +116,16 @@ class Information(BaseReportPlugin):
         :rtype dict:
         """
         logger.debug("Get devices information schema")
-        schema = OrderedDict([
-            ('barcode', {
-                'name': _('Barcode'),
-            }),
-            ('sn', {
-                'name': _('SN'),
-            }),
-            ('name', {
-                'name': _('Device name'),
-            }),
-        ])
+        schema = OrderedDict()
+        schema['barcode'] = {
+            'name': _('Barcode'),
+        }
+        schema['sn'] = {
+            'name': _('SN'),
+        }
+        schema['name'] = {
+            'name': _('Device name'),
+        }
         return schema
 
     def total_cost(self, *args, **kwargs):

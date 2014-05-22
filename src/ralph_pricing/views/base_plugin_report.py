@@ -45,7 +45,7 @@ class BasePluginReport(Report):
             show_in_ventures_report=True,
             type='BU',
         )
-        if isinstance(filter_, dict):
+        if filter_:
             query = query.filter(**filter_)
         return query.order_by('-order', 'name')
 
@@ -77,7 +77,7 @@ class BasePluginReport(Report):
             show_in_ventures_report=True,
             type='RU',
         )
-        if isinstance(filter_, dict):
+        if filter_:
             query = query.filter(**filter_)
         return query.order_by('-order', 'name')
 

@@ -46,10 +46,13 @@ class Deprecation(UsageBasePlugin):
             pricing_venture__in=ventures,
         )
 
-        return assets_report_query.values(group_by)\
-            .annotate(assets_cost=Sum('daily_cost'))\
-            .annotate(assets_count=Count('id'))\
-            .order_by(group_by)
+        return assets_report_query.values(group_by).annotate(
+            assets_cost=Sum('daily_cost')
+        ).annotate(
+            assets_count=Count('id')
+        ).order_by(
+            group_by
+        )
 
     def total_cost(self, start, end, ventures, **kwargs):
         assets_report_query = DailyDevice.objects.filter(
@@ -113,8 +116,11 @@ class Deprecation(UsageBasePlugin):
             end,
             [venture],
             group_by='pricing_device'
-        ).annotate(is_deprecated_sum=Sum('is_deprecated'))\
-         .annotate(deprecation_rate=Max('deprecation_rate'))
+        ).annotate(
+            is_deprecated_sum=Sum('is_deprecated')
+        ).annotate(
+            deprecation_rate=Max('deprecation_rate')
+        )
 
         usages = {}
         for asset in assets_count_and_cost:
