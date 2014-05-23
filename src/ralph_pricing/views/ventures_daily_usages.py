@@ -10,11 +10,8 @@ from dateutil import rrule
 
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_pricing.views.reports import Report
-from ralph_pricing.models import (
-    UsageType,
-    Venture,
-)
+from ralph_pricing.views.base_plugin_report import BasePluginReport
+from ralph_pricing.models import UsageType
 from ralph_pricing.forms import VenturesDailyUsagesForm
 from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
@@ -23,7 +20,7 @@ from ralph_pricing.plugins import reports  # noqa
 logger = logging.getLogger(__name__)
 
 
-class VenturesDailyUsages(Report):
+class VenturesDailyUsages(BasePluginReport):
     """
     Reports for ventures dailyusages
     """
@@ -42,22 +39,6 @@ class VenturesDailyUsages(Report):
             'physical_cpu_cores'
         ])
         return {'usage_types': [u.id for u in usage_types]}
-
-    @classmethod
-    def _get_ventures(cls, is_active):
-        """
-        Returns all ventures for which report will be ganerated.
-
-        :param boolean is_active: Flag. Get only active or all.
-        :returns list: list of ventures
-        :rtype list:
-        """
-        logger.debug("Getting ventures")
-        ventures = Venture.objects.order_by('name')
-        if is_active:
-            ventures = ventures.filter(is_active=True)
-        logger.debug("Got {0} ventures".format(ventures.count()))
-        return ventures
 
     @classmethod
     def _prepare_final_report(cls, start, end, usage_types, data, ventures):

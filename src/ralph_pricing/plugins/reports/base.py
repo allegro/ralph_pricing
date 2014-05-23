@@ -191,3 +191,31 @@ class BaseReportPlugin(BasePlugin):
         return list(daily_usages.values('pricing_venture').annotate(
             usage=Sum('value'),
         ).order_by('pricing_venture'))
+
+    @memoize(skip_first=True)
+    def _get_usages_in_period_per_device(
+        self,
+        start,
+        end,
+        usage_type,
+        venture,
+        warehouse=None,
+    ):
+        """
+        Works almost exactly as `_get_usages_in_period_per_venture`, but
+        instead of returning data grouped by venture, it returns usages
+        aggregated by single device.
+
+        :rtype: list
+        """
+        daily_usages = DailyUsage.objects.filter(
+            date__gte=start,
+            date__lte=end,
+            type=usage_type,
+            pricing_venture=venture,
+        )
+        if warehouse:
+                daily_usages = daily_usages.filter(warehouse=warehouse)
+        return list(daily_usages.values('pricing_device').annotate(
+            usage=Sum('value'),
+        ).order_by('pricing_device'))

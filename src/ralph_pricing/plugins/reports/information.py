@@ -10,6 +10,7 @@ from collections import OrderedDict
 
 from django.utils.translation import ugettext_lazy as _
 
+from ralph_pricing.models import Device
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 class Information(BaseReportPlugin):
     def costs(self, *args, **kwargs):
         """
-        Return informations about given ventures
+        Return information about given ventures
 
         usages = {
             'venture_id': {
@@ -30,7 +31,7 @@ class Information(BaseReportPlugin):
             ...
         }
 
-        :returns dict: informations about ventures
+        :returns dict: information about ventures
         :rtype dict:
         """
         logger.debug("Get information usage")
@@ -47,6 +48,30 @@ class Information(BaseReportPlugin):
                 'profit_center': venture.profit_center,
             }
         return usages
+
+    def costs_per_device(self, start, end, venture, *args, **kwargs):
+        """
+        Return information about devices in given venture. Devies are filtered
+        to match only those, who have any DailyDevice record in period of time.
+
+        usages = {
+            'device_id': {
+                'field_name': value,
+                ...
+            },
+            ...
+        }
+
+        :returns dict: information about devices in venture
+        :rtype dict:
+        """
+        logger.debug("Get devices information")
+        devices = Device.objects.filter(
+            dailydevice__date__gte=start,
+            dailydevice__date__lte=end,
+            dailydevice__pricing_venture=venture,
+        ).distinct().values('id', 'asset_id', 'name', 'sn', 'barcode')
+        return dict(((device['id'], device) for device in devices))
 
     def schema(self, *args, **kwargs):
         """
@@ -80,6 +105,26 @@ class Information(BaseReportPlugin):
         }
         schema['profit_center'] = {
             'name': _("Profit center"),
+        }
+        return schema
+
+    def schema_devices(self, *args, **kwargs):
+        """
+        Build schema for devices information. Format is the same as in `schema`
+
+        :returns dict: schema for devices information
+        :rtype dict:
+        """
+        logger.debug("Get devices information schema")
+        schema = OrderedDict()
+        schema['barcode'] = {
+            'name': _('Barcode'),
+        }
+        schema['sn'] = {
+            'name': _('SN'),
+        }
+        schema['name'] = {
+            'name': _('Device name'),
         }
         return schema
 

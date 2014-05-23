@@ -13,6 +13,7 @@ from decimal import Decimal as D
 from django.test import TestCase
 
 from ralph_pricing import models
+from ralph_pricing.tests import utils
 from ralph_pricing.plugins.reports.base import BaseReportPlugin
 
 
@@ -337,6 +338,76 @@ class TestBaseReportPlugin(TestCase):
         )
         self.assertEquals(result, [
             {'usage': 240.0, 'pricing_venture': 2}  # 6 * 40 = 240
+        ])
+
+    # =========================================================================
+    # _get_usages_in_period_per_venture
+    # =========================================================================
+    def _devices_sample(self):
+        self.device1 = utils.get_or_create_device()
+        self.device2 = utils.get_or_create_device()
+        self.venture_device = utils.get_or_create_venture()
+        start = datetime.date(2013, 10, 8)
+        end = datetime.date(2013, 10, 20)
+        base_usage_types = models.UsageType.objects.filter(type='BU')
+
+        for i, device in enumerate([self.device1, self.device2], start=1):
+            for j, ut in enumerate(base_usage_types, start=1):
+                for k, day in enumerate(rrule.rrule(
+                    rrule.DAILY,
+                    dtstart=start,
+                    until=end
+                )):
+                    daily_usage = models.DailyUsage(
+                        date=day,
+                        pricing_venture=self.venture_device,
+                        pricing_device=device,
+                        value=10 * i,
+                        type=ut,
+                    )
+                    if ut.by_warehouse:
+                        daily_usage.warehouse = (
+                            self.warehouses[k % len(self.warehouses)]
+                        )
+                    daily_usage.save()
+
+    def test_get_usages_in_period_per_device(self):
+        self._devices_sample()
+        result = self.plugin._get_usages_in_period_per_device(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 25),
+            usage_type=self.usage_type,
+            venture=self.venture_device,
+        )
+        self.assertEquals(result, [
+            {
+                'pricing_device': self.device1.id,
+                'usage': 110.0,  # 11 (days) * 10 (daily usage)
+            },
+            {
+                'pricing_device': self.device2.id,
+                'usage': 220.0,  # 11 (days) * 20 (daily usage)
+            }
+        ])
+
+    def test_get_usages_in_period_per_device_with_warehouse(self):
+        self._devices_sample()
+        result = self.plugin._get_usages_in_period_per_device(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 25),
+            usage_type=self.usage_type_cost_wh,
+            venture=self.venture_device,
+            warehouse=self.warehouse1,
+        )
+        self.assertEquals(result, [
+            {
+                'pricing_device': self.device1.id,
+                'usage': 60.0,  # 6 (days with usage) * 10 (daily usage)
+            },
+            {
+                'pricing_device': self.device2.id,
+                'usage': 120.0,  # 6 (days with usage) * 20 (daily usage)
+            }
         ])
 
     # =========================================================================
