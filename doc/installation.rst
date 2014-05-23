@@ -1,7 +1,7 @@
 ============
 Installation
 ============
-Scrooge is a plugin of ralph so, before you start scrooge installation, you need install ralph and refer to ralph documentation how its work.
+Scrooge is a plugin to ralph so, before you start scrooge installation, you need install ralph and refer to ralph documentation how it works.
 
 Install Scrooge
 ~~~~~~~~~~~~~~~
@@ -33,7 +33,7 @@ The scrooge requirements will be installed automatically.
 
 Upgrade existing installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For upgrade scrooge you need to stop any Ralph processes that are running. Good practice is not upgrading old version but create separated virtualenv and install them everything from the begin but if you need upgrade old version just be sure that everything is stopped.
+For upgrade scrooge you need to stop any Ralph processes that is running. Good practice is not upgrading old version but create separated virtualenv and install there everything from the begin but if you need upgrade old version just be sure that everything is stopped.
 
 Upgrade Scrooge from pip
 ------------------------
@@ -79,6 +79,6 @@ the :doc:`change log <changes>` for the version you installed.
 
 Testing if it works
 ~~~~~~~~~~~~~~~~~~~
-For be sure that everything work fine, is recomended run unit tests. For do this just run::
+For be sure that everything work fine, is recommended to run unit tests. For do this just run::
 
-  (ralph)$ ralph test ralph_pricing
+  (ralph)$ DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing

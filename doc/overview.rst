@@ -2,7 +2,7 @@
 Overview
 ========
 
-What is Scrooge? The simple answer for this question is "Billing system for corporations". How it works? Spread the cost of devices, energy, network etc. to the clients. For example, if you are CO or main accountant of huge company where there is many devices, projects and people, probably you need to know how many resources is used by each of team or worker. Maybe you need charge costs for some people or just you need financial statements for make any important decision. It is no metter why you need financial statement, scrooge give you it but the first thing you need to know the scrooge is not any excel, word or advenced calculator, scrooge works on data collected from many devices or supply by many people. It is some kind of system to calculate and display results of collected or supplied data with many additional feature that make it easier to use.
+What is Scrooge? The simple answer for this question is "Billing system for corporations". How it works? Spread the cost of devices, energy, network etc. to the clients. For example, if you are CO or main accountant of huge company where there is many devices, projects and people, probably you need to know how many resources is used by each of team or worker. Maybe you need charge some people or just need financial statements for make any important decision. It is no metter why you need financial statement, scrooge give you it but the first thing you need to know the scrooge is not any excel, word or advanced calculator, scrooge works on data collected from many devices or supply by many people. It is some kind of system to calculate and display results of collected or supplied data with many additional feature that make it easier to use.
 
 .. image:: images/mainidea.png
 
