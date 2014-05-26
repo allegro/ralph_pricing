@@ -149,7 +149,6 @@ def ceilometer(**kwargs):
             auth_url=site['OS_AUTH_URL'],
         )
         tenants = ks.tenants.list()
-        tenants = [t for t in tenants]
         ceilo_client = get_client(
             "2",
             ceilometer_url=site['OS_METERING_URL'],
