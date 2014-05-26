@@ -86,7 +86,7 @@ def get_ceilometer_usages(
                 tenant_venture
             ].get('openstack.' + meter_name, 0) + icount
             logger.debug("Got statistics {}:{} for tenant {}".format(
-                meter, icount, tenant
+                meter, icount, tenant,
             ))
     return statistics
 
