@@ -37,7 +37,14 @@ class VenturesChanges(Report):
     allow_statement = False
 
     @classmethod
-    def get_data(cls, start, end, venture=None, use_subventures=True, **kwargs):
+    def get_data(
+        cls,
+        start,
+        end,
+        venture=None,
+        use_subventures=True,
+        **kwargs
+    ):
         """
         Main method. Create a full report for devices ventures changes. Notice
         that this method is a generator. Returns devices ventures changes
