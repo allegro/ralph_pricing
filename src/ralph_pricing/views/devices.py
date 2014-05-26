@@ -51,10 +51,9 @@ class Devices(BasePluginReport):
 
     @classmethod
     def _get_ventures(self, venture, use_subventures=True):
-        ventures = [venture]
-        if use_subventures:
-            ventures += venture.get_descendants()
-        return ventures
+        return [venture] + (
+            list(venture.get_descendants()) if use_subventures else []
+        )
 
     @classmethod
     def _get_devices(cls, start, end, ventures):
