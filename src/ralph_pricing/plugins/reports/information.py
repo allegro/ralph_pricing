@@ -49,7 +49,7 @@ class Information(BaseReportPlugin):
             }
         return usages
 
-    def costs_per_device(self, start, end, venture, *args, **kwargs):
+    def costs_per_device(self, start, end, ventures, *args, **kwargs):
         """
         Return information about devices in given venture. Devies are filtered
         to match only those, who have any DailyDevice record in period of time.
@@ -69,7 +69,7 @@ class Information(BaseReportPlugin):
         devices = Device.objects.filter(
             dailydevice__date__gte=start,
             dailydevice__date__lte=end,
-            dailydevice__pricing_venture=venture,
+            dailydevice__pricing_venture__in=ventures,
         ).distinct().values('id', 'asset_id', 'name', 'sn', 'barcode')
         return dict(((device['id'], device) for device in devices))
 

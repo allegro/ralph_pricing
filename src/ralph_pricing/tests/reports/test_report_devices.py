@@ -19,12 +19,13 @@ from ralph_pricing.tests import utils
 from ralph_pricing.views.devices import Devices
 
 
-class TestReportVenturesBeta(TestCase):
+class TestReportDevices(TestCase):
     def setUp(self):
         self.report_start = datetime.date(2013, 4, 20)
         self.report_end = datetime.date(2013, 4, 30)
         # ventures
         self.venture = utils.get_or_create_venture()
+        self.subventure = utils.get_or_create_venture(parent=self.venture)
 
         # usages
         self.usage_type = models.UsageType(
@@ -108,9 +109,17 @@ class TestReportVenturesBeta(TestCase):
         devices = Devices._get_devices(
             self.report_start,
             self.report_end,
-            self.venture
+            [self.venture]
         )
         self.assertEquals(list(devices), [self.device1, self.device2])
+
+    def test_get_ventures(self):
+        ventures = Devices._get_ventures(self.venture, use_subventures=False)
+        self.assertEquals(ventures, [self.venture])
+
+    def test_get_ventures_with_subventures(self):
+        ventures = Devices._get_ventures(self.venture, use_subventures=True)
+        self.assertEquals(ventures, [self.venture, self.subventure])
 
     def _sample_schema(self):
         return [
