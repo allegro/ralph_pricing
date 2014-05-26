@@ -94,7 +94,7 @@ class Deprecation(UsageBasePlugin):
             }
         return usages
 
-    def costs_per_device(self, start, end, venture, **kwargs):
+    def costs_per_device(self, start, end, ventures, **kwargs):
         """
         Return usages and costs for devices in venture. Format of
         returned data must looks like:
@@ -114,7 +114,7 @@ class Deprecation(UsageBasePlugin):
         assets_count_and_cost = self.get_assets_count_and_cost(
             start,
             end,
-            [venture],
+            ventures,
             group_by='pricing_device'
         ).annotate(
             is_deprecated_sum=Sum('is_deprecated')
