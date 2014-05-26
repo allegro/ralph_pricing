@@ -1,14 +1,14 @@
 ===
 API
 ===
-For improve usage and communication with scrooge we prepared api. Currently, there is only push api implemented and can be used to push usages data by services. In the future we plan create pull api for getting report data for single venture/service. For communication with API we use JSON as a message format and REST API for maintenance of communication standards.
+For improve work and communication with scrooge we prepared api. Currently, there is only push api implemented and can be used to push usages data by services. In the future we are planning create pull api for get report data only for single venture/service. For communicate with API we use JSON as a message format and REST API for maintenance of communication standards.
 
 Push API
 ~~~~~~~~
 
 .. image:: images/push_api.png
 
-Every service is obligate to push usages data to scrooge. Before you start using push api, first you need to create service and usages manually. When you have created service and usages then you can start push to scrooge using api. http://127.0.0.1:8000/scrooge/api/v0.9/serviceusages/ this is address for pushing data where current api version is 'v0.9'. The best way to provide data for Scrooge is pushing it every day, but data can also be pushed for specified date.
+Each service is obligate push usages data to scrooge. Before you start using push api, first you need to create service and usages manually. When you have created service and usages then you can start push to scrooge using api. http://127.0.0.1:8000/scrooge/api/v0.9/serviceusages/ this is address for pushing data, current api version is 'v0.9'. The best way to provide data for Scrooge is pushing it every day, but data can also be pushed for specified date.
 
 **JSON FORMAT**
 

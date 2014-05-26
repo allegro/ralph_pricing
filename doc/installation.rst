@@ -1,15 +1,15 @@
 ============
 Installation
 ============
-Scrooge is a plugin to ralph so, before you start scrooge installation, you need install ralph and refer to ralph documentation how it works.
+Scrooge contains ralph in requirements because is plugin for ralph. For more information how to configure or install ralph refer to ralph documentation.
 
 Install Scrooge
 ~~~~~~~~~~~~~~~
-There are two ways to install scrooge, one of them is simple pip installation and it is easy and pleasant way. Second one require download source code from github manually.
+There are two way to install scrooge, one of them is simple pip installation and it is easy and pleasant. Installation from sources require download scrooge from github and manually installation them.
 
 Install Scrooge from pip
 ------------------------
-There is a standard way to install from pip::
+Faster and easier way is install scrooge from pip::
 
   (ralph)$ pip install scrooge
 
@@ -29,11 +29,11 @@ and install them::
 
   (ralph)$ pip install -e .
 
-The scrooge requirements will be installed automatically.
+The scrooge requirements (ralph, ralph_assets) will be installed automatically.
 
 Upgrade existing installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For upgrade scrooge you need to stop any Ralph processes that is running. Good practice is not upgrading old version but create separated virtualenv and install there everything from the begin but if you need upgrade old version just be sure that everything is stopped.
+For upgrade scrooge you need stop any Ralph processes that is running. Good practice is not upgrading old version but create separated virtualenv and install there everything from the begin but if you need upgrade old version just be sure that everything is stopped.
 
 Upgrade Scrooge from pip
 ------------------------
@@ -41,7 +41,7 @@ If you installed from pip, then you can simply do::
 
     (ralph)$ pip install --upgrade scrooge
 
-at the and you need to upgrade the static files::
+When upgrade will be finished, upgrade the static files::
 
     (ralph)$ ralph collectstatic
 
