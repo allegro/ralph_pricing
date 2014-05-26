@@ -88,7 +88,7 @@ class TestInformationPlugin(TestCase):
         result = Information(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 25),
-            venture=self.venture1,
+            ventures=[self.venture1],
             type='costs_per_device',
         )
         self.assertEquals(result, {

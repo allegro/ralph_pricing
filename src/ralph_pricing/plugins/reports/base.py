@@ -198,7 +198,7 @@ class BaseReportPlugin(BasePlugin):
         start,
         end,
         usage_type,
-        venture,
+        ventures=None,
         warehouse=None,
     ):
         """
@@ -212,10 +212,11 @@ class BaseReportPlugin(BasePlugin):
             date__gte=start,
             date__lte=end,
             type=usage_type,
-            pricing_venture=venture,
         )
+        if ventures:
+            daily_usages = daily_usages.filter(pricing_venture__in=ventures)
         if warehouse:
-                daily_usages = daily_usages.filter(warehouse=warehouse)
+            daily_usages = daily_usages.filter(warehouse=warehouse)
         return list(daily_usages.values('pricing_device').annotate(
             usage=Sum('value'),
         ).order_by('pricing_device'))

@@ -10,7 +10,7 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin as plugin_runner
-from ralph_pricing.forms import DateRangeVentureForm
+from ralph_pricing.forms import DeviceReportForm
 from ralph_pricing.models import Device
 from ralph_pricing.plugins import reports  # noqa
 from ralph_pricing.plugins.reports.base import AttributeDict
@@ -26,7 +26,7 @@ class Devices(BasePluginReport):
     report
     """
     template_name = 'ralph_pricing/devices.html'
-    Form = DateRangeVentureForm
+    Form = DeviceReportForm
     section = 'devices'
     report_name = _('Devices Report')
     schema_name = 'schema_devices'
@@ -50,7 +50,13 @@ class Devices(BasePluginReport):
         return plugins
 
     @classmethod
-    def _get_devices(cls, start, end, venture):
+    def _get_ventures(self, venture, use_subventures=True):
+        return [venture] + (
+            list(venture.get_descendants()) if use_subventures else []
+        )
+
+    @classmethod
+    def _get_devices(cls, start, end, ventures):
         """
         Returns devices for given venture. Valid devices are only ones that
         have some dailydevices with this venture between start and end.
@@ -58,12 +64,12 @@ class Devices(BasePluginReport):
         return Device.objects.filter(
             dailydevice__date__gte=start,
             dailydevice__date__lte=end,
-            dailydevice__pricing_venture=venture,
+            dailydevice__pricing_venture__in=ventures,
             is_virtual=False,
         ).distinct().order_by('name')
 
     @classmethod
-    def _get_report_data(cls, start, end, venture, forecast, devices):
+    def _get_report_data(cls, start, end, ventures, forecast, devices):
         """
         Use plugins to get usages data per device for given venture. Each
         plugin has to return value in following format:
@@ -92,7 +98,7 @@ class Devices(BasePluginReport):
                 plugin_report = plugin_runner.run(
                     'reports',
                     plugin.plugin_name,
-                    venture=venture,
+                    ventures=ventures,
                     start=start,
                     end=end,
                     forecast=forecast,
@@ -117,6 +123,7 @@ class Devices(BasePluginReport):
         end,
         venture,
         forecast=False,
+        use_subventures=True,
         **kwargs
     ):
         """
@@ -129,11 +136,12 @@ class Devices(BasePluginReport):
         :rtype tuple:
         """
         logger.info("Generating report from {0} to {1}".format(start, end))
-        devices = cls._get_devices(start, end, venture)
+        ventures = cls._get_ventures(venture, use_subventures)
+        devices = cls._get_devices(start, end, ventures)
         data = cls._get_report_data(
             start,
             end,
-            venture,
+            ventures,
             forecast,
             devices
         )

@@ -377,7 +377,7 @@ class TestBaseReportPlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 25),
             usage_type=self.usage_type,
-            venture=self.venture_device,
+            ventures=[self.venture_device],
         )
         self.assertEquals(result, [
             {
@@ -396,7 +396,7 @@ class TestBaseReportPlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 25),
             usage_type=self.usage_type_cost_wh,
-            venture=self.venture_device,
+            ventures=[self.venture_device],
             warehouse=self.warehouse1,
         )
         self.assertEquals(result, [

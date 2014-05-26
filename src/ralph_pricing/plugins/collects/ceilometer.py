@@ -84,7 +84,7 @@ def get_ceilometer_usages(
             meter_name = 'instance.{}'.format(flav)
             statistics[tenant_venture]['openstack.' + meter_name] = statistics[
                 tenant_venture
-            ].get(meter_name, 0) + icount
+            ].get('openstack.' + meter_name, 0) + icount
             logger.debug("Got statistics {}:{} for tenant {}".format(
                 meter, icount, tenant,
             ))
@@ -149,7 +149,6 @@ def ceilometer(**kwargs):
             auth_url=site['OS_AUTH_URL'],
         )
         tenants = ks.tenants.list()
-
         ceilo_client = get_client(
             "2",
             ceilometer_url=site['OS_METERING_URL'],

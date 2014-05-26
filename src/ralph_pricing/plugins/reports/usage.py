@@ -200,7 +200,7 @@ class UsageBasePlugin(BaseReportPlugin):
                 start=up_start,
                 end=up_end,
                 usage_type=usage_type,
-                venture=ventures[0],
+                ventures=ventures,
                 warehouse=warehouse,
             )
             for v in usages_per_device:
@@ -319,7 +319,7 @@ class UsageBasePlugin(BaseReportPlugin):
         self,
         start,
         end,
-        venture,
+        ventures,
         usage_type,
         forecast=False,
         no_price_msg=False,
@@ -333,7 +333,7 @@ class UsageBasePlugin(BaseReportPlugin):
         return self._get_usages_per_warehouse(
             start=start,
             end=end,
-            ventures=[venture],
+            ventures=ventures,
             usage_type=usage_type,
             forecast=forecast,
             no_price_msg=no_price_msg,
