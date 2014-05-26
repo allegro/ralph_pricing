@@ -383,6 +383,11 @@ class DevicesVenturesChangesForm(forms.Form):
         label='',
         initial=datetime.date.today,
     )
+    use_subventures = forms.BooleanField(
+        required=False,
+        initial=True,
+        label=_("Use subventures"),
+    )
     venture = TreeNodeChoiceField(
         required=False,
         queryset=Venture.tree.all(),

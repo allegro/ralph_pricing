@@ -37,7 +37,7 @@ class VenturesChanges(Report):
     allow_statement = False
 
     @classmethod
-    def get_data(cls, start, end, venture=None, **kwargs):
+    def get_data(cls, start, end, venture=None, use_subventures=True, **kwargs):
         """
         Main method. Create a full report for devices ventures changes. Notice
         that this method is a generator. Returns devices ventures changes
@@ -54,7 +54,12 @@ class VenturesChanges(Report):
             )
         )
 
-        venture_id = venture.id if venture is not None else None
+        ventures = None
+        if venture:
+            ventures = [venture.id]
+            if use_subventures:
+                ventures += [v.id for v in venture.get_descendants()]
+
         # query explanation:
         # join dailydevice table with self in such way, that joined record's
         # date is one day sooner than original record - then filter only rows
@@ -79,11 +84,12 @@ class VenturesChanges(Report):
                 AND dev.id = dd1.pricing_device_id
                 AND dev.asset_id IS NOT NULL
         """
-        if venture_id is not None:
+        if ventures is not None:
+            ventures_set = ', '.join(map(str, ventures))
             query += """
                 AND (
-                    dd1.pricing_venture_id = {venture_id}
-                    OR dd2.pricing_venture_id = {venture_id}
+                    dd1.pricing_venture_id IN ({ventures_set})
+                    OR dd2.pricing_venture_id IN ({ventures_set})
                 )
             """
         query += """
