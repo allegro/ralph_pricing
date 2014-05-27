@@ -372,6 +372,11 @@ class VenturesDailyUsagesForm(DateRangeForm):
 
 class DevicesVenturesChangesForm(DateRangeForm):
     """Form schema. Used to generate venture daily usages reports"""
+    use_subventures = forms.BooleanField(
+        required=False,
+        initial=True,
+        label=_("Use subventures"),
+    )
     venture = TreeNodeChoiceField(
         required=False,
         queryset=Venture.tree.all(),
