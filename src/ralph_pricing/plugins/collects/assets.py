@@ -63,19 +63,20 @@ def update_assets(data, date, usages):
         ('sn', 'sn'),
         ('barcode', 'barcode'),
     ]:
-        query = Device.objects.exclude(
-            asset_id=data['asset_id']
-        ).filter(
-            **{model_key: data[data_key]}
-        )
-        for device in query:
-            logger.warning('Replacing {} to None in asset {}'.format(
-                model_key,
-                device,
-            ))
-        query.update(
-            **{model_key: None}
-        )
+        if data[data_key] is not None:
+            query = Device.objects.exclude(
+                asset_id=data['asset_id']
+            ).filter(
+                **{model_key: data[data_key]}
+            )
+            for device in query:
+                logger.warning('Replacing {} to None in asset {}'.format(
+                    model_key,
+                    device,
+                ))
+            query.update(
+                **{model_key: None}
+            )
 
     # get or create asset
     device, created = Device.objects.get_or_create(asset_id=data['asset_id'])
