@@ -1,6 +1,28 @@
 Change Log
 ----------
 
+2.4.0
+~~~~~
+
+* New devices report
+
+* Devices ventures changes report
+
+* New ceilometer report plugin logic and logging tweakups
+
+* Fixed asset collect plugin (replacing to None)
+
+* Ceilometer collect plugin bugfixes
+
+* Added venture tree rebuild when venture plugin job is finished
+
+* Fixed extra costs - add more than 5 rows (with dynamic adding)
+
+* Fixed header in csv statement
+
+* Improved gitignore and manifest
+
+
 2.3.0
 ~~~~~
 
