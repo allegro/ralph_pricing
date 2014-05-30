@@ -8,8 +8,12 @@ install:
   - pip install git+https://github.com/allegro/django-bob.git@develop
   - pip install git+https://github.com/allegro/ralph.git@develop --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core --allow-unverified pysphere
   - pip install git+https://github.com/allegro/ralph_assets.git@develop
+  - pip install coveralls
   - pip install . --use-mirrors
 before_script:
-  - flake8 --exclude="migrations" --statistics src/ralph_pricing
+  make flake
 # command to run tests, e.g. python setup.py test
-script: DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
+script:
+  make test-with-coveralls
+after_success:
+  coveralls
