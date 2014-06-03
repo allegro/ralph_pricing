@@ -22,6 +22,8 @@ Change Log
 
 * Improved gitignore and manifest
 
+* When venture have no parent set venture parent as none
+
 
 2.3.0
 ~~~~~
