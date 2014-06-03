@@ -25,6 +25,7 @@ def update_venture(data):
         )
         venture.parent = parent
     else:
+        venture.parent = None
         parent_created = False
     venture.save()
     return created + parent_created
