@@ -16,7 +16,7 @@ from ralph_pricing import VERSION
 release = ".".join(str(num) for num in VERSION)
 
 setup(
-    name='scrooge',
+    name='ralph_scrooge',
     version=release,
     author='Grupa Allegro Sp. z o.o. and Contributors',
     author_email='it-ralph-dev@allegro.pl',
