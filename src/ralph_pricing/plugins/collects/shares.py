@@ -28,9 +28,9 @@ def update_usage(device, venture, usage_name, date, value):
 
 
 def update(data, date):
-    if data.get('mount_device_id') is not None:
+    if data.get('device_id') is not None:
         device, created = Device.objects.get_or_create(
-            device_id=data['mount_device_id'],
+            device_id=data['device_id'],
         )
     else:
         return
@@ -39,9 +39,8 @@ def update(data, date):
         venture = daily_device.pricing_venture
     except DailyDevice.DoesNotExist:
         venture = None
-    size = data['size'] / data['share_mount_count']
     usage_name = 'Disk Share {0} MB'.format(data['model'])
-    update_usage(device, venture, usage_name, date, size)
+    update_usage(device, venture, usage_name, date, data['size'])
 
 
 @plugin.register(chain='pricing', requires=['assets'])
