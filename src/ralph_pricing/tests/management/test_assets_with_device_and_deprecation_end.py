@@ -12,35 +12,48 @@ class TestAssetsWithDeviceAndDeprecationEndCommand(TestCase):
 
     def test_get_device_name_from_asset_when_device_info_is_null(self):
         # TODO
+        pass
 
     def test_get_device_name_from_asset_when_ralph_id_is_null(self):
         # TODO
+        pass
 
     def test_get_device_name_from_asset(self):
         # TODO
+        pass
 
     def test_get_device_ids_when_device_info_is_null(self):
         # TODO
+        pass
 
     def test_get_device_ids(self):
         # TODO
+        pass
 
     def test_get_ralph_devices(self):
         # TODO
+        pass
 
     def test_get_device_ids_and_names(self):
         # TODO
+        pass
 
     def test_get_deprecated_date_when_force_deprecation(self):
         # TODO
+        pass
 
     def test_get_deprecated_date_when_no_invoice_date(self):
         # TODO
+        pass
 
     def test_get_deprecated_date_when_deprecation_end_date(self):
         # TODO
+        pass
 
     def test_get_deprecated_date(self):
         # TODO
+        pass
 
-    def test_handle
+    def test_handle(self):
+        # TODO
+        pass

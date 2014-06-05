@@ -12,3 +12,4 @@ class TestPricingIpsWithoutVentureCommand(TestCase):
 
     def test_handle(self):
         # TODO
+        pass

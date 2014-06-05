@@ -6,18 +6,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-import textwrap
-from optparse import make_option
 
 from dateutil.relativedelta import relativedelta
-
-from django.conf import settings
-from django.core.management.base import BaseCommand
 
 from ralph.discovery.models import Device
 from ralph_assets.models import Asset, AssetType
 from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
-from ralph.util.api_pricing import get_ip_addresses
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +23,7 @@ class Command(PricingBaseCommand):
     TEMPLATES = {
         'csv': '{0};{1};{2};{3}',
         'default': ('Asset ID: {0}, Asset SN: {1}, Device Name: {2}'
-                   ' Deprecated date: {3}'),
+                    ' Deprecated date: {3}'),
     }
 
     def handle(self, file_path, *args, **options):
@@ -76,7 +70,7 @@ class Command(PricingBaseCommand):
         :returns list: List of device ids
         :rtype list:
         """
-        device_ids = [] 
+        device_ids = []
         for asset in assets:
             if asset.device_info:
                 device_ids.append(asset.device_info.ralph_device_id)

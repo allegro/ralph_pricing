@@ -10,11 +10,8 @@ import logging
 import textwrap
 from optparse import make_option
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.encoding import smart_str
-
-from ralph.util.api_pricing import get_ip_addresses
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +43,7 @@ class PricingBaseCommand(BaseCommand):
     @abc.abstractmethod
     def handle(self, file_path, *args, **options):
         """
-        Abstract method for custom logic. This method is designated for 
+        Abstract method for custom logic. This method is designated for
         collect data and create list of rows with results to print.
 
         :param string file_path: path to file

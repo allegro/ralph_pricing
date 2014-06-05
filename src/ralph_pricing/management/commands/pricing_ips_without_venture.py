@@ -6,11 +6,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-import textwrap
-from optparse import make_option
-
-from django.conf import settings
-from django.core.management.base import BaseCommand
 
 from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
 from ralph.util.api_pricing import get_ip_addresses

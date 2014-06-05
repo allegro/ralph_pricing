@@ -12,12 +12,16 @@ class TestPricingBaseCommand(TestCase):
 
     def test_get_template(self):
         # TODO
+        pass
 
     def test_get_render_on_screen(self):
         # TODO
+        pass
 
     def test_get_render_to_file(self):
         # TODO
+        pass
 
     def test_get_render(self):
         # TODO
+        pass
