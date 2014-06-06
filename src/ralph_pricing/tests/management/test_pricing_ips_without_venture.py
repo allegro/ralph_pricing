@@ -10,6 +10,22 @@ from django.test import TestCase
 
 class TestPricingIpsWithoutVentureCommand(TestCase):
 
+    def test_handle_when_venture_is_none(self):
+        # TODO
+        pass
+
     def test_handle(self):
+        # TODO
+        pass
+
+    def test_get_venture_ids_and_names(self):
+        # TODO
+        pass
+
+    def test_get_ips_and_venture_ids(self):
+        # TODO
+        pass
+
+    def test_get_ips_and_venture_ids(self):
         # TODO
         pass

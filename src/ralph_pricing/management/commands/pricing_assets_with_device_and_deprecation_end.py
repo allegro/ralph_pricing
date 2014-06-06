@@ -19,11 +19,19 @@ logger = logging.getLogger(__name__)
 
 class Command(PricingBaseCommand):
     """Generate report with assets, devices and date of end deprecation"""
-    CSV_HEADERS = ['Asset ID', 'Asset SN', 'Device Name', 'Deprecated date']
+    CSV_HEADERS = [
+        'Asset ID',
+        'Asset SN',
+        'Asset Barcode',
+        'Venture',
+        'Device Name',
+        'Deprecated date',
+    ]
     TEMPLATES = {
-        'csv': '{0};{1};{2};{3}',
-        'default': ('Asset ID: {0}, Asset SN: {1}, Device Name: {2}'
-                    ' Deprecated date: {3}'),
+        'csv': '{0};{1};{2};{3};{4};{5}',
+        'default': (
+            'Asset ID: {0}, Asset SN: {1}, Asset barcode: {2},'
+            ' Venture: {3}, Device Name: {4}, Deprecated date: {5}'),
     }
 
     def handle(self, file_path, *args, **options):
@@ -42,6 +50,8 @@ class Command(PricingBaseCommand):
                 _template.format(
                     asset.id,
                     asset.sn,
+                    asset.barcode,
+                    asset.venture,
                     self.get_device_name_from_asset(asset, devices),
                     self.get_deprecated_date(asset),
                 )
