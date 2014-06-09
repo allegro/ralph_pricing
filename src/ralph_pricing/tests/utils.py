@@ -9,14 +9,24 @@ from collections import OrderedDict
 import datetime
 from decimal import Decimal as D
 
-
 from ralph_pricing.models import (
     DailyDevice,
+    DailyUsage,
     DailyExtraCost,
     Device,
     ExtraCostType,
+    UsageType,
     Venture,
 )
+
+
+def get_or_create_usage_type(name=None, **kwargs):
+    usage_count = UsageType.objects.all().count()
+    name = name if name else "Default{0}".format(usage_count)
+    return UsageType.objects.get_or_create(
+        name=name,
+        type='SU',
+    )[0]
 
 
 def get_or_create_device(name=None, asset_id=None, **kwargs):
@@ -45,7 +55,30 @@ def get_or_create_venture(
     )[0]
 
 
-def get_or_create_dailydevice(date, device, venture, **kwargs):
+def get_or_create_dailyusage(
+    date=None,
+    type=None,
+    venture=None,
+    value=None,
+    **kwargs
+):
+    date = date if date else datetime.date.today()
+    venture = venture if venture else get_or_create_venture()
+    type = type if type else get_or_create_usage_type()
+    value = value if value else 0
+    return DailyUsage.objects.get_or_create(
+        date=date,
+        value=value,
+        pricing_venture=venture,
+        type=type,
+        **kwargs
+    )[0]
+
+
+def get_or_create_dailydevice(date=None, device=None, venture=None, **kwargs):
+    date = date if date else datetime.date.today()
+    venture = venture if venture else get_or_create_venture()
+    device = device if device else get_or_create_device()
     return DailyDevice.objects.get_or_create(
         date=date,
         pricing_device=device,
@@ -66,7 +99,7 @@ def get_or_create_daily_extra_cost(
     type=None,
     value=None,
 ):
-    date = date if date else datetime.date(year=2014, month=5, day=1)
+    date = date if date else datetime.date.today()
     venture = venture if venture else get_or_create_venture()
     type = type if type else get_or_create_extra_cost_type()
     value = value if value else D(100)
