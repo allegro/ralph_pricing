@@ -70,10 +70,10 @@ class TestAssetsWithDeviceAndDeprecationEndCommand(TestCase):
 
     def test_get_device_ids_when_device_info_is_null(self):
         self.asset.device_info = None
-        self.assertEqual(Command()._get_device_ids([self.asset]),[])
+        self.assertEqual(Command()._get_device_ids([self.asset]), [])
 
     def test_get_device_ids(self):
-        self.assertEqual(Command()._get_device_ids([self.asset]),[1])
+        self.assertEqual(Command()._get_device_ids([self.asset]), [1])
 
     @patch.object(Command, '_get_device_ids', Mock(return_value=[1]))
     def test_get_ralph_devices(self):
@@ -123,7 +123,7 @@ class TestAssetsWithDeviceAndDeprecationEndCommand(TestCase):
         Command().handle(None)
         Command.render.assert_called_once_with(
             [u'Asset ID: 1, Asset SN: None, Asset barcode: None, '
-            'Venture: None, Device Name: Name0, Deprecated date: '
-            'No invoice date'],
+             'Venture: None, Device Name: Name0, Deprecated date: '
+             'No invoice date'],
             None
         )

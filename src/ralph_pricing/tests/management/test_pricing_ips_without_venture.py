@@ -14,14 +14,14 @@ from ralph_pricing.management.commands.pricing_ips_and_ventures import (
     Command
 )
 from ralph_pricing.tests import utils
-from ralph.util.api_pricing import get_ip_addresses
+
 
 class TestPricingIpsWithoutVentureCommand(TestCase):
     def setUp(self):
         utils.get_or_create_venture()
         utils.get_or_create_venture()
         pricing_ips_and_ventures.get_ip_addresses = Mock(
-                return_value={'0.0.0.0': None}
+            return_value={'0.0.0.0': None}
         )
 
     def test_get_venture_ids_and_names(self):
@@ -46,7 +46,7 @@ class TestPricingIpsWithoutVentureCommand(TestCase):
 
     def test_handle(self):
         pricing_ips_and_ventures.get_ip_addresses = Mock(
-                return_value={'0.0.0.0': 1}
+            return_value={'0.0.0.0': 1}
         )
         Command.render = Mock()
         Command().handle(None)

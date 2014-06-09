@@ -22,6 +22,7 @@ class Command(PricingBaseCommand):
         'csv': '{0};{1}',
         'default': 'IP: {0}, Venture: {1}',
     }
+
     def handle(self, file_path, *args, **options):
         """
         Collect ips matched with ventures from ralph.
