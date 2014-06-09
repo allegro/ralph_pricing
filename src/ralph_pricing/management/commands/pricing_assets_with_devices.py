@@ -125,7 +125,6 @@ class Command(PricingBaseCommand):
             return 'No invoice date'
         if asset.deprecation_end_date:
             return asset.deprecation_end_date
-        else:
-            return asset.invoice_date + relativedelta(
-                months=asset.get_deprecation_months(),
-            )
+        return asset.invoice_date + relativedelta(
+            months=asset.get_deprecation_months(),
+        )

@@ -5,27 +5,52 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from mock import Mock
+
 from django.test import TestCase
 
+from ralph_pricing.management.commands import pricing_ips_and_ventures
+from ralph_pricing.management.commands.pricing_ips_and_ventures import (
+    Command
+)
+from ralph_pricing.tests import utils
+from ralph.util.api_pricing import get_ip_addresses
 
 class TestPricingIpsWithoutVentureCommand(TestCase):
-
-    def test_handle_when_venture_is_none(self):
-        # TODO
-        pass
-
-    def test_handle(self):
-        # TODO
-        pass
+    def setUp(self):
+        utils.get_or_create_venture()
+        utils.get_or_create_venture()
+        pricing_ips_and_ventures.get_ip_addresses = Mock(
+                return_value={'0.0.0.0': None}
+        )
 
     def test_get_venture_ids_and_names(self):
-        # TODO
-        pass
+        self.assertEqual(
+            Command().get_venture_ids_and_names([0]),
+            {0: u'Default0'},
+        )
 
     def test_get_ips_and_venture_ids(self):
-        # TODO
-        pass
+        self.assertEqual(
+            Command().get_ips_and_venture_ids(),
+            ({u'0.0.0.0': None}, set([None])),
+        )
 
-    def test_get_ips_and_venture_ids(self):
-        # TODO
-        pass
+    def test_handle_when_venture_is_none(self):
+        Command.render = Mock()
+        Command().handle(None)
+        Command.render.assert_called_once_with(
+            [u'IP: 0.0.0.0, Venture: None'],
+            None
+        )
+
+    def test_handle(self):
+        pricing_ips_and_ventures.get_ip_addresses = Mock(
+                return_value={'0.0.0.0': 1}
+        )
+        Command.render = Mock()
+        Command().handle(None)
+        Command.render.assert_called_once_with(
+            [u'IP: 0.0.0.0, Venture: Default1'],
+            None
+        )

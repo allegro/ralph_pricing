@@ -16,7 +16,7 @@ from ralph_pricing.models import DailyDevice, Device, DailyUsage, Venture
 from ralph_pricing.plugins.collects.splunk import (
     splunk as splunk_runner,
 )
-from ralph_pricing.tests.collect_plugins.samples.splunk import (
+from ralph_pricing.tests.plugins.collect_plugins.samples.splunk import (
     hosts_usages_data
 )
 

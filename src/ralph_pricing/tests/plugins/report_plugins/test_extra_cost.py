@@ -20,8 +20,8 @@ from ralph_pricing.tests.utils import (
 
 class TestExtraCostReportPlugin(TestCase):
     def setUp(self):
-        self.start = datetime.date(year=2014, month=5, day=1)
-        self.end = datetime.date(year=2014, month=5, day=2)
+        self.start = datetime.date.today()
+        self.end = datetime.date.today() + datetime.timedelta(days=1)
         self.venture = get_or_create_venture()
         self.type = get_or_create_extra_cost_type()
         self.value = D(100)

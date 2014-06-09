@@ -73,11 +73,11 @@ class PricingBaseCommand(BaseCommand):
         :param string file_path: path to file
         """
         if not file_path:
-            self.render_on_screen(results)
+            self._render_on_screen(results)
         else:
-            self.render_to_file(results, file_path)
+            self._render_to_file(results, file_path)
 
-    def render_on_screen(self, results):
+    def _render_on_screen(self, results):
         """
         Print results on screen.
 
@@ -86,7 +86,7 @@ class PricingBaseCommand(BaseCommand):
         for result in results:
             print (result)
 
-    def render_to_file(self, results, file_path):
+    def _render_to_file(self, results, file_path):
         """
         Save results to file.
 
