@@ -114,6 +114,12 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         choices=BILLING_TYPES,
         default='TIME',
     )
+    excluded_ventures = db.ManyToManyField(
+        'Venture',
+        related_name='+',
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = _("Team")

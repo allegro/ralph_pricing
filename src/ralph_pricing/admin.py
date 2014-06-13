@@ -127,6 +127,14 @@ class TeamDaterangesInline(admin.TabularInline):
     model = models.TeamDaterange
 
 
+class TeamForm(forms.ModelForm):
+    class Meta:
+        model = models.Team
+        widgets = {
+            'excluded_ventures': FilteredSelectMultiple('Ventures', False)
+        }
+
+
 @register(models.Team)
 class TeamAdmin(ModelAdmin):
     list_display = ('name',)
@@ -135,6 +143,7 @@ class TeamAdmin(ModelAdmin):
         UsagePriceInline,
         TeamDaterangesInline
     ]
+    form = TeamForm
 
 
 class TeamVenturesPercentInline(admin.TabularInline):
