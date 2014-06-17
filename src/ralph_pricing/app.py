@@ -36,6 +36,11 @@ class Scrooge(RalphModule):
     disp_name = 'Scrooge'
     icon = 'fugue-money-coin'
 
+    @property
+    def required_permission(self):
+        from ralph.account.models import Perm
+        return Perm.has_scrooge_access
+
     def __init__(self, **kwargs):
         super(Scrooge, self).__init__(
             'ralph_pricing',
