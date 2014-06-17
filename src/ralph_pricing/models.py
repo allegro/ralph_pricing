@@ -116,6 +116,7 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
     )
     excluded_ventures = db.ManyToManyField(
         'Venture',
+        verbose_name=_("Excluded ventures"),
         related_name='+',
         blank=True,
         null=True,

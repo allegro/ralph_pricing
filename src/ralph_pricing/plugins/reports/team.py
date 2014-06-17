@@ -371,7 +371,11 @@ class Team(UsageBasePlugin):
         def add_subcosts(sstart, send, cost):
             for count_func, total_count_func in funcs:
                 count_per_venture = count_func(sstart, send, ventures)
-                total = total_count_func(sstart, send, team.excluded_ventures.all())
+                total = total_count_func(
+                    sstart,
+                    send,
+                    team.excluded_ventures.all(),
+                )
                 # if there is more than one resource, calculate 1/n of total
                 # cost
                 cost_part = cost / D(len(funcs))
