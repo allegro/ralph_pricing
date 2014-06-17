@@ -60,9 +60,11 @@ from ralph_pricing.models import (
 )
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.usage import UsageBasePlugin
+from ralph_pricing.utils import decimal_precision
 
 
 logger = logging.getLogger(__name__)
+PERCENT_PRECISION = 4
 
 
 @register(chain='reports')
@@ -77,10 +79,20 @@ class Team(UsageBasePlugin):
     @memoize(skip_first=True)
     def _get_teams_not_distributes_to_others(self):
         """
-        Returns all teams that have billing type different than DISTRIBUTE
+        Returns all teams that have billing type different than DISTRIBUTE and
+        AVERAGE
         """
         return TeamModel.objects.filter(show_in_report=True).exclude(
-            billing_type='DISTRIBUTE'
+            billing_type__in=('DISTRIBUTE', 'AVERAGE'),
+        )
+
+    @memoize(skip_first=True)
+    def _get_teams_not_average(self):
+        """
+        Returns all teams that have billing type different than AVERAGE
+        """
+        return TeamModel.objects.filter(show_in_report=True).exclude(
+            billing_type='AVERAGE'
         )
 
     def _get_team_dateranges_percentage(self, start, end, team):
@@ -222,6 +234,23 @@ class Team(UsageBasePlugin):
             cores_count=Sum('value')
         ).get('cores_count', 0)
 
+    @decimal_precision(PERCENT_PRECISION)
+    def _get_percent_from_costs(
+        self,
+        ventures_costs,
+        total_cost,
+        percent_key,
+        cost_key
+    ):
+        """
+        Calculates venture percent of total cost, according to it's cost
+        """
+        for v in ventures_costs.values():
+            if isinstance(v[cost_key], (D, int, float)):
+                v[percent_key] = v[cost_key] / total_cost
+            else:
+                v[percent_key] = 0
+
     def _get_team_time_cost_per_venture(
         self,
         team,
@@ -254,6 +283,7 @@ class Team(UsageBasePlugin):
         result = defaultdict(lambda: defaultdict(int))
         ventures_ids = set([v.id for v in ventures])
         cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
+        percent_key = 'ut_{0}_team_{1}_percent'.format(usage_type.id, team.id)
         # check if price is undefined for any time between start and end
         price_undefined = no_price_msg and self._incomplete_price(
             usage_type,
@@ -261,6 +291,7 @@ class Team(UsageBasePlugin):
             end,
             team=team,
         )
+        total_cost = 0
 
         def add_subcosts(sstart, send, cost, percentage):
             """
@@ -274,7 +305,8 @@ class Team(UsageBasePlugin):
                     if price_undefined:
                         result[venture][cost_key] = price_undefined
                     else:
-                        result[venture][cost_key] += cost * D(percent) / 100
+                        venture_cost = cost * D(percent) / 100
+                        result[venture][cost_key] += venture_cost
 
         usageprices = team.usageprice_set.filter(
             start__lte=end,
@@ -293,6 +325,7 @@ class Team(UsageBasePlugin):
                     period_daily_cost = daily_cost
                 tcstart = max(start, team_cost.start)
                 tcend = min(end, team_cost.end)
+                total_cost += period_daily_cost * ((tcend - tcstart).days + 1)
                 dateranges_percentage = self._get_team_dateranges_percentage(
                     tcstart,
                     tcend,
@@ -311,6 +344,9 @@ class Team(UsageBasePlugin):
             )
             percentage = dict([(p.venture.id, p.percent) for p in percentage])
             add_subcosts(start, end, 0, percentage)
+
+        self._get_percent_from_costs(result, total_cost, percent_key, cost_key)
+
         return result
 
     def _get_team_func_cost_per_venture(
@@ -350,6 +386,7 @@ class Team(UsageBasePlugin):
 
         result = defaultdict(lambda: defaultdict(int))
         cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
+        percent_key = 'ut_{0}_team_{1}_percent'.format(usage_type.id, team.id)
         price_undefined = no_price_msg and self._incomplete_price(
             usage_type,
             start,
@@ -357,6 +394,7 @@ class Team(UsageBasePlugin):
             team=team,
         )
         funcs = funcs or []
+        total_cost = 0
 
         def add_subcosts(sstart, send, cost):
             for count_func, total_count_func in funcs:
@@ -384,18 +422,21 @@ class Team(UsageBasePlugin):
             for team_cost in usageprices:
                 cost = team_cost.forecast_cost if forecast else team_cost.cost
                 if not daily_cost:
-                    daily_cost_in_period = cost / (
+                    period_daily_cost = cost / (
                         (team_cost.end - team_cost.start).days + 1
                     )
                 else:
-                    daily_cost_in_period = daily_cost
+                    period_daily_cost = daily_cost
 
                 tcstart = max(start, team_cost.start)
                 tcend = min(end, team_cost.end)
-                cost = daily_cost_in_period * ((tcend - tcstart).days + 1)
+                total_cost += period_daily_cost * ((tcend - tcstart).days + 1)
+                cost = period_daily_cost * ((tcend - tcstart).days + 1)
                 add_subcosts(tcstart, tcend, cost)
         else:
             add_subcosts(start, end, 0)
+
+        self._get_percent_from_costs(result, total_cost, percent_key, cost_key)
         return result
 
     def _get_team_devices_cores_cost_per_venture(
@@ -486,6 +527,7 @@ class Team(UsageBasePlugin):
         teams = self._get_teams_not_distributes_to_others()
         teams_by_id = dict([(t.id, t) for t in teams])
         cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
+        percent_key = 'ut_{0}_team_{1}_percent'.format(usage_type.id, team.id)
         price_undefined = no_price_msg and self._incomplete_price(
             usage_type,
             start,
@@ -498,6 +540,7 @@ class Team(UsageBasePlugin):
             end__gte=start,
             type=usage_type
         )
+        total_cost = 0
 
         if usageprices:
             for team_cost in usageprices:
@@ -507,7 +550,7 @@ class Team(UsageBasePlugin):
                 daily_cost = cost / (
                     (team_cost.end - team_cost.start).days + 1
                 )
-
+                total_cost += daily_cost * ((tcend - tcstart).days + 1)
                 for members_count in self._get_teams_dateranges_members_count(
                     tcstart, tcend, teams
                 ).items():
@@ -515,7 +558,7 @@ class Team(UsageBasePlugin):
                     total_members = sum(team_members_count.values())
                     for team_id, members in team_members_count.items():
                         dependent_team = teams_by_id[team_id]
-                        team_key = 'ut_{0}_team_{1}_cost'.format(
+                        team_cost_key = 'ut_{0}_team_{1}_cost'.format(
                             usage_type.id,
                             dependent_team.id,
                         )
@@ -530,7 +573,7 @@ class Team(UsageBasePlugin):
                             forecast=forecast,
                         ).items():
                             venture = venture_info[0]
-                            venture_cost = venture_info[1][team_key]
+                            venture_cost = venture_info[1][team_cost_key]
                             if price_undefined:
                                 result[venture][cost_key] = price_undefined
                             elif isinstance(venture_cost, (int, D)):
@@ -538,6 +581,94 @@ class Team(UsageBasePlugin):
         else:
             for venture in ventures:
                 result[venture.id][cost_key] = price_undefined
+
+        self._get_percent_from_costs(result, total_cost, percent_key, cost_key)
+
+        return result
+
+    def _get_team_average_cost_per_venture(
+        self,
+        team,
+        usage_type,
+        start,
+        end,
+        ventures,
+        forecast=False,
+        no_price_msg=False,
+        **kwargs
+    ):
+        """
+        Calculates team cost according to average of percents of other teams
+        costs per ventures.
+
+        For every dependent team (every other, that has billing type different
+        than AVERAGE), in period of time for which cost is defined for current
+        team, there are costs and percentage division calculated for such a
+        dependent team. Calculated percentage division is then added to venture
+        'counter' and at the end, total cost of current team is distributed
+        according to ventures 'counters' (of percent).
+        """
+        result = defaultdict(lambda: defaultdict(D))
+        teams = self._get_teams_not_average()
+        cost_key = 'ut_{0}_team_{1}_cost'.format(usage_type.id, team.id)
+        percent_key = 'ut_{0}_team_{1}_percent'.format(usage_type.id, team.id)
+        price_undefined = no_price_msg and self._incomplete_price(
+            usage_type,
+            start,
+            end,
+            team=team,
+        )
+
+        usageprices = team.usageprice_set.filter(
+            start__lte=end,
+            end__gte=start,
+            type=usage_type
+        )
+        total_cost = 0
+
+        # if any team cost was defined between start and end
+        if usageprices:
+            for team_cost in usageprices:
+                venture_percent = defaultdict(D)
+                total_percent = 0
+                tcstart = max(start, team_cost.start)
+                tcend = min(end, team_cost.end)
+                cost = team_cost.forecast_cost if forecast else team_cost.cost
+                daily_cost = cost / (
+                    (team_cost.end - team_cost.start).days + 1
+                )
+                total_cost += daily_cost * ((tcend - tcstart).days + 1)
+
+                # calculate costs and percent of other teams per venture
+                for dependent_team in teams:
+                    team_percent_key = 'ut_{0}_team_{1}_percent'.format(
+                        usage_type.id,
+                        dependent_team.id,
+                    )
+                    for venture_info in self._get_team_cost_per_venture(
+                        team=dependent_team,
+                        start=tcstart,
+                        end=tcend,
+                        ventures=ventures,
+                        usage_type=usage_type,
+                        forecast=forecast,
+                    ).items():
+                        venture = venture_info[0]
+                        percent = venture_info[1][team_percent_key]
+                        venture_percent[venture] += percent
+                        total_percent += percent
+
+                # distribute cost of current team according to calculated
+                # percent between tcstart and tcend
+                for venture, percent in venture_percent.iteritems():
+                    result[venture][cost_key] += cost * percent / total_percent
+        else:
+            for venture in ventures:
+                result[venture.id][cost_key] = price_undefined
+
+        # calculate percent of total cost per venture
+        # sum of percent should be equal to 1
+        self._get_percent_from_costs(result, total_cost, percent_key, cost_key)
 
         return result
 
@@ -550,6 +681,7 @@ class Team(UsageBasePlugin):
             'DISTRIBUTE': self._get_team_distributed_cost_per_venture,
             'DEVICES_CORES': self._get_team_devices_cores_cost_per_venture,
             'DEVICES': self._get_team_devices_cost_per_venture,
+            'AVERAGE': self._get_team_average_cost_per_venture,
         }
         func = functions.get(team.billing_type)
         if func:
@@ -595,6 +727,17 @@ class Team(UsageBasePlugin):
         teams = self._get_teams()
         usage_type_id = usage_type.id
         for team in teams:
+            if team.show_count_column:
+                schema['ut_{0}_team_{1}_percent'.format(
+                    usage_type_id,
+                    team.id,
+                )] = {
+                    'name': _("{0} - {1} %".format(
+                        usage_type.name,
+                        team.name,
+                    )),
+                    'rounding': 3,
+                }
             schema['ut_{0}_team_{1}_cost'.format(usage_type_id, team.id)] = {
                 'name': _("{0} - {1} cost".format(
                     usage_type.name,
