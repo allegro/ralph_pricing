@@ -34,6 +34,7 @@ class TestTeamPlugin(TestCase):
         self.team_time = models.Team(
             name='T1',
             billing_type='TIME',
+            show_percent_column=True,
         )
         self.team_time.save()
         self.team_devices_cores = models.Team(
@@ -1069,6 +1070,197 @@ class TestTeamPlugin(TestCase):
             },
         })
 
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_team_time_cost_per_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_team_devices_cores_cost_per_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_team_devices_cost_per_venture')  # noqa
+    @mock.patch('ralph_pricing.plugins.reports.team.Team._get_team_distributed_cost_per_venture')  # noqa
+    def test_team_average_cost(
+        self,
+        distributed_mock,
+        devices_mock,
+        devices_cores_mock,
+        time_team_mock,
+    ):
+        team_avg = models.Team(name='TeamAVG', billing_type='AVERAGE')
+        team_avg.save()
+        team_percent_key = lambda t: 'ut_{0}_team_{1}_percent'.format(
+            self.usage_type.id,
+            t.id,
+        )
+
+        time_percent_key = team_percent_key(self.team_time)
+        time_team_mock.return_value = {
+            self.venture1.id: {time_percent_key: D('0.3')},
+            self.venture2.id: {time_percent_key: D('0.3')},
+            self.venture3.id: {time_percent_key: D('0.4')},
+        }
+
+        devices_cores_percent_key = team_percent_key(self.team_devices_cores)
+        devices_cores_mock.return_value = {
+            self.venture1.id: {devices_cores_percent_key: 0},
+            self.venture2.id: {devices_cores_percent_key: 0},
+        }
+
+        devices_percent_key = team_percent_key(self.team_devices)
+        devices_mock.return_value = {
+            self.venture1.id: {devices_percent_key: D('0.1')},
+            self.venture2.id: {devices_percent_key: D('0.3')},
+            self.venture3.id: {devices_percent_key: D('0.6')},
+        }
+
+        distribted_percent_key = team_percent_key(self.team_distribute)
+        distributed_mock.return_value = {
+            self.venture2.id: {distribted_percent_key: D('0.3')},
+            self.venture3.id: {distribted_percent_key: D('0.7')},
+        }
+
+        # daily cost: 100
+        up = models.UsagePrice(
+            type=self.usage_type,
+            cost=1500,
+            forecast_cost=2000,
+            start=date(2013, 10, 1),
+            end=date(2013, 10, 15),
+            team=team_avg,
+        )
+        up.save()
+        # daily cost: 200
+        up = models.UsagePrice(
+            type=self.usage_type,
+            cost=3000,
+            forecast_cost=5000,
+            start=date(2013, 10, 16),
+            end=date(2013, 10, 30),
+            team=team_avg,
+        )
+        up.save()
+        result = self.plugin._get_team_cost_per_venture(
+            start=date(2013, 10, 6),
+            end=date(2013, 10, 25),
+            team=team_avg,
+            usage_type=self.usage_type,
+            ventures=self.ventures,
+            forecast=False,
+            no_price_msg=True,
+        )
+        cost_key = 'ut_{0}_team_{1}_cost'.format(
+            self.usage_type.id,
+            team_avg.id,
+        )
+        percent_key = 'ut_{0}_team_{1}_percent'.format(
+            self.usage_type.id,
+            team_avg.id,
+        )
+        # venture1: 0.3 + 0 + 0.1 = 0.4
+        # venture2: 0.3 + 0 + 0.3 + 0.3 = 0.9
+        # venture3: 0.4 + 0.6 + 0.7 = 1.7
+        # cost between 6 and 15: 100 * 10 = 1000
+        # cost between 16 and 25: 200 * 10 = 2000
+        self.assertEquals(result, {
+            self.venture1.id: {
+                cost_key: D('400'),  # 1000 * 0.4 / 3 + 2000 * 0.4 / 3
+                percent_key: D('0.1333'),  # 400 / 3000
+            },
+            self.venture2.id: {
+                cost_key: D('900'),  # 1000 * 0.9 / 3 + 2000 * 0.9 / 3
+                percent_key: D('0.3'),  # 900 / 3000
+            },
+            self.venture3.id: {
+                cost_key: D('1700'),  # 1000 * 1.7 / 3 + 2000 * 1.7 / 3
+                percent_key: D('0.5667'),  # 1700 / 3000
+            },
+        })
+
+    def test_team_average_cost_incomplete_price(self):
+        team_avg = models.Team(name='TeamAVG', billing_type='AVERAGE')
+        team_avg.save()
+        # daily cost: 200
+        up = models.UsagePrice(
+            type=self.usage_type,
+            cost=3000,
+            forecast_cost=5000,
+            start=date(2013, 10, 16),
+            end=date(2013, 10, 30),
+            team=team_avg,
+        )
+        up.save()
+        result = self.plugin._get_team_cost_per_venture(
+            start=date(2013, 10, 25),
+            end=date(2013, 11, 5),
+            team=team_avg,
+            usage_type=self.usage_type,
+            ventures=self.ventures,
+            forecast=False,
+            no_price_msg=True,
+        )
+        cost_key = 'ut_{0}_team_{1}_cost'.format(
+            self.usage_type.id,
+            team_avg.id,
+        )
+        percent_key = 'ut_{0}_team_{1}_percent'.format(
+            self.usage_type.id,
+            team_avg.id,
+        )
+        self.assertEquals(result, {
+            self.venture1.id: {
+                cost_key: _('Incomplete price'),
+                percent_key: D(0),
+            },
+            self.venture2.id: {
+                cost_key: _('Incomplete price'),
+                percent_key: D(0),
+            },
+            self.venture3.id: {
+                cost_key: _('Incomplete price'),
+                percent_key: D(0),
+            },
+        })
+
+    def test_team_average_cost_no_price(self):
+        team_avg = models.Team(name='TeamAVG', billing_type='AVERAGE')
+        team_avg.save()
+        # daily cost: 200
+        up = models.UsagePrice(
+            type=self.usage_type,
+            cost=3000,
+            forecast_cost=5000,
+            start=date(2013, 10, 16),
+            end=date(2013, 10, 30),
+            team=team_avg,
+        )
+        up.save()
+        result = self.plugin._get_team_cost_per_venture(
+            start=date(2013, 11, 2),
+            end=date(2013, 11, 5),
+            team=team_avg,
+            usage_type=self.usage_type,
+            ventures=self.ventures,
+            forecast=False,
+            no_price_msg=True,
+        )
+        cost_key = 'ut_{0}_team_{1}_cost'.format(
+            self.usage_type.id,
+            team_avg.id,
+        )
+        percent_key = 'ut_{0}_team_{1}_percent'.format(
+            self.usage_type.id,
+            team_avg.id,
+        )
+        self.assertEquals(result, {
+            self.venture1.id: {
+                cost_key: _('No price'),
+                percent_key: D(0),
+            },
+            self.venture2.id: {
+                cost_key: _('No price'),
+                percent_key: D(0),
+            },
+            self.venture3.id: {
+                cost_key: _('No price'),
+                percent_key: D(0),
+            },
+        })
+
     @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_cores_count')  # noqa
     @mock.patch('ralph_pricing.plugins.reports.team.Team._get_cores_count_by_venture')  # noqa
     @mock.patch('ralph_pricing.plugins.reports.team.Team._get_total_devices_count')  # noqa
@@ -1210,6 +1402,12 @@ class TestTeamPlugin(TestCase):
         result = self.plugin.schema(self.usage_type)
         ut_id = self.usage_type.id
         self.assertEquals(result, OrderedDict([
+            ('ut_{0}_team_{1}_percent'.format(ut_id, self.team_time.id), {
+                'name': _("{0} - {1} %".format(
+                    self.usage_type.name,
+                    self.team_time.name,
+                )),
+            }),
             ('ut_{0}_team_{1}_cost'.format(ut_id, self.team_time.id), {
                 'name': _("{0} - {1} cost".format(
                     self.usage_type.name,

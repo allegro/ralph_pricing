@@ -8,15 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Team.show_count_column'
-        db.add_column('ralph_pricing_team', 'show_count_column',
+        # Adding field 'Team.show_percent_column'
+        db.add_column('ralph_pricing_team', 'show_percent_column',
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Team.show_count_column'
-        db.delete_column('ralph_pricing_team', 'show_count_column')
+        # Deleting field 'Team.show_percent_column'
+        db.delete_column('ralph_pricing_team', 'show_percent_column')
 
 
     models = {
@@ -205,8 +205,8 @@ class Migration(SchemaMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
-            'show_count_column': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
+            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_percent_column': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         },
         'ralph_pricing.teamdaterange': {
             'Meta': {'object_name': 'TeamDaterange'},

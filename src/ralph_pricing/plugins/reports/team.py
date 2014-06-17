@@ -2,11 +2,12 @@
 """
 Plugin for billing teams on pricing report.
 
-There are 4 possible models of team billing:
+There are 5 possible models of team billing:
 - time
 - devices-cores
 - devices
 - distribution
+- average
 
 * Time
 For each team, that should be billed based on time model, should be provided
@@ -36,6 +37,10 @@ other teams based on members number proportion. Then, based on other team
 model (time, devices-cores or devices), team cost (which is part of total
 distributed cost) is spliited between all ventures and summed with parts of
 cost for other teams.
+
+* Average
+This model is using other teams and use average of percent of other teams costs
+distribution between ventures.
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -618,7 +623,6 @@ class Team(UsageBasePlugin):
             end,
             team=team,
         )
-
         usageprices = team.usageprice_set.filter(
             start__lte=end,
             end__gte=start,
@@ -637,8 +641,8 @@ class Team(UsageBasePlugin):
                 daily_cost = cost / (
                     (team_cost.end - team_cost.start).days + 1
                 )
-                total_cost += daily_cost * ((tcend - tcstart).days + 1)
-
+                period_cost = daily_cost * ((tcend - tcstart).days + 1)
+                total_cost += period_cost
                 # calculate costs and percent of other teams per venture
                 for dependent_team in teams:
                     team_percent_key = 'ut_{0}_team_{1}_percent'.format(
@@ -661,7 +665,12 @@ class Team(UsageBasePlugin):
                 # distribute cost of current team according to calculated
                 # percent between tcstart and tcend
                 for venture, percent in venture_percent.iteritems():
-                    result[venture][cost_key] += cost * percent / total_percent
+                    if price_undefined:
+                        result[venture][cost_key] = price_undefined
+                    else:
+                        result[venture][cost_key] += (
+                            period_cost * percent / total_percent
+                        )
         else:
             for venture in ventures:
                 result[venture.id][cost_key] = price_undefined
@@ -727,7 +736,7 @@ class Team(UsageBasePlugin):
         teams = self._get_teams()
         usage_type_id = usage_type.id
         for team in teams:
-            if team.show_count_column:
+            if team.show_percent_column:
                 schema['ut_{0}_team_{1}_percent'.format(
                     usage_type_id,
                     team.id,
@@ -736,7 +745,6 @@ class Team(UsageBasePlugin):
                         usage_type.name,
                         team.name,
                     )),
-                    'rounding': 3,
                 }
             schema['ut_{0}_team_{1}_cost'.format(usage_type_id, team.id)] = {
                 'name': _("{0} - {1} cost".format(

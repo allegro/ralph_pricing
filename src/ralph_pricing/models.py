@@ -99,8 +99,8 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         verbose_name=_("Show team in report"),
         default=True,
     )
-    show_count_column = db.BooleanField(
-        verbose_name=_("Show count column in report"),
+    show_percent_column = db.BooleanField(
+        verbose_name=_("Show percent column in report"),
         default=False,
     )
     BILLING_TYPES = (
