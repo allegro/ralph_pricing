@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 
+from ralph.account.models import Perm, ralph_permission
 
 from ralph_pricing import VERSION
 
@@ -69,6 +70,17 @@ MAIN_MENU = [
 
 
 class Base(TemplateView):
+    perms = [
+        {
+            'perm': Perm.has_scrooge_access,
+            'msg': _("You don't have permission to see Scrooge."),
+        },
+    ]
+
+    @ralph_permission(perms)
+    def dispatch(self, *args, **kwargs):
+        return super(Base, self).dispatch(*args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super(Base, self).get_context_data(**kwargs)
         footer_items = []
