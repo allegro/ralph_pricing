@@ -111,10 +111,10 @@ def shares(**kwargs):
                     saved += 1
                 counter += 1
             logger.info(
-                '{0} Share mounts in venture {1} (total: {2}) saved'.format(
+                '{0} (total: {1}) share mounts from venture {2} saved'.format(
                     saved,
-                    venture_symbol,
                     counter,
+                    venture_symbol,
                 )
             )
     return True, 'disk share usages updated', kwargs
