@@ -1,12 +1,7 @@
 ===
 API
 ===
-To improve work and communication with Scrooge, we have prepared api.
-Currently, there is only push api which can be used to push
-usages data by services. In the future, we are planning to create pull
-api for generating report data only for a single venture/service. To
-communicate with API, use JSON as a message format and REST API for
-maintenance of communication standards.
+To improve work and communication with Scrooge, we have prepared api. Currently, there is only push api which can be used to push usages data by services. In the future, we are planning to create pull api for generating report data only for a single venture/service. To communicate with API, use JSON as a message format and REST API for maintenance of communication standards.
 
 
 Push API
@@ -19,26 +14,19 @@ General description
 -------------------
 
 Every service can upload data to Scrooge with the use of its resources
-(e.g. requests count, transfer, etc.) by ventures. To upload data to
-Scrooge, some preconditions must be satisfied:
+(e.g. requests count, transfer, etc.) by ventures. To upload data to Scrooge, some preconditions must be satisfied:
 
 * usage type(s) used by service must be added to Scrooge
 * service has to be added to Scrooge
 * usage type(s) must be connected with the service
 
-A unique symbol has to be provided for every service in Scrooge, which
-is later used to identify the service through API. Venture and usage
-type(s) are also identified using these symbols
+A unique symbol has to be provided for every service in Scrooge, which is later used to identify the service through API. Venture and usage type(s) are also identified using these symbols
 
-The unit of resource usage doesn't matter (e.g. in the case of transferring kB, MB,
-GB) - the most important thing is to keep the unit of every usage the same
-(even abstract) – after all, the cost of service is distributed to
-ventures proportionally to their usages (of resources).
+The unit of resource usage doesn't matter (e.g. in the case of transferring kB, MB, GB) - the most important thing is to keep the unit of every usage the same
+(even abstract) – after all, the cost of service is distributed to ventures proportionally to their usages (of resources).
 
 If a service has more than one usage type, it is necessary to provide their percentage division in the period of time (e.g. transfer – 30%, requests count
-– 70%, which means that 30% of the total cost of service is distributed
-proportionally to the transfer usage and 70% proportionally to the requests
-count).
+– 70%, which means that 30% of the total cost of service is distributed proportionally to the transfer usage and 70% proportionally to the requests count).
 
 
 -------------------------
@@ -157,18 +145,13 @@ Example::
 Communication
 """""""""""""
 
-Communication with Scrooge API takes place using the HTTP protocol. Data
-should be sent with the POST request. Authentication is done using HTTP
-header "Authorization: ApiKey <username>:<api_key>", where api_key is
-a key generated to a user in Ralph (see *Ralph Admin part*).
+Communication with Scrooge API takes place using the HTTP protocol. Data should be sent with the POST request. Authentication is done using HTTP header "Authorization: ApiKey <username>:<api_key>", where api_key is a key generated to a user in Ralph (see *Ralph Admin part*).
 
 """""""""""""""""""""""""""
 Overwriting previous values
 """""""""""""""""""""""""""
 
-API provides a way to define how to treat previous service usages values
-uploaded for a given date (e.g. when data is sent twice for a given date).
-The possible actions (overwrite) is:
+API provides a way to define how to treat previous service usages values uploaded for a given date (e.g. when data is sent twice for a given date). The possible actions (overwrite) is:
 
 * ``delete_all_previous`` - all previous usages for a given date are removed before inserting new data
 
