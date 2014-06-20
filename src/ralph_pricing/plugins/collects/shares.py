@@ -10,7 +10,13 @@ import logging
 from django.conf import settings
 
 from ralph.util import plugin, api_pricing
-from ralph_pricing.models import UsageType, DailyUsage, Device, DailyDevice, Venture
+from ralph_pricing.models import (
+    DailyDevice,
+    DailyUsage,
+    Device,
+    UsageType,
+    Venture,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -85,7 +91,9 @@ def shares(**kwargs):
 
     unknown_venture = None
     try:
-        unknown_venture = Venture.objects.get(symbol=settings.SHARES_UNKNOWN_VENTURE)
+        unknown_venture = Venture.objects.get(
+            symbol=settings.SHARES_UNKNOWN_VENTURE
+        )
     except AttributeError:
         logger.warning('Shares unknown venture not configured')
     except Venture.DoesNotExist:

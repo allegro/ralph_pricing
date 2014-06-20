@@ -9,7 +9,7 @@ from datetime import date
 
 from django.test import TestCase
 
-from ralph_pricing.models import UsageType, DailyUsage, Device
+from ralph_pricing.models import DailyUsage, UsageType
 from ralph_pricing.plugins.collects.shares import (
     update_usage,
     update,
