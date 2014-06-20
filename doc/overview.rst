@@ -2,24 +2,27 @@
 Overview
 ========
 
-What is Scrooge? The simple answer for this question is "Billing system for corporations". How does it work? Spread the cost of devices, energy, network etc. to the clients. For example, if you are CO or main accountant of huge company where there are many devices, projects and people, probably you need to know how many resources is used by each of team or worker. Maybe you need to charge some people or just need financial statements for make any important decision. It is no metter why you need financial statement, Scrooge give you it but the first thing you need to know is that Scrooge is neither excel nor advanced calculator, Scrooge works on data collected from many devices or supply by many people. It is some kind of system to calculate and display results of collected or supplied data with many additional features that make it easier to use.
+What is Scrooge? The simple answer for this question is: it is a "billing system for corporations". How does it work? It distributes costs of equipment, electricity, network, etc. to clients. For example, if you are COO or the chief accountant at a big company with numerous assets, projects and people, you probably need to know how many resources is used by each team or employee. Maybe you need to charge some people with these costs or just need financial statements to make an important decision. No matter why you need this information, you can obtain it from Scrooge. However, the first thing you need to know is that Scrooge is neither an Excel file nor an advanced calculator – it works on data collected from many devices or supplied by many people. It is a system to calculate and display results with many additional features that make it easier to use.
+
 
 .. image:: images/mainidea.png
 
-As you can see, we can distinguish three main parts of architecture. Collects data, supply invoce costs and generate reports. This is the main idea of Scrooge. Accountants every month supply all costs of invoice. Collects plugin system collects data from many devices or designated people supply data. Report section calculate everything and display it like a report where costs from invoces, based on devices or teams usages are spread to predefined clients.
+As you can see, we can distinguish three main parts of Scrooge architecture:
+collecting data, supplying invoice costs and generating reports. This is the main idea of the system. Every month accountants provide invoice costs. This data is collected in the system plugin from many devices or people. The report section calculates everything and displays it in the form of a report where costs from invoices, based on devices or teams, are distributed to pre-defined clients.
 
-Second goal of Scrooge is flexibility of system. Look at the picture and find each cloud where description starts with "report". So? there are two places, one of them is for collets data and second one is for generating reports. Thats means that we don't impose one way or logic to generate or collect data. Of course, we have suggested usage but it is not required. There is a couple of rules how to communicate plugins with core but algorithm of collects or report data is yours.
+The second feature of Scrooge is its flexibility. Look at the picture and find a cloud with a description starting with "report". You can see two places: one is used for collecting data and the other for generating reports. It means that we don't impose any method to generate or collect data. Of course, we have suggested one, but you don’t have to use it. There are a couple of rules on how to communicate plugins with core, but the collecting and data reporting algorithms are yours.
 
-As you probably know, all financial statements must be historical imprinted as subtitles carved into the rock. Scrooge contains his own database where each of incomming data is collected and imprinted forever in the basic form.
+As you probably know, all financial statements must be imprinted historically as subtitles carved into the rock. Scrooge contains its own database where all incoming data is collected and imprinted forever in the basic form.
+
 
 .. image:: images/usages.png
 
-To be sure that generated reports will be the same forever you can create a statement. Statemets are saved in database as a json with full data from report so, if your crash your database manually and some of data disappear, you can still go back to old report by choose a correct statement from menu.
+To be sure that generated reports will be the same forever, you can create a statement. Statements are saved in the database as a json with full data from the report so,if your crash your database manually and some data disappears, you can still go back to the old report by choosing a correct statement from the menu.
 
-Ok, but what if some of our clients generate costs of another clients? It is not a problem for the Scrooge. For this case we have services. Service is some kind of bag where many clients are grouped and total cost of this bag is spreaded to another users. One thing that you need to do is supply information on what part of cost must be distributed to another client.
+OK, but what if some of our clients generate costs of another clients? It is not a problem for Scrooge. In such case we can use services. A service is a bag where many clients are grouped and the total cost of this bag is distributed to other users. One thing that you need to do is to supply information which part of cost must be distributed to another client.
 
 .. image:: images/services.png
 
-Scrooge contains a few base plugins and tools for programmers so, you don't need create everything on the begin. The most complicated parts are coded by our own programmers so, there is a few methods and function ready to use but more about this you can find in source code and doctrings. 
+Scrooge contains a few base plugins and tools for software developers, so you don't need to create everything from the scratch. The most complicated parts are coded by our software developers, so a few methods and features are ready to use, but you can find more about this in the source code and docstrings.
 
-In sum, total client cost include 3 main parts, base cost, cost of another clients and extra costs. The last one cost is manually added costs and it is for example cost of liceans. So, as you can see Scrooge give you possibility to implement all kinds of costs what the huge company generate. Maybe it is not easy to impelement system but it is really flexibility and advenced business application.
+To sum up, the total client cost consists of 3 main parts: base cost, cost of another clients and extra costs. The last one is added manually and it can include e.g. a license cost. As you can see, Scrooge give you a possibility to implement all kinds of costs that a company may generate. Maybe it is not easy to implement it, but it is really flexible and has advanced business applications.

@@ -2,58 +2,66 @@
 Services & Usages
 =================
 
-Billing model implemented in scrooge is based on services and usages. We can distinguish service with servis usages and base usages. Base usages are use to define cost of venture/service for hardware. Service is some kind of 'bag' for group many ventures (analogously, ventures are a bag for group many devices). Service usage is used to calculate how many cash each of clients (ventures used this service) should pay for use service.
+The billing model implemented in Scrooge is based on services and usages. We can distinguish a service with service usages and base usages. Base usages are used to define a cost of venture/service for hardware. A service is a “bag” used to group many ventures (similarly, ventures are a bag used to group many devices). Service usage is used to calculate how much each client (ventures that used this service) should pay for using the service.
+
 
 .. image:: images/services_and_usages.png
 
 Services
 ~~~~~~~~
-Venture is the base being for which we calculate costs. Each venture contains a few devices and can use many services. Service is some kind of bag for group many ventures. For example, when we create service named Datastorage, we can include to them a ventures named datastorage_test and datastorage_production and then we have 'a bag' named Datastorage. Cost of ventures datastorage_test and datastorage_production is now include to total cost of service named Datastorage. Now we have two more ventures named webserviceA and webserviceB which use our Datastorage service (when i say 'use Datastorage' i mean they use some devices from datastorage_test and datastorage_production ventures).
+A venture is the base for calculating costs. Each venture contains a few devices and can use many services. A service is a bag to group many ventures. For example, when we create a service called Datastorage, we can include the following ventures:
+datastorage_test and datastorage_production to create a “bag”
+called Datastorage. The costs of datastorage_test and datastorage_production ventures are now included in the total costs of service called Datastorage. Now, we have two more ventures called webserviceA and webserviceB which use our Datastorage service (when I say “use Datastorage”, I mean they use some devices from datastorage_test and datastorage_production ventures).
+
 
 .. image:: images/services.png
 
 Usages
 ~~~~~~
-Usages contains the most basic and lower level values as scrooge require to calculate and create report.
+Usages contain basic and low-level values required by Scrooge to calculate and create a report.
+
 
 Base usages
 -----------
-This usage give as information how mutch cost a devices. So as you can imagine, every device in datacenter use power and probably internet, deal place and require people to take care of it. Every device have the cost of buying also. For spread cost, each of devices must contains information about how many energy it consump and how mutch place its take and here we have our base usages. Base usages define how many units take each of device. For calculate cost for single device, for example energy cost, energy consumption units are count to one value and divide by enery cost. Then we have a price per one unit and when we multiply this price per number of units for single device we get price for this device.
+The usage give us information on how much a device costs. As you can imagine, every device in the datacenter uses power and probably internet, as well as space, and requires people to take care of it. Every device has also its purchase cost. To distribute costs, each device must contain information about the energy it consumes and space it occupies, which are its base usages defining how many units each device takes. To calculate the cost of a device, for example electricity cost, energy consumption units are counted to one value and divided by the electricity cost. Then, we have a price per one unit and when we multiply this price by the number of units for a single device we will have a price for this device.
+
 
 .. image:: images/base_usages.png
 
-Power Consumption
-  | Collect: *Each device model contains, entered manually, informations about power consumption. Collect plugin collect this information every day and write it like a simple 'power consumption' abstract unit.*
-  | Cost: *Accountants enter cost from invoice manually.*
-  | Report: *Cost of one unit is calculate from divide total usages and total cost. Plugin sum all usages per venture and multiply it by cost of one unit.*
+Power consumption
+  | Collect: *Each device model contains information about power consumption entered manually. The collect plugin collects this information every day and saves it as a simple “power consumption” abstract unit.*
+  | Cost: *Accountants enter invoice costs manually.*
+  | Report: *Cost of one unit is calculated by dividing total usages and total cost. The plugin sums all usages per venture and multiplies it by the cost of one unit.*
 Height of device
-  | Collect: *This base usage is collect exactly the same like power consumption.*
-  | Cost: *Accountants enter cost from invoice manually.*
-  | Report: *This base usage cost per venture is calculate exactly the same like power consumption.*
+  | Collect: *This base usage is collected exactly in the same way like power consumption.*
+  | Cost: *Accountants enter invoice costs manually.*
+  | Report: *This base usage cost per venture is calculated exactly in the same way like power consumption.*
 Network
-  | Collect: *From nfsen servers are collects usages per IP. From ralph is collect information about mutching IP to Venture. Plugin mutch IP with Venture and save useges from nfsen as venture usage. Unknow IPs are mutch with venture from settings.*
-  | Cost: *Accountants enter cost from invoice manually.*
-  | Report: *This base usage cost per venture is calculate exactly the same like power consumption.*
-Deprecation
-  | Collect: *Each asset contains information about asset cost (exactly, it is device cost). Collect plugin collect this information like daily device imprint.*
-  | Cost: *Logistics enter device (asset) cost manually.*
-  | Report: *Cost for one day is calculate from divide device total cost and deprecation days. Deprecation days are calculate based on deprecation rate. Plugin sum all costs per one day from all devices and multiply it by days number for which report is generate*
-Teams work
-  | Collect: *Teams based on collected data so, there is no any additional logic for it.*
+  | Collect: : *Usages are collected from nfsen servers per IP. Information about IT matching to Venture is collected from ralph. The plugin matches IP with Venture and save usages from nfsen as a venture usage. Unknown IPs are matched with the venture from settings.*
+  | Cost: *Accountants enter invoice costs manually.*
+  | Report: *This base usage cost per venture is calculated exactly in the same way like power consumption.*
+Depreciation
+  | Collect: *Each asset contains information about costs (more specifically, it is a device cost). The collect plugin collects this information as a daily device imprint.*
+  | Cost: *Logistics specialists enter device (asset) cost manually.*
+  | Report: *The cost for one day is calculated by dividing the device total cost and depreciation days which are calculated based on depreciation rate. The plugin sums all the costs per one day from all the devices and multiplies it by the number of days for which the report is generated.*
+Teamwork
+  | Collect: *Teams are based on collected data, so there is no any additional logic for it.*
   | Cost: *Accountants enter cost and teams number manually.*
-  | Report: There are 4 ways to calculate team work cost.
+  | Report: There are 4 ways to calculate teamwork costs.
   |     1. By time
   |     2. By devices and cores count
   |     3. By devices
-  |     4. By Distribute cost to other teams proportional to team members count
+  |     4. By cost distributed to other teams proportionally to team members count
 
 Service usages
 --------------
 
 .. image:: images/service_usages.png
 
-This type of usage is use to spread cost of service to ventures. Every day each of service is obligate to supply to the scrooge informations about how mutch of service was use by each venture. Befor start supply information, service and usages must be define and link together from admin panel. You can find more about create services and usages in how to use section.
+This type of usage is used to distribute service costs to ventures. Every day each service has to supply information to Scrooge on how it was used by each venture. Before supplying such information, service and usages must be defined together with the link from the admin panel. You can find more about how to create services and usages in the How to use section.
 
-On report, services are represent like a columns with count and cost of usages and one additional column with total cost of service. The most important 'to know' is the cost of servise is the same likes sum of costs ventures included to this service. Service is some kind of mechanizm to spread costs of few ventures to anyother ventures.
 
-One of big wins of scrooge is automate plugin. This is this what give you possibility add your service to our system without create any line of code. This plugin use supplied data, created and linked services and usages and return complete of biling information. Of course if you need represent your data in your own style you can try negotiation create dedicated plugin or do it yourself but it is not recommended.
+In the report, services are represented in columns with count and usage cost and one additional column with the total cost of service. The most important is “to know” that the service cost is the same as the total cost of ventures included in the service. A service is a mechanism to distribute costs of few ventures to other ventures.
+
+One of big wins of Scrooge is its automatic plugin which gives you a possibility to add your service to our system without creating any code line. This plugin uses data that was supplied, services and usages that were created and linked, and returns complete biling information. Of course, if you need to present your data in your own style, you can try to create a dedicated plugin or do it yourself, but it is not recommended.
+
