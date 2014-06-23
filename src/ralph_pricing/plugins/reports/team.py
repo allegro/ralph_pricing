@@ -160,7 +160,7 @@ class Team(UsageBasePlugin):
         return result
 
     @memoize(skip_first=True)
-    def _get_total_devices_count(self, start, end, ventures):
+    def _get_total_devices_count(self, start, end, excluded_ventures):
         """
         Returns total count of devices in period of time (sum of DailyDevices).
 
@@ -171,7 +171,9 @@ class Team(UsageBasePlugin):
             date__gte=start,
             date__lte=end,
         ).exclude(
-            pricing_venture__isnull=True,
+            pricing_venture__isnull=True
+        ).exclude(
+            pricing_venture__in=excluded_ventures,
         )
         return devices_query.aggregate(count=Count('id')).get('count', 0)
 
@@ -205,7 +207,7 @@ class Team(UsageBasePlugin):
         return result
 
     @memoize(skip_first=True)
-    def _get_total_cores_count(self, start, end, ventures):
+    def _get_total_cores_count(self, start, end, excluded_ventures):
         """
         Returns total count of cores in period of time (sum of DailyUsage).
 
@@ -216,7 +218,9 @@ class Team(UsageBasePlugin):
             date__gte=start,
             date__lte=end,
         ).exclude(
-            pricing_venture__isnull=True,
+            pricing_venture__isnull=True
+        ).exclude(
+            pricing_venture__in=excluded_ventures,
         )
         return cores_query.aggregate(
             cores_count=Sum('value')
@@ -313,6 +317,11 @@ class Team(UsageBasePlugin):
             add_subcosts(start, end, 0, percentage)
         return result
 
+    def _exclude_ventures(self, team, ventures):
+        if team.excluded_ventures.count():
+            ventures = list(set(ventures) - set(team.excluded_ventures.all()))
+        return ventures
+
     def _get_team_func_cost_per_venture(
         self,
         team,
@@ -357,11 +366,16 @@ class Team(UsageBasePlugin):
             team=team,
         )
         funcs = funcs or []
+        ventures = self._exclude_ventures(team, ventures)
 
         def add_subcosts(sstart, send, cost):
             for count_func, total_count_func in funcs:
                 count_per_venture = count_func(sstart, send, ventures)
-                total = total_count_func(sstart, send, ventures)
+                total = total_count_func(
+                    sstart,
+                    send,
+                    team.excluded_ventures.all(),
+                )
                 # if there is more than one resource, calculate 1/n of total
                 # cost
                 cost_part = cost / D(len(funcs))
