@@ -1402,6 +1402,15 @@ class TestTeamPlugin(TestCase):
         )
         self.assertEquals(result, D('2765'))
 
+    def test_exclude_ventures(self):
+        self.team_time.excluded_ventures.add(self.venture1)
+        result = self.plugin._exclude_ventures(self.team_time, self.ventures)
+        self.assertEquals(set(result), {self.venture2, self.venture3})
+
+    def test_exclude_ventures_empty(self):
+        result = self.plugin._exclude_ventures(self.team_time, self.ventures)
+        self.assertEquals(result, self.ventures)
+
     def test_schema(self):
         result = self.plugin.schema(self.usage_type)
         ut_id = self.usage_type.id
