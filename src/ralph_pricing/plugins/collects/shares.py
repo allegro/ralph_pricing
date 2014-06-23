@@ -105,6 +105,8 @@ def shares(**kwargs):
         usage_name = 'Disk Shares {0}'.format(group_name)
         usage_type = get_or_create_usage_type(usage_name)
 
+        logger.info('Processing group {}'.format(group_name))
+
         # delete all previous records
         DailyUsage.objects.filter(type=usage_type, date=date).delete()
 
@@ -113,7 +115,7 @@ def shares(**kwargs):
             saved = 0
             for data in api_pricing.get_shares(
                 venture_symbol=venture_symbol,
-                include_virtual=True,
+                include_virtual=False,
             ):
                 if update(data, date, usage_type, unknown_venture):
                     saved += 1
