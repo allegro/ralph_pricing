@@ -99,14 +99,19 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         verbose_name=_("Show team in report"),
         default=True,
     )
+    show_percent_column = db.BooleanField(
+        verbose_name=_("Show percent column in report"),
+        default=False,
+    )
     BILLING_TYPES = (
-        ('TIME', 'By time'),
-        ('DEVICES_CORES', 'By devices and cores count'),
-        ('DEVICES', 'By devices count'),
-        ('DISTRIBUTE', (
+        ('TIME', _('By time')),
+        ('DEVICES_CORES', _('By devices and cores count')),
+        ('DEVICES', _('By devices count')),
+        ('DISTRIBUTE', _((
             'Distribute cost to other teams proportionally to '
             'team members count'
-        )),
+        ))),
+        ('AVERAGE', _('Average'))
     )
     billing_type = db.CharField(
         verbose_name=_("Billing type"),
