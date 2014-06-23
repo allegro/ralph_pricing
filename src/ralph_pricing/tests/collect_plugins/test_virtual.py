@@ -21,7 +21,7 @@ from ralph_pricing.tests.utils import (
 )
 
 
-class TestAssetPlugin(TestCase):
+class TestVirtualPlugin(TestCase):
     def setUp(self):
         self.device = get_or_create_device()
         self.venture = get_or_create_venture()
