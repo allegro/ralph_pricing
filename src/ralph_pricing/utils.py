@@ -5,9 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import decimal
-from functools import wraps
-
 
 def ranges_overlap(start1, end1, start2, end2):
     """
@@ -49,17 +46,3 @@ def sum_of_intervals(intervals):
                 result.append((current_start, value))
                 current_start = None
     return result
-
-
-def decimal_precision(precision):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            decimal_context = decimal.getcontext()
-            prev_prec = decimal_context.prec
-            decimal_context.prec = precision
-            result = func(*args, **kwargs)
-            decimal_context.prec = prev_prec
-            return result
-        return wrapper
-    return decorator

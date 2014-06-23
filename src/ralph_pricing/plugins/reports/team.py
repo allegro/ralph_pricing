@@ -65,7 +65,6 @@ from ralph_pricing.models import (
 )
 from ralph_pricing.plugins.base import register
 from ralph_pricing.plugins.reports.usage import UsageBasePlugin
-from ralph_pricing.utils import decimal_precision
 
 
 logger = logging.getLogger(__name__)
@@ -239,7 +238,6 @@ class Team(UsageBasePlugin):
             cores_count=Sum('value')
         ).get('cores_count', 0)
 
-    @decimal_precision(PERCENT_PRECISION)
     def _get_percent_from_costs(
         self,
         ventures_costs,
@@ -251,7 +249,7 @@ class Team(UsageBasePlugin):
         Calculates venture percent of total cost, according to it's cost
         """
         for v in ventures_costs.values():
-            if isinstance(v[cost_key], (D, int, float)):
+            if isinstance(v[cost_key], (D, int, float)) and total_cost:
                 v[percent_key] = v[cost_key] / total_cost
             else:
                 v[percent_key] = 0
@@ -310,8 +308,7 @@ class Team(UsageBasePlugin):
                     if price_undefined:
                         result[venture][cost_key] = price_undefined
                     else:
-                        venture_cost = cost * D(percent) / 100
-                        result[venture][cost_key] += venture_cost
+                        result[venture][cost_key] += cost * D(percent) / 100
 
         usageprices = team.usageprice_set.filter(
             start__lte=end,
@@ -745,6 +742,7 @@ class Team(UsageBasePlugin):
                         usage_type.name,
                         team.name,
                     )),
+                    'rounding': PERCENT_PRECISION,
                 }
             schema['ut_{0}_team_{1}_cost'.format(usage_type_id, team.id)] = {
                 'name': _("{0} - {1} cost".format(

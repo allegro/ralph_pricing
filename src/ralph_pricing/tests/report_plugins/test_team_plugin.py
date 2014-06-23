@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import mock
 from collections import OrderedDict
 from datetime import date
-from decimal import Decimal as D
+from decimal import Decimal as D, getcontext
 
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
@@ -19,6 +19,10 @@ from ralph_pricing.plugins.reports.team import Team
 
 class TestTeamPlugin(TestCase):
     def setUp(self):
+        # set up decimal precision to make comparisons easier
+        decimal_context = getcontext()
+        decimal_context.prec = 4
+
         self.plugin = Team
 
         # usage type
@@ -887,8 +891,8 @@ class TestTeamPlugin(TestCase):
 
         self.assertEquals(result, {
             self.venture1.id: {
-                cost_key: D('1681'),
-                percent_key: D('0.2272'),
+                cost_key: D('1680'),
+                percent_key: D('0.2270'),
             },
             self.venture2.id: {
                 cost_key: D('2638'),
@@ -945,16 +949,16 @@ class TestTeamPlugin(TestCase):
         # detailed calculations in `test_team_distribute_cost`
         self.assertEquals(result, {
             self.venture1.id: {
-                cost_key: D('840.5'),
-                percent_key: D('0.2272'),
+                cost_key: D('840.4'),
+                percent_key: D('0.2271'),
             },
             self.venture2.id: {
-                cost_key: D('1319'),
-                percent_key: D('0.3565'),
+                cost_key: D('1318'),
+                percent_key: D('0.3562'),
             },
             self.venture3.id: {
-                cost_key: D('1540.5'),
-                percent_key: D('0.4164'),
+                cost_key: D('1540'),
+                percent_key: D('0.4162'),
             },
         })
 
@@ -1407,6 +1411,7 @@ class TestTeamPlugin(TestCase):
                     self.usage_type.name,
                     self.team_time.name,
                 )),
+                'rounding': 4,
             }),
             ('ut_{0}_team_{1}_cost'.format(ut_id, self.team_time.id), {
                 'name': _("{0} - {1} cost".format(
