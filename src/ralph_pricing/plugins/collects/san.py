@@ -35,6 +35,7 @@ def update(data, date, usage_type):
         )
         return False
 
+    venture = None
     try:
         daily_device = device.dailydevice_set.get(date=date)
         venture = daily_device.pricing_venture
@@ -43,6 +44,14 @@ def update(data, date, usage_type):
             data['device_id'],
             date,
         ))
+        return False
+    if venture is None:
+        logger.error(
+            'Venture not specified for DailyDevice {} and date {}'.format(
+                data['device_id'],
+                date,
+            )
+        )
         return False
     update_usage(device, venture, date, 1, usage_type)
     return True
