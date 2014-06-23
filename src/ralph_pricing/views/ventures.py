@@ -109,7 +109,9 @@ class AllVentures(BasePluginReport):
                     "Usage '{0}' have no usage plugin".format(plugin.name)
                 )
             except Exception as e:
-                logger.exception("Report generate error: {0}".format(e))
+                logger.exception(
+                    "Error while generating the report: {0}".format(e)
+                )
                 raise
         queries_count = len(connection.queries) - old_queries_count
         if settings.DEBUG:
