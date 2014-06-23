@@ -100,7 +100,7 @@ OPENSTACK_REGIONS <list of strings> - Datacenter names
 
     OPENSTACK_REGIONS = ['xxx', 'yyy']
 
-OPENSTACK_EXTRA_QUERIES <list of tuple> - Extra queries for openstacp
+OPENSTACK_EXTRA_QUERIES <list of tuple> - Extra queries for openstack
 
 ::
 

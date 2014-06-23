@@ -1,15 +1,15 @@
 ============
 Installation
 ============
-Scrooge contains ralph in requirements because is plugin for ralph. For more information how to configure or install ralph refer to ralph documentation.
+Scrooge contains ralph in its requirements, because it is a plugin for ralph. For more information on how to configure or install ralph, please refer to its documentation.
 
 Install Scrooge
 ~~~~~~~~~~~~~~~
-There are two way to install scrooge, one of them is simple pip installation and it is easy and pleasant. Installation from sources require download scrooge from github and manually installation them.
+There are two ways to install Scrooge. One of them is a simple pip installation which is nice and easy. Installation from sources require Scrooge to be downloaded from github and then, installed manually
 
 Install Scrooge from pip
 ------------------------
-Faster and easier way is install scrooge from pip::
+A fast and easy way is to install Scrooge from pip::
 
   (ralph)$ pip install scrooge
 
@@ -17,7 +17,7 @@ That's it.
 
 Install Scrooge from sources
 ----------------------------
-Also, there is a possible to install scrooge from sources. If you wanna do that, you need to download scrooge from github before.::
+It is also possible to install Scrooge from sources. To do this, first, you need to download Scrooge from github::
 
   (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
 
@@ -25,29 +25,31 @@ Enter to the project folder::
 
   (ralph)$ cd ralph_pricing
 
-and install them::
+and install it::
 
   (ralph)$ pip install -e .
 
-The scrooge requirements (ralph, ralph_assets) will be installed automatically.
+The Scrooge requirements (ralph, ralph_assets) will be installed automatically
+
 
 Upgrade existing installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For upgrade scrooge you need stop any Ralph processes that is running. Good practice is not upgrading old version but create separated virtualenv and install there everything from the begin but if you need upgrade old version just be sure that everything is stopped.
+To upgrade Scrooge, you need to stop any Ralph processes that are running. It is good practice not to upgrade the old version, but create a separate virtual environment and install everything from the begin, but if you need to upgrade the old version, be sure that everything is stopped.
+
 
 Upgrade Scrooge from pip
 ------------------------
-If you installed from pip, then you can simply do::
+If you installed Scrooge from pip, then you can simply::
 
     (ralph)$ pip install --upgrade scrooge
 
-When upgrade will be finished, upgrade the static files::
+After it is finished, upgrade the static files::
 
     (ralph)$ ralph collectstatic
 
 Upgrade Scrooge from sources
 ----------------------------
-You need to download scrooge from github before.::
+First, you need to download Scrooge from github::
 
   (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
 
@@ -55,30 +57,28 @@ Enter to the project folder::
 
   (ralph)$ cd ralph_pricing
 
-and upgrade them::
+and upgrade it::
 
   (ralph)$ pip install --upgrade -e .
 
-at the end you need to upgrade the static files::
+Finally, you need to upgrade the static files::
 
     (ralph)$ ralph collectstatic
 
 Migrate the database
 ~~~~~~~~~~~~~~~~~~~~
-Some of updates require database migrations. For migrate database just run::
+Some of updates require database migrations. To migrate a database, you need to run::
 
     (ralph)$ ralph migrate ralph_pricing
 
-Be sure that you have backup of your database. Some of migrations could migrate any data or create some complicate changes and unwanted for you changes.
+Be sure that you have a backup of your database. Sometimes you can migrate data or create some complicated and unwanted changes.
 
 Update the settings
 ~~~~~~~~~~~~~~~~~~~~
-Some new features added to Ralph may require additional settings to work
-properly. In order to enable them in your settings, follow the instructions in
-the :doc:`change log <changes>` for the version you installed.
+Some new features added to Ralph may require additional settings to work properly. In order to enable them in your settings, follow the instructions in the :doc:`change log <changes>` for the version you have installed.
 
 Testing if it works
 ~~~~~~~~~~~~~~~~~~~
-For be sure that everything work fine, is recommended to run unit tests. For do this just run::
+To be sure that everything work fine, is recommended to run unit tests. To do this, run::
 
   (ralph)$ DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
