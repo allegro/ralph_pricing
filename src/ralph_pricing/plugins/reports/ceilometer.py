@@ -17,18 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class CeilometerBasePlugin(ServiceBasePlugin):
-    def _calculate_proportion_cost(self, values, total_cost):
-        partial_cost = float(total_cost) / float(sum(values.values()))
-        return dict([(s[0], s[1] * partial_cost) for s in values.iteritems()])
-
     def costs(self, service, start, end, ventures, forecast=False, **kwargs):
-        total_cost = self.total_cost(
-            start,
-            end,
-            service,
-            forecast,
-            ventures=service.venture_set.all(),
-        )
         usage_types = service.usage_types.all()
         usages = DailyUsage.objects.filter(
             type__in=usage_types,
@@ -47,18 +36,13 @@ class CeilometerBasePlugin(ServiceBasePlugin):
             venture = usage.pricing_venture.id
             val = float(usage.value) * float(price)
             coin_ventures[venture] = coin_ventures.get(venture, 0) + val
-        costs = self._calculate_proportion_cost(coin_ventures, total_cost)
         res = dict([(v[0], {
             'ceilometer_cost': v[1],
-            'ceilometer_coin': coin_ventures[v[0]],
-        }) for v in costs.iteritems()])
+        }) for v in coin_ventures.iteritems()])
         return res
 
     def schema(self, service, *args, **kwargs):
         schema = OrderedDict([
-            ('ceilometer_coin', {
-                'name': "Cloud coins",
-            }),
             ('ceilometer_cost', {
                 'name': "Cloud 2.0 cost",
                 'currency': True,

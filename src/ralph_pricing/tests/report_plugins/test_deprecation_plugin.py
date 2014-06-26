@@ -107,7 +107,7 @@ class TestDeprecationReportPlugin(TestCase):
         result = Deprecation(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
-            venture=self.venture1,
+            ventures=[self.venture1],
             type='costs_per_device',
         )
         expected = dict((v, {
@@ -140,7 +140,7 @@ class TestDeprecationReportPlugin(TestCase):
         result = Deprecation(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 13),
-            venture=venture,
+            ventures=[venture],
             type='costs_per_device',
         )
         self.assertEquals(result, {
@@ -174,7 +174,7 @@ class TestDeprecationReportPlugin(TestCase):
         result = Deprecation(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 13),
-            venture=venture,
+            ventures=[venture],
             type='costs_per_device',
         )
         self.assertEquals(result, {

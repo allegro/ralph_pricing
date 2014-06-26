@@ -36,6 +36,11 @@ class Scrooge(RalphModule):
     disp_name = 'Scrooge'
     icon = 'fugue-money-coin'
 
+    @property
+    def required_permission(self):
+        from ralph.account.models import Perm
+        return Perm.has_scrooge_access
+
     def __init__(self, **kwargs):
         super(Scrooge, self).__init__(
             'ralph_pricing',
@@ -68,6 +73,8 @@ class Scrooge(RalphModule):
             'VIRTUAL_VENTURE_NAMES': {},
             'WARNINGS_LIMIT_FOR_USAGES': 40,
             'CLOUD_UNKNOWN_VENTURE': None,
+            'SHARE_VENTURE_SYMBOLS': {},
+            'SHARES_UNKNOWN_VENTURE': None,  # symbol
         }
         # workaround to not overwriting manually defined settings
         # check if setting is in global settings - if no, add default

@@ -305,6 +305,10 @@ TeamVenturePercentFormSet = forms.models.modelformset_factory(
 )
 
 
+# =============================================================================
+# REPORTS FORMS
+# =============================================================================
+
 class DateRangeForm(forms.Form):
     '''Form schema. Used to generate venture raports'''
     start = forms.DateField(
@@ -321,17 +325,30 @@ class DateRangeForm(forms.Form):
         label='',
         initial=datetime.date.today,
     )
-    is_active = forms.BooleanField(
-        required=False,
-        label=_("Show only active"),
-    )
+
+
+class VenturesReportForm(DateRangeForm):
     forecast = forms.BooleanField(
         required=False,
         label=_("Forecast"),
     )
 
+    is_active = forms.BooleanField(
+        required=False,
+        label=_("Show only active"),
+    )
 
-class DateRangeVentureForm(DateRangeForm):
+
+class DeviceReportForm(DateRangeForm):
+    forecast = forms.BooleanField(
+        required=False,
+        label=_("Forecast"),
+    )
+    use_subventures = forms.BooleanField(
+        required=False,
+        initial=True,
+        label=_("Use subventures"),
+    )
     venture = TreeNodeChoiceField(
         required=True,
         queryset=Venture.tree.all(),
@@ -340,22 +357,8 @@ class DateRangeVentureForm(DateRangeForm):
     )
 
 
-class VenturesDailyUsagesForm(forms.Form):
+class VenturesDailyUsagesForm(DateRangeForm):
     """Form schema. Used to generate venture daily usages reports"""
-    start = forms.DateField(
-        widget=DateWidget(
-            attrs={'class': 'input-small'},
-        ),
-        label='',
-        initial=lambda: datetime.date.today() - datetime.timedelta(days=30),
-    )
-    end = forms.DateField(
-        widget=DateWidget(
-            attrs={'class': 'input-small'},
-        ),
-        label='',
-        initial=datetime.date.today,
-    )
     is_active = forms.BooleanField(
         required=False,
         label=_("Show only active"),
@@ -367,21 +370,12 @@ class VenturesDailyUsagesForm(forms.Form):
     )
 
 
-class DevicesVenturesChangesForm(forms.Form):
-    '''Form schema. Used to generate venture daily usages reports'''
-    start = forms.DateField(
-        widget=DateWidget(
-            attrs={'class': 'input-small'},
-        ),
-        label='',
-        initial=lambda: datetime.date.today() - datetime.timedelta(days=30),
-    )
-    end = forms.DateField(
-        widget=DateWidget(
-            attrs={'class': 'input-small'},
-        ),
-        label='',
-        initial=datetime.date.today,
+class DevicesVenturesChangesForm(DateRangeForm):
+    """Form schema. Used to generate venture daily usages reports"""
+    use_subventures = forms.BooleanField(
+        required=False,
+        initial=True,
+        label=_("Use subventures"),
     )
     venture = TreeNodeChoiceField(
         required=False,

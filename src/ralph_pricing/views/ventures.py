@@ -13,7 +13,7 @@ from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_pricing.views.base_plugin_report import BasePluginReport
-from ralph_pricing.forms import DateRangeForm
+from ralph_pricing.forms import VenturesReportForm
 from ralph.util import plugin as plugin_runner
 from ralph_pricing.plugins import reports  # noqa
 from ralph_pricing.plugins.reports.base import AttributeDict
@@ -27,7 +27,7 @@ class AllVentures(BasePluginReport):
     Reports for all ventures
     """
     template_name = 'ralph_pricing/ventures_all.html'
-    Form = DateRangeForm
+    Form = VenturesReportForm
     section = 'all-ventures'
     report_name = _('All Ventures Report')
 
@@ -108,8 +108,11 @@ class AllVentures(BasePluginReport):
                 logger.warning(
                     "Usage '{0}' have no usage plugin".format(plugin.name)
                 )
-            except BaseException as e:
-                logger.exception("Report generate error: {0}".format(e))
+            except Exception as e:
+                logger.exception(
+                    "Error while generating the report: {0}".format(e)
+                )
+                raise
         queries_count = len(connection.queries) - old_queries_count
         if settings.DEBUG:
             logger.debug('Total SQL queries: {0}'.format(queries_count))

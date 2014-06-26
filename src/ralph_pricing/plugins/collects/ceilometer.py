@@ -34,7 +34,7 @@ def get_ceilometer_usages(
     yesterday = today - datetime.timedelta(days=1)
     for tenant in tenants:
         logger.debug('Getting stats for tenant {}: {}/{}'.format(
-            tenant, tenants.index(tenant), len(tenants),
+            tenant.name, tenants.index(tenant), len(tenants),
         ))
         try:
             tenant_venture = tenant.description.split(";")[1]
@@ -68,7 +68,7 @@ def get_ceilometer_usages(
         ]
         aggregates = [{'func': 'cardinality', 'param': 'resource_id'}]
         logger.debug("Getting instance usage for tenant {}".format(
-            tenant_venture
+            tenant.name
         ))
         for flav in flavors:
             meter = "instance:{}".format(flav)
@@ -84,9 +84,9 @@ def get_ceilometer_usages(
             meter_name = 'instance.{}'.format(flav)
             statistics[tenant_venture]['openstack.' + meter_name] = statistics[
                 tenant_venture
-            ].get(meter_name, 0) + icount
+            ].get('openstack.' + meter_name, 0) + icount
             logger.debug("Got statistics {}:{} for tenant {}".format(
-                meter, icount, tenant,
+                meter, icount, tenant.name,
             ))
     return statistics
 
@@ -149,7 +149,6 @@ def ceilometer(**kwargs):
             auth_url=site['OS_AUTH_URL'],
         )
         tenants = ks.tenants.list()
-
         ceilo_client = get_client(
             "2",
             ceilometer_url=site['OS_METERING_URL'],
