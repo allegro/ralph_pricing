@@ -8,10 +8,25 @@ This documentation
 ------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   introduction
-   installation 
+   overview
+   installation
+   configuration
+   tutorial
+   reports
+   servicesandusages
    plugins
+   costs
+   api
+   statements
+   changes
+   license
 
 
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
