@@ -26,6 +26,8 @@ Change Log
 
 * Fixed venture hierarchy, when venture have no parent then venture parent is None
 
+* Added html documentation
+
 
 2.4.0
 ~~~~~
