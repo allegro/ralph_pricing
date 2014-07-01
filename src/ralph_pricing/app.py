@@ -49,22 +49,22 @@ class Scrooge(RalphModule):
         )
         self.append_app()
         self.insert_templates(__file__)
-        if not setup_scrooge_logger():
-            self.register_logger('ralph_pricing', {
-                'handlers': ['file'],
-                'propagate': True,
-                'level': 'DEBUG',
-            })
-            self.register_logger('ralph_pricing.plugins', {
-                'handlers': ['file', 'console'],
-                'propagate': True,
-                'level': 'DEBUG',
-            })
-            self.register_logger('ralph_pricing.management', {
-                'handlers': ['file', 'console'],
-                'propagate': True,
-                'level': 'DEBUG',
-            })
+        setup_scrooge_logger():
+        self.register_logger('ralph_pricing', {
+            'handlers': ['file'],
+            'propagate': True,
+            'level': 'DEBUG',
+        })
+        self.register_logger('ralph_pricing.plugins', {
+            'handlers': ['file', 'console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        })
+        self.register_logger('ralph_pricing.management', {
+            'handlers': ['file', 'console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        })
         app_settings = {
             'SSH_NFSEN_CREDENTIALS': {},
             'NFSEN_CHANNELS': [],
