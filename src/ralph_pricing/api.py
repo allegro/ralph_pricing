@@ -270,7 +270,7 @@ class ServiceUsageResource(Resource):
             except Venture.DoesNotExist:
                 raise ImmediateHttpResponse(
                     response=http.HttpBadRequest(
-                        "Invalid or inactive venture symbol: {}".format(
+                        "Invalid or inactive venture (symbol: {})".format(
                             venture_usages.venture
                         )
                     )
