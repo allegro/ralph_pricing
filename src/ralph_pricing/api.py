@@ -82,7 +82,7 @@ class ServiceUsageObject(object):
         self.service = service
         self.date = date
         self.venture_usages = venture_usages or []
-        self.overwrite = None
+        self.overwrite = 'no'  # default overwrite
 
     def to_dict(self):
         result = {
@@ -199,7 +199,7 @@ class ServiceUsageResource(Resource):
     """
     service = fields.CharField(attribute='service')
     date = fields.DateTimeField(attribute='date')
-    overwrite = fields.CharField(attribute='overwrite', default='values_only')
+    overwrite = fields.CharField(attribute='overwrite')
     venture_usages = fields.ToManyField(
         VentureUsageResource,
         'venture_usages',
@@ -229,7 +229,9 @@ class ServiceUsageResource(Resource):
             Service.objects.get(symbol=service_usages.service)
         except Service.DoesNotExist:
             raise ImmediateHttpResponse(
-                response=http.HttpBadRequest("Invalid service symbol")
+                response=http.HttpBadRequest(
+                    "Invalid service symbol: {}".format(service_usages.service)
+                )
             )
 
         # check if date is properly set
@@ -260,21 +262,28 @@ class ServiceUsageResource(Resource):
                     except UsageType.DoesNotExist:
                         raise ImmediateHttpResponse(
                             response=http.HttpBadRequest(
-                                "Invalid usage type symbol"
+                                "Invalid usage type symbol: {}".format(
+                                    usage.symbol,
+                                )
                             )
                         )
             except Venture.DoesNotExist:
                 raise ImmediateHttpResponse(
                     response=http.HttpBadRequest(
-                        "Invalid venture symbol or venture is inactive"
+                        "Invalid or inactive venture symbol: {}".format(
+                            venture_usages.venture
+                        )
                     )
                 )
-        logger.error(
+        logger.info(
             "Saving usages for service {0}".format(service_usages.service)
         )
 
         # remove previous daily usages
         if service_usages.overwrite in ('values_only', 'delete_all_previous'):
+            logger.debug('Remove previous values ({})'.format(
+                service_usages.overwrite,
+            ))
             for usage_type, ventures in usages_ventures.iteritems():
                 previuos_usages = DailyUsage.objects.filter(
                     date=service_usages.date,
