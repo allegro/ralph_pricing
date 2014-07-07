@@ -33,7 +33,7 @@ def update_extra_cost(data, date):
 
 
 @plugin.register(chain='pricing', requires=['ventures'])
-def extracost(**kwargs):
+def extra_cost(**kwargs):
     """
     Main method of daily imprint create.
     """
