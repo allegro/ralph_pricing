@@ -49,7 +49,7 @@ class Scrooge(RalphModule):
         )
         self.append_app()
         self.insert_templates(__file__)
-        setup_scrooge_logger():
+        setup_scrooge_logger()
         self.register_logger('ralph_pricing', {
             'handlers': ['file'],
             'propagate': True,
