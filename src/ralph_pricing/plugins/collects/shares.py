@@ -100,7 +100,9 @@ def shares(**kwargs):
             )
         except KeyError:
             logger.warning(
-                'Shares unknown venture not configured for {}'.format(group_name)
+                'Shares unknown venture not configured for {}'.format(
+                    group_name
+                )
             )
         except Venture.DoesNotExist:
             logger.error('Shares unknown venture ({}) not found'.format(
