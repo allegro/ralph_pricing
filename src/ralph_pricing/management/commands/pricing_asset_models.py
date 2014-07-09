@@ -7,9 +7,6 @@ from __future__ import unicode_literals
 
 import logging
 
-from dateutil.relativedelta import relativedelta
-
-from ralph.discovery.models import Device
 from ralph_assets.models import AssetModel, Asset
 from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
 
