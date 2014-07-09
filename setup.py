@@ -31,8 +31,8 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
-        'ralph>=2.0.0-rc7',
-        'ralph_assets>=2.0.0-rc1',
+        'ralph>=2.0.0-stable',
+        'ralph_assets>=2.0.0-rc2',
         'django-mptt==0.5.5',
         'python-ceilometerclient>=1.0.10',
         'python-novaclient==2.17.0',

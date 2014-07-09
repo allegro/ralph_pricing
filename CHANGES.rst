@@ -1,6 +1,34 @@
 Change Log
 ----------
 
+2.5.0
+~~~~~
+
+* Fixed decimal precision in tests
+
+* Remove back collecting disk share mount
+
+* Fixed report error log text
+
+* Added average team billing model
+
+* Added share multiple groups
+
+* Added san collect plugin
+
+* Added exclude ventures to teams
+
+* Added required permisions to view scrooge
+
+* Renamed package to ralph_scrooge
+
+* Added coverals
+
+* Fixed venture hierarchy, when venture have no parent then venture parent is None
+
+* Added html documentation
+
+
 2.4.0
 ~~~~~
 
