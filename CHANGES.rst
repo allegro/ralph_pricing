@@ -1,6 +1,22 @@
 Change Log
 ----------
 
+2.5.1
+~~~~~
+
+* Improved services usages api logging
+
+* Fixed fixed header scroll in reports
+
+* Added DirectoryTimedRotatingFileHandler
+
+* Removed sentry workaround
+
+* Improved default loggers and config
+
+* Separated unknown ventures for shares groups
+
+
 2.5.0
 ~~~~~
 
