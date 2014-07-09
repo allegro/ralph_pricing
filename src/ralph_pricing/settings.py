@@ -12,7 +12,7 @@ CLOUD_UNKNOWN_VENTURE = None
 
 # Shares plugin default config
 SHARE_VENTURE_SYMBOLS = {}
-SHARES_UNKNOWN_VENTURE = None  # symbol
+SHARES_UNKNOWN_VENTURES = {}  # symbols
 
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
