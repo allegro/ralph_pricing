@@ -37,9 +37,20 @@ class PricingBaseCommand(BaseCommand):
 
     @abc.abstractmethod
     def get_data(self):
+        """
+        Abstract Method for collects and prepare data
+
+        :return list results: list of lists, nested list represents single row
+        """
         pass
 
     def get_prepared_data(self):
+        """
+        Prepare data for print on screen or send to client. For example 
+        encoding each cell.
+
+        :return list results: list of lists, nested list represents single row
+        """
         results = self.get_data()
         results.insert(0, self.HEADERS)
         for i, line in enumerate(results):
@@ -48,5 +59,10 @@ class PricingBaseCommand(BaseCommand):
         return results
 
     def handle(self, delimiter, *args, **options):
+        """
+        Main method, use methods for colleting data and send results on screen
+
+        :param string delimiter: Delimiter for csv format
+        """
         writer = csv.writer(sys.stdout, delimiter=str(delimiter))
         writer.writerows(self.get_prepared_data())
