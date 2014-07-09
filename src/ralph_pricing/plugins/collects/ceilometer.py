@@ -100,6 +100,7 @@ def save_ceilometer_usages(usages, date):
             symbol=usage_symbol,
             defaults=dict(
                 name=usage_symbol,
+                show_in_ventures_report=False,
             ),
         )
         usage, created = DailyUsage.objects.get_or_create(
