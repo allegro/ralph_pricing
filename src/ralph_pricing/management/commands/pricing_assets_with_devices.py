@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class Command(PricingBaseCommand):
     """Generate report with assets, devices and date of end deprecation"""
-    CSV_HEADERS = [
+    HEADERS = [
         'Asset ID',
         'Asset SN',
         'Asset Barcode',
@@ -27,37 +27,31 @@ class Command(PricingBaseCommand):
         'Device Name',
         'Deprecated date',
     ]
-    TEMPLATES = {
-        'csv': '{0};{1};{2};{3};{4};{5}',
-        'default': (
-            'Asset ID: {0}, Asset SN: {1}, Asset barcode: {2},'
-            ' Venture: {3}, Device Name: {4}, Deprecated date: {5}'),
-    }
 
-    def handle(self, file_path, *args, **options):
+    def get_data(self):
         """
         Collect assets from data center and match it to devices from ralph.
         Calculate date of end deprecation.
 
         :param string file_path: path to file
         """
-        _template, results = self._get_template(options)
-        assets = Asset.objects.filter(type=AssetType.data_center)
+        results = []
+        assets = Asset.objects.filter(
+            type=AssetType.data_center
+        ).select_related('device_info').order_by('id')
         devices = self.get_device_ids_and_names(assets)
 
         for asset in assets:
-            results.append(
-                _template.format(
-                    asset.id,
-                    asset.sn,
-                    asset.barcode,
-                    asset.venture,
-                    self.get_device_name_from_asset(asset, devices),
-                    self.get_deprecated_date(asset),
-                )
-            )
+            results.append([
+                asset.id,
+                asset.sn,
+                asset.barcode,
+                asset.venture,
+                self.get_device_name_from_asset(asset, devices),
+                self.get_deprecated_date(asset),
+            ])
 
-        self.render(results, file_path)
+        return results
 
     def get_device_name_from_asset(self, asset, devices):
         """
