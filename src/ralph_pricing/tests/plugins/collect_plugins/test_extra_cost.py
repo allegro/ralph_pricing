@@ -10,7 +10,7 @@ import datetime
 from django.test import TestCase
 from ralph_pricing.plugins.collects.extra_cost import (
     update_extra_cost,
-    extracost,
+    extra_cost,
 )
 from ralph_pricing.models import ExtraCost, DailyExtraCost
 from ralph_pricing.tests.utils import (
@@ -39,5 +39,5 @@ class TestExtraCostCollectPlugin(TestCase):
     def test_extracost(self):
         self.assertEqual(
             (True, u'1 new extracosts', {u'today': datetime.date(2014, 5, 1)}),
-            extracost(**{'today': self.date})
+            extra_cost(**{'today': self.date})
         )

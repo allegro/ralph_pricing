@@ -120,7 +120,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         self.assertEquals(service_usages.to_dict(), {
             'service': self.service.symbol,
             'date': self.date,
-            'overwrite': None,
+            'overwrite': 'no',
             'venture_usages': [
                 {
                     'venture': self.venture1.symbol,
@@ -172,21 +172,8 @@ class TestServiceUsagesApi(ResourceTestCase):
     def test_api_invalid_service(self):
         service_usages = self._get_sample_service_usages_object()
         data = service_usages.to_dict()
-        data['service'] = 'invalid_service'
-        resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
-            format='json',
-            authentication=self.api_key,
-            data=data
-        )
-        self.assertEquals(resp.status_code, 400)
-        self.assertEquals(resp.content, 'Invalid service symbol')
-        self.assertEquals(DailyUsage.objects.count(), 0)
-
-    def test_api_invalid_venture(self):
-        service_usages = self._get_sample_service_usages_object()
-        data = service_usages.to_dict()
-        data['venture_usages'][1]['venture'] = 'invalid_venture'
+        service_symbol = 'invalid_service'
+        data['service'] = service_symbol
         resp = self.api_client.post(
             '/scrooge/api/v0.9/{0}/'.format(self.resource),
             format='json',
@@ -196,14 +183,15 @@ class TestServiceUsagesApi(ResourceTestCase):
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(
             resp.content,
-            'Invalid venture symbol or venture is inactive'
+            'Invalid service symbol: {}'.format(service_symbol)
         )
         self.assertEquals(DailyUsage.objects.count(), 0)
 
-    def test_api_invalid_usage(self):
+    def test_api_invalid_venture(self):
         service_usages = self._get_sample_service_usages_object()
         data = service_usages.to_dict()
-        data['venture_usages'][1]['usages'][1]['symbol'] = 'invalid_usage'
+        venture_symbol = 'invalid_venture'
+        data['venture_usages'][1]['venture'] = venture_symbol
         resp = self.api_client.post(
             '/scrooge/api/v0.9/{0}/'.format(self.resource),
             format='json',
@@ -211,7 +199,28 @@ class TestServiceUsagesApi(ResourceTestCase):
             data=data
         )
         self.assertEquals(resp.status_code, 400)
-        self.assertEquals(resp.content, 'Invalid usage type symbol')
+        self.assertEquals(
+            resp.content,
+            'Invalid or inactive venture (symbol: {})'.format(venture_symbol)
+        )
+        self.assertEquals(DailyUsage.objects.count(), 0)
+
+    def test_api_invalid_usage(self):
+        service_usages = self._get_sample_service_usages_object()
+        data = service_usages.to_dict()
+        usage_type_symbol = 'invalid_usage'
+        data['venture_usages'][1]['usages'][1]['symbol'] = usage_type_symbol
+        resp = self.api_client.post(
+            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            format='json',
+            authentication=self.api_key,
+            data=data
+        )
+        self.assertEquals(resp.status_code, 400)
+        self.assertEquals(
+            resp.content,
+            'Invalid usage type symbol: {}'.format(usage_type_symbol)
+        )
         self.assertEquals(DailyUsage.objects.count(), 0)
 
     def test_api_inactive_venture(self):
@@ -227,7 +236,9 @@ class TestServiceUsagesApi(ResourceTestCase):
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(
             resp.content,
-            'Invalid venture symbol or venture is inactive'
+            'Invalid or inactive venture (symbol: {})'.format(
+                self.inactive_venture.symbol,
+            )
         )
         self.assertEquals(DailyUsage.objects.count(), 0)
 

@@ -85,7 +85,7 @@ def get_or_create_usages(usage_names):
 
 # virtual usages requires assets plugin to get proper devices
 @plugin.register(chain='pricing', requires=['assets'])
-def virtual_usages(**kwargs):
+def virtual(**kwargs):
     """Updates the virtual usages from Ralph."""
 
     date = kwargs['today']

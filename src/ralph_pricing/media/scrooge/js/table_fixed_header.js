@@ -19,10 +19,10 @@ Fixed table header on scroll
 
          function resizeFixedHeader() {
             // set fixed header table width to properly display cell width
-            $headerFixed.css("width", $table.outerWidth() + "px");
+            $headerFixed.css("min-width", $table.outerWidth() + "px");
             // set width for each header cell
             $headerFixed.find("th").each(function(index) {
-               $(this).css("width", $table.find("th").eq(index).outerWidth() + "px");
+               $(this).css("min-width", $table.find("th").eq(index).outerWidth() + "px");
             });
 
             scrollHandler();

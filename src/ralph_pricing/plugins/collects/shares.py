@@ -89,21 +89,25 @@ def shares(**kwargs):
     date = kwargs['today']
     shares_venture_symbols = settings.SHARE_VENTURE_SYMBOLS
 
-    unknown_venture = None
-    try:
-        unknown_venture = Venture.objects.get(
-            symbol=settings.SHARES_UNKNOWN_VENTURE
-        )
-    except AttributeError:
-        logger.warning('Shares unknown venture not configured')
-    except Venture.DoesNotExist:
-        logger.error('Shares unknown venture ({}) not found'.format(
-            settings.SHARES_UNKNOWN_VENTURE
-        ))
-
     for group_name, ventures in shares_venture_symbols.iteritems():
         usage_name = 'Disk Shares {0}'.format(group_name)
         usage_type = get_or_create_usage_type(usage_name)
+
+        unknown_venture = None
+        try:
+            unknown_venture = Venture.objects.get(
+                symbol=settings.SHARES_UNKNOWN_VENTURES[group_name]
+            )
+        except KeyError:
+            logger.warning(
+                'Shares unknown venture not configured for {}'.format(
+                    group_name
+                )
+            )
+        except Venture.DoesNotExist:
+            logger.error('Shares unknown venture ({}) not found'.format(
+                settings.SHARES_UNKNOWN_VENTURE
+            ))
 
         logger.info('Processing group {}'.format(group_name))
 

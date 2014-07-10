@@ -11,9 +11,9 @@ import textwrap
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 from ralph.util import plugin
-from ralph_pricing.app import setup_scrooge_logger
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,6 @@ class Command(BaseCommand):
             logger.exception("{0}: {1}".format(name, e))
 
     def handle(self, today, run_only, *args, **options):
-        setup_scrooge_logger()
         from ralph_pricing.plugins import collects  # noqa
         if today:
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
@@ -75,7 +74,8 @@ class Command(BaseCommand):
                     break
                 name = plugin.highest_priority('pricing', to_run)
                 tried.add(name)
-                if self._run_plugin(name, today):
+                if (name in settings.COLLECT_PLUGINS and
+                        self._run_plugin(name, today)):
                     done.add(name)
         else:
             self._run_plugin(run_only, today)
