@@ -24,7 +24,7 @@ from ralph_assets.models import (
 from ralph.discovery.models import Device as RalphDevice
 
 
-class TestAssetsWithDeviceAndDeprecationEndCommand(TestCase):
+class TestPricingAssetModelsCommand(TestCase):
     def setUp(self):
         self.ralph_device = RalphDevice.objects.create(
             name="Name0",
@@ -118,12 +118,8 @@ class TestAssetsWithDeviceAndDeprecationEndCommand(TestCase):
             datetime.date.today() + relativedelta(years=4)
         )
 
-    def test_handle(self):
-        Command.render = Mock()
-        Command().handle(None)
-        Command.render.assert_called_once_with(
-            [u'Asset ID: 1, Asset SN: None, Asset barcode: None, '
-             'Venture: None, Device Name: Name0, Deprecated date: '
-             'No invoice date'],
-            None
+    def test_get_data(self):
+        self.assertEqual(
+            Command().get_data(),
+            [[1, None, None, None, u'Name0', u'No invoice date']]
         )

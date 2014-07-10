@@ -33,6 +33,12 @@ class PricingBaseCommand(BaseCommand):
             default=';',
             help="Move results to file",
         ),
+        make_option(
+            '--file_path',
+            dest='file_path',
+            default=None,
+            help="Move results to file",
+        ),
     )
 
     @abc.abstractmethod
@@ -46,7 +52,7 @@ class PricingBaseCommand(BaseCommand):
 
     def get_prepared_data(self):
         """
-        Prepare data for print on screen or send to client. For example 
+        Prepare data for print on screen or send to client. For example
         encoding each cell.
 
         :return list results: list of lists, nested list represents single row
@@ -58,11 +64,18 @@ class PricingBaseCommand(BaseCommand):
                 results[i][k] = smart_str(cell)
         return results
 
-    def handle(self, delimiter, *args, **options):
+    def handle(self, delimiter, file_path, *args, **options):
         """
         Main method, use methods for colleting data and send results on screen
 
         :param string delimiter: Delimiter for csv format
         """
-        writer = csv.writer(sys.stdout, delimiter=str(delimiter))
+        if file_path:
+            writer = csv.writer(
+                open(file_path, 'w'),
+                delimiter=str(delimiter),
+                quoting=csv.QUOTE_MINIMAL,
+            )
+        else:
+            writer = csv.writer(sys.stdout, delimiter=str(delimiter))
         writer.writerows(self.get_prepared_data())

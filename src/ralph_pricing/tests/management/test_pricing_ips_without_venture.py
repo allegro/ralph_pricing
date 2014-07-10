@@ -37,20 +37,17 @@ class TestPricingIpsWithoutVentureCommand(TestCase):
         )
 
     def test_handle_when_venture_is_none(self):
-        Command.render = Mock()
-        Command().handle(None)
-        Command.render.assert_called_once_with(
-            [u'IP: 0.0.0.0, Venture: None'],
-            None
+        self.assertEqual(
+            Command().get_data(),
+            [['0.0.0.0', None]],
         )
 
-    def test_handle(self):
+    def test_get_data(self):
+        pass
         pricing_ips_and_ventures.get_ip_addresses = Mock(
             return_value={'0.0.0.0': 1}
         )
-        Command.render = Mock()
-        Command().handle(None)
-        Command.render.assert_called_once_with(
-            [u'IP: 0.0.0.0, Venture: Default1'],
-            None
+        self.assertEqual(
+            Command().get_data(),
+            [['0.0.0.0', 'Default1']],
         )

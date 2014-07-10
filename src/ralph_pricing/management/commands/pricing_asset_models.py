@@ -7,7 +7,8 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph_assets.models import AssetModel, Asset
+from ralph_assets.models import AssetModel
+from django.db.models import Count
 from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
 
 
@@ -35,7 +36,10 @@ class Command(PricingBaseCommand):
         :param string file_path: path to file
         """
         results = []
-        for asset_model in AssetModel.objects.all():
+        asset_models = AssetModel.objects.annotate(
+            assets_count=Count('asset'),
+        )
+        for asset_model in asset_models:
             results.append([
                 asset_model.name,
                 asset_model.manufacturer,
@@ -44,6 +48,6 @@ class Command(PricingBaseCommand):
                 asset_model.height_of_device,
                 asset_model.cores_count,
                 asset_model.type,
-                Asset.objects.filter(model=asset_model).count(),
+                asset_model.assets_count,
             ])
         return results
