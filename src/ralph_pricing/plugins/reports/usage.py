@@ -193,6 +193,7 @@ class UsageBasePlugin(BaseReportPlugin):
         def add_usages_per_device(
             up_start,
             up_end,
+            price,
             warehouse,
             **kwargs
         ):
