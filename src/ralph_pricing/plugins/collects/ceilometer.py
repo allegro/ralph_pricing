@@ -34,7 +34,7 @@ def get_ceilometer_usages(
     engine = create_engine(connection_string)
     connection = engine.connect()
     for tenant in tenants:
-        logger.debug('Getting stats for tenant {}: {}/{}'.format(
+        logger.info('Getting stats for tenant {}: {}/{}'.format(
             tenant.name, tenants.index(tenant), len(tenants),
         ))
         try:
@@ -65,9 +65,10 @@ def get_ceilometer_usages(
         )
         res = connection.execute(query)
         for flavor_stats in res:
-            statistics[tenant_venture][flavor_stats['flavor']] = (
+            metric_name = 'openstack.' + flavor_stats['flavor']
+            statistics[tenant_venture][metric_name] = (
                 (flavor_stats['count'] / 6) + statistics[tenant_venture].get(
-                    flavor_stats['flavor'],
+                    metric_name,
                     0,
                 )
             )
