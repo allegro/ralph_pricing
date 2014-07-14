@@ -56,7 +56,8 @@ class DirectoryTimedRotatingFileHandler(TimedRotatingFileHandler):
         if self.backupCount > 0:
             for s in self.getFilesToDelete():
                 os.remove(s)
-        if not self.delay:
+        # python <2.7.6 fix - there is no delay attribute
+        if not hasattr(self, 'delay') or not self.delay:
             self.stream = self._open()
         newRolloverAt = self.computeRollover(currentTime)
         while newRolloverAt <= currentTime:
