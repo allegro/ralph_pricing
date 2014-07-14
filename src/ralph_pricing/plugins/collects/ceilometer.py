@@ -6,11 +6,11 @@ from __future__ import unicode_literals
 
 import datetime
 import logging
+import time
 
 from django.conf import settings
-from ceilometerclient.client import get_client
 from keystoneclient.v2_0 import client
-from novaclient.v1_1 import client as nova_client
+from sqlalchemy import create_engine
 
 from ralph.util import plugin
 from ralph_pricing.models import UsageType, Venture, DailyUsage
@@ -20,10 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_ceilometer_usages(
-    client,
     tenants,
-    flavors,
     statistics,
+    connection_string,
     date=None,
 ):
     """
@@ -32,62 +31,47 @@ def get_ceilometer_usages(
     date = date or datetime.date.today()
     today = datetime.datetime.combine(date, datetime.datetime.min.time())
     yesterday = today - datetime.timedelta(days=1)
+    engine = create_engine(connection_string)
+    connection = engine.connect()
     for tenant in tenants:
-        logger.debug('Getting stats for tenant {}: {}/{}'.format(
+        logger.info('Getting stats for tenant {}: {}/{}'.format(
             tenant.name, tenants.index(tenant), len(tenants),
         ))
         try:
             tenant_venture = tenant.description.split(";")[1]
         except (ValueError, IndexError, AttributeError):
             logger.warning(
-                "Tenant malformed: {}".format(tenant.id)
+                'Tenant malformed: {}'.format(tenant.id)
             )
             continue
         except AttributeError:
             logger.warning(
-                "Tenant {0} has no description".format(tenant.id)
+                'Tenant {0} has no description'.format(tenant.id)
             )
             continue
         statistics[tenant_venture] = statistics.get(tenant_venture, {})
-        query = [
-            {
-                'field': 'project_id',
-                'op': 'eq',
-                'value': tenant.id,
-            },
-            {
-                "field": "timestamp",
-                "op": "ge",
-                "value": yesterday.isoformat(),
-            },
-            {
-                "field": "timestamp",
-                "op": "lt",
-                "value": today.isoformat(),
-            },
-        ]
-        aggregates = [{'func': 'cardinality', 'param': 'resource_id'}]
-        logger.debug("Getting instance usage for tenant {}".format(
-            tenant.name
-        ))
-        for flav in flavors:
-            meter = "instance:{}".format(flav)
-            stats = client.statistics.list(
-                meter,
-                q=query,
-                period=3600,
-                aggregates=aggregates,
+        query = (
+            'select count(*) as count, meter.name as flavor'
+            ' from sample left join meter on'
+            ' sample.meter_id = meter.id where meter.name like "instance:%%"'
+            ' and sample.project_id = "{tenant_id}"'
+            ' and timestamp < {to_ts} and timestamp > {from_ts}'
+            ' and cast(timestamp as unsigned) = timestamp'
+            ' group by sample.meter_id'
+        ).format(
+            tenant_id=tenant.id,
+            from_ts=time.mktime(yesterday.timetuple()),
+            to_ts=time.mktime(today.timetuple()),
+        )
+        res = connection.execute(query)
+        for flavor_stats in res:
+            metric_name = 'openstack.' + flavor_stats['flavor']
+            statistics[tenant_venture][metric_name] = (
+                (flavor_stats['count'] / 6) + statistics[tenant_venture].get(
+                    metric_name,
+                    0,
+                )
             )
-            icount = 0
-            for sample in stats:
-                icount += sample.aggregate.get('cardinality/resource_id', 0)
-            meter_name = 'instance.{}'.format(flav)
-            statistics[tenant_venture]['openstack.' + meter_name] = statistics[
-                tenant_venture
-            ].get('openstack.' + meter_name, 0) + icount
-            logger.debug("Got statistics {}:{} for tenant {}".format(
-                meter, icount, tenant.name,
-            ))
     return statistics
 
 
@@ -150,28 +134,11 @@ def ceilometer(**kwargs):
             auth_url=site['OS_AUTH_URL'],
         )
         tenants = ks.tenants.list()
-        ceilo_client = get_client(
-            "2",
-            ceilometer_url=site['OS_METERING_URL'],
-            os_username=site['OS_USERNAME'],
-            os_password=site['OS_PASSWORD'],
-            os_auth_url=site['OS_AUTH_URL'],
-            os_tenant_name=site['OS_TENANT_NAME'],
-        )
-        nova = nova_client.Client(
-            site['OS_USERNAME'],
-            site['OS_PASSWORD'],
-            site['OS_TENANT_NAME'],
-            site['OS_AUTH_URL'],
-            service_type="compute",
-        )
-        flavors = [f.name for f in nova.flavors.list()]
         stats = get_ceilometer_usages(
-            ceilo_client,
             tenants,
             date=kwargs['today'],
-            flavors=flavors,
             statistics=stats,
+            connection_string=site['CEILOMETER_CONNECTION']
         )
     save_ceilometer_usages(stats, date=kwargs['today'])
     return True, 'ceilometer usages saved', kwargs
