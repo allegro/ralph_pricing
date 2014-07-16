@@ -65,7 +65,9 @@ def get_ceilometer_usages(
         )
         res = connection.execute(query)
         for flavor_stats in res:
-            metric_name = 'openstack.' + flavor_stats['flavor']
+            metric_name = 'openstack.' + flavor_stats[
+                'flavor'
+            ].replace(":", ".")
             statistics[tenant_venture][metric_name] = (
                 (flavor_stats['count'] / 6) + statistics[tenant_venture].get(
                     metric_name,
