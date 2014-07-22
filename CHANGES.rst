@@ -4,6 +4,12 @@ Change Log
 2.5.1
 ~~~~~
 
+* Logs compatible with python 2.7.3
+
+
+2.5.1
+~~~~~
+
 * Improved services usages api logging
 
 * Fixed fixed header scroll in reports
