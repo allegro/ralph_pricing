@@ -1,7 +1,7 @@
 Change Log
 ----------
 
-2.5.1
+2.5.2
 ~~~~~
 
 * Logs compatible with python 2.7.3
