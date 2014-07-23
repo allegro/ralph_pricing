@@ -39,67 +39,33 @@ class TestCeilometer(TestCase):
         tenant_mock.id = 'abcdef12345'
         tenant_mock.name = 'ralph-test'
         tenants = [tenant_mock]
-        client_mock = mock.MagicMock()
         today = datetime.date(2014, 1, 21)
-        flavors = ['test_flav']
 
-        def statistics_mock(meter_name, q, *args, **kwargs):
-            cpu = mock.MagicMock(unit="unit", sum=1234)
-            neti = mock.MagicMock(unit="unit", sum=2345)
-            neto = mock.MagicMock(unit="unit", sum=3456)
-            diskr = mock.MagicMock(unit="unit", sum=5678)
-            diskw = mock.MagicMock(unit="unit", sum=4567)
-            inst = [
-                mock.MagicMock(unit="unit", aggregate={
-                    'cardinality/resource_id': 45.0,
-                }),
-                mock.MagicMock(unit="unit", aggregate={
-                    'cardinality/resource_id': 85.0,
-                }),
-            ]
+        def execute_mock(sql):
+            assert 'abcdef12345' in sql
+            return [{
+                'flavor': 'instance.test_flav',
+                'count': 780,
+            }]
 
-            meters = {
-                'cpu': [cpu],
-                'network.outgoing.bytes': [neto],
-                'network.incoming.bytes': [neti],
-                'disk.write.requests': [diskw],
-                'disk.read.requests': [diskr],
-                'instance:test_flav': inst,
+        connection_mock = mock.MagicMock()
+        connection_mock.execute.side_effect = execute_mock
+        engine_mock = mock.MagicMock()
+        with mock.patch.object(ceilometer, "create_engine") as create_mock:
+            create_mock.return_value = engine_mock
+            engine_mock.connect.return_value = connection_mock
+            res = ceilometer.get_ceilometer_usages(
+                tenants,
+                date=today,
+                statistics={},
+                connection_string="mysql://foo:bar@example.com:3306"
+            )
+            correct_res = {
+                u'ralph': {
+                    u'openstack.instance.test_flav': 130.0,
+                }
             }
-            correct_query = [
-                {
-                    'field': 'project_id',
-                    'op': 'eq',
-                    'value': 'abcdef12345',
-                },
-                {
-                    "field": "timestamp",
-                    "op": "ge",
-                    "value": '2014-01-20T00:00:00',
-                },
-                {
-                    "field": "timestamp",
-                    "op": "lt",
-                    "value": '2014-01-21T00:00:00',
-                },
-            ]
-            self.assertEqual(correct_query, q)
-            return meters[meter_name]
-
-        client_mock.statistics.list.side_effect = statistics_mock
-        res = ceilometer.get_ceilometer_usages(
-            client_mock,
-            tenants,
-            date=today,
-            flavors=flavors,
-            statistics={},
-        )
-        correct_res = {
-            u'ralph': {
-                u'openstack.instance.test_flav': 130.0,
-            }
-        }
-        self.assertEqual(res, correct_res)
+            self.assertEqual(res, correct_res)
 
     def test_save_ceilometer_usages(self):
         v = Venture.objects.create(
