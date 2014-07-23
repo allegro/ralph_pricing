@@ -11,22 +11,11 @@ class Migration(SchemaMigration):
 
         # Changing field 'Venture.profit_center'
         db.alter_column('ralph_pricing_venture', 'profit_center', self.gf('django.db.models.fields.CharField')(max_length=255))
-        # Adding M2M table for field excluded_ventures on 'Team'
-        db.create_table('ralph_pricing_team_excluded_ventures', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('team', models.ForeignKey(orm['ralph_pricing.team'], null=False)),
-            ('venture', models.ForeignKey(orm['ralph_pricing.venture'], null=False))
-        ))
-        db.create_unique('ralph_pricing_team_excluded_ventures', ['team_id', 'venture_id'])
-
 
     def backwards(self, orm):
 
         # Changing field 'Venture.profit_center'
         db.alter_column('ralph_pricing_venture', 'profit_center', self.gf('django.db.models.fields.CharField')(max_length=75))
-        # Removing M2M table for field excluded_ventures on 'Team'
-        db.delete_table('ralph_pricing_team_excluded_ventures')
-
 
     models = {
         'account.profile': {
@@ -254,6 +243,7 @@ class Migration(SchemaMigration):
             'by_internet_provider': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_team': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'excluded_ventures': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_usage_types'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.Venture']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
