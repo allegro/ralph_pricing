@@ -314,7 +314,7 @@ class UsageType(db.Model):
     excluded_ventures = db.ManyToManyField(
         'Venture',
         verbose_name=_("Excluded ventures"),
-        related_name='ut_venture+',
+        related_name='excluded_usage_types',
         blank=True,
         null=True,
     )

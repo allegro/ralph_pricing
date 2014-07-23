@@ -248,7 +248,7 @@ class Migration(SchemaMigration):
             'by_internet_provider': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_team': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'excluded_ventures': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'ut_venture+'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.Venture']"}),
+            'excluded_ventures': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_usage_types'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.Venture']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
