@@ -301,6 +301,8 @@ class ServiceBasePlugin(BaseReportPlugin):
 
             schema[usage_type_count_symbol] = {
                 'name': _("{0} count".format(usage_type.name)),
+                'rounding': usage_type.rounding,
+                'divide_by': usage_type.divide_by,
             }
             schema[usage_type_cost_symbol] = {
                 'name': _("{0} cost".format(usage_type.name)),

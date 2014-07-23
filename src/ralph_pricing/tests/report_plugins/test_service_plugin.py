@@ -41,6 +41,8 @@ class TestServicePlugin(TestCase):
             name='ServiceUsageType1',
             symbol='sut1',
             type='SU',
+            divide_by=5,
+            rounding=2,
         )
         self.service_usage_type1.save()
         self.service_usage_type2 = models.UsageType(
@@ -531,13 +533,21 @@ class TestServicePlugin(TestCase):
             type='schema'
         )
         self.assertEquals(result, OrderedDict([
-            ('sut_3_count', {'name': _('ServiceUsageType1 count')}),
+            ('sut_3_count', {
+                'name': _('ServiceUsageType1 count'),
+                'divide_by': 5,
+                'rounding': 2,
+            }),
             ('sut_3_cost', {
                 'name': _('ServiceUsageType1 cost'),
                 'currency': True,
                 'total_cost': False,
             }),
-            ('sut_4_count', {'name': _('ServiceUsageType2 count')}),
+            ('sut_4_count', {
+                'name': _('ServiceUsageType2 count'),
+                'divide_by': 0,
+                'rounding': 0,
+            }),
             ('sut_4_cost', {
                 'name': _('ServiceUsageType2 cost'),
                 'currency': True,

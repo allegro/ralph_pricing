@@ -151,6 +151,11 @@ class BasePluginReport(Report):
         if 'total_cost' in field_rules and field_rules['total_cost']:
             usage_cost = D(field_content)
 
+        if field_rules.get('divide_by'):
+            field_content = (
+                field_content / float(10 ** field_rules['divide_by'])
+            )
+
         if field_rules.get('rounding') is not None:
             field_content = round(field_content, field_rules['rounding'])
 

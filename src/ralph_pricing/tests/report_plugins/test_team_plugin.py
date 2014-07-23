@@ -19,12 +19,12 @@ from ralph_pricing.plugins.reports.team import Team
 
 class TestTeamPlugin(TestCase):
     def tearDown(self):
-        # set up decimal precision to make comparisons easier
+        # set up decimal divide_by to make comparisons easier
         decimal_context = getcontext()
         decimal_context.prec = self.__prev_decimal_prec
 
     def setUp(self):
-        # set up decimal precision to make comparisons easier
+        # set up decimal divide_by to make comparisons easier
         decimal_context = getcontext()
         self.__prev_decimal_prec = decimal_context.prec
         decimal_context.prec = 4
