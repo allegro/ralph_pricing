@@ -1132,6 +1132,7 @@ class ExtraCostType(db.Model):
         return self.name
 
 
+
 class ExtraCost(db.Model):
     """
     Contains information about cost of extra cost types per venture.
@@ -1160,11 +1161,27 @@ class ExtraCost(db.Model):
         blank=True,
         default=None,
     )
+    start = db.DateField(
+        verbose_name=_("start time"),
+        null=True,
+        blank=True,
+        default=None,
+    )
+    end = db.DateField(
+        null=True,
+        blank=True,
+        default=None,
+    )
+    mode = db.IntegerField(
+        verbose_name=_("Extra cost mode"),
+        null=False,
+        blank=False,
+        default=0,
+    )
 
     class Meta:
         verbose_name = _("extra cost")
         verbose_name_plural = _("extra costs")
-        unique_together = [('pricing_venture', 'type')]
 
     def __unicode__(self):
         return '{} - {}'.format(

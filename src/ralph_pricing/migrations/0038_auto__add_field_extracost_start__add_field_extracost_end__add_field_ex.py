@@ -8,15 +8,48 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Team.show_percent_column'
-        db.add_column('ralph_pricing_team', 'show_percent_column',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Removing unique constraint on 'ExtraCost', fields ['pricing_venture', 'type']
+        db.delete_unique('ralph_pricing_extracost', ['pricing_venture_id', 'type_id'])
+
+        # Adding field 'ExtraCost.start'
+        db.add_column('ralph_pricing_extracost', 'start',
+                      self.gf('django.db.models.fields.DateField')(default=None, null=True, blank=True),
                       keep_default=False)
+
+        # Adding field 'ExtraCost.end'
+        db.add_column('ralph_pricing_extracost', 'end',
+                      self.gf('django.db.models.fields.DateField')(default=None, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'ExtraCost.mode'
+        db.add_column('ralph_pricing_extracost', 'mode',
+                      self.gf('django.db.models.fields.IntegerField')(default=0),
+                      keep_default=False)
+
+        # Adding M2M table for field excluded_ventures on 'Team'
+        db.create_table('ralph_pricing_team_excluded_ventures', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('team', models.ForeignKey(orm['ralph_pricing.team'], null=False)),
+            ('venture', models.ForeignKey(orm['ralph_pricing.venture'], null=False))
+        ))
+        db.create_unique('ralph_pricing_team_excluded_ventures', ['team_id', 'venture_id'])
 
 
     def backwards(self, orm):
-        # Deleting field 'Team.show_percent_column'
-        db.delete_column('ralph_pricing_team', 'show_percent_column')
+        # Deleting field 'ExtraCost.start'
+        db.delete_column('ralph_pricing_extracost', 'start')
+
+        # Deleting field 'ExtraCost.end'
+        db.delete_column('ralph_pricing_extracost', 'end')
+
+        # Deleting field 'ExtraCost.mode'
+        db.delete_column('ralph_pricing_extracost', 'mode')
+
+        # Adding unique constraint on 'ExtraCost', fields ['pricing_venture', 'type']
+        db.create_unique('ralph_pricing_extracost', ['pricing_venture_id', 'type_id'])
+
+        # Removing M2M table for field excluded_ventures on 'Team'
+        db.delete_table('ralph_pricing_team_excluded_ventures')
 
 
     models = {
@@ -139,11 +172,14 @@ class Migration(SchemaMigration):
             'sn': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'})
         },
         'ralph_pricing.extracost': {
-            'Meta': {'unique_together': "[(u'pricing_venture', u'type')]", 'object_name': 'ExtraCost'},
+            'Meta': {'object_name': 'ExtraCost'},
+            'end': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'mode': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'monthly_cost': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'blank': 'True'}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Venture']"}),
+            'start': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.ExtraCostType']"})
         },
         'ralph_pricing.extracosttype': {

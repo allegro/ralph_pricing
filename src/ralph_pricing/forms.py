@@ -29,9 +29,24 @@ class ExtraCostForm(forms.ModelForm):
     Used by factory to create ExtraCostFormSet. Contain basic form infromation
     like fields.
     """
+    mode_choices = [
+        (0, 'daily imprint'),
+        (1, 'montly cost'),
+    ]
+    mode = forms.ChoiceField(
+        label="Extra cost mode",
+        choices=mode_choices,
+        widget=forms.Select(attrs={'class':'mode_selector'}),
+    )
+
     class Meta:
         model = ExtraCost
-        fields = 'pricing_venture', 'monthly_cost'
+        fields = 'mode', 'pricing_venture', 'monthly_cost', 'start', 'end'
+
+        widgets = {
+            'start': DateWidget(attrs={'class': 'input-small'}),
+            'end': DateWidget(attrs={'class': 'input-small'}),
+        }
 
 
 class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
@@ -58,7 +73,7 @@ ExtraCostFormSet = forms.models.modelformset_factory(
     form=ExtraCostForm,
     formset=ExtraCostBaseFormSet,
     can_delete=True,
-    extra=5,
+    extra=1,
 )
 
 

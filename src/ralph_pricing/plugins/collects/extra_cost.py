@@ -41,7 +41,7 @@ def extra_cost(**kwargs):
     count = sum(
         (
             update_extra_cost(data, date)
-            for data in ExtraCost.objects.all()
+            for data in ExtraCost.objects.filter(mode=0)
         )
     )
     return True, '%d new extracosts' % count, kwargs
