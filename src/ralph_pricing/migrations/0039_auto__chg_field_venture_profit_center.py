@@ -8,16 +8,14 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Team.show_percent_column'
-        db.add_column('ralph_pricing_team', 'show_percent_column',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
 
+        # Changing field 'Venture.profit_center'
+        db.alter_column('ralph_pricing_venture', 'profit_center', self.gf('django.db.models.fields.CharField')(max_length=255))
 
     def backwards(self, orm):
-        # Deleting field 'Team.show_percent_column'
-        db.delete_column('ralph_pricing_team', 'show_percent_column')
 
+        # Changing field 'Venture.profit_center'
+        db.alter_column('ralph_pricing_venture', 'profit_center', self.gf('django.db.models.fields.CharField')(max_length=75))
 
     models = {
         'account.profile': {
@@ -245,6 +243,7 @@ class Migration(SchemaMigration):
             'by_internet_provider': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_team': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'excluded_ventures': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_usage_types'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.Venture']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
@@ -267,7 +266,7 @@ class Migration(SchemaMigration):
             'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255'}),
             'parent': ('mptt.fields.TreeForeignKey', [], {'default': 'None', 'related_name': "u'children'", 'null': 'True', 'blank': 'True', 'to': "orm['ralph_pricing.Venture']"}),
-            'profit_center': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '75', 'blank': 'True'}),
+            'profit_center': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
             'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
             'service': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Service']", 'null': 'True', 'blank': 'True'}),
             'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '32', 'blank': 'True'}),
