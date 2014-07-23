@@ -53,6 +53,14 @@ class VentureAdmin(ModelAdmin):
     inlines = [ExtraCostInline]
 
 
+class UsageTypeForm(forms.ModelForm):
+    class Meta:
+        model = models.UsageType
+        widgets = {
+            'excluded_ventures': FilteredSelectMultiple('Ventures', False)
+        }
+
+
 class UsagePriceInline(admin.TabularInline):
     model = models.UsagePrice
 
@@ -62,6 +70,7 @@ class UsageTypeAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [UsagePriceInline]
+    form = UsageTypeForm
 
 
 @register(models.ExtraCostType)
