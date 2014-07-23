@@ -311,6 +311,13 @@ class UsageType(db.Model):
         verbose_name=_("Use universal plugin"),
         default=True,
     )
+    excluded_ventures = db.ManyToManyField(
+        'Venture',
+        verbose_name=_("Excluded ventures"),
+        related_name='excluded_usage_types',
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = _("usage type")

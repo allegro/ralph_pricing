@@ -170,6 +170,7 @@ class TestBaseReportPlugin(TestCase):
             self.usage_type_cost_wh,
             None,
             None,
+            None,
         )
 
     @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
@@ -197,6 +198,7 @@ class TestBaseReportPlugin(TestCase):
             self.usage_type_cost_wh,
             self.warehouse1,
             None,
+            None,
         )
 
     @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
@@ -220,6 +222,7 @@ class TestBaseReportPlugin(TestCase):
             self.usage_type_cost_wh,
             None,
             None,
+            None
         )
 
     @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
@@ -237,6 +240,34 @@ class TestBaseReportPlugin(TestCase):
         result = self.plugin._get_price_from_cost(usage_price, False)
 
         self.assertEquals(result, D(0))
+
+    @mock.patch('ralph_pricing.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    def test_get_price_from_cost_total_excluded_ventures(
+        self,
+        get_total_usage_in_period_mock
+    ):
+        get_total_usage_in_period_mock.return_value = 10.0
+        usage_price = models.UsagePrice(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            cost=3000,
+            type=self.usage_type_cost_wh,
+        )
+        result = self.plugin._get_price_from_cost(
+            usage_price,
+            False,
+            excluded_ventures=[self.venture1],
+        )
+
+        self.assertEquals(result, D(300))
+        get_total_usage_in_period_mock.assert_called_with(
+            datetime.date(2013, 10, 10),
+            datetime.date(2013, 10, 10),
+            self.usage_type_cost_wh,
+            None,
+            None,
+            [self.venture1]
+        )
 
     # =========================================================================
     # _get_total_usage_in_period
@@ -286,6 +317,20 @@ class TestBaseReportPlugin(TestCase):
         #  |
         #  +--- every odd day between 10 and 20 (inclusive)
         self.assertEquals(result, 200.0)
+
+    def test_get_total_usage_in_period_with_excluded_ventures(self):
+        result = self.plugin._get_total_usage_in_period(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_wh,
+            warehouse=self.warehouse1,
+            excluded_ventures=[self.venture2],
+        )
+        #  5 * (20 + 60 + 80)= 800
+        # /^\
+        #  |
+        #  +--- every odd day between 10 and 20 (inclusive)
+        self.assertEquals(result, 800.0)
 
     # =========================================================================
     # _get_usages_in_period_per_venture
@@ -340,8 +385,22 @@ class TestBaseReportPlugin(TestCase):
             {'usage': 240.0, 'pricing_venture': 2}  # 6 * 40 = 240
         ])
 
+    def test_get_usages_in_period_per_venture_with_excluded_ventures(self):
+        result = self.plugin._get_usages_in_period_per_venture(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type_cost_wh,
+            warehouse=self.warehouse1,
+            excluded_ventures=[self.venture3],
+        )
+        self.assertEquals(result, [
+            {'usage': 100.0, 'pricing_venture': 1},  # 5 * 20 = 100
+            {'usage': 200.0, 'pricing_venture': 2},  # 5 * 40 = 200
+            {'usage': 400.0, 'pricing_venture': 4},  # 5 * 80 = 400
+        ])
+
     # =========================================================================
-    # _get_usages_in_period_per_venture
+    # _get_usages_in_period_per_device
     # =========================================================================
     def _devices_sample(self):
         self.device1 = utils.get_or_create_device()
@@ -407,6 +466,30 @@ class TestBaseReportPlugin(TestCase):
             {
                 'pricing_device': self.device2.id,
                 'usage': 120.0,  # 6 (days with usage) * 20 (daily usage)
+            }
+        ])
+
+    def test_get_usages_in_period_per_device_excluded_ventures(self):
+        self._devices_sample()
+        result = self.plugin._get_usages_in_period_per_device(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 25),
+            usage_type=self.usage_type,
+            excluded_ventures=[
+                self.venture1,
+                self.venture2,
+                self.venture3,
+                self.venture4
+            ],
+        )
+        self.assertEquals(result, [
+            {
+                'pricing_device': self.device1.id,
+                'usage': 110.0,  # 11 (days) * 10 (daily usage)
+            },
+            {
+                'pricing_device': self.device2.id,
+                'usage': 220.0,  # 11 (days) * 20 (daily usage)
             }
         ])
 
