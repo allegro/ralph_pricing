@@ -112,6 +112,7 @@ class BaseReportPlugin(BasePlugin):
         forecast,
         warehouse=None,
         ventures=None,
+        excluded_ventures=None,
     ):
         """
         Calculate price for single unit of usage type in period of time defined
@@ -125,6 +126,7 @@ class BaseReportPlugin(BasePlugin):
             usage_price.type,
             warehouse,
             ventures,
+            excluded_ventures,
         )
         cost = usage_price.forecast_cost if forecast else usage_price.cost
         price = 0
@@ -140,6 +142,7 @@ class BaseReportPlugin(BasePlugin):
         usage_type,
         warehouse=None,
         ventures=None,
+        excluded_ventures=None,
     ):
         """
         Calculates total usage of usage type in period of time (between start
@@ -157,7 +160,10 @@ class BaseReportPlugin(BasePlugin):
             daily_usages = daily_usages.filter(warehouse=warehouse)
         if ventures:
             daily_usages = daily_usages.filter(pricing_venture__in=ventures)
-
+        if excluded_ventures:
+            daily_usages = daily_usages.exclude(
+                pricing_venture__in=excluded_ventures
+            )
         return daily_usages.aggregate(
             total=Sum('value')
         ).get('total') or 0
@@ -170,6 +176,7 @@ class BaseReportPlugin(BasePlugin):
         usage_type,
         warehouse=None,
         ventures=None,
+        excluded_ventures=None,
     ):
         """
         Method similar to `_get_total_usage_in_period`, but instead of
@@ -188,6 +195,10 @@ class BaseReportPlugin(BasePlugin):
                 daily_usages = daily_usages.filter(warehouse=warehouse)
         if ventures:
             daily_usages = daily_usages.filter(pricing_venture__in=ventures)
+        if excluded_ventures:
+            daily_usages = daily_usages.exclude(
+                pricing_venture__in=excluded_ventures
+            )
         return list(daily_usages.values('pricing_venture').annotate(
             usage=Sum('value'),
         ).order_by('pricing_venture'))
@@ -200,6 +211,7 @@ class BaseReportPlugin(BasePlugin):
         usage_type,
         ventures=None,
         warehouse=None,
+        excluded_ventures=None,
     ):
         """
         Works almost exactly as `_get_usages_in_period_per_venture`, but
@@ -215,6 +227,10 @@ class BaseReportPlugin(BasePlugin):
         )
         if ventures:
             daily_usages = daily_usages.filter(pricing_venture__in=ventures)
+        if excluded_ventures:
+            daily_usages = daily_usages.exclude(
+                pricing_venture__in=excluded_ventures
+            )
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)
         return list(daily_usages.values('pricing_device').annotate(

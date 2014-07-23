@@ -8,15 +8,18 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Team.show_percent_column'
-        db.add_column('ralph_pricing_team', 'show_percent_column',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
+        # Adding M2M table for field excluded_ventures on 'UsageType'
+        db.create_table('ralph_pricing_usagetype_excluded_ventures', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('usagetype', models.ForeignKey(orm['ralph_pricing.usagetype'], null=False)),
+            ('venture', models.ForeignKey(orm['ralph_pricing.venture'], null=False))
+        ))
+        db.create_unique('ralph_pricing_usagetype_excluded_ventures', ['usagetype_id', 'venture_id'])
 
 
     def backwards(self, orm):
-        # Deleting field 'Team.show_percent_column'
-        db.delete_column('ralph_pricing_team', 'show_percent_column')
+        # Removing M2M table for field excluded_ventures on 'UsageType'
+        db.delete_table('ralph_pricing_usagetype_excluded_ventures')
 
 
     models = {
@@ -245,6 +248,7 @@ class Migration(SchemaMigration):
             'by_internet_provider': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_team': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'excluded_ventures': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'ut_venture+'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.Venture']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),

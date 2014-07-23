@@ -79,6 +79,15 @@ class UsageBasePlugin(BaseReportPlugin):
             warehouses = [None]
         result = []
         total_cost = D(0)
+
+        # remove from ventures ones that should not be taken into consideration
+        # when calculating costs for this usage type (and should not be counted
+        # to total usages count)
+        if usage_type.excluded_ventures.count():
+            ventures = list(
+                set(ventures) - set(usage_type.excluded_ventures.all())
+            )
+
         for warehouse in warehouses:
             usage_in_warehouse = 0
             cost_in_warehouse = 0
@@ -109,7 +118,8 @@ class UsageBasePlugin(BaseReportPlugin):
                     price = self._get_price_from_cost(
                         usage_price,
                         forecast,
-                        warehouse
+                        warehouse,
+                        excluded_ventures=usage_type.excluded_ventures.all(),
                     )
                 else:
                     if forecast:
@@ -158,6 +168,7 @@ class UsageBasePlugin(BaseReportPlugin):
         price for period of time in undefined of partially defined (incomplete)
         cost will be message what's wrong with price (i.e. 'Incomplete price').
         """
+        excluded_ventures = usage_type.excluded_ventures.all()
         total_days = (end - start).days + 1  # total report days
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
@@ -178,6 +189,7 @@ class UsageBasePlugin(BaseReportPlugin):
                 usage_type=usage_type,
                 warehouse=warehouse,
                 ventures=ventures,
+                excluded_ventures=excluded_ventures,
             )
             for v in usages_per_venture:
                 venture = v['pricing_venture']
@@ -203,6 +215,7 @@ class UsageBasePlugin(BaseReportPlugin):
                 usage_type=usage_type,
                 ventures=ventures,
                 warehouse=warehouse,
+                excluded_ventures=excluded_ventures,
             )
             for v in usages_per_device:
                 device = v['pricing_device']
@@ -270,7 +283,8 @@ class UsageBasePlugin(BaseReportPlugin):
                         price = self._get_price_from_cost(
                             usage_price,
                             forecast,
-                            warehouse
+                            warehouse,
+                            excluded_ventures=excluded_ventures,
                         )
 
                     up_start = max(start, usage_price.start)
