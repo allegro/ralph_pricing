@@ -392,9 +392,18 @@ class Service(TimeTrackable, EditorTrackable, Named):
     )
     base_usage_types = db.ManyToManyField(
         UsageType,
-        related_name='+',
+        related_name='service_base+',
         limit_choices_to={
             'type': 'BU',
+        },
+        blank=True,
+        null=True,
+    )
+    regular_usage_types = db.ManyToManyField(
+        UsageType,
+        related_name='service_regular+',
+        limit_choices_to={
+            'type': 'RU',
         },
         blank=True,
         null=True,
