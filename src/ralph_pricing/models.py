@@ -587,7 +587,7 @@ class Venture(MPTTModel):
     )
     profit_center = db.CharField(
         verbose_name=_("Profit center"),
-        max_length=75,
+        max_length=255,
         blank=True,
         default="",
     )
