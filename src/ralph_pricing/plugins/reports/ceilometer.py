@@ -29,13 +29,17 @@ class CeilometerBasePlugin(ServiceBasePlugin):
                 start__lte=end,
                 end__gte=start
             ):
-                price = D(usage_price.price)
+                if forecast:
+                    price = usage_price.forecast_price
+                else:
+                    price = usage_price.price
                 up_start = max(start, usage_price.start)
                 up_end = min(end, usage_price.end)
 
                 ventures_usages = usage_type.dailyusage_set.filter(
                     date__gte=up_start,
                     date__lte=up_end,
+                    pricing_venture__in=ventures,
                 ).values('pricing_venture').annotate(value=Sum('value'))
 
                 for usage in ventures_usages:
