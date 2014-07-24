@@ -1107,8 +1107,8 @@ class TestTeamPlugin(TestCase):
 
         devices_cores_percent_key = team_percent_key(self.team_devices_cores)
         devices_cores_mock.return_value = {
-            self.venture1.id: {devices_cores_percent_key: 0},
-            self.venture2.id: {devices_cores_percent_key: 0},
+            self.venture1.id: {devices_cores_percent_key: D('1.0')},
+            self.venture2.id: {devices_cores_percent_key: D('0')},
         }
 
         devices_percent_key = team_percent_key(self.team_devices)
@@ -1161,23 +1161,23 @@ class TestTeamPlugin(TestCase):
             self.usage_type.id,
             team_avg.id,
         )
-        # venture1: 0.3 + 0 + 0.1 = 0.4
+        # venture1: 0.3 + 1.0 + 0.1 = 1.4
         # venture2: 0.3 + 0 + 0.3 + 0.3 = 0.9
         # venture3: 0.4 + 0.6 + 0.7 = 1.7
         # cost between 6 and 15: 100 * 10 = 1000
         # cost between 16 and 25: 200 * 10 = 2000
         self.assertEquals(result, {
             self.venture1.id: {
-                cost_key: D('400'),  # 1000 * 0.4 / 3 + 2000 * 0.4 / 3
-                percent_key: D('0.1333'),  # 400 / 3000
+                cost_key: D('1050'),  # 1000 * 1.4 / 4 + 2000 * 1.4 / 4
+                percent_key: D('0.35'),  # 1050 / 3000
             },
             self.venture2.id: {
-                cost_key: D('900'),  # 1000 * 0.9 / 3 + 2000 * 0.9 / 3
-                percent_key: D('0.3'),  # 900 / 3000
+                cost_key: D('675'),  # 1000 * 0.9 / 4 + 2000 * 0.9 / 4
+                percent_key: D('0.225'),  # 675 / 3000
             },
             self.venture3.id: {
-                cost_key: D('1700'),  # 1000 * 1.7 / 3 + 2000 * 1.7 / 3
-                percent_key: D('0.5667'),  # 1700 / 3000
+                cost_key: D('1275'),  # 1000 * 1.7 / 4 + 2000 * 1.7 / 4
+                percent_key: D('0.425'),  # 1275 / 3000
             },
         })
 
