@@ -1,6 +1,12 @@
 Change Log
 ----------
 
+2.5.4
+~~~~~
+
+* Fixed team average with ventures subset
+
+
 2.5.3
 ~~~~~
 
