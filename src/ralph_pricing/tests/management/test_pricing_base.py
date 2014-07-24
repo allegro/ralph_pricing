@@ -13,6 +13,9 @@ from django.test import TestCase
 from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
 
 
+PricingBaseCommand.__abstractmethods__ = set()
+
+
 class TestPricingBaseCommand(TestCase):
     @patch.object(PricingBaseCommand, 'get_data', lambda x: [['test']])
     def test_get_prepared_data(self):
@@ -22,14 +25,18 @@ class TestPricingBaseCommand(TestCase):
         )
 
     @patch.object(PricingBaseCommand, 'get_data', lambda x: [['test']])
-    @patch('csv.writer')
+    @patch('ralph_pricing.management.commands.pricing_base.UnicodeWriter')
     def test_handle_on_screen(self, writer_mock):
         PricingBaseCommand().handle(';', None)
-        writer_mock.assert_called_once_with(sys.stdout, delimiter=';')
+        writer_mock.assert_called_once_with(
+            sys.stdout,
+            delimiter=';',
+            encoding='cp1250',
+        )
 
     @patch.object(PricingBaseCommand, 'get_data', lambda x: [['test']])
     @patch('__builtin__.open')
-    @patch('csv.writer')
+    @patch('ralph_pricing.management.commands.pricing_base.UnicodeWriter')
     def test_handle_to_file(self, writer_mock, open_mock):
         PricingBaseCommand().handle(';', 'test_file')
         open_mock.assert_called_once_with('test_file', 'w')

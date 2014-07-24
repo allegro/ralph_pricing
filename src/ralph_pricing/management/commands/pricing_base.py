@@ -6,12 +6,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import abc
-import csv
 import sys
 import logging
 import textwrap
 from optparse import make_option
 
+from bob.csvutil import UnicodeWriter
 from django.core.management.base import BaseCommand
 from django.utils.encoding import smart_str
 
@@ -23,6 +23,9 @@ class PricingBaseCommand(BaseCommand):
     """
     Class contains standard options like generate to csv or generate to file.
     """
+
+    __metaclass__ = abc.ABCMeta
+
     HEADERS = []
     help = textwrap.dedent(__doc__).strip()
     requires_model_validation = True
@@ -31,13 +34,13 @@ class PricingBaseCommand(BaseCommand):
             '--delimiter',
             dest='delimiter',
             default=';',
-            help="Move results to file",
+            help="Delimiter for csv file",
         ),
         make_option(
             '--file_path',
             dest='file_path',
             default=None,
-            help="Move results to file",
+            help="Name of file of generated report",
         ),
     )
 
@@ -61,7 +64,7 @@ class PricingBaseCommand(BaseCommand):
         results.insert(0, self.HEADERS)
         for i, line in enumerate(results):
             for k, cell in enumerate(line):
-                results[i][k] = smart_str(cell)
+                results[i][k] = smart_str(cell).decode('cp1250')
         return results
 
     def handle(self, delimiter, file_path, *args, **options):
@@ -71,11 +74,15 @@ class PricingBaseCommand(BaseCommand):
         :param string delimiter: Delimiter for csv format
         """
         if file_path:
-            writer = csv.writer(
+            writer = UnicodeWriter(
                 open(file_path, 'w'),
                 delimiter=str(delimiter),
-                quoting=csv.QUOTE_MINIMAL,
+                encoding='cp1250',
             )
         else:
-            writer = csv.writer(sys.stdout, delimiter=str(delimiter))
+            writer = UnicodeWriter(
+                sys.stdout,
+                delimiter=str(delimiter),
+                encoding='cp1250',
+            )
         writer.writerows(self.get_prepared_data())
