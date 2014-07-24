@@ -37,7 +37,7 @@ class Command(PricingBaseCommand):
         """
         results = []
         asset_models = AssetModel.objects.annotate(
-            assets_count=Count('asset'),
+            assets_count=Count('assets'),
         )
         for asset_model in asset_models:
             results.append([
