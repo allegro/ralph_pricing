@@ -392,7 +392,7 @@ class Service(TimeTrackable, EditorTrackable, Named):
     )
     base_usage_types = db.ManyToManyField(
         UsageType,
-        related_name='service_base+',
+        related_name='service_base_usage_types',
         limit_choices_to={
             'type': 'BU',
         },
@@ -401,7 +401,7 @@ class Service(TimeTrackable, EditorTrackable, Named):
     )
     regular_usage_types = db.ManyToManyField(
         UsageType,
-        related_name='service_regular+',
+        related_name='service_regular_usage_types',
         limit_choices_to={
             'type': 'RU',
         },
