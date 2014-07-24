@@ -645,7 +645,7 @@ class Team(UsageBasePlugin):
         if usageprices:
             for team_cost in usageprices:
                 venture_percent = defaultdict(D)
-                total_percent = 0
+                total_percent = len(teams)
                 tcstart = max(start, team_cost.start)
                 tcend = min(end, team_cost.end)
                 cost = team_cost.forecast_cost if forecast else team_cost.cost
@@ -671,7 +671,6 @@ class Team(UsageBasePlugin):
                         venture = venture_info[0]
                         percent = venture_info[1][team_percent_key]
                         venture_percent[venture] += percent
-                        total_percent += percent
 
                 # distribute cost of current team according to calculated
                 # percent between tcstart and tcend
