@@ -65,9 +65,9 @@ class ExtraCostPlugin(BaseReportPlugin):
         costs = []
         total_cost = D(0)
         for extra_cost in extra_costs:
-            cost = ((extra_cost.monthly_cost / (extra_cost.end 
-                - extra_cost.start).days) * (min(end, extra_cost.end) 
-                - max(start, extra_cost.start)).days)
+            cost = ((extra_cost.monthly_cost / (extra_cost.end
+                    - extra_cost.start).days) * (min(end, extra_cost.end)
+                    - max(start, extra_cost.start)).days)
             costs.append({
                 'pricing_venture': extra_cost.pricing_venture.id,
                 'type': extra_cost.type,

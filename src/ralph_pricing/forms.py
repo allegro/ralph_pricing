@@ -30,13 +30,14 @@ class ExtraCostForm(forms.ModelForm):
     like fields.
     """
     mode_choices = [
-        (0, 'daily imprint'),
-        (1, 'montly cost'),
+        ('', '---------'),
+        (0, 'Daily imprint'),
+        (1, 'Time period cost'),
     ]
     mode = forms.ChoiceField(
         label="Extra cost mode",
         choices=mode_choices,
-        widget=forms.Select(attrs={'class':'mode_selector'}),
+        widget=forms.Select(attrs={'class': 'mode_selector'}),
     )
 
     class Meta:
@@ -63,7 +64,7 @@ ExtraCostFormSet = forms.models.modelformset_factory(
     form=ExtraCostForm,
     formset=ExtraCostBaseFormSet,
     can_delete=True,
-    extra=1,
+    extra=5,
 )
 
 

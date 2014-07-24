@@ -1139,7 +1139,6 @@ class ExtraCostType(db.Model):
         return self.name
 
 
-
 class ExtraCost(db.Model):
     """
     Contains information about cost of extra cost types per venture.
@@ -1175,6 +1174,7 @@ class ExtraCost(db.Model):
         default=None,
     )
     end = db.DateField(
+        verbose_name=_("end time"),
         null=True,
         blank=True,
         default=None,

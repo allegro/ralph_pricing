@@ -53,7 +53,7 @@ class AllVentures(BasePluginReport):
         plugins = (base_plugins + base_usage_types_plugins +
                    regular_usage_types_plugins + services_plugins +
                    extra_cost_plugins)
-        return base_plugins + extra_cost_plugins
+        return plugins
 
     @classmethod
     def _get_report_data(cls, start, end, is_active, forecast, ventures):
@@ -94,7 +94,6 @@ class AllVentures(BasePluginReport):
                     type='costs',
                     **plugin.get('plugin_kwargs', {})
                 )
-                
                 for venture_id, venture_usage in plugin_report.iteritems():
                     if venture_id in data:
                         data[venture_id].update(venture_usage)
