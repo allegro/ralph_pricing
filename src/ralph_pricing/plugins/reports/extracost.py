@@ -39,10 +39,9 @@ class ExtraCostPlugin(BaseReportPlugin):
             date__lte=end,
             pricing_venture__in=ventures,
         )
-        return([], D(0))
         return (
             daily_extra_cost.values('pricing_venture', 'type').annotate(
-                total_cost=Sum('value')
+                total_cost=Sum('value'),
             ),
             D(daily_extra_cost.aggregate(
                 total_cost=Sum('value')
@@ -98,7 +97,7 @@ class ExtraCostPlugin(BaseReportPlugin):
         )
         return (
             list(daily_imprint[0]) + monthly_cost[0],
-            daily_imprint[1] + monthly_cost[1],
+            D(daily_imprint[1] + monthly_cost[1]),
         )
 
     def costs(self, start, end, ventures, *args, **kwargs):
@@ -124,15 +123,15 @@ class ExtraCostPlugin(BaseReportPlugin):
             ventures,
         )[0]
 
-        usages = defaultdict(lambda: defaultdict(int))
+        usages = defaultdict(lambda: defaultdict(D))
         for extra_cost in extra_costs:
             usages[extra_cost['pricing_venture']][
                 self.key_name.format(extra_cost['type'])
             ] += (
-                extra_cost['total_cost']
+                D(extra_cost['total_cost'])
             )
             usages[extra_cost['pricing_venture']]['extra_costs_total'] += (
-                extra_cost['total_cost']
+                D(extra_cost['total_cost'])
             )
         return usages
 

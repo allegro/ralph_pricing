@@ -1,5 +1,5 @@
 /*
-Fixed table header on scroll
+Disable or enable datapicker fields in extracosts
 */
 
 $(document).ready(function(){
