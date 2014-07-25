@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 
 from ralph.discovery.models import Device
 from ralph_assets.models import Asset, AssetType
-from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
+from ralph_pricing.management.commands._pricing_base import PricingBaseCommand
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Command(PricingBaseCommand):
         'Deprecated date',
     ]
 
-    def get_data(self):
+    def get_data(self, *args, **options):
         """
         Collect assets from data center and match it to devices from ralph.
         Calculate date of end deprecation.

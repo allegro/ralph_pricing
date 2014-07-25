@@ -7,9 +7,10 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph_assets.models import AssetModel
 from django.db.models import Count
-from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
+
+from ralph_assets.models import AssetModel
+from ralph_pricing.management.commands._pricing_base import PricingBaseCommand
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class Command(PricingBaseCommand):
         'Assets count',
     ]
 
-    def get_data(self):
+    def get_data(self, *args, **options):
         """
         Collect assets from data center and match it to devices from ralph.
         Calculate date of end deprecation.
