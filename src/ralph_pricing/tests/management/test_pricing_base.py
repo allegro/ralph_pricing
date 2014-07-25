@@ -52,7 +52,11 @@ class TestPricingBaseCommand(TestCase):
             encoding=DEFAULT_CSV_ENCODING,
         )
 
-    @patch.object(Command, 'get_data', lambda *a, **kw: [['ĄŚĆŻÓŁŃĘĆ', 'ąśćżółńęć']])
+    @patch.object(
+        Command,
+        'get_data',
+        lambda *a, **kw: [['ĄŚĆŻÓŁŃĘĆ', 'ąśćżółńęć']],
+    )
     def test_encoding(self):
         f = cStringIO.StringIO()
         call_command(COMMAND_NAME, stdout=f, encoding='cp1250')
