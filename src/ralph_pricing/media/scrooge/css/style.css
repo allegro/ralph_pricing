@@ -2,16 +2,16 @@ table.usages input {
     width: initial;
 }
 
-thead{
-  background: #FFFFFF;
+thead {
+    background: #FFFFFF;
 }
 
-.fixed{
-  top:0;
-  position:fixed;
-  width:auto;
-  display:none;
-  border:none;
+.fixed {
+    top:0;
+    position:fixed;
+    width:auto;
+    display:none;
+    border:none;
 }
 
 .fixed th {

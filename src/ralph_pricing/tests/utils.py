@@ -17,6 +17,7 @@ from ralph_pricing.models import (
     ExtraCostType,
     UsageType,
     Venture,
+    ExtraCost,
 )
 
 
@@ -90,6 +91,26 @@ def get_or_create_dailydevice(date=None, device=None, venture=None, **kwargs):
 def get_or_create_extra_cost_type(name=None):
     name = name or "Default{0}".format(ExtraCostType.objects.all().count())
     return ExtraCostType.objects.get_or_create(name=name)[0]
+
+
+def get_or_create_extra_cost(
+    mode=None,
+    pricing_venture=None,
+    monthly_cost=None,
+    type=None,
+    **kwargs
+):
+    pricing_venture = pricing_venture or get_or_create_venture()
+    monthly_cost = monthly_cost or D(100)
+    mode = mode or 0
+    type = type or get_or_create_extra_cost_type()
+    return ExtraCost.objects.get_or_create(
+        monthly_cost=monthly_cost,
+        pricing_venture=pricing_venture,
+        mode=mode,
+        type=type,
+        defaults=kwargs,
+    )[0]
 
 
 def get_or_create_daily_extra_cost(

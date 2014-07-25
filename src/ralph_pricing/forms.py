@@ -31,7 +31,13 @@ class ExtraCostForm(forms.ModelForm):
     """
     class Meta:
         model = ExtraCost
-        fields = 'pricing_venture', 'monthly_cost'
+        fields = 'mode', 'pricing_venture', 'monthly_cost', 'start', 'end'
+
+        widgets = {
+            'start': DateWidget(attrs={'class': 'input-small'}),
+            'end': DateWidget(attrs={'class': 'input-small'}),
+            'mode': forms.Select(attrs={'class': 'mode_selector'}),
+        }
 
 
 class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
@@ -41,16 +47,6 @@ class ExtraCostBaseFormSet(forms.models.BaseModelFormSet):
     def clean(self):
         if any(self.errors):
             return
-        ventures_set = set()
-        for form in self.forms:
-            venture = form.cleaned_data.get('pricing_venture')
-            if venture is not None:
-                if venture in ventures_set:
-                    form._errors['pricing_venture'] = form.error_class(
-                        [_('Duplicated venture!')]
-                    )
-                    continue
-                ventures_set.add(venture)
 
 
 ExtraCostFormSet = forms.models.modelformset_factory(

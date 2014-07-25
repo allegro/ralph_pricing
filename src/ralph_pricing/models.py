@@ -296,6 +296,19 @@ class UsageType(db.Model):
         verbose_name=_("Display order"),
         default=0,
     )
+    divide_by = db.IntegerField(
+        verbose_name=_("Divide by"),
+        help_text=_(
+            "Divide value by 10 to the power of entered value. Ex. with "
+            "divide by = 3 and value = 1 000 000, presented value is 1 000."
+        ),
+        default=0,
+    )
+    rounding = db.IntegerField(
+        verbose_name=("Value rounding"),
+        help_text=_("Decimal places"),
+        default=0,
+    )
     TYPE_CHOICES = (
         ('BU', _("Base usage type")),
         ('RU', _("Regular usage type")),
@@ -392,9 +405,18 @@ class Service(TimeTrackable, EditorTrackable, Named):
     )
     base_usage_types = db.ManyToManyField(
         UsageType,
-        related_name='+',
+        related_name='service_base_usage_types',
         limit_choices_to={
             'type': 'BU',
+        },
+        blank=True,
+        null=True,
+    )
+    regular_usage_types = db.ManyToManyField(
+        UsageType,
+        related_name='service_regular_usage_types',
+        limit_choices_to={
+            'type': 'RU',
         },
         blank=True,
         null=True,
@@ -1167,11 +1189,33 @@ class ExtraCost(db.Model):
         blank=True,
         default=None,
     )
+    start = db.DateField(
+        verbose_name=_("start time"),
+        null=True,
+        blank=True,
+        default=None,
+    )
+    end = db.DateField(
+        verbose_name=_("end time"),
+        null=True,
+        blank=True,
+        default=None,
+    )
+    MODE_CHOICES = (
+        ('0', _('Daily imprint')),
+        ('1', _('Time period cost')),
+    )
+    mode = db.CharField(
+        verbose_name=_("Extra cost mode"),
+        choices=MODE_CHOICES,
+        blank=False,
+        null=False,
+        max_length=30,
+    )
 
     class Meta:
         verbose_name = _("extra cost")
         verbose_name_plural = _("extra costs")
-        unique_together = [('pricing_venture', 'type')]
 
     def __unicode__(self):
         return '{} - {}'.format(

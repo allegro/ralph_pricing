@@ -78,6 +78,31 @@ class ServiceBasePlugin(BaseReportPlugin):
             total_cost += usage_type_total_cost
         return total_cost
 
+    def _get_service_regular_usage_types_cost(
+        self,
+        start,
+        end,
+        service,
+        forecast,
+        ventures,
+    ):
+        """
+        Calculates total cost of regular types usages for given service, using
+        real or forecast prices/costs. Total cost is calculated for period of
+        time (between start and end) and for specified ventures.
+        """
+        total_cost = D(0)
+        for usage_type in service.regular_usage_types.all():
+            usage_type_total_cost = self._get_usage_type_cost(
+                start,
+                end,
+                usage_type,
+                forecast,
+                ventures,
+            )
+            total_cost += usage_type_total_cost
+        return total_cost
+
     def _get_dependent_services_cost(
         self,
         start,
@@ -219,6 +244,13 @@ class ServiceBasePlugin(BaseReportPlugin):
             forecast,
             ventures=ventures,
         )
+        total_cost += self._get_service_regular_usage_types_cost(
+            start,
+            end,
+            service,
+            forecast,
+            ventures=ventures,
+        )
         total_cost += self._get_dependent_services_cost(
             start,
             end,
@@ -301,6 +333,8 @@ class ServiceBasePlugin(BaseReportPlugin):
 
             schema[usage_type_count_symbol] = {
                 'name': _("{0} count".format(usage_type.name)),
+                'rounding': usage_type.rounding,
+                'divide_by': usage_type.divide_by,
             }
             schema[usage_type_cost_symbol] = {
                 'name': _("{0} cost".format(usage_type.name)),
