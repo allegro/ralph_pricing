@@ -278,10 +278,14 @@ def sort_per_venture(network_usages, ventures_and_ips):
                 usage_per_venture[ventures_and_ips[ip]] += usage
             else:
                 usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
-                logger.warning('IP {0} without venture'.format(ip))
+                logger.warning(
+                    'IP {} (usage: {}) without venture'.format(ip, usage)
+                )
         else:
             usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
-            logger.warning('Unknown ip address {0}'.format(ip))
+            logger.warning(
+                'Unknown ip address {} (usage: {})'.format(ip, usage)
+            )
     return usage_per_venture
 
 

@@ -1,6 +1,20 @@
 Change Log
 ----------
 
+2.5.4
+~~~~~
+
+* Fixed team average with ventures subset
+
+
+2.5.3
+~~~~~
+
+* Added exclude ventures for base usages
+* Added ventures filter and forecast price to ceilometer report plugin
+* Changed profit center field length from 75 to 255
+
+
 2.5.2
 ~~~~~
 
