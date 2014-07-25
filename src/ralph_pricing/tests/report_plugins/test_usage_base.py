@@ -27,6 +27,7 @@ class TestUsageBasePlugin(TestCase):
             by_warehouse=False,
             by_cost=False,
             type='BU',
+            divide_by=1,
         )
         self.usage_type.save()
         self.usage_type_cost_wh = models.UsageType(
@@ -35,6 +36,7 @@ class TestUsageBasePlugin(TestCase):
             by_warehouse=True,
             by_cost=True,
             type='BU',
+            rounding=2,
         )
         self.usage_type_cost_wh.save()
         self.usage_type_cost_sum = models.UsageType(
@@ -44,6 +46,7 @@ class TestUsageBasePlugin(TestCase):
             by_cost=True,
             type='BU',
             by_internet_provider=True,
+            rounding=1,
         )
         self.usage_type_cost_sum.save()
         self.usage_type_average = models.UsageType(
@@ -53,6 +56,7 @@ class TestUsageBasePlugin(TestCase):
             by_cost=False,
             type='BU',
             average=True,
+            divide_by=2,
         )
         self.usage_type_average.save()
 
@@ -795,7 +799,11 @@ class TestUsageBasePlugin(TestCase):
             type='schema'
         )
         self.assertEquals(result, OrderedDict([
-            ('ut_1_count', {'name': _('UsageType1 count')}),
+            ('ut_1_count', {
+                'name': _('UsageType1 count'),
+                'rounding': 0,
+                'divide_by': 1,
+            }),
             ('ut_1_cost', {
                 'name': _('UsageType1 cost'),
                 'currency': True,
@@ -809,12 +817,20 @@ class TestUsageBasePlugin(TestCase):
             type='schema'
         )
         self.assertEquals(result, OrderedDict([
-            ('ut_2_count_wh_1', {'name': _('UsageType2 count (Warehouse1)')}),
+            ('ut_2_count_wh_1', {
+                'name': _('UsageType2 count (Warehouse1)'),
+                'rounding': 2,
+                'divide_by': 0,
+            }),
             ('ut_2_cost_wh_1', {
                 'name': _('UsageType2 cost (Warehouse1)'),
                 'currency': True,
             }),
-            ('ut_2_count_wh_2', {'name': _('UsageType2 count (Warehouse2)')}),
+            ('ut_2_count_wh_2', {
+                'name': _('UsageType2 count (Warehouse2)'),
+                'rounding': 2,
+                'divide_by': 0,
+            }),
             ('ut_2_cost_wh_2', {
                 'name': _('UsageType2 cost (Warehouse2)'),
                 'currency': True,
