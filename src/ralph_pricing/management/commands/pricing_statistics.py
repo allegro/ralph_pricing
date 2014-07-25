@@ -11,10 +11,12 @@ import textwrap
 from datetime import datetime, date, timedelta
 from optparse import make_option
 
+from collections import OrderedDict
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from ralph_pricing.models import UsageType, DailyUsage
+from ralph_pricing.models import UsageType, DailyUsage, DailyDevice
 
 
 logger = logging.getLogger(__name__)
@@ -52,7 +54,7 @@ class Command(BaseCommand):
             help="Show base date statistics",
         ),
         make_option(
-            '-s',
+            '-c',
             dest='only_compare',
             action='store_true',
             default=False,
@@ -137,22 +139,53 @@ class Command(BaseCommand):
             compare,
         )
 
+    def get_standard_usages_count(self, date, usage):
+        """
+        Get usages count for given date and usage type
+
+        :param datetime date: Date for whitch data will be selected
+        :param object usage: Usage tof whitch data will be selected
+        :returns int: Count of total usages
+        :rtype int:
+        """
+        return DailyUsage.objects.filter(
+            date__lt=date + timedelta(days=1),
+            date__gte=date,
+            type=usage,
+        ).count()
+
+    def get_deprecation_usages_count(self, date, usage):
+        """
+        Get count of devices for given date and usage type
+
+        :param datetime date: Date for whitch data will be selected
+        :param object usage: Usage tof whitch data will be selected
+        :returns int: Count of total usages
+        :rtype int:
+        """
+        return DailyDevice.objects.filter(
+            date__lt=date + timedelta(days=1),
+            date__gte=date,
+        ).count()
+
     def get_statistics(self, date):
-        '''
+        """
         Get data for given date and progress it to UsageName:Count format
 
         :param datetime compare_date: Date for whitch data will be select
         :returns dict: Dict where key is usage type name and value is total
         usages count
         :rtype dict:
-        '''
+        """
 
-        results = {}
-        for usage in UsageType.objects.all():
-            results[usage.name] = DailyUsage.objects.filter(
-                date=date,
-                type=usage,
-            ).count()
+        results = OrderedDict()
+        for usage in UsageType.objects.exclude(by_team=True).order_by('name'):
+            func = getattr(
+                self,
+                "get_{0}_usages_count".format(usage.name),
+                self.get_standard_usages_count,
+            )
+            results[usage.name] = func(date, usage)
         return results
 
     def compare_data(self, base_data, compare_data):
@@ -164,7 +197,7 @@ class Command(BaseCommand):
         :returns dict: Dict with differences betwen given data
         :rtype dict:
         '''
-        results = {}
+        results = OrderedDict()
         for key, value in base_data.iteritems():
             results[key] = int(value) - int(compare_data.get(key, 0))
         return results
@@ -180,7 +213,7 @@ class Command(BaseCommand):
         :returns dict: Usage types whitch can be errors
         :rtype dict:
         '''
-        results = {}
+        results = OrderedDict()
         for key, value in base_data.iteritems():
             differences_value = math.fabs(differences_data.get(key, 0))
             if (value * percent / 100) < differences_value:
@@ -197,7 +230,7 @@ class Command(BaseCommand):
         :returns dict: Error usage types
         :rtype dict:
         '''
-        results = {}
+        results = OrderedDict()
         for key, value in base_data.iteritems():
             if value == 0 and defferences_data.get(key, 0) != 0:
                 results[key] = math.fabs(defferences_data[key])
