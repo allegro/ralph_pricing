@@ -30,6 +30,13 @@ class Command(BaseCommand):
     requires_model_validation = True
     option_list = BaseCommand.option_list + (
         make_option(
+            '-y',
+            dest='yesterday',
+            action='store_true',
+            default=False,
+            help="Generate report for yesterday",
+        ),
+        make_option(
             '--today',
             dest='today',
             default=None,
@@ -64,6 +71,10 @@ class Command(BaseCommand):
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:
             today = datetime.date.today()
+
+        if options.get('yesterday'):
+            today -= datetime.timedelta(days=1)
+
         logger.info('Synchronizing for {0}.'.format(today.isoformat()))
         if not run_only:
             done = set()
