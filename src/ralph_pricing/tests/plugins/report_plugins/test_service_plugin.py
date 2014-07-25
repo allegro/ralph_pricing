@@ -41,6 +41,8 @@ class TestServicePlugin(TestCase):
             name='ServiceUsageType1',
             symbol='sut1',
             type='SU',
+            divide_by=5,
+            rounding=2,
         )
         self.service_usage_type1.save()
         self.service_usage_type2 = models.UsageType(
@@ -531,13 +533,21 @@ class TestServicePlugin(TestCase):
             type='schema'
         )
         self.assertEquals(result, OrderedDict([
-            ('sut_3_count', {'name': _('ServiceUsageType1 count')}),
+            ('sut_3_count', {
+                'name': _('ServiceUsageType1 count'),
+                'divide_by': 5,
+                'rounding': 2,
+            }),
             ('sut_3_cost', {
                 'name': _('ServiceUsageType1 cost'),
                 'currency': True,
                 'total_cost': False,
             }),
-            ('sut_4_count', {'name': _('ServiceUsageType2 count')}),
+            ('sut_4_count', {
+                'name': _('ServiceUsageType2 count'),
+                'divide_by': 0,
+                'rounding': 0,
+            }),
             ('sut_4_cost', {
                 'name': _('ServiceUsageType2 cost'),
                 'currency': True,
@@ -551,8 +561,44 @@ class TestServicePlugin(TestCase):
         ]))
 
     def test_total_cost(self):
+        # add regular usage type
+        regular_usage_type = models.UsageType(
+            name='RUsageType1',
+            symbol='rut1',
+            by_cost=True,
+            type='RU',
+        )
+        regular_usage_type.save()
+        models.DailyUsage(
+            type=regular_usage_type,
+            pricing_venture=self.venture1,
+            value=100,
+            date=datetime.date(2013, 10, 11)
+        ).save()
+        models.DailyUsage(
+            type=regular_usage_type,
+            pricing_venture=self.venture2,
+            value=300,
+            date=datetime.date(2013, 10, 12)
+        ).save()
+        models.ServiceUsageTypes(
+            usage_type=self.service_usage_type1,
+            service=self.service,
+            start=datetime.date(2013, 10, 1),
+            end=datetime.date(2013, 10, 30),
+            percent=100,
+        ).save()
+        models.UsagePrice(
+            type=regular_usage_type,
+            start=datetime.date(2013, 10, 1),
+            end=datetime.date(2013, 10, 30),
+            cost=1000
+        ).save()
+        self.service.regular_usage_types.add(regular_usage_type)
+        self.service.save()
+
         self.assertEqual(
-            D(4240),
+            D(4490),
             ServicePlugin.total_cost(
                 datetime.date(2013, 10, 10),
                 datetime.date(2013, 10, 20),

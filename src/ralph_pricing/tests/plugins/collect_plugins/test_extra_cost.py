@@ -26,6 +26,7 @@ class TestExtraCostCollectPlugin(TestCase):
             pricing_venture=get_or_create_venture(),
             type=get_or_create_extra_cost_type(),
             monthly_cost=3100,
+            mode=0,
         )
 
     def test_update_extra_cost(self):
