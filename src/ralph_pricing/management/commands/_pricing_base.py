@@ -6,17 +6,18 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import abc
-import sys
 import logging
 import textwrap
 from optparse import make_option
 
 from bob.csvutil import UnicodeWriter
 from django.core.management.base import BaseCommand
-from django.utils.encoding import smart_str
 
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_ENCODING = 'utf-8'
+DEFAULT_CSV_ENCODING = 'cp1250'
 
 
 class PricingBaseCommand(BaseCommand):
@@ -27,25 +28,34 @@ class PricingBaseCommand(BaseCommand):
     __metaclass__ = abc.ABCMeta
 
     HEADERS = []
-    help = textwrap.dedent(__doc__).strip()
     requires_model_validation = True
     option_list = BaseCommand.option_list + (
         make_option(
-            '--delimiter',
+            '-d', '--delimiter',
             dest='delimiter',
             default=';',
             help="Delimiter for csv file",
         ),
         make_option(
-            '--file_path',
+            '-e', '--encoding',
+            dest='encoding',
+            default=None,
+            help="Output encoding",
+        ),
+        make_option(
+            '-f', '--file_path',
             dest='file_path',
             default=None,
             help="Name of file of generated report",
         ),
     )
 
+    @property
+    def help(self):
+        return textwrap.dedent(self.__doc__).strip()
+
     @abc.abstractmethod
-    def get_data(self):
+    def get_data(self, *args, **options):
         """
         Abstract Method for collects and prepare data
 
@@ -53,36 +63,39 @@ class PricingBaseCommand(BaseCommand):
         """
         pass
 
-    def get_prepared_data(self):
+    def get_prepared_data(self, *args, **options):
         """
         Prepare data for print on screen or send to client. For example
         encoding each cell.
 
         :return list results: list of lists, nested list represents single row
         """
-        results = self.get_data()
-        results.insert(0, self.HEADERS)
-        for i, line in enumerate(results):
-            for k, cell in enumerate(line):
-                results[i][k] = smart_str(cell).decode('cp1250')
-        return results
+        data = self.get_data(*args, **options)
+        return [self.HEADERS] + map(lambda x: map(unicode, x), data)
 
-    def handle(self, delimiter, file_path, *args, **options):
+    def handle(self, *args, **options):
         """
         Main method, use methods for colleting data and send results on screen
 
         :param string delimiter: Delimiter for csv format
         """
-        if file_path:
+        # apply default encoding depending on output type
+        if not options.get('encoding'):
+            if options['file_path']:
+                options['encoding'] = DEFAULT_CSV_ENCODING
+            else:
+                options['encoding'] = DEFAULT_ENCODING
+
+        if options['file_path']:
             writer = UnicodeWriter(
-                open(file_path, 'w'),
-                delimiter=str(delimiter),
-                encoding='cp1250',
+                open(options['file_path'], 'w'),
+                delimiter=str(options['delimiter']),
+                encoding=options['encoding'],
             )
         else:
             writer = UnicodeWriter(
-                sys.stdout,
-                delimiter=str(delimiter),
-                encoding='cp1250',
+                self.stdout,
+                delimiter=str(options['delimiter']),
+                encoding=options['encoding'],
             )
-        writer.writerows(self.get_prepared_data())
+        writer.writerows(self.get_prepared_data(*args, **options))

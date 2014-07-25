@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph_pricing.management.commands.pricing_base import PricingBaseCommand
-from ralph_pricing.models import Venture
 from ralph.util.api_pricing import get_ip_addresses
+from ralph_pricing.management.commands._pricing_base import PricingBaseCommand
+from ralph_pricing.models import Venture
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class Command(PricingBaseCommand):
     """Retrieve data for pricing for base"""
     HEADERS = ['IP', 'Venture']
 
-    def get_data(self):
+    def get_data(self, *args, **options):
         """
         Collect ips matched with ventures from ralph.
 
