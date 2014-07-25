@@ -188,7 +188,7 @@ class Migration(SchemaMigration):
         },
         'ralph_pricing.service': {
             'Meta': {'object_name': 'Service'},
-            'base_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'+'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.UsageType']"}),
+            'base_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'service_base_usage_types'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.UsageType']"}),
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
@@ -197,6 +197,7 @@ class Migration(SchemaMigration):
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'regular_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'service_regular_usage_types'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['ralph_pricing.UsageType']"}),
             'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
             'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['ralph_pricing.UsageType']", 'through': "orm['ralph_pricing.ServiceUsageTypes']", 'symmetrical': 'False'}),
             'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
