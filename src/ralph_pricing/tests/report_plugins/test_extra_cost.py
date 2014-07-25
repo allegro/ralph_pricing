@@ -15,6 +15,7 @@ from ralph_pricing.tests.utils import (
     get_or_create_daily_extra_cost,
     get_or_create_venture,
     get_or_create_extra_cost_type,
+    get_or_create_extra_cost,
 )
 
 
@@ -24,6 +25,13 @@ class TestExtraCostReportPlugin(TestCase):
         self.end = datetime.date(year=2014, month=5, day=2)
         self.venture = get_or_create_venture()
         self.type = get_or_create_extra_cost_type()
+        self.extra_cost = get_or_create_extra_cost(
+            mode=1,
+            start=self.start,
+            end=self.end,
+            pricing_venture=self.venture,
+            type=self.type,
+        )
         self.value = D(100)
         self.daily_extra_cost = get_or_create_daily_extra_cost(
             venture=self.venture,
@@ -31,22 +39,98 @@ class TestExtraCostReportPlugin(TestCase):
             value=self.value,
         )
 
-    def test_get_extra_costs(self):
+    def test_get_extra_costs_daily_imprint(self):
         self.assertEqual(
-            self.venture,
-            ExtraCostPlugin.get_extra_costs(
+            self.venture.id,
+            ExtraCostPlugin.get_extra_costs_daily_imprint(
                 self.start,
                 self.end,
                 [self.venture],
-            )[0].pricing_venture
+            )[0][0]['pricing_venture']
+        )
+        self.assertEqual(
+            self.type.id,
+            ExtraCostPlugin.get_extra_costs_daily_imprint(
+                self.start,
+                self.end,
+                [self.venture],
+            )[0][0]['type']
+        )
+        self.assertEqual(
+            self.value,
+            ExtraCostPlugin.get_extra_costs_daily_imprint(
+                self.start,
+                self.end,
+                [self.venture],
+            )[0][0]['total_cost']
+        )
+        self.assertEqual(
+            self.value,
+            ExtraCostPlugin.get_extra_costs_daily_imprint(
+                self.start,
+                self.end,
+                [self.venture],
+            )[1]
+        )
+
+    def test_get_extra_costs_monthly_cost(self):
+        self.assertEqual(
+            self.venture.id,
+            ExtraCostPlugin.get_extra_costs_monthly_cost(
+                self.start,
+                self.end,
+                [self.venture],
+            )[0][0]['pricing_venture']
         )
         self.assertEqual(
             self.type,
+            ExtraCostPlugin.get_extra_costs_monthly_cost(
+                self.start,
+                self.end,
+                [self.venture],
+            )[0][0]['type']
+        )
+        self.assertEqual(
+            self.value,
+            ExtraCostPlugin.get_extra_costs_monthly_cost(
+                self.start,
+                self.end,
+                [self.venture],
+            )[0][0]['total_cost']
+        )
+        self.assertEqual(
+            self.value,
+            ExtraCostPlugin.get_extra_costs_monthly_cost(
+                self.start,
+                self.end,
+                [self.venture],
+            )[1]
+        )
+
+    def test_get_extra_costs(self):
+        self.assertEqual(
+            self.venture.id,
             ExtraCostPlugin.get_extra_costs(
                 self.start,
                 self.end,
                 [self.venture],
-            )[0].type
+            )[0][0]['pricing_venture']
+        )
+        self.assertEqual(
+            self.type.id,
+            ExtraCostPlugin.get_extra_costs(
+                self.start,
+                self.end,
+                [self.venture],
+            )[0][0]['type']
+        )
+        self.assertEqual(
+            self.value * 2,
+            ExtraCostPlugin.get_extra_costs(
+                self.start,
+                self.end,
+                [self.venture],
+            )[1]
         )
 
     def test_costs(self):
@@ -59,7 +143,7 @@ class TestExtraCostReportPlugin(TestCase):
             )[1]['extra_cost_{}'.format(self.type.id)]
         )
         self.assertEqual(
-            self.value,
+            self.value * 2,
             ExtraCostPlugin.costs(
                 self.start,
                 self.end,
@@ -91,7 +175,7 @@ class TestExtraCostReportPlugin(TestCase):
 
     def test_total_cost(self):
         self.assertEqual(
-            self.value,
+            self.value * 2,
             ExtraCostPlugin.total_cost(
                 self.start,
                 self.end,
