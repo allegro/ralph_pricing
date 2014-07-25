@@ -1179,11 +1179,16 @@ class ExtraCost(db.Model):
         blank=True,
         default=None,
     )
-    mode = db.IntegerField(
+    MODE_CHOICES = (
+        ('0', _('Daily imprint')),
+        ('1', _('Time period cost')),
+    )
+    mode = db.CharField(
         verbose_name=_("Extra cost mode"),
-        null=False,
+        choices=MODE_CHOICES,
         blank=False,
-        default=0,
+        null=False,
+        max_length=30,
     )
 
     class Meta:

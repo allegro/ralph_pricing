@@ -23,7 +23,7 @@ class Migration(SchemaMigration):
 
         # Adding field 'ExtraCost.mode'
         db.add_column('ralph_pricing_extracost', 'mode',
-                      self.gf('django.db.models.fields.IntegerField')(default=0),
+                      self.gf('django.db.models.fields.CharField')(default=0, max_length=30),
                       keep_default=False)
 
 
@@ -164,7 +164,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ExtraCost'},
             'end': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mode': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'mode': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
             'monthly_cost': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
             'pricing_device': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['ralph_pricing.Device']", 'null': 'True', 'blank': 'True'}),
             'pricing_venture': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ralph_pricing.Venture']"}),

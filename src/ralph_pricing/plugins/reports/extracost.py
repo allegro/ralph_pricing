@@ -29,7 +29,7 @@ class ExtraCostPlugin(BaseReportPlugin):
 
     def get_extra_costs_daily_imprint(self, start, end, ventures):
         """
-        Get extracosts from daily daily_imprint
+        Get extracosts from daily imprint
 
         :returns dict: query with selected extra costs for give ventures
         :rtype dict:
@@ -50,8 +50,8 @@ class ExtraCostPlugin(BaseReportPlugin):
 
     def get_extra_costs_monthly_cost(self, start, end, ventures):
         """
-        Get extracosts from daily daily_imprint
-
+        Calculate extracosts based on ExtraCost table
+d
         :returns dict: query with selected extra costs for give ventures
         :rtype dict:
         """
@@ -64,9 +64,9 @@ class ExtraCostPlugin(BaseReportPlugin):
         costs = []
         total_cost = D(0)
         for extra_cost in extra_costs:
-            cost = ((extra_cost.monthly_cost / (extra_cost.end
-                    - extra_cost.start).days) * (min(end, extra_cost.end)
-                    - max(start, extra_cost.start)).days)
+            cost = (extra_cost.monthly_cost / ((extra_cost.end
+                    - extra_cost.start).days + 1) * ((min(end, extra_cost.end)
+                    - max(start, extra_cost.start)).days + 1))
             costs.append({
                 'pricing_venture': extra_cost.pricing_venture.id,
                 'type': extra_cost.type,
