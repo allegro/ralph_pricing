@@ -19,7 +19,7 @@ Install Scrooge from sources
 ----------------------------
 It is also possible to install Scrooge from sources. To do this, first, you need to download Scrooge from github::
 
-  (ralph)$ git clone git://github.com/allegro/ralph_scrooge.git
+  (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
 
 Enter to the project folder::
 
@@ -51,7 +51,7 @@ Upgrade Scrooge from sources
 ----------------------------
 First, you need to download Scrooge from github::
 
-  (ralph)$ git clone git://github.com/allegro/ralph_scrooge.git
+  (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
 
 Enter to the project folder::
 
