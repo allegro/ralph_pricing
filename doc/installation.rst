@@ -23,7 +23,7 @@ It is also possible to install Scrooge from sources. To do this, first, you need
 
 Enter to the project folder::
 
-  (ralph)$ cd ralph_pricing
+  (ralph)$ cd ralph_scrooge
 
 and install it::
 
@@ -55,7 +55,7 @@ First, you need to download Scrooge from github::
 
 Enter to the project folder::
 
-  (ralph)$ cd ralph_pricing
+  (ralph)$ cd ralph_scrooge
 
 and upgrade it::
 
@@ -69,7 +69,7 @@ Migrate the database
 ~~~~~~~~~~~~~~~~~~~~
 Some of updates require database migrations. To migrate a database, you need to run::
 
-    (ralph)$ ralph migrate ralph_pricing
+    (ralph)$ ralph migrate ralph_scrooge
 
 Be sure that you have a backup of your database. Sometimes you can migrate data or create some complicated and unwanted changes.
 
@@ -81,4 +81,4 @@ Testing if it works
 ~~~~~~~~~~~~~~~~~~~
 To be sure that everything work fine, is recommended to run unit tests. To do this, run::
 
-  (ralph)$ DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
+  (ralph)$ DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_scrooge

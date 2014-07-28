@@ -41,12 +41,12 @@ User Guide (step-by-step)
 
 2. Scrooge Admin part
 
-  a. Create Usage Type(s) (one or more) that reflect(s) resources used by service (RALPH_URL/admin/ralph_pricing/usagetype/add/). Every service usage type must have a unique symbol.
+  a. Create Usage Type(s) (one or more) that reflect(s) resources used by service (RALPH_URL/admin/ralph_scrooge/usagetype/add/). Every service usage type must have a unique symbol.
 
     * Leave "Show usage type in report" checked.
     * Type: select "Service usage type".
 
-  b. Create Service (RALPH_URL/admin/ralph_pricing/service/add/). Every service must have a unique symbol that will be used later to identify the service in the API message. Possible options for service:
+  b. Create Service (RALPH_URL/admin/ralph_scrooge/service/add/). Every service must have a unique symbol that will be used later to identify the service in the API message. Possible options for service:
 
 
     * Base usage types – base usage types that will be used to calculate the cost of service (if you don't know what to select, select all).

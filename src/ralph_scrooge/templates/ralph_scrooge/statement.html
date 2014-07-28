@@ -1,0 +1,19 @@
+{% extends "ralph_scrooge/base.html" %}
+{% load url from future %}
+{% load icons %}
+{% load formats %}
+{% load bob %}
+
+{% block content %}
+
+{% if data and header %}
+<form class="form form-inline daterange-form">
+    <div class="btn-toolbar">
+        <button type="submit" class="btn" name="format" value="csv">{% spaceless %}
+            {% icon 'fugue-document-excel-csv' %}&nbsp;Download CSV
+            {% endspaceless %}</button>
+    </div>
+</form>
+{% include "ralph_scrooge/all_venture_report_table.html" %}
+{% endif %}
+{% endblock content %}

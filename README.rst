@@ -8,12 +8,12 @@
     :alt: Number of PyPI downloads
 
 
-.. image:: https://travis-ci.org/allegro/ralph_pricing.svg?branch=develop
-    :target: https://travis-ci.org/allegro/ralph_pricing
+.. image:: https://travis-ci.org/allegro/ralph_scrooge.svg?branch=develop
+    :target: https://travis-ci.org/allegro/ralph_scrooge
 
 
-.. image:: https://coveralls.io/repos/allegro/ralph_pricing/badge.png?branch=develop
-  :target: https://coveralls.io/r/allegro/ralph_pricing?branch=develop
+.. image:: https://coveralls.io/repos/allegro/ralph_scrooge/badge.png?branch=develop
+  :target: https://coveralls.io/r/allegro/ralph_scrooge?branch=develop
 
 
 .. image:: https://pypip.in/license/scrooge/badge.svg
@@ -47,7 +47,7 @@ Also, there is a possible to install scrooge from sources. If you wanna do that,
 
 Enter to the project folder::
 
-  (ralph)$ cd ralph_pricing
+  (ralph)$ cd ralph_scrooge
 
 and install them::
 
@@ -77,7 +77,7 @@ You need to download scrooge from github before.::
 
 Enter to the project folder::
 
-  (ralph)$ cd ralph_pricing
+  (ralph)$ cd ralph_scrooge
 
 and upgrade them::
 
@@ -91,7 +91,7 @@ Migrate the database
 ~~~~~~~~~~~~~~~~~~~~
 Some of updates require database migrations. For migrate database just run::
 
-    (ralph)$ ralph migrate ralph_pricing
+    (ralph)$ ralph migrate ralph_scrooge
 
 Be sure that you have backup of your database. Some of migrations could migrate any data or create some complicate changes and unwanted for you changes.
 
@@ -105,7 +105,7 @@ Testing if it works
 ~~~~~~~~~~~~~~~~~~~
 For be sure that everything work fine, is recommended to run unit tests. For do this just run::
 
-  (ralph)$ DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
+  (ralph)$ DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_scrooge
 
 =============
 Configuration
