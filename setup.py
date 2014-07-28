@@ -12,7 +12,7 @@ with open(os.path.join(current_dir, 'README.rst')) as readme_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
 sys.path.insert(0, current_dir + os.sep + 'src')
-from ralph_pricing import VERSION
+from ralph_scrooge import VERSION
 release = ".".join(str(num) for num in VERSION)
 
 setup(
@@ -39,7 +39,7 @@ setup(
     ],
     entry_points={
         'django.pluggable_app': [
-            'scrooge = ralph_pricing.app:Scrooge',
+            'scrooge = ralph_scrooge.app:Scrooge',
         ],
     },
     classifiers=[

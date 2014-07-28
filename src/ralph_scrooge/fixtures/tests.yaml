@@ -1,0 +1,485 @@
+# Venture
+- model: ralph_scrooge.Venture
+  pk: 1
+  fields:
+    name: Infra
+    venture_id: 10
+    lft: 1
+    rght: 2
+    level: 0
+    tree_id: 123
+
+- model: ralph_scrooge.Venture
+  pk: 2
+  fields:
+    name: Infra2
+    venture_id: 20
+    lft: 1
+    rght: 3
+    level: 0
+    tree_id: 133
+
+# UsageType
+- model: ralph_scrooge.UsageType
+  pk: 1
+  fields:
+    name: DiskShare
+    average: True
+    show_value_percentage: False
+    show_price_percentage: False
+
+- model: ralph_scrooge.UsageType
+  pk: 2
+  fields:
+    name: DiskShare2
+    average: False
+    show_value_percentage: False
+    show_price_percentage: False
+
+# ExtraCostType
+- model: ralph_scrooge.ExtraCostType
+  pk: 1
+  fields:
+    name: ExtraCost1
+
+- model: ralph_scrooge.ExtraCostType
+  pk: 2
+  fields:
+    name: ExtraCost2
+
+# Extra cost
+- model: ralph_scrooge.ExtraCost
+  pk: 1
+  fields:
+    start: 2013-01-01
+    end: 2013-01-04
+    type: 1
+    price: 100
+    pricing_venture: 1
+
+- model: ralph_scrooge.ExtraCost
+  pk: 2
+  fields:
+    start: 2013-01-01
+    end: 2013-01-04
+    type: 2
+    price: 200
+    pricing_venture: 1
+
+# Devices
+- model: ralph_scrooge.Device
+  pk: 1
+  fields:
+    name: host01.dc1
+    sn: 1234-1234-1234-1234
+    barcode: 2345-2345-2345-2345
+    device_id: 123
+    asset_id: 234
+
+- model: ralph_scrooge.Device
+  pk: 2
+  fields:
+    name: host02.dc1
+    sn: 2345-2345-2345-2345
+    barcode: 3456-3456-3456-3456
+    device_id: 124
+    asset_id: 235
+
+- model: ralph_scrooge.Device
+  pk: 3
+  fields:
+    name: host03.dc1
+    sn: 3456-3456-3456-3456
+    barcode: 4567-4567-4567-4567
+    device_id: 125
+    asset_id: 236
+
+- model: ralph_scrooge.Device
+  pk: 4
+  fields:
+    name: host04.dc1
+    sn: 4567-4567-4567-4567
+    barcode: 5678-5678-5678-5678
+    device_id: 126
+    asset_id: 237
+
+# Daily host1
+- model: ralph_scrooge.DailyDevice
+  pk: 1
+  fields:
+    date: 2013-01-01
+    name: host01.dc1
+    pricing_device: 1
+    price: 200.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 2
+  fields:
+    date: 2013-01-02
+    name: host01.dc1
+    pricing_device: 1
+    price: 200.00
+    pricing_venture: 2
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 3
+  fields:
+    date: 2013-01-03
+    name: host01.dc1
+    pricing_device: 1
+    price: 200.00
+    pricing_venture: 2
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 4
+  fields:
+    date: 2013-01-04
+    name: host01.dc1
+    pricing_device: 1
+    price: 200.00
+    pricing_venture: 2
+    is_deprecated: False
+
+# Daily host2
+- model: ralph_scrooge.DailyDevice
+  pk: 5
+  fields:
+    date: 2013-01-01
+    name: host02.dc1
+    pricing_device: 2
+    price: 100.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 6
+  fields:
+    date: 2013-01-02
+    name: host02.dc1
+    pricing_device: 2
+    price: 100.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 7
+  fields:
+    date: 2013-01-03
+    name: host02.dc1
+    pricing_device: 2
+    price: 300.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 8
+  fields:
+    date: 2013-01-04
+    name: host02.dc1
+    pricing_device: 2
+    price: 200.00
+    pricing_venture: 1
+    is_deprecated: False
+
+# Daily host3
+- model: ralph_scrooge.DailyDevice
+  pk: 9
+  fields:
+    date: 2013-01-01
+    name: host03.dc1
+    pricing_device: 3
+    price: 250.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 10
+  fields:
+    date: 2013-01-02
+    name: host03.dc1
+    pricing_device: 3
+    price: 250.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 11
+  fields:
+    date: 2013-01-03
+    name: host03.dc1
+    pricing_device: 3
+    price: 250.00
+    pricing_venture: 1
+    is_deprecated: True
+
+- model: ralph_scrooge.DailyDevice
+  pk: 12
+  fields:
+    date: 2013-01-04
+    name: host03.dc1
+    pricing_device: 3
+    price: 250.00
+    pricing_venture: 1
+    is_deprecated: False
+
+# Daily host4
+- model: ralph_scrooge.DailyDevice
+  pk: 13
+  fields:
+    date: 2013-01-01
+    name: host04.dc1
+    pricing_device: 4
+    price: 50.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 14
+  fields:
+    date: 2013-01-02
+    name: host04.dc1
+    pricing_device: 4
+    price: 50.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 15
+  fields:
+    date: 2013-01-03
+    name: host04.dc1
+    pricing_device: 4
+    price: 50.00
+    pricing_venture: 1
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyDevice
+  pk: 16
+  fields:
+    date: 2013-01-04
+    name: host04.dc1
+    pricing_device: 4
+    price: 50.00
+    pricing_venture: 1
+    is_deprecated: False
+
+# Parts host01
+- model: ralph_scrooge.DailyPart
+  pk: 1
+  fields:
+    date: 2013-01-01
+    name: hdd-0001
+    pricing_device: 1
+    asset_id: 123
+    price: 200.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyPart
+  pk: 2
+  fields:
+    date: 2013-01-02
+    name: hdd-0001
+    pricing_device: 1
+    asset_id: 123
+    price: 200.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyPart
+  pk: 3
+  fields:
+    date: 2013-01-03
+    name: hdd-0001
+    pricing_device: 1
+    asset_id: 123
+    price: 200.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyPart
+  pk: 4
+  fields:
+    date: 2013-01-04
+    name: hdd-0001
+    pricing_device: 1
+    asset_id: 123
+    price: 100.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyPart
+  pk: 5
+  fields:
+    date: 2013-01-01
+    name: ram-0001
+    pricing_device: 1
+    asset_id: 124
+    price: 100.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyPart
+  pk: 6
+  fields:
+    date: 2013-01-02
+    name: ram-0001
+    pricing_device: 1
+    asset_id: 124
+    price: 100.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyPart
+  pk: 7
+  fields:
+    date: 2013-01-03
+    name: ram-0001
+    pricing_device: 1
+    asset_id: 124
+    price: 100.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+- model: ralph_scrooge.DailyPart
+  pk: 8
+  fields:
+    date: 2013-01-04
+    name: ram-0001
+    pricing_device: 1
+    asset_id: 124
+    price: 100.00
+    deprecation_rate: 123.45
+    is_deprecated: False
+
+# DailyUsage host01
+- model: ralph_scrooge.DailyUsage
+  pk: 1
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    pricing_device: 1
+    value: 400
+    type: 1
+
+- model: ralph_scrooge.DailyUsage
+  pk: 2
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    pricing_device: 1
+    value: 400
+    type: 1
+
+- model: ralph_scrooge.DailyUsage
+  pk: 3
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    pricing_device: 1
+    value: 400
+    type: 1
+
+- model: ralph_scrooge.DailyUsage
+  pk: 4
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    pricing_device: 1
+    value: 200
+    type: 1
+
+- model: ralph_scrooge.DailyUsage
+  pk: 5
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    pricing_device: 2
+    value: 400
+    type: 2
+
+- model: ralph_scrooge.DailyUsage
+  pk: 6
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    pricing_device: 2
+    value: 400
+    type: 2
+
+- model: ralph_scrooge.DailyUsage
+  pk: 7
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    pricing_device: 2
+    value: 175
+    type: 2
+
+- model: ralph_scrooge.DailyUsage
+  pk: 8
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_scrooge.DailyUsage
+  pk: 9
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_scrooge.DailyUsage
+  pk: 10
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_scrooge.DailyUsage
+  pk: 11
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    value: 100
+    type: 2
+
+- model: ralph_scrooge.DailyUsage
+  pk: 12
+  fields:
+    date: 2013-01-01
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_scrooge.DailyUsage
+  pk: 13
+  fields:
+    date: 2013-01-02
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_scrooge.DailyUsage
+  pk: 14
+  fields:
+    date: 2013-01-03
+    pricing_venture: 1
+    value: 100
+    type: 1
+
+- model: ralph_scrooge.DailyUsage
+  pk: 16
+  fields:
+    date: 2013-01-04
+    pricing_venture: 1
+    value: 100
+    type: 1
