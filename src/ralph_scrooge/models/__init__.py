@@ -11,19 +11,20 @@ from ralph_scrooge.models.owner import (
 )
 
 from ralph_scrooge.models.pricing_object import (
-    PricingObjectType,
-    PricingObject,
-    DailyPricingObject,
     AssetInfo,
     DailyAssetInfo,
-    VirtualInfo,
+    DailyPricingObject,
     DailyVirtualInfo,
+    PricingObjectType,
+    PricingObject,
+    VirtualInfo,
 )
 
 from ralph_scrooge.models.service import (
+    BusinessLine,
+    HistoricalService,  # dynamic model
     Service,
     ServiceUsageTypes,
-    BusinessLine,
 )
 
 from ralph_scrooge.models.statement import (
@@ -37,12 +38,41 @@ from ralph_scrooge.models.team import (
 )
 
 from ralph_scrooge.models.usage import (
-    UsageType,
-    UsagePrice,
     DailyUsage,
     InternetProvider,
+    UsageType,
+    UsagePrice,
 )
 
 from ralph_scrooge.models.warehouse import (
     Warehouse,
 )
+
+__all__ = [
+    'AssetInfo',
+    'BusinessLine',
+    'DailyAssetInfo',
+    'DailyExtraCost',
+    'DailyPricingObject',
+    'DailyUsage',
+    'DailyVirtualInfo',
+    'ExtraCost',
+    'ExtraCostType',
+    'HistoricalService',  # dynamic model
+    'InternetProvider',
+    'OwnershipType',
+    'Owner',
+    'PricingObject',
+    'PricingObjectType',
+    'Service',
+    'ServiceOwnership',
+    'ServiceUsageTypes',
+    'Statement',
+    'Team',
+    'TeamDaterange',
+    'TeamServicePercent',
+    'UsageType',
+    'UsagePrice',
+    'VirtualInfo',
+    'Warehouse',
+]

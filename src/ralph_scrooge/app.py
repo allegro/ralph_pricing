@@ -32,6 +32,7 @@ class Scrooge(RalphModule):
             **kwargs
         )
         self.append_app()
+        self.append_app('simple_history')
         self.insert_templates(__file__)
         self.register_logger('ralph_scrooge', {
             'handlers': ['file'],
