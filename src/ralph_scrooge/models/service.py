@@ -14,6 +14,11 @@ from lck.django.common.models import (
     TimeTrackable,
 )
 
+from ralph_scrooge.models._history import (
+    IntervalHistoricalRecords,
+    ModelDiffMixin,
+)
+
 
 class BusinessLine(Named):
     ci_uid = db.CharField(
@@ -28,7 +33,7 @@ class BusinessLine(Named):
         app_label = 'ralph_scrooge'
 
 
-class Service(Named, EditorTrackable, TimeTrackable):
+class Service(ModelDiffMixin, Named, EditorTrackable, TimeTrackable):
     business_line = db.ForeignKey(
         BusinessLine,
         null=True,
@@ -56,6 +61,7 @@ class Service(Named, EditorTrackable, TimeTrackable):
         verbose_name=_("Use universal plugin"),
         default=True,
     )
+    history = IntervalHistoricalRecords()
 
     class Meta:
         app_label = 'ralph_scrooge'

@@ -24,6 +24,7 @@ from ralph_scrooge.models.service import (
     Service,
     ServiceUsageTypes,
     BusinessLine,
+    HistoricalService,  # dynamic model
 )
 
 from ralph_scrooge.models.statement import (
