@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import datetime, date
+from datetime import datetime
 
 from django.db import models
 from django.forms.models import model_to_dict
