@@ -113,6 +113,10 @@ class DailyAssetInfo(db.Model):
 
 
 class VirtualInfo(db.Model):
+    pricing_object = db.OneToOneField(
+        PricingObject,
+        related_name='virtual',
+    )
     device_id = db.IntegerField(unique=True, verbose_name=_("Ralph device ID"))
 
     class Meta:

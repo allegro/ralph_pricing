@@ -6,10 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.db import models as db
-from lck.django.common.models import (
-    EditorTrackable,
-    TimeTrackable,
-)
+from lck.django.common.models import TimeTrackable
 
 from lck.django.choices import Choices
 
@@ -21,7 +18,7 @@ class OwnershipType(Choices):
     business = _("Business owner")
 
 
-class Owner(EditorTrackable, TimeTrackable):
+class Owner(TimeTrackable):
     cmdb_id = db.IntegerField(unique=True, null=False, blank=False)
     first_name = db.CharField(max_length=50)
     last_name = db.CharField(max_length=100)
@@ -42,7 +39,12 @@ class ServiceOwnership(db.Model):
     owner = db.ForeignKey(
         Owner,
     )
-    type = db.PositiveIntegerField(null=True, choices=OwnershipType())
+    type = db.PositiveIntegerField(
+        null=False,
+        blank=False,
+        default=1,
+        choices=OwnershipType()
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'

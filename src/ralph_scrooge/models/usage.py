@@ -260,7 +260,6 @@ class DailyUsage(db.Model):
         verbose_name=_("Pricing Object"),
         null=False,
         blank=False,
-        default=None,
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
     total = db.FloatField(verbose_name=_("total usage"), default=0)
