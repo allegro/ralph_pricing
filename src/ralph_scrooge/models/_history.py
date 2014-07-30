@@ -31,7 +31,7 @@ class IntervalHistoricalRecords(HistoricalRecords):
             fields,
         )
         result['active_from'] = models.DateTimeField(default=now)
-        result['active_to'] = models.DateTimeField(default=date.max)
+        result['active_to'] = models.DateTimeField(default=datetime.max)
         return result
 
     def _update_most_recent(self, manager, **fields):
