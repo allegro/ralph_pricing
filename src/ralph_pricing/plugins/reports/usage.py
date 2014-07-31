@@ -412,6 +412,8 @@ class UsageBasePlugin(BaseReportPlugin):
                         usage_type.name,
                         warehouse.name,
                     )),
+                    'rounding': usage_type.rounding,
+                    'divide_by': usage_type.divide_by,
                 }
                 schema[cost_key] = {
                     'name': _("{0} cost ({1})".format(
@@ -429,6 +431,8 @@ class UsageBasePlugin(BaseReportPlugin):
             schema = OrderedDict([
                 ('ut_{0}_count'.format(usage_type.id), {
                     'name': _("{0} count".format(usage_type.name)),
+                    'rounding': usage_type.rounding,
+                    'divide_by': usage_type.divide_by,
                 }),
                 ('ut_{0}_cost'.format(usage_type.id), {
                     'name': _("{0} cost".format(usage_type.name)),

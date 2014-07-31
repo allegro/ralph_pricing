@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 from dateutil import rrule
+from decimal import Decimal as D
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -39,6 +40,21 @@ class VenturesDailyUsages(BasePluginReport):
             'physical_cpu_cores'
         ])
         return {'usage_types': [u.id for u in usage_types]}
+
+    @classmethod
+    def _prepare_field(cls, value, usage_type):
+        """
+        Prepare single field for one row for single column. For example,
+        here is a place for format field as currency or set default value.
+        """
+        if not isinstance(value, (int, D, float, long)):
+            return value
+
+        if usage_type.divide_by:
+            value = value / float(10 ** usage_type.divide_by)
+
+        value = round(value, usage_type.rounding)
+        return value
 
     @classmethod
     def _prepare_final_report(cls, start, end, usage_types, data, ventures):
@@ -81,9 +97,15 @@ class VenturesDailyUsages(BasePluginReport):
                 date = day.date()
                 for usage_type in usage_types:
                     try:
-                        value = data[date][usage_type.symbol][venture.id]
+                        value = cls._prepare_field(
+                            data[date][usage_type.symbol][venture.id],
+                            usage_type
+                        )
                     except KeyError:
-                        value = 0
+                        value = cls._prepare_field(
+                            0,
+                            usage_type
+                        )
                     venture_data.append(value)
             final_data.append(venture_data)
         return final_data
