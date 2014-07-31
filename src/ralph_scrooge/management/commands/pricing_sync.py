@@ -53,8 +53,8 @@ class Command(BaseCommand):
     def _run_plugin(self, name, today):
         logger.info('Running {0}...'.format(name))
         try:
-            success, message, context = plugin.run(
-                'pricing',
+            success, message = plugin.run(
+                'scrooge',
                 name,
                 today=today,
             )
@@ -66,7 +66,7 @@ class Command(BaseCommand):
             logger.exception("{0}: {1}".format(name, e))
 
     def handle(self, today, run_only, *args, **options):
-        from ralph_scrooge.plugins import collects  # noqa
+        from ralph_scrooge.plugins import collect  # noqa
         if today:
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:
@@ -80,10 +80,10 @@ class Command(BaseCommand):
             done = set()
             tried = set()
             while True:
-                to_run = plugin.next('pricing', done) - tried
+                to_run = plugin.next('scrooge', done) - tried
                 if not to_run:
                     break
-                name = plugin.highest_priority('pricing', to_run)
+                name = plugin.highest_priority('scrooge', to_run)
                 tried.add(name)
                 if (name in settings.COLLECT_PLUGINS and
                         self._run_plugin(name, today)):
