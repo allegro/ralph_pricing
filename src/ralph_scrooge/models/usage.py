@@ -255,14 +255,13 @@ class DailyUsage(db.Model):
         null=False,
         blank=False,
     )
-    pricing_object = db.ForeignKey(
-        'PricingObject',
+    daily_pricing_object = db.ForeignKey(
+        'DailyPricingObject',
         verbose_name=_("Pricing Object"),
         null=False,
         blank=False,
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
-    total = db.FloatField(verbose_name=_("total usage"), default=0)
     type = db.ForeignKey(UsageType, verbose_name=_("type"))
     warehouse = db.ForeignKey('Warehouse', null=True, on_delete=db.PROTECT)
     remarks = db.TextField(
