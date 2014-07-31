@@ -24,7 +24,7 @@ from tastypie.authentication import ApiKeyAuthentication
 from tastypie.resources import Resource
 from tastypie.exceptions import ImmediateHttpResponse
 
-from ralph_scrooge.models import DailyUsage, Service, Venture, UsageType
+from ralph_scrooge.models import DailyUsage, Service, UsageType
 
 
 logger = logging.getLogger(__name__)

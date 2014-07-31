@@ -15,7 +15,7 @@ from ralph_scrooge.views.reports import Report
 from ralph_scrooge.models import (
     Service,
     UsageType,
-    Venture,
+    # Venture,
 )
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.plugins import reports  # noqa

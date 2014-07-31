@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.forms import DeviceReportForm
-from ralph_scrooge.models import Device
+# from ralph_scrooge.models import Device
 from ralph_scrooge.plugins import reports  # noqa
 from ralph_scrooge.plugins.reports.base import AttributeDict
 from ralph_scrooge.views.base_plugin_report import BasePluginReport

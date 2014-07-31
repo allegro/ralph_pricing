@@ -46,6 +46,9 @@ class PricingObject(TimeTrackable, EditorTrackable, Named):
     class Meta:
         app_label = 'ralph_scrooge'
 
+    # TODO: AssetInfo / VirtualInfo should be required if PricingObject has
+    # asset or virtual type
+
 
 class DailyPricingObject(db.Model):
     date = db.DateField(null=False, blank=False)
