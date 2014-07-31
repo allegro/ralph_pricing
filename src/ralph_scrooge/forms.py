@@ -15,11 +15,11 @@ from mptt.forms import TreeNodeChoiceField
 from ralph.ui.widgets import DateWidget
 from ralph_scrooge.models import (
     ExtraCost,
+    Service,
     TeamDaterange,
-    TeamVenturePercent,
+    TeamServicePercent,
     UsagePrice,
     UsageType,
-    Venture,
 )
 from ralph_scrooge.utils import ranges_overlap
 
@@ -31,7 +31,7 @@ class ExtraCostForm(forms.ModelForm):
     """
     class Meta:
         model = ExtraCost
-        fields = 'mode', 'pricing_venture', 'monthly_cost', 'start', 'end'
+        fields = 'mode', 'service', 'monthly_cost', 'start', 'end'
 
         widgets = {
             'start': DateWidget(attrs={'class': 'input-small'}),
@@ -250,22 +250,20 @@ TeamDaterangeFormSet = forms.models.modelformset_factory(
 )
 
 
-class TeamVenturePercentForm(forms.ModelForm):
+class TeamServicePercentForm(forms.ModelForm):
     class Meta:
-        model = TeamVenturePercent
+        model = TeamServicePercent
 
-        fields = ['venture', 'percent']
+        fields = ['service', 'percent']
 
     def __init__(self, *args, **kwargs):
-        super(TeamVenturePercentForm, self).__init__(*args, **kwargs)
-        self.fields['venture'].queryset = Venture.objects.filter(
-            is_active=True,
-        ).order_by('name')
+        super(TeamServicePercent, self).__init__(*args, **kwargs)
+        self.fields['service'].queryset = Service.objects.order_by('name')
 
 
-class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
+class TeamServicePercentBaseFormSet(forms.models.BaseModelFormSet):
     """
-    Used by factory to create TeamVenturePercentFormSet.
+    Used by factory to create TeamServicePercentFormSet.
     Contains rules to validate correctness of
     """
     def clean(self):
@@ -292,10 +290,10 @@ class TeamVenturePercentBaseFormSet(forms.models.BaseModelFormSet):
                 seen.add(venture)
 
 
-TeamVenturePercentFormSet = forms.models.modelformset_factory(
-    TeamVenturePercent,
-    form=TeamVenturePercentForm,
-    formset=TeamVenturePercentBaseFormSet,
+TeamServicePercentFormSet = forms.models.modelformset_factory(
+    TeamServicePercent,
+    form=TeamServicePercentForm,
+    formset=TeamServicePercentBaseFormSet,
     can_delete=True,
     extra=5,
 )
@@ -340,17 +338,18 @@ class DeviceReportForm(DateRangeForm):
         required=False,
         label=_("Forecast"),
     )
-    use_subventures = forms.BooleanField(
-        required=False,
-        initial=True,
-        label=_("Use subventures"),
-    )
-    venture = TreeNodeChoiceField(
-        required=True,
-        queryset=Venture.tree.all(),
-        level_indicator='|---',
-        empty_label="---",
-    )
+    # use_subventures = forms.BooleanField(
+    #     required=False,
+    #     initial=True,
+    #     label=_("Use subventures"),
+    # )
+    # venture = TreeNodeChoiceField(
+    #     required=True,
+    #     queryset=Venture.tree.all(),
+    #     level_indicator='|---',
+    #     empty_label="---",
+    # )
+    service = forms.ModelChoiceField(queryset=Service.objects.all())
 
 
 class VenturesDailyUsagesForm(DateRangeForm):
@@ -368,14 +367,15 @@ class VenturesDailyUsagesForm(DateRangeForm):
 
 class DevicesVenturesChangesForm(DateRangeForm):
     """Form schema. Used to generate venture daily usages reports"""
-    use_subventures = forms.BooleanField(
-        required=False,
-        initial=True,
-        label=_("Use subventures"),
-    )
-    venture = TreeNodeChoiceField(
-        required=False,
-        queryset=Venture.tree.all(),
-        level_indicator='|---',
-        empty_label="---",
-    )
+    # use_subventures = forms.BooleanField(
+    #     required=False,
+    #     initial=True,
+    #     label=_("Use subventures"),
+    # )
+    # venture = TreeNodeChoiceField(
+    #     required=False,
+    #     queryset=Venture.tree.all(),
+    #     level_indicator='|---',
+    #     empty_label="---",
+    # )
+    service = forms.ModelChoiceField(queryset=Service.objects.all())

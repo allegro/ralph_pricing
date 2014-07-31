@@ -9,6 +9,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from lck.django.common.admin import ModelAdmin
+from simple_history.admin import SimpleHistoryAdmin
 
 from ralph_scrooge import models
 
@@ -20,39 +21,34 @@ def register(model):
     return decorator
 
 
-class DailyDeviceInline(admin.TabularInline):
-    model = models.DailyDevice
+@register(models.Warehouse)
+class WarehouseAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
 
 
-class DailyPartInline(admin.TabularInline):
-    model = models.DailyPart
+# =============================================================================
+# PRICING OBJECT
+# =============================================================================
+class AssetInfoInline(admin.StackedInline):
+    model = models.AssetInfo
 
 
-class DailyUsageInline(admin.TabularInline):
-    model = models.DailyUsage
+class VirtualInfoInline(admin.StackedInline):
+    model = models.VirtualInfo
 
 
-@register(models.Device)
-class DeviceAdmin(ModelAdmin):
-    list_display = ('name', 'sn', 'barcode')
-    list_filter = ('is_virtual', 'is_blade')
-    search_fields = ('name', 'sn', 'barcode')
-    inlines = [DailyDeviceInline, DailyPartInline, DailyUsageInline]
+@register(models.PricingObject)
+class PricingObjectAdmin(ModelAdmin):
+    list_display = ('name', 'service', 'type', 'remarks',)
+    search_fields = ('name', 'service', 'type', 'remarks',)
+    list_filter = ('type', )
+    inlines = [AssetInfoInline, VirtualInfoInline]
 
 
-class ExtraCostInline(admin.TabularInline):
-    model = models.ExtraCost
-
-
-@register(models.Venture)
-class VentureAdmin(ModelAdmin):
-    list_display = ('name', 'department', 'venture_id', 'business_segment',
-                    'profit_center')
-    list_filter = ('department', 'business_segment', 'profit_center')
-    search_fields = ('name', 'venture_id', 'symbol')
-    inlines = [ExtraCostInline]
-
-
+# =============================================================================
+# USAGE TYPES
+# =============================================================================
 class UsageTypeForm(forms.ModelForm):
     class Meta:
         model = models.UsageType
@@ -73,6 +69,19 @@ class UsageTypeAdmin(ModelAdmin):
     form = UsageTypeForm
 
 
+@register(models.InternetProvider)
+class InternetProviderAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+
+# =============================================================================
+# EXTRA COSTS
+# =============================================================================
+class ExtraCostInline(admin.TabularInline):
+    model = models.ExtraCost
+
+
 @register(models.ExtraCostType)
 class ExtraCostTypeAdmin(ModelAdmin):
     list_display = ('name',)
@@ -80,58 +89,53 @@ class ExtraCostTypeAdmin(ModelAdmin):
     inlines = [ExtraCostInline]
 
 
-@register(models.Warehouse)
-class WarehouseAdmin(ModelAdmin):
+# =============================================================================
+# SERVICE
+# =============================================================================
+@register(models.BusinessLine)
+class BusinessLineAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
 
 
-@register(models.InternetProvider)
-class InternetProviderAdmin(ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+@register(models.Owner)
+class OwnerAdmin(ModelAdmin):
+    list_display = ('last_name', 'first_name')
+    search_fields = ('last_name', 'first_name')
 
 
 class ServiceUsageTypesInline(admin.TabularInline):
     model = models.ServiceUsageTypes
 
 
-class ServiceForm(forms.ModelForm):
-    class Meta:
-        model = models.Service
+class ServiceOwnershipInline(admin.TabularInline):
+    model = models.ServiceOwnership
 
-    ventures = forms.ModelMultipleChoiceField(
-        queryset=models.Venture.objects.all(),
-        required=False,
-        widget=FilteredSelectMultiple('Ventures', False),
-    )
+# class ServiceForm(forms.ModelForm):
+#     class Meta:
+#         model = models.Service
 
-    def __init__(self, *args, **kwargs):
-        super(ServiceForm, self).__init__(*args, **kwargs)
-        if self.instance:
-            self.fields['ventures'].initial = (
-                self.instance.venture_set.exclude(service=None)
-            )
-
-    def save(self, commit=True):
-        # NOTE: Previously assigned Ventures and their services are
-        # silently reset
-        instance = super(ServiceForm, self).save(commit=False)
-        self.fields['ventures'].initial.update(service=None)
-        instance.save()
-        if self.cleaned_data['ventures']:
-            self.cleaned_data['ventures'].update(service=instance)
-        return instance
+#     def save(self, commit=True):
+#         # NOTE: Previously assigned Ventures and their services are
+#         # silently reset
+#         instance = super(ServiceForm, self).save(commit=False)
+#         self.fields['ventures'].initial.update(service=None)
+#         instance.save()
+#         if self.cleaned_data['ventures']:
+#             self.cleaned_data['ventures'].update(service=instance)
+#         return instance
 
 
 @register(models.Service)
-class ServiceAdmin(ModelAdmin):
+class ServiceAdmin(SimpleHistoryAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    form = ServiceForm
-    inlines = [ServiceUsageTypesInline]
+    inlines = [ServiceUsageTypesInline, ServiceOwnershipInline]
 
 
+# =============================================================================
+# TEAMS
+# =============================================================================
 class TeamDaterangesInline(admin.TabularInline):
     model = models.TeamDaterange
 
@@ -155,11 +159,11 @@ class TeamAdmin(ModelAdmin):
     form = TeamForm
 
 
-class TeamVenturesPercentInline(admin.TabularInline):
-    model = models.TeamVenturePercent
+class TeamServicesPercentInline(admin.TabularInline):
+    model = models.TeamServicePercent
 
 
 @register(models.TeamDaterange)
 class TeamDateranges(ModelAdmin):
     list_display = ('team', 'start', 'end')
-    inlines = [TeamVenturesPercentInline]
+    inlines = [TeamServicesPercentInline]
