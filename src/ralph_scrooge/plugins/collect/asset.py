@@ -17,7 +17,7 @@ from ralph_scrooge.models import (
     DailyUsage,
     DailyPricingObject,
     PricingObject,
-    PricingObjectType
+    PricingObjectType,
     Service,
     UsageType,
     Warehouse,
