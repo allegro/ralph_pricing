@@ -10,8 +10,6 @@ import datetime
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from mptt.forms import TreeNodeChoiceField
-
 from ralph.ui.widgets import DateWidget
 from ralph_scrooge.models import (
     ExtraCost,
