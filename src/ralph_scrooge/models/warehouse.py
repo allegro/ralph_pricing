@@ -25,6 +25,12 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
         verbose_name=_("Show warehouse in report"),
         default=False,
     )
+    id_from_assets = db.IntegerField(
+        verbose_name=_("Warehouse id from assets"),
+        null=False,
+        blank=False,
+        unique=True,
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'
