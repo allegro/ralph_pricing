@@ -14,6 +14,7 @@ from lck.django.common.models import (
     TimeTrackable,
 )
 
+
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
