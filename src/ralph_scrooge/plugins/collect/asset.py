@@ -59,7 +59,7 @@ def get_asset_and_pricing_object(service, warehouse, data):
         asset_info = AssetInfo.objects.create(
             asset_id=data['asset_id'],
             pricing_object=create_pricing_object(service, data),
-            warehouse = warehouse,
+            warehouse=warehouse,
         )
         created = True
     asset_info.sn = data['sn']
@@ -176,7 +176,7 @@ def update_assets(data, date, usages):
         service,
         date,
     )
-    daily_asset_info = get_daily_asset_info(
+    get_daily_asset_info(
         asset_info,
         daily_pricing_object,
         date,

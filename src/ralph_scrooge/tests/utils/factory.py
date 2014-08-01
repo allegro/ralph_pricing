@@ -80,15 +80,3 @@ class BusinessLineFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Business Line #%s' % n)
     ci_uid = Sequence(lambda n: n)
-
-class OwnerFactory(DjangoModelFactory):
-    FACTORY_FOR = models.Owner
-
-    first_name = "Scrooge"
-    last_name = Sequence(lambda n: "McDuck {}".format(n))
-    sAMAccountName = "qwerty"
-    cmdb_id = Sequence(lambda n: n)
-
-    @lazy_attribute
-    def email(self):
-        return '{}.{}@example.com'.format(self.first_name, self.last_name)

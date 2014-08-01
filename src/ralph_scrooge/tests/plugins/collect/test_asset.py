@@ -77,10 +77,10 @@ class TestAssetPlugin(TestCase):
         )
 
     def test_get_asset_and_pricing_object_when_asset_info_exist(self):
-        asset_info = AssetInfo.objects.create(
+        AssetInfo.objects.create(
             asset_id=self.data['asset_id'],
             pricing_object=PricingObjectFactory.create(),
-            warehouse = self.warehouse,
+            warehouse=self.warehouse,
         )
         self.assertEqual(
             asset.get_asset_and_pricing_object(

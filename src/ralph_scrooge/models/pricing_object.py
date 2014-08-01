@@ -11,7 +11,6 @@ from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from lck.django.common.models import (
     EditorTrackable,
-    Named,
     TimeTrackable,
 )
 
@@ -136,7 +135,6 @@ class DailyAssetInfo(db.Model):
     def save(self, *args, **kwargs):
         self.calc_costs()
         super(DailyAssetInfo, self).save(*args, **kwargs)
-
 
     class Meta:
         verbose_name = _("Daily Asset info")
