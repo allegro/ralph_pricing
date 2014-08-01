@@ -63,9 +63,9 @@ def get_asset_and_pricing_object(service, warehouse, data):
         asset_info = AssetInfo.objects.create(
             asset_id=data['asset_id'],
             pricing_object=create_pricing_object(service, data),
+            warehouse=warehouse,
         )
         created = True
-    asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
     asset_info.device_id = data['device_id']
@@ -86,6 +86,9 @@ def get_daily_pricing_object(pricing_object, service, date):
     daily_pricing_object = DailyPricingObject.objects.get_or_create(
         pricing_object=pricing_object,
         date=date,
+        defaults=dict(
+            service=service
+        )
     )[0]
     daily_pricing_object.service = service
     daily_pricing_object.save()
