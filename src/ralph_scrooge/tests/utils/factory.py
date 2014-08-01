@@ -31,6 +31,12 @@ class ServiceFactory(DjangoModelFactory):
     ci_uid = Sequence(lambda n: n)
 
 
+class UsageTypeFactory(DjangoModelFactory):
+    FACTORY_FOR = models.UsageType
+
+    name = Sequence(lambda n: 'UsageType #%s' % n)
+
+
 class PricingObjectFactory(DjangoModelFactory):
     FACTORY_FOR = models.PricingObject
 

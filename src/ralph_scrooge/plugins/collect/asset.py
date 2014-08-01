@@ -57,23 +57,23 @@ def get_daily_pricing_object(pricing_object, service, date):
         pricing_object=pricing_object,
         date=date,
         service=service,
-    )
+    )[0]
 
 
 def get_daily_asset_info(asset_info, daily_pricing_object, date, data):
-    daily_asset_info, created = AssetInfo.objects.get_or_create(
+    daily_asset_info, created = DailyAssetInfo.objects.get_or_create(
         asset_info=asset_info,
         daily_pricing_object=daily_pricing_object,
         date=date,
     )
-    daily_asset_info.depreciation_rate = date['depreciation_rate']
-    daily_asset_info.is_depreciated = date['is_deprecated']
-    daily_asset_info.daily_cost = date['daily_cost']
+    daily_asset_info.depreciation_rate = data['depreciation_rate']
+    daily_asset_info.is_depreciated = data['is_depreciated']
+    daily_asset_info.price = data['price']
     daily_asset_info.save()
-    return daily_asset_info, created
+    return daily_asset_info
 
 
-def update_usage(service, pricing_object, type, value, date, warehouse):
+def update_usage(service, pricing_object, usage_type, value, date, warehouse):
     """Updates (or creates) usage of given usage_type for device."""
     usage, usage_created = DailyUsage.objects.get_or_create(
         date=date,
@@ -112,17 +112,17 @@ def update_assets(data, date, usages):
         ))
         return (False, False)
 
-    pricing_object, asset_info, new_created = get_asset_and_pricing_object(
+    asset_info, pricing_object, new_created = get_asset_and_pricing_object(
         service,
         warehouse,
         data,
     )
-    daily_pricing_object, created = get_daily_pricing_object(
+    daily_pricing_object = get_daily_pricing_object(
         pricing_object,
         service,
         date,
     )
-    daily_asset_info, created = get_daily_asset_info(
+    daily_asset_info = get_daily_asset_info(
         asset_info,
         daily_pricing_object,
         date,
@@ -207,9 +207,9 @@ def asset(**kwargs):
         result = update_assets(data, date, usages)
         if result[0]:
             if result[1]:
-                new += int(result[1])
+                new += 1
             else:
-                update += int(result[1])
+                update += 1
         total += 1
 
     return True, '{0} new, {1} updated, {2} total'.format(new, update, total)

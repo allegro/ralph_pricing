@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from decimal import Decimal as D
+
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from lck.django.common.models import (
@@ -120,6 +122,7 @@ class DailyAssetInfo(db.Model):
         verbose_name=_("daily cost"),
         default=0,
     )
+    date = db.DateField(null=False, blank=False)
 
     def calc_costs(self):
         """
@@ -132,7 +135,7 @@ class DailyAssetInfo(db.Model):
 
     def save(self, *args, **kwargs):
         self.calc_costs()
-        super(DailyDevice, self).save(*args, **kwargs)
+        super(DailyAssetInfo, self).save(*args, **kwargs)
 
 
     class Meta:
