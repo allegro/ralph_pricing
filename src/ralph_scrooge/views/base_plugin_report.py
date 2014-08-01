@@ -234,9 +234,10 @@ class BasePluginReport(Report):
         :rtype list:
         """
         logger.debug("Getting ventures")
-        ventures = Venture.objects.order_by('name')
-        if is_active:
-            ventures = ventures.filter(is_active=True)
+        # ventures = Venture.objects.order_by('name')
+        # if is_active:
+        #     ventures = ventures.filter(is_active=True)
+        ventures = []
         logger.debug("Got {0} ventures".format(ventures.count()))
         return ventures
 
