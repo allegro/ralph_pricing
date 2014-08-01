@@ -242,10 +242,11 @@ class ServiceUsageResource(Resource):
         usages_ventures = defaultdict(list)
         for venture_usages in service_usages.venture_usages:
             try:
-                venture = Venture.objects.get(
-                    symbol=venture_usages.venture,
-                    is_active=True,
-                )
+                # venture = Venture.objects.get(
+                #     symbol=venture_usages.venture,
+                #     is_active=True,
+                # )
+                venture = None
                 for usage in venture_usages.usages:
                     try:
                         usage_type = usage_types.get(
@@ -267,7 +268,7 @@ class ServiceUsageResource(Resource):
                                 )
                             )
                         )
-            except Venture.DoesNotExist:
+            except Exception:
                 raise ImmediateHttpResponse(
                     response=http.HttpBadRequest(
                         "Invalid or inactive venture (symbol: {})".format(
