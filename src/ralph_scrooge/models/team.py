@@ -100,9 +100,6 @@ class TeamServicePercent(db.Model):
     )
     service = db.ForeignKey(
         'Service',
-        limit_choices_to={
-            'is_active': True,
-        },
     )
     percent = db.FloatField(
         verbose_name=_("Percent"),

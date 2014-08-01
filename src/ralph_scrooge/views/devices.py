@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.forms import DeviceReportForm
-from ralph_scrooge.models import Device
+# from ralph_scrooge.models import Device
 from ralph_scrooge.plugins import reports  # noqa
 from ralph_scrooge.plugins.reports.base import AttributeDict
 from ralph_scrooge.views.base_plugin_report import BasePluginReport
@@ -61,12 +61,13 @@ class Devices(BasePluginReport):
         Returns devices for given venture. Valid devices are only ones that
         have some dailydevices with this venture between start and end.
         """
-        return Device.objects.filter(
-            dailydevice__date__gte=start,
-            dailydevice__date__lte=end,
-            dailydevice__pricing_venture__in=ventures,
-            is_virtual=False,
-        ).distinct().order_by('name')
+        # return Device.objects.filter(
+        #     dailydevice__date__gte=start,
+        #     dailydevice__date__lte=end,
+        #     dailydevice__pricing_venture__in=ventures,
+        #     is_virtual=False,
+        # ).distinct().order_by('name')
+        return []
 
     @classmethod
     def _get_report_data(cls, start, end, ventures, forecast, devices):

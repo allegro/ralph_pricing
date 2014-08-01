@@ -5,11 +5,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from decimal import Decimal as D
+
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from lck.django.common.models import (
     EditorTrackable,
-    Named,
     TimeTrackable,
 )
 
@@ -28,7 +29,13 @@ class PricingObjectType(Choices):
     ip_address = _("IP Address")
 
 
-class PricingObject(TimeTrackable, EditorTrackable, Named):
+class PricingObject(TimeTrackable, EditorTrackable):
+    name = db.CharField(
+        max_length=200,
+        null=True,
+        blank=True,
+        default=None,
+    )
     type = db.PositiveIntegerField(
         verbose_name=_("type"), choices=PricingObjectType(),
     )
@@ -46,6 +53,9 @@ class PricingObject(TimeTrackable, EditorTrackable, Named):
     class Meta:
         app_label = 'ralph_scrooge'
 
+    # TODO: AssetInfo / VirtualInfo should be required if PricingObject has
+    # asset or virtual type
+
 
 class DailyPricingObject(db.Model):
     date = db.DateField(null=False, blank=False)
@@ -59,7 +69,7 @@ class DailyPricingObject(db.Model):
 class AssetInfo(db.Model):
     pricing_object = db.OneToOneField(
         PricingObject,
-        related_name='asset',
+        related_name='asset_info',
     )
     sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
     barcode = db.CharField(max_length=200, null=True, blank=True, unique=True)
@@ -76,6 +86,7 @@ class AssetInfo(db.Model):
         null=False,
         blank=False,
     )
+    warehouse = db.ForeignKey('Warehouse')
 
     class Meta:
         app_label = 'ralph_scrooge'
@@ -99,12 +110,31 @@ class DailyAssetInfo(db.Model):
         default=False,
         verbose_name=_("Is depreciated"),
     )
+    price = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        default=0,
+    )
     daily_cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         verbose_name=_("daily cost"),
         default=0,
     )
+    date = db.DateField(null=False, blank=False)
+
+    def calc_costs(self):
+        """
+        Calculates daily and monthly depreciation costs
+        """
+        self.daily_cost = D(0)
+        if not self.is_depreciated:
+            self.daily_cost =\
+                D(self.depreciation_rate) * D(self.price) / D(36500)
+
+    def save(self, *args, **kwargs):
+        self.calc_costs()
+        super(DailyAssetInfo, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = _("Daily Asset info")

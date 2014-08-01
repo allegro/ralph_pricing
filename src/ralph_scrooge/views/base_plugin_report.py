@@ -15,7 +15,7 @@ from ralph_scrooge.views.reports import Report
 from ralph_scrooge.models import (
     Service,
     UsageType,
-    Venture,
+    # Venture,
 )
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.plugins import reports  # noqa
@@ -234,9 +234,10 @@ class BasePluginReport(Report):
         :rtype list:
         """
         logger.debug("Getting ventures")
-        ventures = Venture.objects.order_by('name')
-        if is_active:
-            ventures = ventures.filter(is_active=True)
+        # ventures = Venture.objects.order_by('name')
+        # if is_active:
+        #     ventures = ventures.filter(is_active=True)
+        ventures = []
         logger.debug("Got {0} ventures".format(ventures.count()))
         return ventures
 

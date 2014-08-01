@@ -10,9 +10,9 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 
 from ralph_scrooge.app import Scrooge
-from ralph_scrooge.forms import TeamVenturePercentFormSet
+from ralph_scrooge.forms import TeamServicePercentFormSet
 from ralph_scrooge.menus import teams_menu
-from ralph_scrooge.models import Team, TeamDaterange, TeamVenturePercent
+from ralph_scrooge.models import Team, TeamDaterange, TeamServicePercent
 from ralph_scrooge.views.base import Base
 
 
@@ -40,16 +40,16 @@ class TeamsPercent(Base):
                 name=self.team_name,
             )
             if self.daterange is not None:
-                self.ventures_percent = TeamVenturePercent.objects.filter(
+                self.ventures_percent = TeamServicePercent.objects.filter(
                     team_daterange=self.daterange
                 )
 
     def post(self, *args, **kwargs):
         self.init_args()
         if self.daterange:
-            self.formset = TeamVenturePercentFormSet(
+            self.formset = TeamServicePercentFormSet(
                 self.request.POST,
-                queryset=TeamVenturePercent.objects.filter(
+                queryset=TeamServicePercent.objects.filter(
                     team_daterange=self.daterange
                 ).order_by('venture'),
             )
@@ -70,8 +70,8 @@ class TeamsPercent(Base):
     def get(self, *args, **kwargs):
         self.init_args()
         if self.daterange:
-            self.formset = TeamVenturePercentFormSet(
-                queryset=TeamVenturePercent.objects.filter(
+            self.formset = TeamServicePercentFormSet(
+                queryset=TeamServicePercent.objects.filter(
                     team_daterange=self.daterange
                 ).order_by('venture'),
             )

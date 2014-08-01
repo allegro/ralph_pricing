@@ -5,13 +5,23 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
+
 from factory import (
     lazy_attribute,
     Sequence,
+    SubFactory,
 )
 from factory.django import DjangoModelFactory
 
 from ralph_scrooge import models
+
+
+class WarehouseFactory(DjangoModelFactory):
+    FACTORY_FOR = models.Warehouse
+
+    name = Sequence(lambda n: 'Name_{0}'.format(n))
+    id_from_assets = Sequence(lambda n: n)
 
 
 class ServiceFactory(DjangoModelFactory):
@@ -19,6 +29,37 @@ class ServiceFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Service #%s' % n)
     ci_uid = Sequence(lambda n: n)
+
+
+class UsageTypeFactory(DjangoModelFactory):
+    FACTORY_FOR = models.UsageType
+
+    name = Sequence(lambda n: 'UsageType #%s' % n)
+
+
+class PricingObjectFactory(DjangoModelFactory):
+    FACTORY_FOR = models.PricingObject
+
+    type = 1
+    service = SubFactory(ServiceFactory)
+
+
+class DailyPricingObjectFactory(DjangoModelFactory):
+    FACTORY_FOR = models.DailyPricingObject
+
+    date = datetime.date.today()
+    pricing_object = SubFactory(PricingObjectFactory)
+    service = SubFactory(ServiceFactory)
+
+
+class AssetInfoFactory(DjangoModelFactory):
+    FACTORY_FOR = models.AssetInfo
+
+    pricing_object = SubFactory(PricingObjectFactory)
+    sn = Sequence(lambda n: n)
+    barcode = Sequence(lambda n: n)
+    asset_id = Sequence(lambda n: n)
+    warehouse = SubFactory(WarehouseFactory)
 
 
 class OwnerFactory(DjangoModelFactory):

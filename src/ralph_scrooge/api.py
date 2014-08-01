@@ -24,7 +24,7 @@ from tastypie.authentication import ApiKeyAuthentication
 from tastypie.resources import Resource
 from tastypie.exceptions import ImmediateHttpResponse
 
-from ralph_scrooge.models import DailyUsage, Service, Venture, UsageType
+from ralph_scrooge.models import DailyUsage, Service, UsageType
 
 
 logger = logging.getLogger(__name__)
@@ -242,10 +242,11 @@ class ServiceUsageResource(Resource):
         usages_ventures = defaultdict(list)
         for venture_usages in service_usages.venture_usages:
             try:
-                venture = Venture.objects.get(
-                    symbol=venture_usages.venture,
-                    is_active=True,
-                )
+                # venture = Venture.objects.get(
+                #     symbol=venture_usages.venture,
+                #     is_active=True,
+                # )
+                venture = None
                 for usage in venture_usages.usages:
                     try:
                         usage_type = usage_types.get(
@@ -267,7 +268,7 @@ class ServiceUsageResource(Resource):
                                 )
                             )
                         )
-            except Venture.DoesNotExist:
+            except Exception:
                 raise ImmediateHttpResponse(
                     response=http.HttpBadRequest(
                         "Invalid or inactive venture (symbol: {})".format(
