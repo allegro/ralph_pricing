@@ -14,10 +14,11 @@ from ralph_assets.api_pricing import get_assets
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
-    PricingObject,
-    DailyPricingObject,
-    Service,
     DailyUsage,
+    DailyPricingObject,
+    PricingObject,
+    PricingObjectType
+    Service,
     UsageType,
     Warehouse,
 )
@@ -38,7 +39,7 @@ def create_pricing_object(service, data):
     return PricingObject.objects.create(
         name=data['asset_name'],
         service=service,
-        type=0,
+        type=PricingObjectType.asset,
     )
 
 
@@ -55,16 +56,20 @@ def get_asset_and_pricing_object(service, warehouse, data):
     created = False
     try:
         asset_info = AssetInfo.objects.get(asset_id=data['asset_id'])
+        asset_info.pricing_object.service = service
+        asset_info.pricing_object.name = data['asset_name']
+        asset_info.pricing_object.save()
     except AssetInfo.DoesNotExist:
         asset_info = AssetInfo.objects.create(
             asset_id=data['asset_id'],
             pricing_object=create_pricing_object(service, data),
-            warehouse=warehouse,
         )
         created = True
+    asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
     asset_info.device_id = data['device_id']
+    asset_info.save()
     return asset_info, asset_info.pricing_object, created
 
 
@@ -81,7 +86,6 @@ def get_daily_pricing_object(pricing_object, service, date):
     daily_pricing_object = DailyPricingObject.objects.get_or_create(
         pricing_object=pricing_object,
         date=date,
-        service=service,
     )[0]
     daily_pricing_object.service = service
     daily_pricing_object.save()
@@ -240,7 +244,7 @@ def asset(**kwargs):
     Updates assets and usages
 
     :returns tuple: Plugin status and statistics
-    :rtype typle:
+    :rtype tuple:
     """
     date = kwargs['today']
     usages = {
