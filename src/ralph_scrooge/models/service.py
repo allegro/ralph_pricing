@@ -33,7 +33,12 @@ class BusinessLine(Named):
         app_label = 'ralph_scrooge'
 
 
-class Service(ModelDiffMixin, Named, EditorTrackable, TimeTrackable):
+class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
+    name = db.CharField(
+        verbose_name=_("name"),
+        max_length=256,
+        db_index=True,
+    )
     business_line = db.ForeignKey(
         BusinessLine,
         null=True,

@@ -8,73 +8,25 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'PricingObject', fields ['name']
-        db.delete_unique(u'ralph_scrooge_pricingobject', ['name'])
-
-        # Adding field 'AssetInfo.warehouse'
-        db.add_column(u'ralph_scrooge_assetinfo', 'warehouse',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['ralph_scrooge.Warehouse']),
-                      keep_default=False)
-
-        # Adding field 'Warehouse.id_from_assets'
-        db.add_column(u'ralph_scrooge_warehouse', 'id_from_assets',
-                      self.gf('django.db.models.fields.IntegerField')(default=0, unique=True),
-                      keep_default=False)
-
-        # Deleting field 'DailyUsage.total'
-        db.delete_column(u'ralph_scrooge_dailyusage', 'total')
-
-        # Deleting field 'DailyUsage.pricing_object'
-        db.delete_column(u'ralph_scrooge_dailyusage', 'pricing_object_id')
-
-        # Adding field 'DailyUsage.daily_pricing_object'
-        db.add_column(u'ralph_scrooge_dailyusage', 'daily_pricing_object',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['ralph_scrooge.DailyPricingObject']),
-                      keep_default=False)
-
-        # Adding field 'DailyAssetInfo.price'
-        db.add_column(u'ralph_scrooge_dailyassetinfo', 'price',
-                      self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6),
-                      keep_default=False)
+        # Removing unique constraint on 'Service', fields ['name']
+        db.delete_unique(u'ralph_scrooge_service', ['name'])
 
 
-        # Changing field 'PricingObject.name'
-        db.alter_column(u'ralph_scrooge_pricingobject', 'name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True))
-        # Removing index on 'PricingObject', fields ['name']
-        db.delete_index(u'ralph_scrooge_pricingobject', ['name'])
+        # Changing field 'HistoricalService.name'
+        db.alter_column('ralph_scrooge_historicalservice', 'name', self.gf('django.db.models.fields.CharField')(max_length=256))
 
+        # Changing field 'Service.name'
+        db.alter_column(u'ralph_scrooge_service', 'name', self.gf('django.db.models.fields.CharField')(max_length=256))
 
     def backwards(self, orm):
-        # Adding index on 'PricingObject', fields ['name']
-        db.create_index(u'ralph_scrooge_pricingobject', ['name'])
 
-        # Deleting field 'AssetInfo.warehouse'
-        db.delete_column(u'ralph_scrooge_assetinfo', 'warehouse_id')
+        # Changing field 'HistoricalService.name'
+        db.alter_column('ralph_scrooge_historicalservice', 'name', self.gf('django.db.models.fields.CharField')(max_length=75))
 
-        # Deleting field 'Warehouse.id_from_assets'
-        db.delete_column(u'ralph_scrooge_warehouse', 'id_from_assets')
-
-        # Adding field 'DailyUsage.total'
-        db.add_column(u'ralph_scrooge_dailyusage', 'total',
-                      self.gf('django.db.models.fields.FloatField')(default=0),
-                      keep_default=False)
-
-        # Adding field 'DailyUsage.pricing_object'
-        db.add_column(u'ralph_scrooge_dailyusage', 'pricing_object',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['ralph_scrooge.PricingObject']),
-                      keep_default=False)
-
-        # Deleting field 'DailyUsage.daily_pricing_object'
-        db.delete_column(u'ralph_scrooge_dailyusage', 'daily_pricing_object_id')
-
-        # Deleting field 'DailyAssetInfo.price'
-        db.delete_column(u'ralph_scrooge_dailyassetinfo', 'price')
-
-
-        # Changing field 'PricingObject.name'
-        db.alter_column(u'ralph_scrooge_pricingobject', 'name', self.gf('django.db.models.fields.CharField')(default=0, max_length=75, unique=True))
-        # Adding unique constraint on 'PricingObject', fields ['name']
-        db.create_unique(u'ralph_scrooge_pricingobject', ['name'])
+        # Changing field 'Service.name'
+        db.alter_column(u'ralph_scrooge_service', 'name', self.gf('django.db.models.fields.CharField')(max_length=75, unique=True))
+        # Adding unique constraint on 'Service', fields ['name']
+        db.create_unique(u'ralph_scrooge_service', ['name'])
 
 
     models = {
@@ -156,6 +108,7 @@ class Migration(SchemaMigration):
             'asset_info': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.AssetInfo']"}),
             'daily_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'daily_pricing_object': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "u'daily_asset'", 'unique': 'True', 'to': u"orm['ralph_scrooge.DailyPricingObject']"}),
+            'date': ('django.db.models.fields.DateField', [], {}),
             'depreciation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_depreciated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -227,7 +180,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by_id': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'null': 'True', 'db_index': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '75', 'db_index': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'db_index': 'True'}),
             'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
         },
         u'ralph_scrooge.internetprovider': {
@@ -275,7 +228,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'db_index': 'True'}),
             'ownership': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceOwnership']", 'to': u"orm['ralph_scrooge.Owner']"}),
             'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceUsageTypes']", 'to': u"orm['ralph_scrooge.UsageType']"}),
             'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})

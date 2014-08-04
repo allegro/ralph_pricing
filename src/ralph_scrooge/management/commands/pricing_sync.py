@@ -54,7 +54,7 @@ class Command(BaseCommand):
         logger.info('Running {0}...'.format(name))
         try:
             success, message = plugin.run(
-                'pricing',
+                'scrooge',
                 name,
                 today=today,
             )
@@ -80,10 +80,10 @@ class Command(BaseCommand):
             done = set()
             tried = set()
             while True:
-                to_run = plugin.next('pricing', done) - tried
+                to_run = plugin.next('scrooge', done) - tried
                 if not to_run:
                     break
-                name = plugin.highest_priority('pricing', to_run)
+                name = plugin.highest_priority('scrooge', to_run)
                 tried.add(name)
                 if (name in settings.COLLECT_PLUGINS and
                         self._run_plugin(name, today)):
