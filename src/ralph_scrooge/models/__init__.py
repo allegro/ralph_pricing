@@ -23,6 +23,7 @@ from ralph_scrooge.models.pricing_object import (
 from ralph_scrooge.models.service import (
     BusinessLine,
     HistoricalService,  # dynamic model
+    PricingService,
     Service,
     ServiceUsageTypes,
 )
@@ -64,6 +65,7 @@ __all__ = [
     'Owner',
     'PricingObject',
     'PricingObjectType',
+    'PricingService',
     'Service',
     'ServiceOwnership',
     'ServiceUsageTypes',
