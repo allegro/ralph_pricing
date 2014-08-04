@@ -17,10 +17,11 @@ from ralph_scrooge.tests.utils.factory import (
     ExtraCostFactory,
 )
 
+
 class TestExtraCostCollectPlugin(TestCase):
     def setUp(self):
         self.date = datetime.date(year=2014, month=5, day=1)
-        self.extracost =ExtraCostFactory.create(
+        self.extracost = ExtraCostFactory.create(
             start=self.date,
             end=self.date,
         )

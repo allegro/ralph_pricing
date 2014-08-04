@@ -60,6 +60,7 @@ __all__ = [
     'DailyVirtualInfo',
     'ExtraCost',
     'ExtraCostType',
+    'ExtraCostChoices',
     'HistoricalService',  # dynamic model
     'InternetProvider',
     'OwnershipType',
