@@ -60,12 +60,12 @@ def get_asset_and_pricing_object(service, warehouse, data):
         asset_info.pricing_object.name = data['asset_name']
         asset_info.pricing_object.save()
     except AssetInfo.DoesNotExist:
-        asset_info = AssetInfo.objects.create(
+        asset_info = AssetInfo(
             asset_id=data['asset_id'],
             pricing_object=create_pricing_object(service, data),
-            warehouse=warehouse,
         )
         created = True
+    asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
     asset_info.device_id = data['device_id']

@@ -34,10 +34,11 @@ def business_line(today, **kwargs):
     """
     new_bl = total = 0
     for data in get_business_lines():
-        if update_business_line(
-            data,
-            today,
-        ):
+        if update_business_line(data, today):
             new_bl += 1
         total += 1
-    return True, '%d new business line(s), %d total' % (new_bl, total)
+    return True, '{} new business line(s), {} updated, {} total'.format(
+        new_bl,
+        total - new_bl,
+        total,
+    )

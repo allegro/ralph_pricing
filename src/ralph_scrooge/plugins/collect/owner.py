@@ -37,10 +37,11 @@ def owner(today, **kwargs):
     """
     new_owners = total = 0
     for data in get_owners():
-        if update_owner(
-            data,
-            today,
-        ):
+        if update_owner(data, today):
             new_owners += 1
         total += 1
-    return True, '%d new owner(s), %d total' % (new_owners, total)
+    return True, '{} new owner(s), {} updated, {} total'.format(
+        new_owners,
+        total - new_owners,
+        total,
+    )

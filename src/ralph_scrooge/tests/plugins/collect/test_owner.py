@@ -60,7 +60,10 @@ class TestOwnerCollectPlugin(TestCase):
         update_owner_mock.side_effect = sample_update_owner
         get_owners_mock.side_effect = sample_get_owners
         result = owner_plugin(today=self.today)
-        self.assertEquals(result, (True, '1 new owner(s), 2 total'))
+        self.assertEquals(
+            result,
+            (True, '1 new owner(s), 1 updated, 2 total')
+        )
         update_owner_mock.call_count = 2
         update_owner_mock.assert_any_call(SAMPLE_OWNERS[0], self.today)
         update_owner_mock.assert_any_call(SAMPLE_OWNERS[1], self.today)

@@ -62,7 +62,10 @@ class TestOwnerCollectPlugin(TestCase):
         update_business_line_mock.side_effect = sample_update_business_line
         get_business_lines_mock.side_effect = sample_get_business_lines
         result = business_line_plugin(today=self.today)
-        self.assertEquals(result, (True, '1 new business line(s), 2 total'))
+        self.assertEquals(
+            result,
+            (True, '1 new business line(s), 1 updated, 2 total')
+        )
         update_business_line_mock.call_count = 2
         update_business_line_mock.assert_any_call(
             SAMPLE_BUSINESS_LINES[0],

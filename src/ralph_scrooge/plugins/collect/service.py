@@ -75,10 +75,11 @@ def service(today, **kwargs):
     """
     new_services = total = 0
     for data in get_services():
-        if update_service(
-            data,
-            today,
-        ):
+        if update_service(data, today):
             new_services += 1
         total += 1
-    return True, '%d new service(s), %d total' % (new_services, total)
+    return True, '{} new service(s), {} updated, {} total'.format(
+        new_services,
+        total - new_services,
+        total,
+    )
