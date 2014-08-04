@@ -37,7 +37,6 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     name = db.CharField(
         verbose_name=_("name"),
         max_length=256,
-        db_index=True,
     )
     business_line = db.ForeignKey(
         BusinessLine,
@@ -57,15 +56,6 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         through='ServiceOwnership',
         related_name='services'
     )
-    usage_types = db.ManyToManyField(
-        'UsageType',
-        through='ServiceUsageTypes',
-        related_name='services',
-    )
-    use_universal_plugin = db.BooleanField(
-        verbose_name=_("Use universal plugin"),
-        default=True,
-    )
     history = IntervalHistoricalRecords()
 
     class Meta:
@@ -80,6 +70,42 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         return self.symbol or self.name.lower().replace(' ', '_')
 
 
+class PricingService(Named):
+    use_universal_plugin = db.BooleanField(
+        verbose_name=_("Use universal plugin"),
+        default=True,
+    )
+    services = db.ManyToManyField(
+        'Service',
+        verbose_name=_("Services"),
+        related_name='pricing_services',
+        help_text=_('Services used to calculate costs of Pricing Service'),
+        blank=False,
+        null=False,
+    )
+    usage_types = db.ManyToManyField(
+        'UsageType',
+        through='ServiceUsageTypes',
+        related_name='services',
+    )
+    excluded_services = db.ManyToManyField(
+        'Service',
+        verbose_name=_("Excluded services"),
+        related_name='excluded_from_pricing_services',
+        help_text=_(
+            'Services excluded from cost distribution (besides usage '
+            'type excluded services)'
+        ),
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = _("pricing service")
+        verbose_name_plural = _("pricing services")
+        app_label = 'ralph_scrooge'
+
+
 class ServiceUsageTypes(db.Model):
     usage_type = db.ForeignKey(
         'UsageType',
@@ -89,9 +115,9 @@ class ServiceUsageTypes(db.Model):
             'type': 'SU',
         },
     )
-    service = db.ForeignKey(
-        Service,
-        verbose_name=_("Service"),
+    pricing_service = db.ForeignKey(
+        PricingService,
+        verbose_name=_("Pricing Service"),
     )
     start = db.DateField()
     end = db.DateField()
@@ -109,7 +135,7 @@ class ServiceUsageTypes(db.Model):
 
     def __unicode__(self):
         return '{}/{} ({} - {})'.format(
-            self.service,
+            self.pricing_service,
             self.usage_type,
             self.start,
             self.end,

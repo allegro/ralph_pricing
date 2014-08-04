@@ -104,10 +104,6 @@ class OwnerAdmin(ModelAdmin):
     search_fields = ('last_name', 'first_name')
 
 
-class ServiceUsageTypesInline(admin.TabularInline):
-    model = models.ServiceUsageTypes
-
-
 class ServiceOwnershipInline(admin.TabularInline):
     model = models.ServiceOwnership
 
@@ -130,7 +126,21 @@ class ServiceOwnershipInline(admin.TabularInline):
 class ServiceAdmin(SimpleHistoryAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    inlines = [ServiceUsageTypesInline, ServiceOwnershipInline]
+    inlines = [ServiceOwnershipInline]
+
+
+# =============================================================================
+# PRICING SERVICE
+# =============================================================================
+class ServiceUsageTypesInline(admin.TabularInline):
+    model = models.ServiceUsageTypes
+
+
+@register(models.PricingService)
+class PricingServiceAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    inlines = [ServiceUsageTypesInline]
 
 
 # =============================================================================
