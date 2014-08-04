@@ -2,6 +2,7 @@ from ralph_scrooge.models.extra_cost import (
     DailyExtraCost,
     ExtraCost,
     ExtraCostType,
+    ExtraCostChoices,
 )
 
 from ralph_scrooge.models.owner import (

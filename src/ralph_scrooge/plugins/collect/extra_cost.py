@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from calendar import monthrange
 
 from ralph.util import plugin
-from ralph_scrooge.models import ExtraCost, DailyExtraCost
+from ralph_scrooge.models import ExtraCost, DailyExtraCost, ExtraCostChoices
 
 
 def update_extra_cost(data, date):
@@ -22,9 +22,7 @@ def update_extra_cost(data, date):
     """
     daily_extra_cost, created = DailyExtraCost.objects.get_or_create(
         date=date,
-        pricing_venture=data.pricing_object.daily_pricing_objects.filter(
-            date=date
-        ),
+        service=data.service,
         type=data.type,
     )
     daily_extra_cost.value = (
@@ -34,16 +32,19 @@ def update_extra_cost(data, date):
     return created
 
 
-@plugin.register(chain='pricing', requires=['ventures'])
+@plugin.register(chain='scrooge', requires=[])
 def extra_cost(**kwargs):
     """
     Main method of daily imprint create.
     """
     date = kwargs['today']
-    count = sum(
-        (
-            update_extra_cost(data, date)
-            for data in ExtraCost.objects.filter(mode=0)
-        )
+    new = total = 0
+    for data in ExtraCost.objects.filter(mode=ExtraCostChoices.daily_imprint):
+        if update_extra_cost(data, date):
+            new += 1
+        total += 1
+    return True, '{0} new, {1} updated, {2} total'.format(
+        new,
+        total-new,
+        total,
     )
-    return True, '%d new extracosts' % count, kwargs
