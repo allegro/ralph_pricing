@@ -263,7 +263,7 @@ class DailyUsage(db.Model):
         blank=False,
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
-    type = db.ForeignKey(UsageType, verbose_name=_("type"))
+    type = db.ForeignKey(UsageType, verbose_name=_("daily_usages"))
     warehouse = db.ForeignKey('Warehouse', null=True, on_delete=db.PROTECT)
     remarks = db.TextField(
         verbose_name=_("Remarks"),
@@ -279,7 +279,7 @@ class DailyUsage(db.Model):
 
     def __unicode__(self):
         return '{0}/{1} ({2}) {3}'.format(
-            self.pricing_object,
+            self.daily_pricing_object,
             self.type,
             self.date,
             self.value,

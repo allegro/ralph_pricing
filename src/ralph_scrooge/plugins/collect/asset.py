@@ -241,7 +241,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average):
     return usage_type
 
 
-@plugin.register(chain='pricing', requires=[])
+@plugin.register(chain='scrooge', requires=[])
 def asset(**kwargs):
     """
     Updates assets and usages
