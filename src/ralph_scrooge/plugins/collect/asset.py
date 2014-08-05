@@ -27,6 +27,20 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 
+class ServiceDoesNotExistError(Exception):
+    """
+    Raise this exception when service does not exist
+    """
+    pass
+
+
+class WarehouseDoesNotExistError(Exception):
+    """
+    Raise this exception when warehouse does not exist
+    """
+    pass
+
+
 def create_pricing_object(service, data):
     """
     Create pricing object
@@ -160,18 +174,12 @@ def update_assets(data, date, usages):
     try:
         service = Service.objects.get(ci_uid=data['service_ci_uid'])
     except Service.DoesNotExist:
-        logger.error('Service {0} does not exist'.format(
-            data['service_ci_uid'],
-        ))
-        return (False, False)
+        raise ServiceDoesNotExistError()
 
     try:
         warehouse = Warehouse.objects.get(id_from_assets=data['warehouse_id'])
     except Warehouse.DoesNotExist:
-        logger.error('Warehouse {0} does not exist'.format(
-            data['warehouse_id']
-        ))
-        return (False, False)
+        raise WarehouseDoesNotExistError()
 
     asset_info, pricing_object, new_created = get_asset_and_pricing_object(
         service,
@@ -214,7 +222,7 @@ def update_assets(data, date, usages):
         date,
         warehouse,
     )
-    return (True, new_created)
+    return new_created
 
 
 def get_usage(symbol, name, by_warehouse, by_cost, average):
@@ -276,12 +284,22 @@ def asset(**kwargs):
 
     new = update = total = 0
     for data in get_assets(date):
-        result = update_assets(data, date, usages)
-        if result[0]:
-            if result[1]:
-                new += 1
-            else:
-                update += 1
         total += 1
+        try:
+            result = update_assets(data, date, usages)
+        except ServiceDoesNotExistError:
+            logger.error('Service {0} does not exist'.format(
+                data['service_ci_uid'],
+            ))
+            continue
+        except WarehouseDoesNotExistError:
+            logger.error('Warehouse {0} does not exist'.format(
+                data['warehouse_id']
+            ))
+            continue
+        if result:
+            new += 1
+        else:
+            update += 1
 
     return True, '{0} new, {1} updated, {2} total'.format(new, update, total)

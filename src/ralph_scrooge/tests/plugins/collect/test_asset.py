@@ -136,32 +136,30 @@ class TestAssetPlugin(TestCase):
 
     def test_update_assets_when_service_does_not_exist(self):
         self.data['service_ci_uid'] = 2
-        self.assertEqual(
-            asset.update_assets(
-                self.data,
-                self.date,
-                {
-                    'core': UsageTypeFactory.create(),
-                    'power_consumption': UsageTypeFactory.create(),
-                    'collocation': UsageTypeFactory.create(),
-                }
-            ),
-            (False, False)
+        self.assertRaises(
+            asset.ServiceDoesNotExistError,
+            asset.update_assets,
+            data=self.data,
+            date=self.date,
+            usages={
+                'core': UsageTypeFactory.create(),
+                'power_consumption': UsageTypeFactory.create(),
+                'collocation': UsageTypeFactory.create(),
+            },
         )
 
     def test_update_assets_when_warehouse_does_not_exist(self):
         self.data['warehouse_id'] = 2
-        self.assertEqual(
-            asset.update_assets(
-                self.data,
-                self.date,
-                {
-                    'core': UsageTypeFactory.create(),
-                    'power_consumption': UsageTypeFactory.create(),
-                    'collocation': UsageTypeFactory.create(),
-                }
-            ),
-            (False, False)
+        self.assertRaises(
+            asset.WarehouseDoesNotExistError,
+            asset.update_assets,
+            data=self.data,
+            date=self.date,
+            usages={
+                'core': UsageTypeFactory.create(),
+                'power_consumption': UsageTypeFactory.create(),
+                'collocation': UsageTypeFactory.create(),
+            },
         )
 
     def test_update_assets(self):
@@ -175,7 +173,7 @@ class TestAssetPlugin(TestCase):
                     'collocation': UsageTypeFactory.create(),
                 }
             ),
-            (True, True)
+            True
         )
         self.assertEqual(
             DailyUsage.objects.all().count(),
