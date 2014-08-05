@@ -8,11 +8,11 @@ NFSEN_FILES_PATH = ''
 VIRTUAL_VENTURE_NAMES = {}
 
 # Cloud (from Ralph) plugin default config
-CLOUD_UNKNOWN_VENTURE = None
+# CLOUD_UNKNOWN_VENTURE = None
 
 # Shares plugin default config
 SHARE_VENTURE_SYMBOLS = {}
-SHARES_UNKNOWN_VENTURES = {}  # symbols
+# SHARES_UNKNOWN_VENTURES = {}  # symbols
 
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
@@ -25,3 +25,7 @@ COLLECT_PLUGINS = set([
     'virtual',
     'warehouse',
 ])
+
+UNKNOWN_SERVICES = {
+    'ceilometer': None,
+}

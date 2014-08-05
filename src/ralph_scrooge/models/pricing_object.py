@@ -158,7 +158,43 @@ class DailyVirtualInfo(db.Model):
         DailyPricingObject,
         related_name='daily_virtual'
     )
+    virtual_info = db.ForeignKey(
+        VirtualInfo,
+    )
     hypervisor = db.ForeignKey(DailyAssetInfo, related_name='daily_virtuals')
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
+class TenantInfo(db.Model):
+    pricing_object = db.OneToOneField(
+        PricingObject,
+        related_name='tenant',
+    )
+    tenant_id = db.CharField(
+        max_length=100,
+        null=False,
+        blank=False,
+        db_index=True,
+    )
+    tenant_type = db.CharField(max_length=30, null=True, blank=True)
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
+class DailyTenantInfo(db.Model):
+    daily_pricing_object = db.OneToOneField(
+        DailyPricingObject,
+        related_name='daily_tenant',
+    )
+    tenant_info = db.ForeignKey(
+        TenantInfo,
+        related_name='daily_tenant',
+    )
+    enabled = db.BooleanField(null=False, blank=False, default=False)
+    date = db.DateField(null=False, blank=False)
 
     class Meta:
         app_label = 'ralph_scrooge'

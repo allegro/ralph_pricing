@@ -23,13 +23,15 @@ def update_warehouses(data):
         :returns boolean: Information for counting true processed warehouses
         :rtype boolean:
     '''
-    warehouse = Warehouse.objects.get_or_create(id=data['warehouse_id'])[0]
+    warehouse = Warehouse.objects.get_or_create(
+        id_from_assets=data['warehouse_id']
+    )[0]
     warehouse.name = data['warehouse_name']
     warehouse.save()
     return True
 
 
-@plugin.register(chain='pricing')
+@plugin.register(chain='scrooge')
 def warehouse(**kwargs):
     '''
         Get all information about warehouses
@@ -39,4 +41,4 @@ def warehouse(**kwargs):
 
     count = sum(update_warehouses(data) for data in get_warehouses())
 
-    return (True, 'Got {0} warehouses'.format(count), kwargs)
+    return True, 'Got {0} warehouses'.format(count)

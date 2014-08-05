@@ -38,6 +38,13 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         verbose_name=_("name"),
         max_length=256,
     )
+    # symbol = db.CharField(
+    #     verbose_name=_("symbol"),
+    #     max_length=30,
+    #     null=True,  # TODO: change to not null when field synced with CMDB
+    #     blank=True,
+    #     unique=True,
+    # )
     business_line = db.ForeignKey(
         BusinessLine,
         null=True,
