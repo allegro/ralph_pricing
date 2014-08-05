@@ -16,7 +16,7 @@ from ralph_scrooge.models import (
     DailyUsage,
     PricingObjectType,
 )
-from ralph_scrooge.plugins.collect import network
+from ralph_scrooge.plugins.collect import netflow
 from ralph_scrooge.tests.utils.factory import (
     PricingObjectFactory,
     DailyPricingObjectFactory,
@@ -63,8 +63,8 @@ class TestNetwork(TestCase):
 
     def test_get_names_of_data_files_when_executed_commend_return_error(self):
         self.assertRaises(
-            network.RemoteServerError,
-            network.get_names_of_data_files,
+            netflow.RemoteServerError,
+            netflow.get_names_of_data_files,
             ssh_client=SshClientMock(stderr='error'),
             channel='test-channel',
             date='2014-10-01',
@@ -72,7 +72,7 @@ class TestNetwork(TestCase):
 
     def test_get_names_of_data_files(self):
         self.assertEqual(
-            network.get_names_of_data_files(
+            netflow.get_names_of_data_files(
                 SshClientMock(stdout=['1\n', '2']),
                 'test-channel',
                 '2014-10-01',
@@ -82,7 +82,7 @@ class TestNetwork(TestCase):
 
     def test_execute_nfdump(self):
         self.assertEqual(
-            network.execute_nfdump(
+            netflow.execute_nfdump(
                 SshClientMock(stdout=['0', '1', '2', '3', '4', '5', '6']),
                 'test-channel',
                 '2014-10-01',
@@ -95,7 +95,7 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
     def test_extract_ip_and_bytes_when_input_output_is_scrip(self):
         self.assertEqual(
-            network.extract_ip_and_bytes(
+            netflow.extract_ip_and_bytes(
                 '10.10.10.10 | 20.20.20.20 | 30',
                 'scrip',
             ),
@@ -105,7 +105,7 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['20.20.20.20'])
     def test_extract_ip_and_bytes_when_input_output_is_dstip(self):
         self.assertEqual(
-            network.extract_ip_and_bytes(
+            netflow.extract_ip_and_bytes(
                 '10.10.10.10 | 20.20.20.20 | 30',
                 'dstip',
             ),
@@ -115,7 +115,7 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_bytes_format(self):
         self.assertEqual(
-            network.extract_ip_and_bytes(
+            netflow.extract_ip_and_bytes(
                 '10.10.10.10 | 20.20.20.20 | 3000',
                 'scrip',
             )[1],
@@ -125,7 +125,7 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_megabytes_format(self):
         self.assertEqual(
-            network.extract_ip_and_bytes(
+            netflow.extract_ip_and_bytes(
                 '10.10.10.10 | 20.20.20.20 | 1 M',
                 'scrip',
             )[1],
@@ -135,7 +135,7 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_gigabytes_format(self):
         self.assertEqual(
-            network.extract_ip_and_bytes(
+            netflow.extract_ip_and_bytes(
                 '10.10.10.10 | 20.20.20.20 | 1 G',
                 'scrip',
             )[1],
@@ -145,8 +145,8 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_incorrect_format(self):
         self.assertRaises(
-            network.UnknowDataFormatError,
-            network.extract_ip_and_bytes,
+            netflow.UnknowDataFormatError,
+            netflow.extract_ip_and_bytes,
             row='10.10.10.10 | 20.20.20.20 | 1 X',
             input_output='scrip',
         )
@@ -154,7 +154,7 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['30.30.30.30'])
     def test_extract_ip_and_bytes_when_ip_is_not_in_class_address(self):
         self.assertEqual(
-            network.extract_ip_and_bytes(
+            netflow.extract_ip_and_bytes(
                 '10.10.10.10 | 20.20.20.20 | 30',
                 'scrip',
             ),
@@ -163,7 +163,7 @@ class TestNetwork(TestCase):
 
     def test_get_network_usage_when_ip_and_byte_is_none(self):
         self.assertEqual(
-            network.get_network_usage(
+            netflow.get_network_usage(
                 SshClientMock(
                     stdout=[
                         '',
@@ -185,7 +185,7 @@ class TestNetwork(TestCase):
     @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
     def test_get_network_usage(self):
         self.assertEqual(
-            network.get_network_usage(
+            netflow.get_network_usage(
                 SshClientMock(
                     stdout=[
                         '',
@@ -218,16 +218,16 @@ class TestNetwork(TestCase):
             },
         },
     )
-    @patch.object(network, 'get_ssh_client', get_ssh_client_mock)
+    @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
     @patch.object(settings, 'NFSEN_CHANNELS', ['test-channel'])
     def test_get_network_usages(self):
         self.assertEqual(
-            network.get_network_usages('2014-10-01'),
+            netflow.get_network_usages('2014-10-01'),
             {u'20.20.20.20': 30, u'10.10.10.10': 30},
         )
 
     def test_get_usages_type(self):
-        self.assertEqual(network.get_usage_type(), UsageType.objects.get())
+        self.assertEqual(netflow.get_usage_type(), UsageType.objects.get())
 
     def test_get_pricing_objects_and_ips(self):
         pricing_object = PricingObjectFactory.create(
@@ -235,7 +235,7 @@ class TestNetwork(TestCase):
             type=PricingObjectType.ip_address,
         )
         self.assertEqual(
-            network.get_pricing_objects_and_ips(
+            netflow.get_pricing_objects_and_ips(
                 date(
                     year=2014,
                     month=1,
@@ -249,10 +249,10 @@ class TestNetwork(TestCase):
     def test_update_when_pricing_object_does_not_exist(self):
         ServiceFactory.create(ci_uid=1)
         self.assertEqual(
-            network.update(
+            netflow.update(
                 {'8.8.8.8': 10},
                 {},
-                network.get_usage_type(),
+                netflow.get_usage_type(),
                 date(year=2014, month=1, day=1),
             ),
             (1, 0, 1)
@@ -269,10 +269,10 @@ class TestNetwork(TestCase):
         )
         ServiceFactory.create(ci_uid=1)
         self.assertEqual(
-            network.update(
+            netflow.update(
                 {'8.8.8.8': 30},
                 {'8.8.8.8': daily_pricing_object},
-                network.get_usage_type(),
+                netflow.get_usage_type(),
                 date(year=2014, month=1, day=1),
             ),
             (0, 1, 1)
@@ -293,12 +293,12 @@ class TestNetwork(TestCase):
         },
     )
     @patch.object(settings, 'NFSEN_CHANNELS', ['test-channel'])
-    @patch.object(network, 'get_ssh_client', get_ssh_client_mock)
+    @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
     @patch.object(settings, 'UNKNOWN_SERVICES', {'network': 1})
     def test_network(self):
         ServiceFactory.create(ci_uid=1)
         self.assertEqual(
-            network.network(today=date(year=2014, month=1, day=1))[1],
+            netflow.netflow(today=date(year=2014, month=1, day=1))[1],
             '1 new, 0 updated, 1 total',
         )
         self.assertEqual(DailyUsage.objects.get().value, 30)

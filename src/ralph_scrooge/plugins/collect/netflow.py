@@ -328,7 +328,7 @@ def update(network_usages, pricing_objects_and_ips, usage_type, date):
 
 
 @plugin.register(chain='scrooge', requires=[])
-def network(**kwargs):
+def netflow(**kwargs):
     """
     Getting network usage per service is included in the two steps.
     First of them is collecting usages per ip and the second one is matching
