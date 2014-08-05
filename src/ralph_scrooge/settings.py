@@ -25,3 +25,5 @@ COLLECT_PLUGINS = set([
     'virtual',
     'warehouse',
 ])
+
+UNKNOWN_SERVICES = {}

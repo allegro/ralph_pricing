@@ -13,8 +13,14 @@ import paramiko
 from django.conf import settings
 
 from ralph.util import plugin
-from ralph.util.api_pricing import get_ip_addresses
-from ralph_scrooge.models import UsageType, Venture, DailyUsage
+from ralph_scrooge.models import (
+    UsageType,
+    Service,
+    DailyUsage,
+    PricingObject,
+    PricingObjectType,
+    DailyPricingObject,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -245,105 +251,103 @@ def get_usage_type():
     return usage_type
 
 
-def get_ventures_and_ips():
+def get_pricing_objects_and_ips(date):
     """
-    Gets ip per venture. Use ralph API to get list of ips and ventures
-    and convert it to dict where ip is a key and venture is value
+    Gets ip per service. Use ralph API to get list of ips and services
+    and convert it to dict where ip is a key and service is value
 
-    :returns dict: Dict with ip as key and venture as value
+    :returns dict: Dict with ip as key and service as value
     :rtype dict:
     """
-    logger.debug('Getting list of ips and ventures')
-    ventures_and_ips = get_ip_addresses(True)
-    ventures_and_ips['0.0.0.0'] = Venture.objects.get(
-        symbol=settings.NETWORK_UNKNOWN_VENTURE_SYMBOL,
-    ).venture_id
-    return ventures_and_ips
+    logger.debug('Getting list of ips and services')
+    services_and_ips = {}
+    for pricing_object in PricingObject.objects.filter(
+        type=PricingObjectType.ip_address
+    ):
+        daily_pricing_object = DailyPricingObject.objects.get_or_create(
+            date=date,
+            pricing_object=pricing_object,
+            defaults=dict(
+                service=pricing_object.service,
+            ),
+        )[0]
+        daily_pricing_object.service = pricing_object.service
+        daily_pricing_object.save()
+        services_and_ips[pricing_object.name] = daily_pricing_object
+    return services_and_ips
 
 
-def sort_per_venture(network_usages, ventures_and_ips):
+def update(network_usages, pricing_objects_and_ips, usage_type, date):
     """
-    Matches ips to ventures and create list of usages where venture is a key
-    and value of usage is a value
+    Create or update daily usage
 
     :param dict network_usages: Usages per IP
-    :param dict ventures_and_ips: Venture per IP
-    :returns dict: Usage per Venture
-    :rtype dict:
-    """
-    usage_per_venture = defaultdict(int)
-    for ip, usage in network_usages.iteritems():
-        if ip in ventures_and_ips:
-            if ventures_and_ips[ip]:
-                usage_per_venture[ventures_and_ips[ip]] += usage
-            else:
-                usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
-                logger.warning(
-                    'IP {} (usage: {}) without venture'.format(ip, usage)
-                )
-        else:
-            usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
-            logger.warning(
-                'Unknown ip address {} (usage: {})'.format(ip, usage)
-            )
-    return usage_per_venture
-
-
-def update(network_usages, ventures_and_ips, usage_type, date):
-    """
-    Match ips to ventures and updates (or creates) usage of given usage_type.
-
-    :param dict network_usages: Usages per IP
-    :param dict ventures_and_ips: Venture per IP
+    :param dict get_pricing_objects_and_ips: PricingObject per IP
     :param object usage_type: UsageType object
     :param datetime date: Date for which dailyusage will be update
+    :returns list: new update and total counts
+    :rtype list:
     """
-    logger.debug('Saving usages as a daily usages per venture')
-    count = 0
-    for venture_id, value in sort_per_venture(
-        network_usages, ventures_and_ips
-    ).iteritems():
-        try:
-            pricing_venture = Venture.objects.get(
-                venture_id=venture_id,
+    logger.debug('Saving usages as a daily usages per service')
+    new = updated = total = 0
+    default_service = Service.objects.get(
+        ci_uid=settings.UNKNOWN_SERVICES['network'],
+    )
+    for ip, value in network_usages.iteritems():
+        total += 1
+        if ip in pricing_objects_and_ips:
+            updated += 1
+            daily_pricing_object = pricing_objects_and_ips[ip]
+        else:
+            new += 1
+            pricing_object = PricingObject.objects.create(
+                name=ip,
+                type=PricingObjectType.ip_address,
+                service=default_service,
             )
-        except Venture.DoesNotExist:
+            daily_pricing_object = DailyPricingObject.objects.create(
+                date=date,
+                pricing_object=pricing_object,
+                service=default_service,
+            )
             logger.warning(
-                'Ralph venture id {0} does not exist'.format(
-                    venture_id
-                )
+                'Unknown ip address {} (usage: {})'.format(ip, value)
             )
-            continue
-
-        usage, usage_created = DailyUsage.objects.get_or_create(
+        daily_usage, usage_created = DailyUsage.objects.get_or_create(
             date=date,
             type=usage_type,
-            pricing_venture=pricing_venture,
+            daily_pricing_object=daily_pricing_object,
+            defaults=dict(
+                service=daily_pricing_object.service,
+            ),
         )
-        usage.value = value
-        usage.save()
-        count += 1
-    return count
+        daily_usage.service = daily_pricing_object.service
+        daily_usage.value = value
+        daily_usage.save()
+    return (new, updated, total)
 
 
-@plugin.register(chain='pricing', requires=['ventures'])
+@plugin.register(chain='scrooge', requires=[])
 def network(**kwargs):
     """
-    Getting network usage per venture is included in the two steps.
+    Getting network usage per service is included in the two steps.
     First of them is collecting usages per ip and the second one is matching
-    ip with venture
+    ip with service
 
     :param datetime today: Date for which usages will be collects
     :returns tuple: Status, message and kwargs
     :rtype tuple:
     """
     date = kwargs['today']
-
-    count = update(
+    new, updated, total = update(
         get_network_usages(date),
-        get_ventures_and_ips(),
+        get_pricing_objects_and_ips(date),
         get_usage_type(),
         date,
     )
 
-    return True, "Create/Update {0} venture usages".format(count), kwargs
+    return True, '{0} new, {1} updated, {2} total'.format(
+        new,
+        updated,
+        total,
+    )
