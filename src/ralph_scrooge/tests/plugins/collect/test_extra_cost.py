@@ -41,7 +41,7 @@ class TestExtraCostCollectPlugin(TestCase):
         )
 
     def test_extracost_when_update(self):
-        extra_cost(**{'today': self.date})
+        extra_cost(today=self.date)
         self.assertEqual(
             (True, u'0 new, 1 updated, 1 total'),
             extra_cost(**{'today': self.date})
