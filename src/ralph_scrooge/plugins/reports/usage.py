@@ -15,7 +15,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge import utils
 from ralph_scrooge.plugins.base import register
-from ralph_scrooge.plugins.reports.base import AttributeDict, BaseReportPlugin
+from ralph_scrooge.plugins.reports.base import BaseReportPlugin
+from ralph_scrooge.utils import AttributeDict
 
 logger = logging.getLogger(__name__)
 
@@ -64,14 +65,14 @@ class UsageBasePlugin(BaseReportPlugin):
         self,
         start,
         end,
-        ventures,
+        services,
         usage_type,
         forecast=False,
         **kwargs
     ):
         """
-        Returns total cost of usage for ventures for every warehouse (if usage
-        type is by venture).
+        Returns total cost of usage for services for every warehouse (if usage
+        type is by service).
         """
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
@@ -80,12 +81,12 @@ class UsageBasePlugin(BaseReportPlugin):
         result = []
         total_cost = D(0)
 
-        # remove from ventures ones that should not be taken into consideration
+        # remove from services ones that should not be taken into consideration
         # when calculating costs for this usage type (and should not be counted
         # to total usages count)
-        if usage_type.excluded_ventures.count():
-            ventures = list(
-                set(ventures) - set(usage_type.excluded_ventures.all())
+        if usage_type.excluded_services.count():
+            services = list(
+                set(services) - set(usage_type.excluded_services.all())
             )
 
         for warehouse in warehouses:
@@ -119,7 +120,7 @@ class UsageBasePlugin(BaseReportPlugin):
                         usage_price,
                         forecast,
                         warehouse,
-                        excluded_ventures=usage_type.excluded_ventures.all(),
+                        excluded_services=usage_type.excluded_services.all(),
                     )
                 else:
                     if forecast:
@@ -135,7 +136,7 @@ class UsageBasePlugin(BaseReportPlugin):
                     up_end,
                     usage_type,
                     warehouse,
-                    ventures
+                    services
                 )
                 usage_in_warehouse += total_usage
                 cost = D(total_usage) * price
@@ -155,20 +156,20 @@ class UsageBasePlugin(BaseReportPlugin):
         start,
         end,
         forecast,
-        ventures,
+        services,
         no_price_msg=False,
         use_average=True,
         by_device=False,
     ):
         """
         Returns information about usage (of usage type) count and cost
-        per venture in period (between start and end) using forecast or real
+        per service in period (between start and end) using forecast or real
         price. If no_price_msg is False, then even if there is no price
         defined cost will always be number. If no_price_msg is True then if
         price for period of time in undefined of partially defined (incomplete)
         cost will be message what's wrong with price (i.e. 'Incomplete price').
         """
-        excluded_ventures = usage_type.excluded_ventures.all()
+        excluded_services = usage_type.excluded_services.all()
         total_days = (end - start).days + 1  # total report days
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
@@ -176,31 +177,31 @@ class UsageBasePlugin(BaseReportPlugin):
             warehouses = [None]
         result = defaultdict(lambda: defaultdict(int))
 
-        def add_usages_per_venture(
+        def add_usages_per_service(
             up_start,
             up_end,
             price,
             warehouse,
             **kwargs
         ):
-            usages_per_venture = self._get_usages_in_period_per_venture(
+            usages_per_service = self._get_usages_in_period_per_service(
                 start=up_start,
                 end=up_end,
                 usage_type=usage_type,
                 warehouse=warehouse,
-                ventures=ventures,
-                excluded_ventures=excluded_ventures,
+                services=services,
+                excluded_services=excluded_services,
             )
-            for v in usages_per_venture:
-                venture = v['pricing_venture']
-                result[venture][count_key] += v['usage']
+            for v in usages_per_service:
+                service = v['service']
+                result[service][count_key] += v['usage']
                 cost = D(v['usage']) * price
                 if price_undefined:
-                    result[venture][cost_key] = price_undefined
+                    result[service][cost_key] = price_undefined
                 else:
-                    result[venture][cost_key] += cost
+                    result[service][cost_key] += cost
                 if usage_type.by_warehouse and not price_undefined:
-                    result[venture][total_cost_key] += cost
+                    result[service][total_cost_key] += cost
 
         def add_usages_per_device(
             up_start,
@@ -213,12 +214,13 @@ class UsageBasePlugin(BaseReportPlugin):
                 start=up_start,
                 end=up_end,
                 usage_type=usage_type,
-                ventures=ventures,
+                services=services,
                 warehouse=warehouse,
-                excluded_ventures=excluded_ventures,
+                excluded_services=excluded_services,
             )
             for v in usages_per_device:
-                device = v['pricing_device']
+                # TODO: rename
+                device = v['daily_pricing_object__pricing_object']
                 result[device][count_key] += v['usage']
                 cost = D(v['usage']) * price
                 if price_undefined:
@@ -229,7 +231,7 @@ class UsageBasePlugin(BaseReportPlugin):
                     result[device][total_cost_key] += cost
 
         add_function = (
-            add_usages_per_device if by_device else add_usages_per_venture
+            add_usages_per_device if by_device else add_usages_per_service
         )
 
         for warehouse in warehouses:
@@ -284,7 +286,7 @@ class UsageBasePlugin(BaseReportPlugin):
                             usage_price,
                             forecast,
                             warehouse,
-                            excluded_ventures=excluded_ventures,
+                            excluded_services=excluded_services,
                         )
 
                     up_start = max(start, usage_price.start)
@@ -299,8 +301,8 @@ class UsageBasePlugin(BaseReportPlugin):
                 add_function(start, end, warehouse=warehouse, price=0)
 
             if use_average and usage_type.average:
-                for venture, venture_usages in result.iteritems():
-                    venture_usages[count_key] /= total_days
+                for service, service_usages in result.iteritems():
+                    service_usages[count_key] /= total_days
 
         return result
 
@@ -312,7 +314,7 @@ class UsageBasePlugin(BaseReportPlugin):
         self,
         start,
         end,
-        ventures,
+        services,
         usage_type,
         forecast=False,
         no_price_msg=False,
@@ -323,7 +325,7 @@ class UsageBasePlugin(BaseReportPlugin):
         return self._get_usages_per_warehouse(
             start=start,
             end=end,
-            ventures=ventures,
+            services=services,
             usage_type=usage_type,
             forecast=forecast,
             no_price_msg=no_price_msg,
@@ -334,7 +336,7 @@ class UsageBasePlugin(BaseReportPlugin):
         self,
         start,
         end,
-        ventures,
+        services,
         usage_type,
         forecast=False,
         no_price_msg=False,
@@ -342,13 +344,13 @@ class UsageBasePlugin(BaseReportPlugin):
         **kwargs
     ):
         """
-        Main method to get information about usages per device in venture.
+        Main method to get information about usages per device in service.
         """
         logger.debug("Getting {} costs per device".format(usage_type.name))
         return self._get_usages_per_warehouse(
             start=start,
             end=end,
-            ventures=ventures,
+            services=services,
             usage_type=usage_type,
             forecast=forecast,
             no_price_msg=no_price_msg,
@@ -356,12 +358,12 @@ class UsageBasePlugin(BaseReportPlugin):
             by_device=True,
         )
 
-    def dailyusages(self, start, end, usage_type, ventures):
+    def dailyusages(self, start, end, usage_type, services):
         """
-        Returns sum of usage type per venture per day. Result format:
+        Returns sum of usage type per service per day. Result format:
             result = {
                 day: {
-                    venture: value,
+                    service: value,
                     veture: value,
                     ...
                 },
@@ -371,18 +373,18 @@ class UsageBasePlugin(BaseReportPlugin):
         :rtype: dict
         """
         logger.debug(
-            "Getting {0} daily usages per venture".format(usage_type.name)
+            "Getting {0} daily usages per service".format(usage_type.name)
         )
         result = defaultdict(dict)
         dailyusages = usage_type.dailyusage_set.filter(
-            pricing_venture__in=ventures,
+            service__in=services,
             date__gte=start,
             date__lte=end,
         ).extra({
             'day': "date(date)"
         }).values(
             'day',
-            'pricing_venture',
+            'service',
         ).annotate(
             usage=Sum('value')
         )
@@ -391,7 +393,7 @@ class UsageBasePlugin(BaseReportPlugin):
             # on sqlite string is returned from query instead of datetime
             if isinstance(day, basestring):
                 day = datetime.strptime(day, "%Y-%m-%d").date()
-            result[day][d['pricing_venture']] = d['usage']
+            result[day][d['service']] = d['usage']
         return result
 
     def schema(self, usage_type, **kwargs):
@@ -445,7 +447,7 @@ class UsageBasePlugin(BaseReportPlugin):
     def schema_devices(self, **kwargs):
         """
         Returns schema for devices usages (which by default is the same as
-        for ventures usages.
+        for services usages.
         """
         return self.schema(**kwargs)
 

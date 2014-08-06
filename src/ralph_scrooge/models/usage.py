@@ -287,7 +287,7 @@ class DailyUsage(db.Model):
 
     def __unicode__(self):
         return '{0}/{1} ({2}) {3}'.format(
-            self.pricing_object,
+            self.daily_pricing_object,
             self.type,
             self.date,
             self.value,

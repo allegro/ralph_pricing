@@ -14,33 +14,34 @@ from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge import models
-from ralph_scrooge.tests import utils
 from ralph_scrooge.plugins.reports.usage import UsagePlugin
+from ralph_scrooge.tests.utils.factory import (
+    DailyUsageFactory,
+    ServiceFactory,
+    UsageTypeFactory,
+    WarehouseFactory,
+    DailyPricingObjectFactory,
+)
 
 
 class TestUsageBasePlugin(TestCase):
     def setUp(self):
         # usage types
-        self.usage_type = models.UsageType(
-            name='UsageType1',
+        self.usage_type = UsageTypeFactory(
             symbol='ut1',
             by_warehouse=False,
             by_cost=False,
             type='BU',
             divide_by=1,
         )
-        self.usage_type.save()
-        self.usage_type_cost_wh = models.UsageType(
-            name='UsageType2',
+        self.usage_type_cost_wh = UsageTypeFactory(
             symbol='ut2',
             by_warehouse=True,
             by_cost=True,
             type='BU',
             rounding=2,
         )
-        self.usage_type_cost_wh.save()
-        self.usage_type_cost_sum = models.UsageType(
-            name='UsageType3',
+        self.usage_type_cost_sum = UsageTypeFactory(
             symbol='ut3',
             by_warehouse=False,
             by_cost=True,
@@ -48,9 +49,7 @@ class TestUsageBasePlugin(TestCase):
             by_internet_provider=True,
             rounding=1,
         )
-        self.usage_type_cost_sum.save()
-        self.usage_type_average = models.UsageType(
-            name='UsageType4',
+        self.usage_type_average = UsageTypeFactory(
             symbol='ut4',
             by_warehouse=False,
             by_cost=False,
@@ -58,20 +57,14 @@ class TestUsageBasePlugin(TestCase):
             average=True,
             divide_by=2,
         )
-        self.usage_type_average.save()
 
         # warehouses
-        self.warehouse1 = models.Warehouse(
-            name='Warehouse1',
-            show_in_report=True,
+        self.default_warehouse = models.Warehouse.objects.get(name='Default')
+        self.warehouse1 = WarehouseFactory(name='WH1', show_in_report=True)
+        self.warehouse2 = WarehouseFactory(name='WH2', show_in_report=True)
+        self.warehouses = models.Warehouse.objects.exclude(
+            pk=self.default_warehouse.pk
         )
-        self.warehouse1.save()
-        self.warehouse2 = models.Warehouse(
-            name='Warehouse2',
-            show_in_report=True,
-        )
-        self.warehouse2.save()
-        self.warehouses = models.Warehouse.objects.all()
 
         # internet providers
         self.net_provider1 = models.InternetProvider(
@@ -84,47 +77,46 @@ class TestUsageBasePlugin(TestCase):
         self.net_provider2.save()
         self.net_providers = models.InternetProvider.objects.all()
 
-        # ventures
-        self.venture1 = models.Venture(venture_id=1, name='V1', is_active=True)
-        self.venture1.save()
-        self.venture2 = models.Venture(venture_id=2, name='V2', is_active=True)
-        self.venture2.save()
-        self.venture3 = models.Venture(venture_id=3, name='V3', is_active=True)
-        self.venture3.save()
-        self.venture4 = models.Venture(venture_id=4, name='V4', is_active=True)
-        self.venture4.save()
-        self.ventures_subset = [self.venture1, self.venture2]
-        self.ventures = models.Venture.objects.all()
+        # services
+        self.service1 = ServiceFactory()
+        self.service2 = ServiceFactory()
+        self.service3 = ServiceFactory()
+        self.service4 = ServiceFactory()
+        self.services_subset = [self.service1, self.service2]
+        self.services = models.Service.objects.all()
 
         # daily usages of base type
         # ut1:
-        #   venture1: 10
-        #   venture2: 20
+        #   service1: 10
+        #   service2: 20
         # ut2:
-        #   venture1: 20 (half in warehouse1, half in warehouse2)
-        #   venture2: 40 (half in warehouse1, half in warehouse2)
+        #   service1: 20 (half in warehouse1, half in warehouse2)
+        #   service2: 40 (half in warehouse1, half in warehouse2)
         # ut3:
-        #   venture1: 30
-        #   venture2: 60
+        #   service1: 30
+        #   service2: 60
         # ut4:
-        #   venture1: 40
-        #   venture2: 80
+        #   service1: 40
+        #   service2: 80
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
         base_usage_types = models.UsageType.objects.filter(type='BU')
-        self.ventures_devices = {}
-        for k, venture in enumerate(self.ventures, start=1):
-            device = utils.get_or_create_device()
-            self.ventures_devices[venture] = device
+        self.services_pricing_objects = {}
+        for k, service in enumerate(self.services, start=1):
+            daily_pricing_object = DailyPricingObjectFactory()
+            self.services_pricing_objects[service] = (
+                daily_pricing_object.pricing_object
+            )
             for i, ut in enumerate(base_usage_types, start=1):
                 days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
                 for j, day in enumerate(days, start=1):
                     daily_usage = models.DailyUsage(
                         date=day,
-                        pricing_venture=venture,
-                        pricing_device=device,
+                        service=service,
+                        daily_pricing_object=daily_pricing_object,
                         value=10 * i * k,
                         type=ut,
+                        warehouse=self.default_warehouse,
                     )
                     if ut.by_warehouse:
                         daily_usage.warehouse = (
@@ -259,7 +251,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
         # 10-12: usage: 3 * (10 + 20) = 90; cost: 90 * 10 = 900
@@ -273,7 +265,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
         self.assertEquals(result, D('6600'))
@@ -283,7 +275,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            ventures=[self.venture1],
+            services=[self.service1],
             forecast=True,
         )
         # 10-12: usage: 3 * 10 = 30; cost: 30 * 50 = 1500
@@ -297,7 +289,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
         # 5-12: (usages are from 8 to 12)
@@ -357,7 +349,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            ventures=[self.venture1],
+            services=[self.service1],
             forecast=True,
         )
         # 5-12: (usages are from 8 to 12)
@@ -417,7 +409,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
         # 5-12: (usages are from 8 to 12)
@@ -451,7 +443,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
         self.assertEquals(result, D('16500'))
@@ -461,7 +453,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 5),
             end=datetime.date(2013, 10, 25),
             usage_type=self.usage_type_cost_sum,
-            ventures=self.ventures,
+            services=self.services,
             forecast=False,
         )
         self.assertEquals(result, D('77000'))
@@ -472,7 +464,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 1),
             end=datetime.date(2013, 10, 28),
             usage_type=self.usage_type_cost_sum,
-            ventures=self.ventures,
+            services=self.services,
             forecast=False,
             no_price_msg=True,
         )
@@ -483,7 +475,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            ventures=[self.venture1],
+            services=[self.service1],
             forecast=True,
         )
         # 5-12: (usages are from 8 to 12)
@@ -510,18 +502,20 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
             no_price_msg=False,
         )
+        count_key = 'ut_{}_count'.format(self.usage_type.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type.id)
         self.assertEquals(result, {
             1: {
-                'ut_1_count': 110.0,  # 11 * 10
-                'ut_1_cost': D('2200'),  # 10 * (3 * 10 + 5 * 20 + 3 * 30)
+                count_key: 110.0,  # 11 * 10
+                cost_key: D('2200'),  # 10 * (3 * 10 + 5 * 20 + 3 * 30)
             },
             2: {
-                'ut_1_count': 220.0,  # 11 * 20
-                'ut_1_cost': D('4400'),  # 20 * (3 * 10 + 5 * 20 + 3 * 30)
+                count_key: 220.0,  # 11 * 20
+                cost_key: D('4400'),  # 20 * (3 * 10 + 5 * 20 + 3 * 30)
             }
         })
 
@@ -530,18 +524,20 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 30),
             usage_type=self.usage_type,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
             no_price_msg=True,
         )
+        count_key = 'ut_{}_count'.format(self.usage_type.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type.id)
         self.assertEquals(result, {
             1: {
-                'ut_1_count': 130.0,  # 13 * 10
-                'ut_1_cost': _('Incomplete price'),
+                count_key: 130.0,  # 13 * 10
+                cost_key: _('Incomplete price'),
             },
             2: {
-                'ut_1_count': 260.0,  # 13 * 20
-                'ut_1_cost': _('Incomplete price'),
+                count_key: 260.0,  # 13 * 20
+                cost_key: _('Incomplete price'),
             }
         })
 
@@ -552,12 +548,13 @@ class TestUsageBasePlugin(TestCase):
         for i, ut in enumerate(base_usage_types, start=1):
             days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
             for j, day in enumerate(days, start=1):
-                for k, venture in enumerate(self.ventures, start=1):
-                    daily_usage = models.DailyUsage(
+                for k, service in enumerate(self.services, start=1):
+                    daily_usage = DailyUsageFactory(
                         date=day,
-                        pricing_venture=venture,
+                        service=service,
                         value=10 * i * k,
                         type=ut,
+                        warehouse=self.default_warehouse
                     )
                     if ut.by_warehouse:
                         daily_usage.warehouse = (
@@ -568,18 +565,20 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 11, 10),
             end=datetime.date(2013, 11, 20),
             usage_type=self.usage_type,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
             no_price_msg=True,
         )
+        count_key = 'ut_{}_count'.format(self.usage_type.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type.id)
         self.assertEquals(result, {
             1: {
-                'ut_1_count': 110.0,  # 11 * 10
-                'ut_1_cost': _('No price'),
+                count_key: 110.0,  # 11 * 10
+                cost_key: _('No price'),
             },
             2: {
-                'ut_1_count': 220.0,  # 11 * 20
-                'ut_1_cost': _('No price'),
+                count_key: 220.0,  # 11 * 20
+                cost_key: _('No price'),
             }
         })
 
@@ -588,7 +587,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
         # prices:
@@ -631,20 +630,26 @@ class TestUsageBasePlugin(TestCase):
         # 10-12: 2
         # 13-17: 2
         # 18-20: 2
+        ut_key = 'ut_{}_'.format(self.usage_type_cost_wh.id)
+        count_wh1_key = '{}count_wh_{}'.format(ut_key, self.warehouse1.id)
+        cost_wh1_key = '{}cost_wh_{}'.format(ut_key, self.warehouse1.id)
+        count_wh2_key = '{}count_wh_{}'.format(ut_key, self.warehouse2.id)
+        cost_wh2_key = '{}cost_wh_{}'.format(ut_key, self.warehouse2.id)
+        total_cost_key = '{}total_cost'.format(ut_key)
         self.assertEquals(result, {
             1: {
-                'ut_2_count_wh_1': 100.0,  # 5 * 20 (5 is number of odd days)
-                'ut_2_cost_wh_1': D('960'),  # 20 * (1 * 9 + 3 * 9 + 1 * 12)
-                'ut_2_count_wh_2': 120.0,  # 6 * 20 (6 is number of even days)
-                'ut_2_cost_wh_2': D('1080'),  # 20 * (2 * 6 + 2 * 9 + 2 * 12)
-                'ut_2_total_cost': D('2040'),  # 960 + 1080
+                count_wh1_key: 100.0,  # 5 * 20 (5 is number of odd days)
+                cost_wh1_key: D('960'),  # 20 * (1 * 9 + 3 * 9 + 1 * 12)
+                count_wh2_key: 120.0,  # 6 * 20 (6 is number of even days)
+                cost_wh2_key: D('1080'),  # 20 * (2 * 6 + 2 * 9 + 2 * 12)
+                total_cost_key: D('2040'),  # 960 + 1080
             },
             2: {
-                'ut_2_count_wh_1': 200.0,  # 5 * 40 (5 is number of odd days)
-                'ut_2_cost_wh_1': D('1920'),  # 40 * (1 * 9 + 3 * 9 + 1 * 12)
-                'ut_2_count_wh_2': 240.0,  # 6 * 40 (6 is number of even days)
-                'ut_2_cost_wh_2': D('2160'),  # 40 * (2 * 6 + 2 * 9 + 2 * 12)
-                'ut_2_total_cost': D('4080'),  # 1920 + 2160
+                count_wh1_key: 200.0,  # 5 * 40 (5 is number of odd days)
+                cost_wh1_key: D('1920'),  # 40 * (1 * 9 + 3 * 9 + 1 * 12)
+                count_wh2_key: 240.0,  # 6 * 40 (6 is number of even days)
+                cost_wh2_key: D('2160'),  # 40 * (2 * 6 + 2 * 9 + 2 * 12)
+                total_cost_key: D('4080'),  # 1920 + 2160
             },
         })
 
@@ -653,17 +658,23 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            ventures=[self.venture1],
+            services=[self.service1],
             forecast=False,
             by_device=True,
         )
+        ut_key = 'ut_{}_'.format(self.usage_type_cost_wh.id)
+        count_wh1_key = '{}count_wh_{}'.format(ut_key, self.warehouse1.id)
+        cost_wh1_key = '{}cost_wh_{}'.format(ut_key, self.warehouse1.id)
+        count_wh2_key = '{}count_wh_{}'.format(ut_key, self.warehouse2.id)
+        cost_wh2_key = '{}cost_wh_{}'.format(ut_key, self.warehouse2.id)
+        total_cost_key = '{}total_cost'.format(ut_key)
         self.assertEquals(result, {
-            self.ventures_devices[self.venture1].id: {
-                'ut_2_count_wh_1': 100.0,
-                'ut_2_cost_wh_1': D('960'),
-                'ut_2_count_wh_2': 120.0,
-                'ut_2_cost_wh_2': D('1080'),
-                'ut_2_total_cost': D('2040'),
+            self.services_pricing_objects[self.service1].id: {
+                count_wh1_key: 100.0,  # 5 * 20 (5 is number of odd days)
+                cost_wh1_key: D('960'),  # 20 * (1 * 9 + 3 * 9 + 1 * 12)
+                count_wh2_key: 120.0,  # 6 * 20 (6 is number of even days)
+                cost_wh2_key: D('1080'),  # 20 * (2 * 6 + 2 * 9 + 2 * 12)
+                total_cost_key: D('2040'),  # 960 + 1080
             }
         })
 
@@ -672,17 +683,19 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_average,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
+        count_key = 'ut_{}_count'.format(self.usage_type_average.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type_average.id)
         self.assertEquals(result, {
             1: {
-                'ut_4_count': 40.0,  # average daily usage
-                'ut_4_cost': D('8800'),
+                count_key: 40.0,  # average daily usage
+                cost_key: D('8800'),
             },
             2: {
-                'ut_4_count': 80.0,  # average daily usage
-                'ut_4_cost': D('17600'),
+                count_key: 80.0,  # average daily usage
+                cost_key: D('17600'),
             },
         })
 
@@ -691,18 +704,20 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_average,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
             use_average=False,
         )
+        count_key = 'ut_{}_count'.format(self.usage_type_average.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type_average.id)
         self.assertEquals(result, {
             1: {
-                'ut_4_count': 440.0,  # average daily usage
-                'ut_4_cost': D('8800'),
+                count_key: 440.0,  # sum of daily usage
+                cost_key: D('8800'),
             },
             2: {
-                'ut_4_count': 880.0,  # average daily usage
-                'ut_4_cost': D('17600'),
+                count_key: 880.0,  # sum of daily usage
+                cost_key: D('17600'),
             },
         })
 
@@ -711,7 +726,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
         )
         # 5-12: (usages are from 8 to 12)
@@ -726,14 +741,16 @@ class TestUsageBasePlugin(TestCase):
         #   usage: 5 * (30 + 60 + 90 + 120) = 1500;
         #   cost: 4000 + 40000 = 44000;
         #   price = 44000 / 1500 = 29.(3);
+        count_key = 'ut_{}_count'.format(self.usage_type_cost_sum.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type_cost_sum.id)
         self.assertEquals(result, {
             1: {
-                'ut_3_count': 330.0,  # 3 * 30 + 5 * 30 + 3 * 30
-                'ut_3_cost': D('5500'),  # 90*7.(3) + 150*14.(6) + 90*29.(3)
+                count_key: 330.0,  # 3 * 30 + 5 * 30 + 3 * 30
+                cost_key: D('5500'),  # 90*7.(3) + 150*14.(6) + 90*29.(3)
             },
             2: {
-                'ut_3_count': 660.0,  # 3 * 60 + 5 * 60 + 3 * 60
-                'ut_3_cost': D('11000'),  # 180*7.(3) + 300*14.(6) + 180*29.(3)
+                count_key: 660.0,  # 3 * 60 + 5 * 60 + 3 * 60
+                cost_key: D('11000'),  # 180*7.(3) + 300*14.(6) + 180*29.(3)
             },
         })
 
@@ -742,54 +759,54 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 4),
             end=datetime.date(2013, 10, 26),
             usage_type=self.usage_type_cost_sum,
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             forecast=False,
             no_price_msg=True,
         )
+        count_key = 'ut_{}_count'.format(self.usage_type_cost_sum.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type_cost_sum.id)
         self.assertEquals(result, {
             1: {
-                'ut_3_count': 450.0,  # 5 * 30 + 5 * 30 + 5 * 30
-                'ut_3_cost': 'Incomplete price',
+                count_key: 450.0,  # 5 * 30 + 5 * 30 + 5 * 30
+                cost_key: 'Incomplete price',
             },
             2: {
-                'ut_3_count': 900.0,  # 5 * 60 + 5 * 60 + 5 * 60
-                'ut_3_cost': 'Incomplete price',
+                count_key: 900.0,  # 5 * 60 + 5 * 60 + 5 * 60
+                cost_key: 'Incomplete price',
             },
         })
 
     def test_get_dailyusages(self):
-        # test if sum of usages per day if properly calculated
-        du = models.DailyUsage(
+        # test if sum of usages per day is properly calculated
+        DailyUsageFactory(
             date=datetime.date(2013, 10, 11),
-            pricing_venture=self.venture2,
-            pricing_device=utils.get_or_create_device(),
+            service=self.service2,
             value=100,
             type=self.usage_type,
         )
-        du.save()
         result = UsagePlugin(
             usage_type=self.usage_type,
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 13),
-            ventures=self.ventures_subset,
+            services=self.services_subset,
             type='dailyusages',
         )
         self.assertEquals(result, {
             datetime.date(2013, 10, 10): {
-                self.venture1.id: 10,
-                self.venture2.id: 20,
+                self.service1.id: 10,
+                self.service2.id: 20,
             },
             datetime.date(2013, 10, 11): {
-                self.venture1.id: 10,
-                self.venture2.id: 120,  # additional usage!
+                self.service1.id: 10,
+                self.service2.id: 120,  # additional usage!
             },
             datetime.date(2013, 10, 12): {
-                self.venture1.id: 10,
-                self.venture2.id: 20,
+                self.service1.id: 10,
+                self.service2.id: 20,
             },
             datetime.date(2013, 10, 13): {
-                self.venture1.id: 10,
-                self.venture2.id: 20,
+                self.service1.id: 10,
+                self.service2.id: 20,
             },
         })
 
@@ -798,14 +815,16 @@ class TestUsageBasePlugin(TestCase):
             usage_type=self.usage_type,
             type='schema'
         )
+        count_key = 'ut_{}_count'.format(self.usage_type.id)
+        cost_key = 'ut_{}_cost'.format(self.usage_type.id)
         self.assertEquals(result, OrderedDict([
-            ('ut_1_count', {
-                'name': _('UsageType1 count'),
+            (count_key, {
+                'name': _('{} count'.format(self.usage_type.name)),
                 'rounding': 0,
                 'divide_by': 1,
             }),
-            ('ut_1_cost', {
-                'name': _('UsageType1 cost'),
+            (cost_key, {
+                'name': _('{} cost'.format(self.usage_type.name)),
                 'currency': True,
                 'total_cost': True,
             }),
@@ -816,27 +835,47 @@ class TestUsageBasePlugin(TestCase):
             usage_type=self.usage_type_cost_wh,
             type='schema'
         )
+        ut_key = 'ut_{}_'.format(self.usage_type_cost_wh.id)
+        count_wh1_key = '{}count_wh_{}'.format(ut_key, self.warehouse1.id)
+        cost_wh1_key = '{}cost_wh_{}'.format(ut_key, self.warehouse1.id)
+        count_wh2_key = '{}count_wh_{}'.format(ut_key, self.warehouse2.id)
+        cost_wh2_key = '{}cost_wh_{}'.format(ut_key, self.warehouse2.id)
+        total_cost_key = '{}total_cost'.format(ut_key)
         self.assertEquals(result, OrderedDict([
-            ('ut_2_count_wh_1', {
-                'name': _('UsageType2 count (Warehouse1)'),
+            (count_wh1_key, {
+                'name': _('{} count ({})'.format(
+                    self.usage_type_cost_wh.name,
+                    self.warehouse1.name
+                )),
                 'rounding': 2,
                 'divide_by': 0,
             }),
-            ('ut_2_cost_wh_1', {
-                'name': _('UsageType2 cost (Warehouse1)'),
+            (cost_wh1_key, {
+                'name': _('{} cost ({})'.format(
+                    self.usage_type_cost_wh.name,
+                    self.warehouse1.name
+                )),
                 'currency': True,
             }),
-            ('ut_2_count_wh_2', {
-                'name': _('UsageType2 count (Warehouse2)'),
+            (count_wh2_key, {
+                'name': _('{} count ({})'.format(
+                    self.usage_type_cost_wh.name,
+                    self.warehouse2.name
+                )),
                 'rounding': 2,
                 'divide_by': 0,
             }),
-            ('ut_2_cost_wh_2', {
-                'name': _('UsageType2 cost (Warehouse2)'),
+            (cost_wh2_key, {
+                'name': _('{} cost ({})'.format(
+                    self.usage_type_cost_wh.name,
+                    self.warehouse2.name
+                )),
                 'currency': True,
             }),
-            ('ut_2_total_cost', {
-                'name': _('UsageType2 total cost'),
+            (total_cost_key, {
+                'name': _('{} total cost'.format(
+                    self.usage_type_cost_wh.name
+                )),
                 'currency': True,
                 'total_cost': True,
             }),

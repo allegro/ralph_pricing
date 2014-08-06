@@ -106,11 +106,34 @@ class PricingService(Named):
         blank=True,
         null=True,
     )
+    excluded_base_usage_types = db.ManyToManyField(
+        'UsageType',
+        related_name='excluded_from_pricing_service',
+        limit_choices_to={
+            'type': 'BU',
+        },
+        blank=True,
+        null=True,
+    )
+    regular_usage_types = db.ManyToManyField(
+        'UsageType',
+        related_name='pricing_services',
+        limit_choices_to={
+            'type': 'RU',
+        },
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = _("pricing service")
         verbose_name_plural = _("pricing services")
         app_label = 'ralph_scrooge'
+
+    def get_plugin_name(self):
+        if self.use_universal_plugin:
+            return 'pricing_service_plugin'
+        return self.symbol or self.name.lower().replace(' ', '_')
 
 
 class ServiceUsageTypes(db.Model):

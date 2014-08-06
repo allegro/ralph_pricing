@@ -17,7 +17,7 @@ from ralph_scrooge.views.usages import Usages
 from ralph_scrooge.views.statement import Statements
 from ralph_scrooge.views.teams import Teams
 from ralph_scrooge.views.teams_percent import TeamsPercent
-from ralph_scrooge.views.ventures import AllVentures
+from ralph_scrooge.views.report_services import ServicesReport
 from ralph_scrooge.views.ventures_changes import VenturesChanges
 from ralph_scrooge.views.ventures_daily_usages import VenturesDailyUsages
 
@@ -70,8 +70,8 @@ urlpatterns = patterns(
         name='teams',
     ),
     url(
-        r'^all-ventures/$',
-        login_required(AllVentures.as_view()),
+        r'^services-report/$',
+        login_required(ServicesReport.as_view()),
         name='all_ventures',
     ),
     url(

@@ -29,7 +29,7 @@ class BaseReportPlugin(BasePlugin):
 
     Usages and schema methods are connected - schema defines output format of
     usages method. Usages method should return information about usages (one
-    or more types - depending on plugins needs) per every venture.
+    or more types - depending on plugins needs) per every service.
     """
     distribute_count_key_tmpl = 'ut_{0}_count'
     distribute_cost_key_tmpl = 'ut_{0}_cost'
@@ -58,25 +58,29 @@ class BaseReportPlugin(BasePlugin):
         self,
         start,
         end,
-        ventures,
+        services,
         cost,
         percentage,
     ):
         """
-        Distributes some cost between all ventures proportionally to usages of
-        service resources (taken from percentage).
+        Distributes some cost between all services proportionally to usages of
+        pricing service resources (taken from percentage).
         """
-        # first level: venture
+        # first level: service
         # second level: usage type key (count or cost)
         result = defaultdict(lambda: defaultdict(int))
+        usage_types = {}  # usage types cache
 
         for usage_type_id, percent in percentage.items():
-            usage_type = UsageType.objects.get(id=usage_type_id)
-            usages_per_venture = self._get_usages_in_period_per_venture(
+            usage_type = usage_types.setdefault(
+                usage_type_id,
+                UsageType.objects.get(id=usage_type_id)
+            )
+            usages_per_service = self._get_usages_in_period_per_service(
                 start,
                 end,
                 usage_type,
-                ventures=ventures,
+                services=services,
             )
             total_usage = self._get_total_usage_in_period(
                 start,
@@ -88,12 +92,12 @@ class BaseReportPlugin(BasePlugin):
             count_key = self.distribute_count_key_tmpl.format(usage_type_id)
             cost_key = self.distribute_cost_key_tmpl.format(usage_type_id)
 
-            for venture_usage in usages_per_venture:
-                venture = venture_usage['pricing_venture']
-                usage = venture_usage['usage']
-                result[venture][count_key] = usage
-                venture_cost = D(usage) / D(total_usage) * cost_part
-                result[venture][cost_key] = venture_cost
+            for service_usage in usages_per_service:
+                service = service_usage['service']
+                usage = service_usage['usage']
+                result[service][count_key] = usage
+                service_cost = D(usage) / D(total_usage) * cost_part
+                result[service][cost_key] = service_cost
         return result
 
     @memoize(skip_first=True)
@@ -102,8 +106,8 @@ class BaseReportPlugin(BasePlugin):
         usage_price,
         forecast,
         warehouse=None,
-        ventures=None,
-        excluded_ventures=None,
+        services=None,
+        excluded_services=None,
     ):
         """
         Calculate price for single unit of usage type in period of time defined
@@ -116,8 +120,8 @@ class BaseReportPlugin(BasePlugin):
             usage_price.end,
             usage_price.type,
             warehouse,
-            ventures,
-            excluded_ventures,
+            services,
+            excluded_services,
         )
         cost = usage_price.forecast_cost if forecast else usage_price.cost
         price = 0
@@ -126,21 +130,17 @@ class BaseReportPlugin(BasePlugin):
         return D(price)
 
     @memoize(skip_first=True)
-    def _get_total_usage_in_period(
+    def _get_daily_usages_in_period(
         self,
         start,
         end,
         usage_type,
         warehouse=None,
-        ventures=None,
-        excluded_ventures=None,
+        services=None,
+        excluded_services=None,
     ):
         """
-        Calculates total usage of usage type in period of time (between start
-        and end). Total usage can be calculated overall, for single warehouse,
-        for selected ventures or for ventures in warehouse.
-
-        :rtype: float
+        Filter daily usages based on passed params
         """
         daily_usages = DailyUsage.objects.filter(
             date__gte=start,
@@ -149,81 +149,78 @@ class BaseReportPlugin(BasePlugin):
         )
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)
-        if ventures:
-            daily_usages = daily_usages.filter(pricing_venture__in=ventures)
-        if excluded_ventures:
+        if services:
+            daily_usages = daily_usages.filter(service__in=services)
+        if excluded_services:
             daily_usages = daily_usages.exclude(
-                pricing_venture__in=excluded_ventures
+                service__in=excluded_services
             )
+        return daily_usages
+
+    @memoize(skip_first=True)
+    def _get_total_usage_in_period(self, *args, **kwargs):
+        """
+        Calculates total usage of usage type in period of time (between start
+        and end). Total usage can be calculated overall, for single warehouse,
+        for selected services or for services in warehouse.
+
+        :rtype: float
+        """
+        daily_usages = self._get_daily_usages_in_period(*args, **kwargs)
         return daily_usages.aggregate(
             total=Sum('value')
         ).get('total') or 0
 
     @memoize(skip_first=True)
-    def _get_usages_in_period_per_venture(
-        self,
-        start,
-        end,
-        usage_type,
-        warehouse=None,
-        ventures=None,
-        excluded_ventures=None,
-    ):
+    def _get_usages_in_period_per_service(self, *args, **kwargs):
         """
         Method similar to `_get_total_usage_in_period`, but instead of
-        one-number result, it returns total cost per venture in period of time
+        one-number result, it returns total cost per service in period of time
         (between start and end). Total usage can be calculated overall, for
-        single warehouse, for selected ventures or for ventures in warehouse.
+        single warehouse, for selected services or for services in warehouse.
 
         :rtype: list
         """
-        daily_usages = DailyUsage.objects.filter(
-            date__gte=start,
-            date__lte=end,
-            type=usage_type,
-        )
-        if warehouse:
-                daily_usages = daily_usages.filter(warehouse=warehouse)
-        if ventures:
-            daily_usages = daily_usages.filter(pricing_venture__in=ventures)
-        if excluded_ventures:
-            daily_usages = daily_usages.exclude(
-                pricing_venture__in=excluded_ventures
-            )
-        return list(daily_usages.values('pricing_venture').annotate(
+        daily_usages = self._get_daily_usages_in_period(*args, **kwargs)
+        return list(daily_usages.values('service').annotate(
             usage=Sum('value'),
-        ).order_by('pricing_venture'))
+        ).order_by('service'))
 
+    # TODO: rename
     @memoize(skip_first=True)
     def _get_usages_in_period_per_device(
         self,
         start,
         end,
         usage_type,
-        ventures=None,
+        services=None,
         warehouse=None,
-        excluded_ventures=None,
+        excluded_services=None,
     ):
         """
-        Works almost exactly as `_get_usages_in_period_per_venture`, but
-        instead of returning data grouped by venture, it returns usages
+        Works almost exactly as `_get_usages_in_period_per_service`, but
+        instead of returning data grouped by service, it returns usages
         aggregated by single device.
 
         :rtype: list
         """
+        # TODO: change to usage per pricing object (pass pricing object type)
+        # TODO: use self._get_daily_usages_in_period
         daily_usages = DailyUsage.objects.filter(
             date__gte=start,
             date__lte=end,
             type=usage_type,
         )
-        if ventures:
-            daily_usages = daily_usages.filter(pricing_venture__in=ventures)
-        if excluded_ventures:
+        if services:
+            daily_usages = daily_usages.filter(service__in=services)
+        if excluded_services:
             daily_usages = daily_usages.exclude(
-                pricing_venture__in=excluded_ventures
+                service__in=excluded_services
             )
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)
-        return list(daily_usages.values('pricing_device').annotate(
-            usage=Sum('value'),
-        ).order_by('pricing_device'))
+        return list(daily_usages.values(
+            'daily_pricing_object__pricing_object'
+        ).annotate(usage=Sum('value')).order_by(
+            'daily_pricing_object__pricing_object'
+        ))
