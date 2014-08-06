@@ -10,20 +10,16 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding model 'DailyTenantInfo'
         db.create_table(u'ralph_scrooge_dailytenantinfo', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('daily_pricing_object', self.gf('django.db.models.fields.related.OneToOneField')(related_name=u'daily_tenant', unique=True, to=orm['ralph_scrooge.DailyPricingObject'])),
-            ('tenant_info', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_scrooge.TenantInfo'])),
+            ('dailypricingobject_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['ralph_scrooge.DailyPricingObject'], unique=True, primary_key=True)),
+            ('tenant_info', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'daily_tenant', to=orm['ralph_scrooge.TenantInfo'])),
             ('enabled', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('date', self.gf('django.db.models.fields.DateField')()),
         ))
         db.send_create_signal(u'ralph_scrooge', ['DailyTenantInfo'])
 
         # Adding model 'TenantInfo'
         db.create_table(u'ralph_scrooge_tenantinfo', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('pricing_object', self.gf('django.db.models.fields.related.OneToOneField')(related_name=u'tenant', unique=True, to=orm['ralph_scrooge.PricingObject'])),
+            ('pricingobject_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['ralph_scrooge.PricingObject'], unique=True, primary_key=True)),
             ('tenant_id', self.gf('django.db.models.fields.CharField')(max_length=100, db_index=True)),
-            ('tenant_type', self.gf('django.db.models.fields.CharField')(max_length=30, null=True, blank=True)),
         ))
         db.send_create_signal(u'ralph_scrooge', ['TenantInfo'])
 
@@ -125,12 +121,11 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'ralph_scrooge.assetinfo': {
-            'Meta': {'object_name': 'AssetInfo'},
+            'Meta': {'object_name': 'AssetInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
             'asset_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'barcode': ('django.db.models.fields.CharField', [], {'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'device_id': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pricing_object': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "u'asset_info'", 'unique': 'True', 'to': u"orm['ralph_scrooge.PricingObject']"}),
+            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
             'sn': ('django.db.models.fields.CharField', [], {'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'warehouse': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Warehouse']"})
         },
@@ -141,13 +136,11 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
         },
         u'ralph_scrooge.dailyassetinfo': {
-            'Meta': {'object_name': 'DailyAssetInfo'},
+            'Meta': {'object_name': 'DailyAssetInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
             'asset_info': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.AssetInfo']"}),
             'daily_cost': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
-            'daily_pricing_object': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "u'daily_asset'", 'unique': 'True', 'to': u"orm['ralph_scrooge.DailyPricingObject']"}),
-            'date': ('django.db.models.fields.DateField', [], {}),
+            'dailypricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.DailyPricingObject']", 'unique': 'True', 'primary_key': 'True'}),
             'depreciation_rate': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_depreciated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '6'})
         },
@@ -169,12 +162,10 @@ class Migration(SchemaMigration):
             'service': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_pricing_objects'", 'to': u"orm['ralph_scrooge.Service']"})
         },
         u'ralph_scrooge.dailytenantinfo': {
-            'Meta': {'object_name': 'DailyTenantInfo'},
-            'daily_pricing_object': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "u'daily_tenant'", 'unique': 'True', 'to': u"orm['ralph_scrooge.DailyPricingObject']"}),
-            'date': ('django.db.models.fields.DateField', [], {}),
+            'Meta': {'object_name': 'DailyTenantInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
+            'dailypricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.DailyPricingObject']", 'unique': 'True', 'primary_key': 'True'}),
             'enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'tenant_info': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.TenantInfo']"})
+            'tenant_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_tenant'", 'to': u"orm['ralph_scrooge.TenantInfo']"})
         },
         u'ralph_scrooge.dailyusage': {
             'Meta': {'object_name': 'DailyUsage'},
@@ -188,10 +179,9 @@ class Migration(SchemaMigration):
             'warehouse': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Warehouse']", 'on_delete': 'models.PROTECT'})
         },
         u'ralph_scrooge.dailyvirtualinfo': {
-            'Meta': {'object_name': 'DailyVirtualInfo'},
-            'daily_pricing_object': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "u'daily_virtual'", 'unique': 'True', 'to': u"orm['ralph_scrooge.DailyPricingObject']"}),
+            'Meta': {'object_name': 'DailyVirtualInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
+            'dailypricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.DailyPricingObject']", 'unique': 'True', 'primary_key': 'True'}),
             'hypervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_virtuals'", 'to': u"orm['ralph_scrooge.DailyAssetInfo']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'virtual_info': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.VirtualInfo']"})
         },
         u'ralph_scrooge.extracost': {
@@ -340,11 +330,9 @@ class Migration(SchemaMigration):
             'team_daterange': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'percentage'", 'to': u"orm['ralph_scrooge.TeamDaterange']"})
         },
         u'ralph_scrooge.tenantinfo': {
-            'Meta': {'object_name': 'TenantInfo'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pricing_object': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "u'tenant'", 'unique': 'True', 'to': u"orm['ralph_scrooge.PricingObject']"}),
-            'tenant_id': ('django.db.models.fields.CharField', [], {'max_length': '100', 'db_index': 'True'}),
-            'tenant_type': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'})
+            'Meta': {'object_name': 'TenantInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
+            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
+            'tenant_id': ('django.db.models.fields.CharField', [], {'max_length': '100', 'db_index': 'True'})
         },
         u'ralph_scrooge.usageprice': {
             'Meta': {'ordering': "(u'type', u'-start')", 'unique_together': "[(u'warehouse', u'start', u'type'), (u'warehouse', u'end', u'type'), (u'team', u'start', u'type'), (u'team', u'end', u'type'), (u'internet_provider', u'start', u'type'), (u'internet_provider', u'end', u'type')]", 'object_name': 'UsagePrice'},
@@ -384,10 +372,9 @@ class Migration(SchemaMigration):
             'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
         },
         u'ralph_scrooge.virtualinfo': {
-            'Meta': {'object_name': 'VirtualInfo'},
+            'Meta': {'object_name': 'VirtualInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
             'device_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'pricing_object': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "u'virtual'", 'unique': 'True', 'to': u"orm['ralph_scrooge.PricingObject']"})
+            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'ralph_scrooge.warehouse': {
             'Meta': {'object_name': 'Warehouse'},

@@ -14,6 +14,9 @@ VIRTUAL_VENTURE_NAMES = {}
 SHARE_VENTURE_SYMBOLS = {}
 # SHARES_UNKNOWN_VENTURES = {}  # symbols
 
+# OpenStack
+OPENSTACK_TENANT_SERVICE_FIELD = None
+
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
 

@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -59,8 +59,8 @@ def get_daily_tenant(tenant_id, date):
     try:
         tenant = TenantInfo.objects.get(tenant_id=tenant_id)
         return tenant.daily_tenant.get(date=date)
-    except TenantInfo.DoesNotExist, DailyTenantInfo.DoesNotExist:
-        raise DailyTenantNotFoundError()
+    except (TenantInfo.DoesNotExist, DailyTenantInfo.DoesNotExist) as e:
+        raise DailyTenantNotFoundError(e)
 
 
 def get_ceilometer_usages(date, connection_string):
@@ -94,12 +94,12 @@ def save_ceilometer_usages(usages, date, warehouse):
             continue
         DailyUsage(
             date=date,
-            service=daily_tenant.daily_pricing_object.service,
-            daily_pricing_object=daily_tenant.daily_pricing_object,
+            service=daily_tenant.service,
+            daily_pricing_object=daily_tenant,
             value=value / 6.0,  # ceilometer usages are saved each 10 minutes
             type=usage_type,
             warehouse=warehouse,
-        )
+        ).save()
         new += 1
     return new, total
 
@@ -107,7 +107,7 @@ def save_ceilometer_usages(usages, date, warehouse):
 def clear_ceilometer_stats(date):
     logger.debug('Clearing ceilometer records for {}'.format(date))
     DailyUsage.objects.filter(
-        type__name__startswith=METRIC_TMPL.format(''),
+        type__symbol__startswith=METRIC_TMPL.format(''),
         date=date,
     ).delete()
 

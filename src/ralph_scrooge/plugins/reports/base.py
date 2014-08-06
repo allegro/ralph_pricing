@@ -20,15 +20,6 @@ from ralph_scrooge.plugins.base import BasePlugin
 logger = logging.getLogger(__name__)
 
 
-class AttributeDict(dict):
-    """
-    Attribute dict. Used to attribute access to dict
-    """
-    def __init__(self, *args, **kwargs):
-        super(AttributeDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
-
-
 class BaseReportPlugin(BasePlugin):
     """
     Base report plugin

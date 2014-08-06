@@ -15,8 +15,6 @@ from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
     DailyUsage,
-    DailyPricingObject,
-    PricingObject,
     PricingObjectType,
     Service,
     UsageType,
@@ -27,23 +25,7 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 
-def create_pricing_object(service, data):
-    """
-    Create pricing object
-
-    :param object service: Django orm Service object
-    :param dict data: Data from assets API
-    :returns object: Django orm PricingObject object
-    :rtype:
-    """
-    return PricingObject.objects.create(
-        name=data['asset_name'],
-        service=service,
-        type=PricingObjectType.asset,
-    )
-
-
-def get_asset_and_pricing_object(service, warehouse, data):
+def get_asset_info(service, warehouse, data):
     """
     Update AssetInfo object or create it if not exist.
 
@@ -56,46 +38,23 @@ def get_asset_and_pricing_object(service, warehouse, data):
     created = False
     try:
         asset_info = AssetInfo.objects.get(asset_id=data['asset_id'])
-        asset_info.pricing_object.service = service
-        asset_info.pricing_object.name = data['asset_name']
-        asset_info.pricing_object.save()
     except AssetInfo.DoesNotExist:
         asset_info = AssetInfo(
             asset_id=data['asset_id'],
-            pricing_object=create_pricing_object(service, data),
+            type=PricingObjectType.asset,
         )
         created = True
+    asset_info.service = service
+    asset_info.name = data['asset_name']
     asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
     asset_info.device_id = data['device_id']
     asset_info.save()
-    return asset_info, asset_info.pricing_object, created
+    return asset_info, created
 
 
-def get_daily_pricing_object(pricing_object, service, date):
-    """
-    Create daily pricing object
-
-    :param object service: Django orm Service object
-    :param object warehouse: Django orm Warehouse object
-    :param object date: datetime
-    :returns object: Django orm DailyPricingObject object
-    :rtype:
-    """
-    daily_pricing_object = DailyPricingObject.objects.get_or_create(
-        pricing_object=pricing_object,
-        date=date,
-        defaults=dict(
-            service=service
-        )
-    )[0]
-    daily_pricing_object.service = service
-    daily_pricing_object.save()
-    return daily_pricing_object
-
-
-def get_daily_asset_info(asset_info, daily_pricing_object, date, data):
+def get_daily_asset_info(asset_info, date, data):
     """
     Get or create daily asset info
 
@@ -107,10 +66,14 @@ def get_daily_asset_info(asset_info, daily_pricing_object, date, data):
     :rtype:
     """
     daily_asset_info, created = DailyAssetInfo.objects.get_or_create(
+        pricing_object=asset_info,
         asset_info=asset_info,
-        daily_pricing_object=daily_pricing_object,
         date=date,
+        defaults=dict(
+            service=asset_info.service,
+        )
     )
+    daily_asset_info.service = asset_info.service
     daily_asset_info.depreciation_rate = data['depreciation_rate']
     daily_asset_info.is_depreciated = data['is_depreciated']
     daily_asset_info.price = data['price']
@@ -172,27 +135,20 @@ def update_assets(data, date, usages):
             data['warehouse_id']
         ))
         return (False, False)
-
-    asset_info, pricing_object, new_created = get_asset_and_pricing_object(
+    asset_info, new_created = get_asset_info(
         service,
         warehouse,
         data,
     )
-    daily_pricing_object = get_daily_pricing_object(
-        pricing_object,
-        service,
-        date,
-    )
-    get_daily_asset_info(
+    daily_asset_info = get_daily_asset_info(
         asset_info,
-        daily_pricing_object,
         date,
         data,
     )
 
     update_usage(
         service,
-        daily_pricing_object,
+        daily_asset_info,
         usages['core'],
         data['core'],
         date,
@@ -200,7 +156,7 @@ def update_assets(data, date, usages):
     )
     update_usage(
         service,
-        daily_pricing_object,
+        daily_asset_info,
         usages['power_consumption'],
         data['power_consumption'],
         date,
@@ -208,7 +164,7 @@ def update_assets(data, date, usages):
     )
     update_usage(
         service,
-        daily_pricing_object,
+        daily_asset_info,
         usages['collocation'],
         data['collocation'],
         date,
@@ -241,7 +197,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average):
     return usage_type
 
 
-@plugin.register(chain='pricing', requires=[])
+@plugin.register(chain='scrooge', requires=[])
 def asset(**kwargs):
     """
     Updates assets and usages
