@@ -1,8 +1,8 @@
 include README.rst CHANGES.rst LICENSE NOTICE
 recursive-include doc *.py *.rst *.txt *.html *.css *.js *.png *.git *.jpg *.conf *.bat *.pdf *.docx Makefile
-recursive-include src/ralph_pricing/templates *
-recursive-include src/ralph_pricing/tests *
-recursive-include src/ralph_pricing/fixtures *
-recursive-include src/ralph_pricing/media/scrooge/css *
-recursive-include src/ralph_pricing/media/scrooge/js *
+recursive-include src/ralph_scrooge/templates *
+recursive-include src/ralph_scrooge/tests *
+recursive-include src/ralph_scrooge/fixtures *
+recursive-include src/ralph_scrooge/media/scrooge/css *
+recursive-include src/ralph_scrooge/media/scrooge/js *
 prune doc/_build
