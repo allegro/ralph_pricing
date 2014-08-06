@@ -56,62 +56,40 @@ class TestAssetPlugin(TestCase):
             UsageType.objects.all()[0]
         )
 
-    def test_create_pricing_object(self):
-        self.assertEqual(
-            asset.create_pricing_object(self.service, self.data),
-            PricingObject.objects.all()[:1].get(),
-        )
-
     def test_get_asset_and_pricing_object_when_asset_info_not_exist(self):
         self.assertEqual(
-            asset.get_asset_and_pricing_object(
+            asset.get_asset_info(
                 self.service,
                 self.warehouse,
                 self.data,
             ),
             (
                 AssetInfo.objects.all()[:1].get(),
-                PricingObject.objects.all()[:1].get(),
                 True,
             )
         )
 
     def test_get_asset_and_pricing_object_when_asset_info_exist(self):
-        AssetInfo.objects.create(
+        AssetInfoFactory(
             asset_id=self.data['asset_id'],
-            pricing_object=PricingObjectFactory.create(),
             warehouse=self.warehouse,
         )
         self.assertEqual(
-            asset.get_asset_and_pricing_object(
+            asset.get_asset_info(
                 self.service,
                 self.warehouse,
                 self.data,
             ),
             (
                 AssetInfo.objects.all()[:1].get(),
-                PricingObject.objects.all()[:1].get(),
                 False,
             )
-        )
-
-    def test_get_daily_pricing_object(self):
-        self.assertEqual(
-            asset.get_daily_pricing_object(
-                PricingObjectFactory.create(),
-                self.service,
-                self.date,
-            ),
-            DailyPricingObject.objects.all()[:1].get()
         )
 
     def test_get_daily_asset_info(self):
         self.assertEqual(
             asset.get_daily_asset_info(
                 AssetInfoFactory.create(),
-                DailyPricingObjectFactory.create(
-                    pricing_object=PricingObjectFactory.create(),
-                ),
                 self.date,
                 self.data,
             ),
