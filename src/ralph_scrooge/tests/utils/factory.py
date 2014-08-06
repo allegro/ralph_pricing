@@ -67,11 +67,9 @@ class AssetInfoFactory(PricingObjectFactory):
     warehouse = SubFactory(WarehouseFactory)
 
 
-class DailyAssetInfoFactory(DjangoModelFactory):
+class DailyAssetInfoFactory(DailyPricingObjectFactory):
     FACTORY_FOR = models.DailyAssetInfo
 
-    date = datetime.date.today()
-    daily_pricing_object = SubFactory(DailyPricingObjectFactory)
     asset_info = SubFactory(AssetInfoFactory)
     depreciation_rate = fuzzy.FuzzyDecimal(0, 50)
     is_depreciated = fuzzy.FuzzyAttribute(lambda: random.random() < 0.5)

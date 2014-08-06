@@ -18,10 +18,7 @@ from ralph_scrooge.plugins.collect.san import (
     update_san,
     update_usage,
 )
-from ralph_scrooge.tests.utils.factory import (
-    DailyAssetInfoFactory,
-    DailyPricingObjectFactory,
-)
+from ralph_scrooge.tests.utils.factory import DailyAssetInfoFactory
 from ralph_scrooge.tests.plugins.collect.samples.san import SAMPLE_SAN
 
 
@@ -31,10 +28,10 @@ class TestSanCollectPlugin(TestCase):
         self.san_usage_type = get_usage_type()
 
     def test_update_usage(self):
-        daily_pricing_object = DailyPricingObjectFactory(date=self.today)
+        daily_asset_info = DailyAssetInfoFactory(date=self.today)
         self.assertTrue(update_usage(
-            daily_pricing_object,
-            daily_pricing_object.service,
+            daily_asset_info,
+            daily_asset_info.service,
             self.today,
             1,
             self.san_usage_type,
@@ -42,14 +39,14 @@ class TestSanCollectPlugin(TestCase):
         self.assertEquals(self.san_usage_type.dailyusage_set.count(), 1)
         daily_usage = self.san_usage_type.dailyusage_set.all()[:1].get()
         self.assertEquals(daily_usage.date.date(), self.today)
-        self.assertEquals(daily_usage.service, daily_pricing_object.service)
+        self.assertEquals(daily_usage.service, daily_asset_info.service)
         self.assertEquals(daily_usage.type, self.san_usage_type)
         self.assertEquals(daily_usage.value, 1)
 
         # update
         self.assertFalse(update_usage(
-            daily_pricing_object,
-            daily_pricing_object.service,
+            daily_asset_info,
+            daily_asset_info.service,
             self.today,
             2,
             self.san_usage_type,
@@ -68,8 +65,8 @@ class TestSanCollectPlugin(TestCase):
             self.san_usage_type
         ))
         update_usage_mock.assert_called_with(
-            daily_asset_info.daily_pricing_object,
-            daily_asset_info.daily_pricing_object.service,
+            daily_asset_info,
+            daily_asset_info.service,
             self.today,
             1,
             self.san_usage_type,
