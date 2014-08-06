@@ -52,10 +52,9 @@ class DailyPricingObjectFactory(DjangoModelFactory):
     service = SubFactory(ServiceFactory)
 
 
-class AssetInfoFactory(DjangoModelFactory):
+class AssetInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.AssetInfo
 
-    pricing_object = SubFactory(PricingObjectFactory)
     sn = Sequence(lambda n: n)
     barcode = Sequence(lambda n: n)
     asset_id = Sequence(lambda n: n)
