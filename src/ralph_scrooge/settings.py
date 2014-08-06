@@ -11,7 +11,7 @@ VIRTUAL_VENTURE_NAMES = {}
 CLOUD_UNKNOWN_VENTURE = None
 
 # Shares plugin default config
-SHARE_VENTURE_SYMBOLS = {}
+SHARE_SERVICE_CI_UID = {}
 SHARES_UNKNOWN_VENTURES = {}  # symbols
 
 # Pricing statistics default config
