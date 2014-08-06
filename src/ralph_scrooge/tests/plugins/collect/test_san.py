@@ -97,8 +97,7 @@ class TestSanCollectPlugin(TestCase):
     @mock.patch('ralph_scrooge.plugins.collect.san.get_fc_cards')
     def test_batch_update(self, get_fc_cards_mock, update_san_mock):
         def sample_get_fc_cards():
-            for san in SAMPLE_SAN:
-                yield san
+            return SAMPLE_SAN
 
         def sample_update_san_mock(data, date, usage_type):
             responses = {
@@ -106,16 +105,14 @@ class TestSanCollectPlugin(TestCase):
                 30: AssetInfoNotFound(),
                 40: DailyAssetInfoNotFound(),
             }
-            device_id = data['device_id']
-            response = responses.get(device_id, True)
+            response = responses.get(data['device_id'], True)
             if isinstance(response, Exception):
                 raise response
             return response
 
         get_fc_cards_mock.side_effect = sample_get_fc_cards
         update_san_mock.side_effect = sample_update_san_mock
-        result = san_plugin(today=self.today)
         self.assertEquals(
-            result,
+            san_plugin(today=self.today),
             (True, '1 new SAN usages, 1 updated, 4 total')
         )
