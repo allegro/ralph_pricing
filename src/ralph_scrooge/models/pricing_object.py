@@ -66,11 +66,7 @@ class DailyPricingObject(db.Model):
         app_label = 'ralph_scrooge'
 
 
-class AssetInfo(db.Model):
-    pricing_object = db.OneToOneField(
-        PricingObject,
-        related_name='asset_info',
-    )
+class AssetInfo(PricingObject):
     sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
     barcode = db.CharField(max_length=200, null=True, blank=True, unique=True)
     device_id = db.IntegerField(
@@ -92,11 +88,7 @@ class AssetInfo(db.Model):
         app_label = 'ralph_scrooge'
 
 
-class DailyAssetInfo(db.Model):
-    daily_pricing_object = db.OneToOneField(
-        DailyPricingObject,
-        related_name='daily_asset'
-    )
+class DailyAssetInfo(DailyPricingObject):
     asset_info = db.ForeignKey(
         AssetInfo,
     )
@@ -121,7 +113,6 @@ class DailyAssetInfo(db.Model):
         verbose_name=_("daily cost"),
         default=0,
     )
-    date = db.DateField(null=False, blank=False)
 
     def calc_costs(self):
         """
@@ -142,22 +133,14 @@ class DailyAssetInfo(db.Model):
         app_label = 'ralph_scrooge'
 
 
-class VirtualInfo(db.Model):
-    pricing_object = db.OneToOneField(
-        PricingObject,
-        related_name='virtual',
-    )
+class VirtualInfo(PricingObject):
     device_id = db.IntegerField(unique=True, verbose_name=_("Ralph device ID"))
 
     class Meta:
         app_label = 'ralph_scrooge'
 
 
-class DailyVirtualInfo(db.Model):
-    daily_pricing_object = db.OneToOneField(
-        DailyPricingObject,
-        related_name='daily_virtual'
-    )
+class DailyVirtualInfo(DailyPricingObject):
     hypervisor = db.ForeignKey(DailyAssetInfo, related_name='daily_virtuals')
 
     class Meta:
