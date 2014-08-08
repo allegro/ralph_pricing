@@ -45,12 +45,8 @@ class PricingObject(TimeTrackable, EditorTrackable):
         blank=True,
         default="",
     )
-    service = db.ForeignKey(
-        'Service',
-        related_name='pricing_objects'
-    )
-    environment = db.ForeignKey(
-        'Environment',
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
         related_name='pricing_objects'
     )
 
@@ -64,15 +60,9 @@ class PricingObject(TimeTrackable, EditorTrackable):
 class DailyPricingObject(db.Model):
     date = db.DateField(null=False, blank=False)
     pricing_object = db.ForeignKey(PricingObject, null=False, blank=False)
-    service = db.ForeignKey(
-        'Service',
-        related_name='daily_pricing_objects',
-        db_index=True,
-    )
-    environment = db.ForeignKey(
-        'Environment',
-        related_name='daily_pricing_objects',
-        db_index=True,
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
+        related_name='daily_pricing_objects'
     )
 
     class Meta:

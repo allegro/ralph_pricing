@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.views.reports import Report
 from ralph_scrooge.models import (
+    Environment,
     PricingService,
     Service,
     UsageType,
@@ -233,10 +234,17 @@ class BasePluginReport(Report):
         :returns list: list of ventures
         :rtype list:
         """
-        logger.debug("Getting ventures")
-        services = Service.objects.order_by('name').all()
-        logger.debug("Got {0} ventures".format(services.count()))
+        logger.debug("Getting services")
+        services = Service.objects.all()
+        logger.debug("Got {0} services".format(services.count()))
         return services
+
+    @classmethod
+    def _get_environments(cls):
+        logger.debug('Getting environments')
+        environments = Environment.objects.all()
+        logger.debug('Got {} environments'.format(environments.count()))
+        return environments
 
     @classmethod
     @memoize

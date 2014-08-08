@@ -76,7 +76,7 @@ class BaseReportPlugin(BasePlugin):
                 usage_type_id,
                 UsageType.objects.get(id=usage_type_id)
             )
-            usages_per_service = self._get_usages_in_period_per_service(
+            usages_per_service = self._get_usages_in_period_per_service_environment(
                 start,
                 end,
                 usage_type,
@@ -93,11 +93,11 @@ class BaseReportPlugin(BasePlugin):
             cost_key = self.distribute_cost_key_tmpl.format(usage_type_id)
 
             for service_usage in usages_per_service:
-                service = service_usage['service']
+                service_environment = service_usage['service_environment']
                 usage = service_usage['usage']
-                result[service][count_key] = usage
+                result[service_environment][count_key] = usage
                 service_cost = D(usage) / D(total_usage) * cost_part
-                result[service][cost_key] = service_cost
+                result[service_environment][cost_key] = service_cost
         return result
 
     @memoize(skip_first=True)
@@ -150,10 +150,12 @@ class BaseReportPlugin(BasePlugin):
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)
         if services:
-            daily_usages = daily_usages.filter(service__in=services)
+            daily_usages = daily_usages.filter(
+                service_environment__service__in=services
+            )
         if excluded_services:
             daily_usages = daily_usages.exclude(
-                service__in=excluded_services
+                service_environment__service__in=excluded_services
             )
         return daily_usages
 
@@ -172,7 +174,7 @@ class BaseReportPlugin(BasePlugin):
         ).get('total') or 0
 
     @memoize(skip_first=True)
-    def _get_usages_in_period_per_service(self, *args, **kwargs):
+    def _get_usages_in_period_per_service_environment(self, *args, **kwargs):
         """
         Method similar to `_get_total_usage_in_period`, but instead of
         one-number result, it returns total cost per service in period of time
@@ -182,9 +184,24 @@ class BaseReportPlugin(BasePlugin):
         :rtype: list
         """
         daily_usages = self._get_daily_usages_in_period(*args, **kwargs)
-        return list(daily_usages.values('service').annotate(
+        return list(daily_usages.values('service_environment').annotate(
             usage=Sum('value'),
-        ).order_by('service'))
+        ).order_by('service_environment'))
+
+    # @memoize(skip_first=True)
+    # def _get_usages_in_period_per_service(self, *args, **kwargs):
+    #     """
+    #     Method similar to `_get_total_usage_in_period`, but instead of
+    #     one-number result, it returns total cost per service in period of time
+    #     (between start and end). Total usage can be calculated overall, for
+    #     single warehouse, for selected services or for services in warehouse.
+
+    #     :rtype: list
+    #     """
+    #     daily_usages = self._get_daily_usages_in_period(*args, **kwargs)
+    #     return list(daily_usages.values('service_environment__service').annotate(
+    #         usage=Sum('value'),
+    #     ).order_by('service_environment__service'))
 
     # TODO: rename
     @memoize(skip_first=True)
@@ -212,10 +229,10 @@ class BaseReportPlugin(BasePlugin):
             type=usage_type,
         )
         if services:
-            daily_usages = daily_usages.filter(service__in=services)
+            daily_usages = daily_usages.filter(service_environment__service__in=services)
         if excluded_services:
             daily_usages = daily_usages.exclude(
-                service__in=excluded_services
+                service_environment__service__in=excluded_services
             )
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)

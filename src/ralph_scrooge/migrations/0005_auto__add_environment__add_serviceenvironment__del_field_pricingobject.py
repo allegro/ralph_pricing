@@ -16,14 +16,36 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'ralph_scrooge', ['Environment'])
 
-        # Adding field 'PricingObject.environment'
-        db.add_column(u'ralph_scrooge_pricingobject', 'environment',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, related_name=u'pricing_objects', to=orm['ralph_scrooge.Environment']),
+        # Adding model 'ServiceEnvironment'
+        db.create_table(u'ralph_scrooge_serviceenvironment', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('service', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'environments_services', to=orm['ralph_scrooge.Service'])),
+            ('environment', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'services_environments', to=orm['ralph_scrooge.Environment'])),
+        ))
+        db.send_create_signal(u'ralph_scrooge', ['ServiceEnvironment'])
+
+        # Deleting field 'PricingObject.service'
+        db.delete_column(u'ralph_scrooge_pricingobject', 'service_id')
+
+        # Adding field 'PricingObject.service_environment'
+        db.add_column(u'ralph_scrooge_pricingobject', 'service_environment',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, related_name=u'pricing_objects', to=orm['ralph_scrooge.ServiceEnvironment']),
                       keep_default=False)
 
-        # Adding field 'DailyPricingObject.environment'
-        db.add_column(u'ralph_scrooge_dailypricingobject', 'environment',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, related_name=u'daily_pricing_objects', to=orm['ralph_scrooge.Environment']),
+        # Deleting field 'DailyUsage.service'
+        db.delete_column(u'ralph_scrooge_dailyusage', 'service_id')
+
+        # Adding field 'DailyUsage.service_environment'
+        db.add_column(u'ralph_scrooge_dailyusage', 'service_environment',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, related_name=u'daily_usages', to=orm['ralph_scrooge.ServiceEnvironment']),
+                      keep_default=False)
+
+        # Deleting field 'DailyPricingObject.service'
+        db.delete_column(u'ralph_scrooge_dailypricingobject', 'service_id')
+
+        # Adding field 'DailyPricingObject.service_environment'
+        db.add_column(u'ralph_scrooge_dailypricingobject', 'service_environment',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, related_name=u'daily_pricing_objects', to=orm['ralph_scrooge.ServiceEnvironment']),
                       keep_default=False)
 
 
@@ -31,11 +53,32 @@ class Migration(SchemaMigration):
         # Deleting model 'Environment'
         db.delete_table(u'ralph_scrooge_environment')
 
-        # Deleting field 'PricingObject.environment'
-        db.delete_column(u'ralph_scrooge_pricingobject', 'environment_id')
+        # Deleting model 'ServiceEnvironment'
+        db.delete_table(u'ralph_scrooge_serviceenvironment')
 
-        # Deleting field 'DailyPricingObject.environment'
-        db.delete_column(u'ralph_scrooge_dailypricingobject', 'environment_id')
+        # Adding field 'PricingObject.service'
+        db.add_column(u'ralph_scrooge_pricingobject', 'service',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, related_name=u'pricing_objects', to=orm['ralph_scrooge.Service']),
+                      keep_default=False)
+
+        # Deleting field 'PricingObject.service_environment'
+        db.delete_column(u'ralph_scrooge_pricingobject', 'service_environment_id')
+
+        # Adding field 'DailyUsage.service'
+        db.add_column(u'ralph_scrooge_dailyusage', 'service',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['ralph_scrooge.Service']),
+                      keep_default=False)
+
+        # Deleting field 'DailyUsage.service_environment'
+        db.delete_column(u'ralph_scrooge_dailyusage', 'service_environment_id')
+
+        # Adding field 'DailyPricingObject.service'
+        db.add_column(u'ralph_scrooge_dailypricingobject', 'service',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, related_name=u'daily_pricing_objects', to=orm['ralph_scrooge.Service']),
+                      keep_default=False)
+
+        # Deleting field 'DailyPricingObject.service_environment'
+        db.delete_column(u'ralph_scrooge_dailypricingobject', 'service_environment_id')
 
 
     models = {
@@ -133,10 +176,9 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.dailypricingobject': {
             'Meta': {'object_name': 'DailyPricingObject'},
             'date': ('django.db.models.fields.DateField', [], {}),
-            'environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_pricing_objects'", 'to': u"orm['ralph_scrooge.Environment']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'pricing_object': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.PricingObject']"}),
-            'service': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_pricing_objects'", 'to': u"orm['ralph_scrooge.Service']"})
+            'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_pricing_objects'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"})
         },
         u'ralph_scrooge.dailytenantinfo': {
             'Meta': {'object_name': 'DailyTenantInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
@@ -150,7 +192,7 @@ class Migration(SchemaMigration):
             'date': ('django.db.models.fields.DateTimeField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
-            'service': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Service']"}),
+            'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_usages'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.UsageType']"}),
             'value': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             'warehouse': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Warehouse']", 'on_delete': 'models.PROTECT'})
@@ -162,7 +204,7 @@ class Migration(SchemaMigration):
             'virtual_info': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.VirtualInfo']"})
         },
         u'ralph_scrooge.environment': {
-            'Meta': {'object_name': 'Environment'},
+            'Meta': {'ordering': "[u'name']", 'object_name': 'Environment'},
             'environment_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
@@ -228,13 +270,12 @@ class Migration(SchemaMigration):
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
-            'environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'pricing_objects'", 'to': u"orm['ralph_scrooge.Environment']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
-            'service': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'pricing_objects'", 'to': u"orm['ralph_scrooge.Service']"}),
+            'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'pricing_objects'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
             'type': ('django.db.models.fields.PositiveIntegerField', [], {})
         },
         u'ralph_scrooge.pricingservice': {
@@ -255,11 +296,18 @@ class Migration(SchemaMigration):
             'ci_uid': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'environments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceEnvironment']", 'to': u"orm['ralph_scrooge.Environment']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'ownership': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceOwnership']", 'to': u"orm['ralph_scrooge.Owner']"})
+        },
+        u'ralph_scrooge.serviceenvironment': {
+            'Meta': {'object_name': 'ServiceEnvironment'},
+            'environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'services_environments'", 'to': u"orm['ralph_scrooge.Environment']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'service': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'environments_services'", 'to': u"orm['ralph_scrooge.Service']"})
         },
         u'ralph_scrooge.serviceownership': {
             'Meta': {'object_name': 'ServiceOwnership'},

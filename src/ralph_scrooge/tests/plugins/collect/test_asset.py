@@ -22,7 +22,7 @@ from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
     DailyAssetInfoFactory,
     EnvironmentFactory,
-    PricingObjectFactory,
+    ServiceEnvironmentFactory,
     ServiceFactory,
     UsageTypeFactory,
     WarehouseFactory,
@@ -31,10 +31,11 @@ from ralph_scrooge.tests.utils.factory import (
 
 class TestAssetPlugin(TestCase):
     def setUp(self):
-        self.service = ServiceFactory.create()
+        # self.service = ServiceFactory.create()
+        # self.environment = EnvironmentFactory.create()
+        self.service_environment = ServiceEnvironmentFactory()
         self.date = datetime.date.today()
         self.warehouse = WarehouseFactory.create()
-        self.environment = EnvironmentFactory.create()
         self.value = 100
         self.data = {
             'asset_id': 1,
@@ -45,9 +46,9 @@ class TestAssetPlugin(TestCase):
             'depreciation_rate': 25,
             'is_depreciated': True,
             'price': 100,
-            'service_ci_uid': self.service.ci_uid,
+            'service_ci_uid': self.service_environment.service.ci_uid,
             'warehouse_id': self.warehouse.id_from_assets,
-            'environment_id': self.environment.environment_id,
+            'environment_id': self.service_environment.environment.environment_id,
             'cores_count': 4,
             'power_consumption': 200,
             'collocation': 2,
@@ -71,9 +72,8 @@ class TestAssetPlugin(TestCase):
     def test_get_asset_and_pricing_object_when_asset_info_not_exist(self):
         self.assertEqual(
             asset.get_asset_info(
-                self.service,
+                self.service_environment,
                 self.warehouse,
-                self.environment,
                 self.data,
             ),
             (
@@ -89,9 +89,8 @@ class TestAssetPlugin(TestCase):
         )
         self.assertEqual(
             asset.get_asset_info(
-                self.service,
+                self.service_environment,
                 self.warehouse,
-                self.environment,
                 self.data,
             ),
             (
@@ -125,7 +124,7 @@ class TestAssetPlugin(TestCase):
 
     def test_update_assets_when_service_does_not_exist(self):
         self.data['service_ci_uid'] = ServiceFactory.build().ci_uid
-        with self.assertRaises(asset.ServiceDoesNotExistError):
+        with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
             asset.update_assets(
                 self.data,
                 self.date,
@@ -151,7 +150,7 @@ class TestAssetPlugin(TestCase):
 
     def test_update_assets_when_environment_does_not_exist(self):
         self.data['environment_id'] = EnvironmentFactory.build().environment_id
-        with self.assertRaises(asset.EnvironmentDoesNotExistError):
+        with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
             asset.update_assets(
                 self.data,
                 self.date,

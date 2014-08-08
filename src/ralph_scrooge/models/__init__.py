@@ -28,6 +28,7 @@ from ralph_scrooge.models.service import (
     HistoricalService,  # dynamic model
     PricingService,
     Service,
+    ServiceEnvironment,
     ServiceUsageTypes,
 )
 
@@ -72,6 +73,7 @@ __all__ = [
     'PricingObjectType',
     'PricingService',
     'Service',
+    'ServiceEnvironment',
     'ServiceOwnership',
     'ServiceUsageTypes',
     'Statement',

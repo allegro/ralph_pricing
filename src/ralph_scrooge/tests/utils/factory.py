@@ -39,6 +39,13 @@ class EnvironmentFactory(DjangoModelFactory):
     environment_id = Sequence(lambda n: n)
 
 
+class ServiceEnvironmentFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ServiceEnvironment
+
+    service = SubFactory(ServiceFactory)
+    environment = SubFactory(EnvironmentFactory)
+
+
 class UsageTypeFactory(DjangoModelFactory):
     FACTORY_FOR = models.UsageType
 
@@ -49,8 +56,7 @@ class PricingObjectFactory(DjangoModelFactory):
     FACTORY_FOR = models.PricingObject
 
     type = 1
-    service = SubFactory(ServiceFactory)
-    environment = SubFactory(EnvironmentFactory)
+    service_environment = SubFactory(ServiceEnvironmentFactory)
 
 
 class DailyPricingObjectFactory(DjangoModelFactory):
@@ -58,8 +64,7 @@ class DailyPricingObjectFactory(DjangoModelFactory):
 
     date = datetime.date.today()
     pricing_object = SubFactory(PricingObjectFactory)
-    service = SubFactory(ServiceFactory)
-    environment = SubFactory(EnvironmentFactory)
+    service_environment = SubFactory(ServiceEnvironmentFactory)
 
 
 class AssetInfoFactory(PricingObjectFactory):
@@ -114,8 +119,7 @@ class DailyUsageFactory(DjangoModelFactory):
     FACTORY_FOR = models.DailyUsage
 
     date = datetime.date.today()
-    service = SubFactory(ServiceFactory)
-    environment = SubFactory(EnvironmentFactory)
+    service_environment = SubFactory(ServiceEnvironmentFactory)
     daily_pricing_object = SubFactory(DailyPricingObjectFactory)
     value = fuzzy.FuzzyDecimal(0, 1000)
     warehouse = SubFactory(WarehouseFactory)

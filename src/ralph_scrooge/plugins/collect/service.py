@@ -16,6 +16,7 @@ from ralph_scrooge.models import (
     Owner,
     OwnershipType,
     Service,
+    ServiceEnvironment,
     ServiceOwnership,
 )
 
@@ -65,6 +66,9 @@ def update_service(data, date):
                 owner=owner
             ) for owner in Owner.objects.filter(cmdb_id__in=to_add)
         ])
+
+    # save environments
+    # TODO
     return created
 
 

@@ -15,9 +15,8 @@ from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
     DailyUsage,
-    Environment,
     PricingObjectType,
-    Service,
+    ServiceEnvironment,
     UsageType,
     Warehouse,
 )
@@ -26,7 +25,7 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 
-class ServiceDoesNotExistError(Exception):
+class ServiceEnvironmentDoesNotExistError(Exception):
     """
     Raise this exception when service does not exist
     """
@@ -40,14 +39,7 @@ class WarehouseDoesNotExistError(Exception):
     pass
 
 
-class EnvironmentDoesNotExistError(Exception):
-    """
-    Exception raised when environment does not exist
-    """
-    pass
-
-
-def get_asset_info(service, warehouse, environment, data):
+def get_asset_info(service_environment, warehouse, data):
     """
     Update AssetInfo object or create it if not exist.
 
@@ -66,8 +58,7 @@ def get_asset_info(service, warehouse, environment, data):
             type=PricingObjectType.asset,
         )
         created = True
-    asset_info.service = service
-    asset_info.environment = environment
+    asset_info.service_environment = service_environment
     asset_info.name = data['asset_name']
     asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
@@ -88,20 +79,16 @@ def get_daily_asset_info(asset_info, date, data):
     :returns list: Django orm DailyAssetInfo object
     :rtype:
     """
-    defaults = dict(
-        service=asset_info.service,
-        environment=asset_info.environment,
-    )
     daily_asset_info, created = DailyAssetInfo.objects.get_or_create(
         pricing_object=asset_info,
         asset_info=asset_info,
         date=date,
-        defaults=defaults,
+        defaults=dict(
+            service_environment=asset_info.service_environment,
+        ),
     )
     # set defaults if daily asset was not created
-    if not created:
-        for attr, value in defaults.iteritems():
-            setattr(daily_asset_info, attr, value)
+    daily_asset_info.service_environment = asset_info.service_environment
     daily_asset_info.depreciation_rate = data['depreciation_rate']
     daily_asset_info.is_depreciated = data['is_depreciated']
     daily_asset_info.price = data['price']
@@ -121,9 +108,8 @@ def update_usage(daily_asset_info, warehouse, usage_type, value, date):
     :param object warehouse: Django orm Warehouse object
     """
     defaults = dict(
-        service=daily_asset_info.service,
+        service_environment=daily_asset_info.service_environment,
         warehouse=warehouse,
-        environment=daily_asset_info.environment,
     )
     usage, usage_created = DailyUsage.objects.get_or_create(
         date=date,
@@ -157,26 +143,21 @@ def update_assets(data, date, usages):
     :rtype tuple:
     """
     try:
-        service = Service.objects.get(ci_uid=data['service_ci_uid'])
-    except Service.DoesNotExist:
-        raise ServiceDoesNotExistError()
+        service_environment = ServiceEnvironment.objects.get(
+            service__ci_uid=data['service_ci_uid'],
+            environment__environment_id=data['environment_id'],
+        )
+    except ServiceEnvironment.DoesNotExist:
+        raise ServiceEnvironmentDoesNotExistError()
 
     try:
         warehouse = Warehouse.objects.get(id_from_assets=data['warehouse_id'])
     except Warehouse.DoesNotExist:
         raise WarehouseDoesNotExistError()
 
-    try:
-        environment = Environment.objects.get(
-            environment_id=data['environment_id']
-        )
-    except Environment.DoesNotExist:
-        raise EnvironmentDoesNotExistError()
-
     asset_info, new_created = get_asset_info(
-        service,
+        service_environment,
         warehouse,
-        environment,
         data,
     )
     daily_asset_info = get_daily_asset_info(
@@ -277,19 +258,15 @@ def asset(**kwargs):
                 new += 1
             else:
                 update += 1
-        except ServiceDoesNotExistError:
-            logger.error('Service {0} does not exist'.format(
+        except ServiceEnvironmentDoesNotExistError:
+            logger.error('Service environment {}-{} does not exist'.format(
                 data['service_ci_uid'],
+                data['environment_id'],
             ))
             continue
         except WarehouseDoesNotExistError:
             logger.error('Warehouse {0} does not exist'.format(
                 data['warehouse_id']
-            ))
-            continue
-        except EnvironmentDoesNotExistError:
-            logger.error('Environment {0} does not exist'.format(
-                data['environment_id']
             ))
             continue
 

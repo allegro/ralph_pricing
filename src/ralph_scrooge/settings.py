@@ -32,10 +32,6 @@ COLLECT_PLUGINS = set([
     'warehouse',
 ])
 
-UNKNOWN_SERVICES = {
-    'tenant': None,
-}
-
-UNKNOWN_ENVIRONMENTS = {
-    'tenant': None,
+UNKNOWN_SERVICES_ENVIRONMENTS = {
+    'tenant': (None, None),
 }

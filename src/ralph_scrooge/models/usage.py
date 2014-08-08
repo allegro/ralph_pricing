@@ -253,15 +253,9 @@ class DailyUsage(db.Model):
     usage
     """
     date = db.DateTimeField()
-    service = db.ForeignKey(
-        'Service',
-        null=False,
-        blank=False,
-    )
-    environment = db.ForeignKey(
-        'Environment',
-        null=False,
-        blank=False,
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
+        related_name='daily_usages'
     )
     daily_pricing_object = db.ForeignKey(
         'DailyPricingObject',
