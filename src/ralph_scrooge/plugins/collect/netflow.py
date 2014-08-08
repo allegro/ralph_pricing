@@ -41,6 +41,13 @@ class RemoteServerError(Exception):
     pass
 
 
+class ServiceDoesNotExistError(Exception):
+    """
+    Raise this exception when service does not exist
+    """
+    pass
+
+
 def get_ssh_client(address, login, password):
     """
     Create ssh client and connect them to give address by using given
@@ -251,38 +258,16 @@ def get_usage_type():
     return usage_type
 
 
-def get_pricing_objects_and_ips(date):
-    """
-    Gets ip per service. Use ralph API to get list of ips and services
-    and convert it to dict where ip is a key and service is value
-
-    :returns dict: Dict with ip as key and service as value
-    :rtype dict:
-    """
-    logger.debug('Getting list of ips and services')
-    services_and_ips = {}
-    for pricing_object in PricingObject.objects.filter(
-        type=PricingObjectType.ip_address
-    ):
-        daily_pricing_object = DailyPricingObject.objects.get_or_create(
-            date=date,
-            pricing_object=pricing_object,
-            defaults=dict(
-                service=pricing_object.service,
-            ),
-        )[0]
-        daily_pricing_object.service = pricing_object.service
-        daily_pricing_object.save()
-        services_and_ips[pricing_object.name] = daily_pricing_object
-    return services_and_ips
-
-
-def update(network_usages, pricing_objects_and_ips, usage_type, date):
+def update(
+    network_usages,
+    usage_type,
+    default_service,
+    date,
+):
     """
     Create or update daily usage
 
     :param dict network_usages: Usages per IP
-    :param dict get_pricing_objects_and_ips: PricingObject per IP
     :param object usage_type: UsageType object
     :param datetime date: Date for which dailyusage will be update
     :returns list: new update and total counts
@@ -290,29 +275,19 @@ def update(network_usages, pricing_objects_and_ips, usage_type, date):
     """
     logger.debug('Saving usages as a daily usages per service')
     new = updated = total = 0
-    default_service = Service.objects.get(
-        ci_uid=settings.UNKNOWN_SERVICES['network'],
-    )
+
     for ip, value in network_usages.iteritems():
         total += 1
-        if ip in pricing_objects_and_ips:
-            updated += 1
-            daily_pricing_object = pricing_objects_and_ips[ip]
-        else:
-            new += 1
-            pricing_object = PricingObject.objects.create(
-                name=ip,
-                type=PricingObjectType.ip_address,
-                service=default_service,
-            )
-            daily_pricing_object = DailyPricingObject.objects.create(
-                date=date,
-                pricing_object=pricing_object,
-                service=default_service,
-            )
-            logger.warning(
-                'Unknown ip address {} (usage: {})'.format(ip, value)
-            )
+        pricing_object, created = PricingObject.objects.get_or_create(
+            name=ip,
+            type=PricingObjectType.ip_address,
+            service=default_service,
+        )
+        daily_pricing_object = DailyPricingObject.objects.get_or_create(
+            date=date,
+            pricing_object=pricing_object,
+            service=default_service,
+        )[0]
         daily_usage, usage_created = DailyUsage.objects.get_or_create(
             date=date,
             type=usage_type,
@@ -324,6 +299,12 @@ def update(network_usages, pricing_objects_and_ips, usage_type, date):
         daily_usage.service = daily_pricing_object.service
         daily_usage.value = value
         daily_usage.save()
+        if created:
+            logger.warning(
+                'Unknown ip address {} (usage: {})'.format(ip, value)
+            )
+        new += created
+        updated += not created
     return (new, updated, total)
 
 
@@ -338,11 +319,18 @@ def netflow(**kwargs):
     :returns tuple: Status, message and kwargs
     :rtype tuple:
     """
+    try:
+        default_service = Service.objects.get(
+            ci_uid=settings.UNKNOWN_SERVICES['netflow'],
+        )
+    except Service.DoesNotExist:
+        return False, 'Unknow service netflow does not exist'
+
     date = kwargs['today']
     new, updated, total = update(
         get_network_usages(date),
-        get_pricing_objects_and_ips(date),
         get_usage_type(),
+        default_service,
         date,
     )
 

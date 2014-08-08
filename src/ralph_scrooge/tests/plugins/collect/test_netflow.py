@@ -10,16 +10,17 @@ from mock import MagicMock, patch
 
 from django.test import TestCase
 from django.conf import settings
+from django.test.utils import override_settings
 
 from ralph_scrooge.models import (
-    UsageType,
     DailyUsage,
     PricingObjectType,
+    UsageType,
 )
 from ralph_scrooge.plugins.collect import netflow
 from ralph_scrooge.tests.utils.factory import (
-    PricingObjectFactory,
     DailyPricingObjectFactory,
+    PricingObjectFactory,
     ServiceFactory,
 )
 
@@ -92,7 +93,7 @@ class TestNetwork(TestCase):
             [u'1', u'2'],
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_extract_ip_and_bytes_when_input_output_is_scrip(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
@@ -102,7 +103,7 @@ class TestNetwork(TestCase):
             (u'10.10.10.10', 30)
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['20.20.20.20'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['20.20.20.20'])
     def test_extract_ip_and_bytes_when_input_output_is_dstip(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
@@ -112,7 +113,7 @@ class TestNetwork(TestCase):
             (u'20.20.20.20', 30),
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_bytes_format(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
@@ -122,7 +123,7 @@ class TestNetwork(TestCase):
             3000
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_megabytes_format(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
@@ -132,7 +133,7 @@ class TestNetwork(TestCase):
             1048576
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_gigabytes_format(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
@@ -142,7 +143,7 @@ class TestNetwork(TestCase):
             1073741824
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_incorrect_format(self):
         self.assertRaises(
             netflow.UnknowDataFormatError,
@@ -151,7 +152,7 @@ class TestNetwork(TestCase):
             input_output='scrip',
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['30.30.30.30'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['30.30.30.30'])
     def test_extract_ip_and_bytes_when_ip_is_not_in_class_address(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
@@ -182,7 +183,7 @@ class TestNetwork(TestCase):
             {}
         )
 
-    @patch.object(settings, 'NFSEN_CLASS_ADDRESS', ['10.10.10.10'])
+    @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_get_network_usage(self):
         self.assertEqual(
             netflow.get_network_usage(
@@ -204,22 +205,18 @@ class TestNetwork(TestCase):
             {u'10.10.10.10': 30}
         )
 
-    @patch.object(
-        settings,
-        'NFSEN_CLASS_ADDRESS',
-        ['10.10.10.10', '20.20.20.20'],
-    )
-    @patch.object(
-        settings,
-        'SSH_NFSEN_CREDENTIALS', {
+    @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
+    @override_settings(
+        UNKNOWN_SERVICES={'netflow': 1},
+        NFSEN_CHANNELS=['test-channel'],
+        SSH_NFSEN_CREDENTIALS={
             'address': {
                 'login': 'login',
                 'password': 'password',
             },
         },
+        NFSEN_CLASS_ADDRESS=['10.10.10.10', '20.20.20.20'],
     )
-    @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
-    @patch.object(settings, 'NFSEN_CHANNELS', ['test-channel'])
     def test_get_network_usages(self):
         self.assertEqual(
             netflow.get_network_usages('2014-10-01'),
@@ -229,72 +226,40 @@ class TestNetwork(TestCase):
     def test_get_usages_type(self):
         self.assertEqual(netflow.get_usage_type(), UsageType.objects.get())
 
-    def test_get_pricing_objects_and_ips(self):
-        pricing_object = PricingObjectFactory.create(
-            name='8.8.8.8',
-            type=PricingObjectType.ip_address,
-        )
-        self.assertEqual(
-            netflow.get_pricing_objects_and_ips(
-                date(
-                    year=2014,
-                    month=1,
-                    day=1,
-                )
-            ),
-            {'8.8.8.8': pricing_object.daily_pricing_objects.all()[0]}
-        )
-
-    @patch.object(settings, 'UNKNOWN_SERVICES', {'network': 1})
-    def test_update_when_pricing_object_does_not_exist(self):
-        ServiceFactory.create(ci_uid=1)
-        self.assertEqual(
-            netflow.update(
-                {'8.8.8.8': 10},
-                {},
-                netflow.get_usage_type(),
-                date(year=2014, month=1, day=1),
-            ),
-            (1, 0, 1)
-        )
-
-    @patch.object(settings, 'UNKNOWN_SERVICES', {'network': 1})
+    @override_settings(UNKNOWN_SERVICES={'netflow': 1})
     def test_update(self):
+        service_factory = ServiceFactory.create()
         pricing_object = PricingObjectFactory.create(
             name='8.8.8.8',
             type=PricingObjectType.ip_address,
+            service=service_factory,
         )
         daily_pricing_object = DailyPricingObjectFactory.create(
             pricing_object=pricing_object,
+            service=service_factory,
         )
-        ServiceFactory.create(ci_uid=1)
         self.assertEqual(
             netflow.update(
                 {'8.8.8.8': 30},
-                {'8.8.8.8': daily_pricing_object},
                 netflow.get_usage_type(),
+                service_factory,
                 date(year=2014, month=1, day=1),
             ),
             (0, 1, 1)
         )
 
-    @patch.object(
-        settings,
-        'NFSEN_CLASS_ADDRESS',
-        ['10.10.10.10'],
-    )
-    @patch.object(
-        settings,
-        'SSH_NFSEN_CREDENTIALS', {
+    @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
+    @override_settings(
+        UNKNOWN_SERVICES={'netflow': 1},
+        NFSEN_CHANNELS=['test-channel'],
+        SSH_NFSEN_CREDENTIALS={
             'address': {
                 'login': 'login',
                 'password': 'password',
             },
         },
+        NFSEN_CLASS_ADDRESS=['10.10.10.10'],
     )
-    @patch.object(settings, 'NFSEN_CHANNELS', ['test-channel'])
-    @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
-    @patch.object(settings, 'UNKNOWN_SERVICES', {'network': 1})
     def test_network(self):
         ServiceFactory.create(ci_uid=1)
         self.assertEqual(

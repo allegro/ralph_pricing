@@ -26,4 +26,6 @@ COLLECT_PLUGINS = set([
     'warehouse',
 ])
 
-UNKNOWN_SERVICES = {}
+UNKNOWN_SERVICES = {
+	'netflow': 0,
+}
