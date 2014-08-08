@@ -26,5 +26,6 @@ COLLECT_PLUGINS = set([
 ])
 
 UNKNOWN_SERVICES = {
+    'netflow': 0,
     'tenant': None,
 }
