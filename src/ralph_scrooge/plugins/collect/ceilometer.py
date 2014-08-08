@@ -37,7 +37,17 @@ group by sample.meter_id, sample.project_id
 """
 
 
+class TenantNotFoundError(Exception):
+    """
+    Raised when tenant info does not exist
+    """
+    pass
+
+
 class DailyTenantNotFoundError(Exception):
+    """
+    Raised when daily tenant info does not exist
+    """
     pass
 
 
@@ -59,7 +69,9 @@ def get_daily_tenant(tenant_id, date):
     try:
         tenant = TenantInfo.objects.get(tenant_id=tenant_id)
         return tenant.daily_tenant.get(date=date)
-    except (TenantInfo.DoesNotExist, DailyTenantInfo.DoesNotExist) as e:
+    except TenantInfo.DoesNotExist as e:
+        raise TenantNotFoundError(e)
+    except DailyTenantInfo.DoesNotExist as e:
         raise DailyTenantNotFoundError(e)
 
 
@@ -86,6 +98,9 @@ def save_ceilometer_usages(usages, date, warehouse):
         usage_type = get_usage_type(flavor_name)
         try:
             daily_tenant = get_daily_tenant(tenant_id, date)
+        except TenantNotFoundError:
+            logger.error('Tenant {} not found'.format(tenant_id))
+            continue
         except DailyTenantNotFoundError:
             logger.error('DailyTenant {} for date {} not found'.format(
                 tenant_id,

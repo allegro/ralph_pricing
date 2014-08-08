@@ -77,7 +77,7 @@ class UsageType(db.Model):
         default=False,
     )
     show_in_services_report = db.BooleanField(
-        verbose_name=_("Display usage type in ventures report"),
+        verbose_name=_("Display usage type in services report"),
         default=True,
     )
     show_in_devices_report = db.BooleanField(
@@ -264,7 +264,7 @@ class DailyUsage(db.Model):
         blank=False,
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
-    type = db.ForeignKey(UsageType, verbose_name=_("type"))
+    type = db.ForeignKey(UsageType, verbose_name=_("daily_usages"))
     warehouse = db.ForeignKey(
         'Warehouse',
         null=False,

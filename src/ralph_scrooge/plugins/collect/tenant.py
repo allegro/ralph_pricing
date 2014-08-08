@@ -31,7 +31,8 @@ class UnknownServiceEnvironmentNotConfigured(Exception):
 
 def get_tenant_service_environment(tenant):
     try:
-        service_symbol = getattr(
+        # TODO: change to symbol
+        service_name = getattr(
             tenant,
             settings.OPENSTACK_TENANT_SERVICE_FIELD or ''
         )
@@ -41,7 +42,7 @@ def get_tenant_service_environment(tenant):
             settings.OPENSTACK_TENANT_ENVIRONMENT_FIELD or ''
         )
         return ServiceEnvironment.objects.get(
-            service__name=service_symbol,
+            service__name=service_name,
             environment__name=environment_name,
         )
     except (AttributeError, ServiceEnvironment.DoesNotExist) as e:
@@ -50,6 +51,16 @@ def get_tenant_service_environment(tenant):
 
 def save_tenant_info(tenant, unknown_service_environment):
     created = False
+    try:
+        service_environment = get_tenant_service_environment(tenant)
+    except InvalidTenantServiceEnvironment:
+        logger.warning(
+            'Invalid (or missing) service environment for tenant {}'.format(
+                tenant.name
+            )
+        )
+        service_environment = unknown_service_environment
+
     try:
         tenant_info = TenantInfo.objects.get(tenant_id=tenant.id)
     except TenantInfo.DoesNotExist:
@@ -60,15 +71,6 @@ def save_tenant_info(tenant, unknown_service_environment):
         )
     tenant_info.name = tenant.name
     tenant_info.remarks = tenant.description or ''
-    try:
-        service_environment = get_tenant_service_environment(tenant)
-    except InvalidTenantServiceEnvironment:
-        logger.warning(
-            'Invalid (or missing) service environment for tenant {}'.format(
-                tenant.name
-            )
-        )
-        service_environment = unknown_service_environment
     tenant_info.service_environment = service_environment
     tenant_info.save()
     return created, tenant_info
@@ -127,13 +129,13 @@ def get_tenants_list(site):
     """
     Returns list of tenants from OpenStack
     """
-    ks = client.Client(
+    keystone_client = client.Client(
         username=site['OS_USERNAME'],
         password=site['OS_PASSWORD'],
         tenant_name=site['OS_TENANT_NAME'],
         auth_url=site['OS_AUTH_URL'],
     )
-    return ks.tenants.list()
+    return keystone_client.tenants.list()
 
 
 @plugin.register(chain='scrooge', requires=['service'])

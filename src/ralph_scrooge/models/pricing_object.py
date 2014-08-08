@@ -147,6 +147,7 @@ class DailyVirtualInfo(DailyPricingObject):
     hypervisor = db.ForeignKey(DailyAssetInfo, related_name='daily_virtuals')
     virtual_info = db.ForeignKey(
         VirtualInfo,
+        related_name='daily_virtuals',
     )
 
     class Meta:
@@ -159,6 +160,7 @@ class TenantInfo(PricingObject):
         null=False,
         blank=False,
         db_index=True,
+        verbose_name=_("OpenStack Tenant ID"),
     )
 
     class Meta:
@@ -170,7 +172,12 @@ class DailyTenantInfo(DailyPricingObject):
         TenantInfo,
         related_name='daily_tenant',
     )
-    enabled = db.BooleanField(null=False, blank=False, default=False)
+    enabled = db.BooleanField(
+        null=False,
+        blank=False,
+        default=False,
+        verbose_name=_("enabled"),
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'

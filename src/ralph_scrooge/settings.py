@@ -7,12 +7,8 @@ NFSEN_FILES_PATH = ''
 # Virtual Usages plugin default config
 VIRTUAL_VENTURE_NAMES = {}
 
-# Cloud (from Ralph) plugin default config
-# CLOUD_UNKNOWN_VENTURE = None
-
 # Shares plugin default config
-SHARE_VENTURE_SYMBOLS = {}
-# SHARES_UNKNOWN_VENTURES = {}  # symbols
+SHARE_SERVICE_CI_UID = {}
 
 # OpenStack
 OPENSTACK_TENANT_SERVICE_FIELD = None
