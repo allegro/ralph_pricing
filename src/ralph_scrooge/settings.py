@@ -7,12 +7,11 @@ NFSEN_FILES_PATH = ''
 # Virtual Usages plugin default config
 VIRTUAL_VENTURE_NAMES = {}
 
-# Cloud (from Ralph) plugin default config
-CLOUD_UNKNOWN_VENTURE = None
-
 # Shares plugin default config
 SHARE_VENTURE_SYMBOLS = {}
-SHARES_UNKNOWN_VENTURES = {}  # symbols
+
+# OpenStack
+OPENSTACK_TENANT_SERVICE_FIELD = None
 
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
@@ -28,4 +27,5 @@ COLLECT_PLUGINS = set([
 
 UNKNOWN_SERVICES = {
     'netflow': 0,
+    'tenant': None,
 }

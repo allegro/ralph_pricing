@@ -41,7 +41,7 @@ class VirtualInfoInline(admin.StackedInline):
 @register(models.PricingObject)
 class PricingObjectAdmin(ModelAdmin):
     list_display = ('name', 'service', 'type', 'remarks',)
-    search_fields = ('name', 'service', 'type', 'remarks',)
+    search_fields = ('name', 'service__name', 'remarks',)
     list_filter = ('type', )
     inlines = [AssetInfoInline, VirtualInfoInline]
 

@@ -6,6 +6,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 
+class AttributeDict(dict):
+    """
+    Attribute dict. Used to attribute access to dict
+    """
+    def __init__(self, *args, **kwargs):
+        super(AttributeDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
 def ranges_overlap(start1, end1, start2, end2):
     """
     Checks if two intervals are overlapping. Function requires intervals to be
