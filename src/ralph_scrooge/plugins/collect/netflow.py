@@ -289,7 +289,7 @@ def update(
             date=date,
             pricing_object=pricing_object,
             defaults=dict(
-                service=default_service,
+                service=pricing_object.default_service,
             )
         )[0]
         daily_usage, usage_created = DailyUsage.objects.get_or_create(
