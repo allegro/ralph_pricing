@@ -8,25 +8,22 @@ from __future__ import unicode_literals
 import datetime
 
 from django.test import TestCase
-from ralph_scrooge.plugins.collects.extra_cost import (
+from ralph_scrooge.plugins.collect.extra_cost import (
     update_extra_cost,
     extra_cost,
 )
 from ralph_scrooge.models import ExtraCost, DailyExtraCost
-from ralph_scrooge.tests.utils import (
-    get_or_create_extra_cost_type,
-    get_or_create_venture,
+from ralph_scrooge.tests.utils.factory import (
+    ExtraCostFactory,
 )
 
 
 class TestExtraCostCollectPlugin(TestCase):
     def setUp(self):
         self.date = datetime.date(year=2014, month=5, day=1)
-        self.extracost = ExtraCost.objects.create(
-            pricing_venture=get_or_create_venture(),
-            type=get_or_create_extra_cost_type(),
-            monthly_cost=3100,
-            mode=0,
+        self.extracost = ExtraCostFactory.create(
+            start=self.date,
+            end=self.date,
         )
 
     def test_update_extra_cost(self):
@@ -37,8 +34,15 @@ class TestExtraCostCollectPlugin(TestCase):
         update_extra_cost(self.extracost, self.date)
         self.assertEqual(100, DailyExtraCost.objects.all()[0].value)
 
-    def test_extracost(self):
+    def test_extracost_when_new(self):
         self.assertEqual(
-            (True, u'1 new extracosts', {u'today': datetime.date(2014, 5, 1)}),
-            extra_cost(**{'today': self.date})
+            (True, u'1 new, 0 updated, 1 total'),
+            extra_cost(today=self.date)
+        )
+
+    def test_extracost_when_update(self):
+        extra_cost(today=self.date)
+        self.assertEqual(
+            (True, u'0 new, 1 updated, 1 total'),
+            extra_cost(today=self.date)
         )

@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
+import random
 
 from factory import (
     fuzzy,
@@ -16,6 +17,9 @@ from factory import (
 from factory.django import DjangoModelFactory
 
 from ralph_scrooge import models
+
+MIN_FACTORY_DATE = datetime.date(2014, 7, 1)
+MAX_FACTORY_DATE = datetime.date(2014, 7, 31)
 
 
 class WarehouseFactory(DjangoModelFactory):
@@ -56,10 +60,22 @@ class DailyPricingObjectFactory(DjangoModelFactory):
 class AssetInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.AssetInfo
 
+    device_id = Sequence(lambda n: n)
     sn = Sequence(lambda n: n)
     barcode = Sequence(lambda n: n)
     asset_id = Sequence(lambda n: n)
+    device_id = Sequence(lambda n: n)
     warehouse = SubFactory(WarehouseFactory)
+
+
+class DailyAssetInfoFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyAssetInfo
+
+    asset_info = SubFactory(AssetInfoFactory)
+    depreciation_rate = fuzzy.FuzzyDecimal(0, 50)
+    is_depreciated = fuzzy.FuzzyAttribute(lambda: random.random() < 0.5)
+    price = fuzzy.FuzzyDecimal(0, 1000)
+    date = fuzzy.FuzzyDate(MIN_FACTORY_DATE, MAX_FACTORY_DATE)
 
 
 class OwnerFactory(DjangoModelFactory):
@@ -112,3 +128,21 @@ class OpenstackUsageTypeFactory(UsageTypeFactory):
 
 class OpenstackDailyUsageTypeFactory(DailyUsageFactory):
     type = SubFactory(OpenstackUsageTypeFactory)
+
+
+class ExtraCostTypeFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ExtraCostType
+
+    name = Sequence(lambda n: 'Extra_Cost_type_%s' % n)
+
+
+class ExtraCostFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ExtraCost
+
+    type = SubFactory(ExtraCostTypeFactory)
+    monthly_cost = 3100
+    service = SubFactory(ServiceFactory)
+    pricing_object = SubFactory(PricingObjectFactory)
+    start = datetime.date.today()
+    end = datetime.date.today()
+    mode = models.ExtraCostChoices.daily_imprint
