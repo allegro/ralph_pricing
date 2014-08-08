@@ -6,14 +6,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from datetime import date
-from mock import patch, MagicMock
+from mock import patch
 
 from django.test import TestCase
-from django.conf import settings
+from django.test.utils import override_settings
 
 from ralph_scrooge.models import DailyUsage, UsageType
 from ralph_scrooge.plugins.collect import share
-
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
     DailyPricingObjectFactory,
@@ -47,7 +46,7 @@ class TestSharesPlugin(TestCase):
             self.date,
         )
         self.assertEqual(DailyUsage.objects.count(), 1)
-        daily_usage = DailyUsage.objects.all()[0]
+        daily_usage = DailyUsage.objects.get()
         self.assertEqual(daily_usage.value, self.data['size'])
         self.assertEqual(daily_usage.type, self.usage_type)
         self.assertEqual(daily_usage.service, self.asset_info.service)
@@ -63,7 +62,8 @@ class TestSharesPlugin(TestCase):
         )
 
     def test_update_when_asset_info_does_not_exist_error(self):
-        self.data['mount_device_id'] = 2
+        asset_info = AssetInfoFactory.build()
+        self.data['mount_device_id'] = asset_info.device_id
         self.assertRaises(
             share.AssetInfoDoesNotExistError,
             share.update,
@@ -72,7 +72,7 @@ class TestSharesPlugin(TestCase):
             date=self.date,
         )
 
-    @patch.object(share, 'update_usage', lambda x, y, z, k: True)
+    @patch.object(share, 'update_usage', lambda *args, **kwargs: True)
     def test_update(self):
         self.assertEqual(
             share.update(self.usage_type, self.data, self.date),
@@ -85,8 +85,7 @@ class TestSharesPlugin(TestCase):
             UsageType.objects.all()[1]
         )
 
-    @patch.object(share, 'logger', MagicMock())
-    @patch.object(settings, 'SHARE_SERVICE_CI_UID', {'group': ['ci_uid']})
+    @override_settings(SHARE_SERVICE_CI_UID={'group': ['ci_uid']})
     def test_share_when_unknown_mount_device_id_error(self):
         share.get_shares = lambda service_ci_uid, include_virtual: [self.data]
         self.data['mount_device_id'] = None
@@ -95,8 +94,7 @@ class TestSharesPlugin(TestCase):
             (True, 'None new, 0 updated, 1 total'),
         )
 
-    @patch.object(share, 'logger', MagicMock())
-    @patch.object(settings, 'SHARE_SERVICE_CI_UID', {'group': ['ci_uid']})
+    @override_settings(SHARE_SERVICE_CI_UID={'group': ['ci_uid']})
     def test_share_when_asset_info_does_not_exist_error(self):
         share.get_shares = lambda service_ci_uid, include_virtual: [self.data]
         self.data['mount_device_id'] = 2
@@ -105,8 +103,7 @@ class TestSharesPlugin(TestCase):
             (True, 'None new, 0 updated, 1 total'),
         )
 
-    @patch.object(share, 'logger', MagicMock())
-    @patch.object(settings, 'SHARE_SERVICE_CI_UID', {'group': ['ci_uid']})
+    @override_settings(SHARE_SERVICE_CI_UID={'group': ['ci_uid']})
     def test_share(self):
         DailyPricingObjectFactory.create(
             pricing_object=self.asset_info,

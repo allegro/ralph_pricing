@@ -111,7 +111,7 @@ def share(**kwargs):
                     update(usage_type, data, date)
                     updated += 1
                 except UnknownMountDeviceIdError:
-                    logger.error(
+                    logger.warning(
                         '{0} - {1} is mounted nowhere'.format(
                             data['storage_device_id'],
                             data['label'],
