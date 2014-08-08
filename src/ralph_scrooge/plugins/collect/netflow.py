@@ -13,8 +13,14 @@ import paramiko
 from django.conf import settings
 
 from ralph.util import plugin
-from ralph.util.api_pricing import get_ip_addresses
-from ralph_scrooge.models import UsageType, Venture, DailyUsage
+from ralph_scrooge.models import (
+    UsageType,
+    Service,
+    DailyUsage,
+    PricingObject,
+    PricingObjectType,
+    DailyPricingObject,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -31,6 +37,13 @@ class RemoteServerError(Exception):
     """
     Raise this exception when command executed on remote server trigger the
     error
+    """
+    pass
+
+
+class ServiceDoesNotExistError(Exception):
+    """
+    Raise this exception when service does not exist
     """
     pass
 
@@ -245,105 +258,88 @@ def get_usage_type():
     return usage_type
 
 
-def get_ventures_and_ips():
+def update(
+    network_usages,
+    usage_type,
+    default_service,
+    date,
+):
     """
-    Gets ip per venture. Use ralph API to get list of ips and ventures
-    and convert it to dict where ip is a key and venture is value
-
-    :returns dict: Dict with ip as key and venture as value
-    :rtype dict:
-    """
-    logger.debug('Getting list of ips and ventures')
-    ventures_and_ips = get_ip_addresses(True)
-    ventures_and_ips['0.0.0.0'] = Venture.objects.get(
-        symbol=settings.NETWORK_UNKNOWN_VENTURE_SYMBOL,
-    ).venture_id
-    return ventures_and_ips
-
-
-def sort_per_venture(network_usages, ventures_and_ips):
-    """
-    Matches ips to ventures and create list of usages where venture is a key
-    and value of usage is a value
+    Create or update daily usage
 
     :param dict network_usages: Usages per IP
-    :param dict ventures_and_ips: Venture per IP
-    :returns dict: Usage per Venture
-    :rtype dict:
-    """
-    usage_per_venture = defaultdict(int)
-    for ip, usage in network_usages.iteritems():
-        if ip in ventures_and_ips:
-            if ventures_and_ips[ip]:
-                usage_per_venture[ventures_and_ips[ip]] += usage
-            else:
-                usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
-                logger.warning(
-                    'IP {} (usage: {}) without venture'.format(ip, usage)
-                )
-        else:
-            usage_per_venture[ventures_and_ips['0.0.0.0']] += usage
-            logger.warning(
-                'Unknown ip address {} (usage: {})'.format(ip, usage)
-            )
-    return usage_per_venture
-
-
-def update(network_usages, ventures_and_ips, usage_type, date):
-    """
-    Match ips to ventures and updates (or creates) usage of given usage_type.
-
-    :param dict network_usages: Usages per IP
-    :param dict ventures_and_ips: Venture per IP
     :param object usage_type: UsageType object
     :param datetime date: Date for which dailyusage will be update
+    :returns list: new update and total counts
+    :rtype list:
     """
-    logger.debug('Saving usages as a daily usages per venture')
-    count = 0
-    for venture_id, value in sort_per_venture(
-        network_usages, ventures_and_ips
-    ).iteritems():
-        try:
-            pricing_venture = Venture.objects.get(
-                venture_id=venture_id,
-            )
-        except Venture.DoesNotExist:
-            logger.warning(
-                'Ralph venture id {0} does not exist'.format(
-                    venture_id
-                )
-            )
-            continue
+    logger.debug('Saving usages as a daily usages per service')
+    new = updated = total = 0
 
-        usage, usage_created = DailyUsage.objects.get_or_create(
+    for ip, value in network_usages.iteritems():
+        total += 1
+        pricing_object, created = PricingObject.objects.get_or_create(
+            name=ip,
+            type=PricingObjectType.ip_address,
+            defaults=dict(
+                service=default_service,
+            )
+        )
+        daily_pricing_object = DailyPricingObject.objects.get_or_create(
+            date=date,
+            pricing_object=pricing_object,
+            defaults=dict(
+                service=pricing_object.service,
+            )
+        )[0]
+        daily_usage, usage_created = DailyUsage.objects.get_or_create(
             date=date,
             type=usage_type,
-            pricing_venture=pricing_venture,
+            daily_pricing_object=daily_pricing_object,
+            defaults=dict(
+                service=daily_pricing_object.service,
+            ),
         )
-        usage.value = value
-        usage.save()
-        count += 1
-    return count
+        daily_usage.service = daily_pricing_object.service
+        daily_usage.value = value
+        daily_usage.save()
+        if created:
+            logger.warning(
+                'Unknown ip address {} (usage: {})'.format(ip, value)
+            )
+        new += created
+        updated += not created
+    return (new, updated, total)
 
 
-@plugin.register(chain='pricing', requires=['ventures'])
-def network(**kwargs):
+@plugin.register(chain='scrooge', requires=['service'])
+def netflow(**kwargs):
     """
-    Getting network usage per venture is included in the two steps.
+    Getting network usage per service is included in the two steps.
     First of them is collecting usages per ip and the second one is matching
-    ip with venture
+    ip with service
 
     :param datetime today: Date for which usages will be collects
     :returns tuple: Status, message and kwargs
     :rtype tuple:
     """
-    date = kwargs['today']
+    try:
+        default_service = Service.objects.get(
+            ci_uid=settings.UNKNOWN_SERVICES['netflow'],
+        )
+    except Service.DoesNotExist:
+        return False, 'Unknow service netflow does not exist'
 
-    count = update(
+    date = kwargs['today']
+    new, updated, total = update(
         get_network_usages(date),
-        get_ventures_and_ips(),
         get_usage_type(),
+        default_service,
         date,
     )
 
-    return True, "Create/Update {0} venture usages".format(count), kwargs
+    return True, '{0} new, {1} updated, {2} total'.format(
+        new,
+        updated,
+        total,
+    )

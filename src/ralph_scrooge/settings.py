@@ -30,4 +30,5 @@ COLLECT_PLUGINS = set([
 
 UNKNOWN_SERVICES_ENVIRONMENTS = {
     'tenant': (None, None),
+    'netflow': (None, None),
 }

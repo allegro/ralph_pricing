@@ -59,7 +59,12 @@ class PricingObject(TimeTrackable, EditorTrackable):
 
 class DailyPricingObject(db.Model):
     date = db.DateField(null=False, blank=False)
-    pricing_object = db.ForeignKey(PricingObject, null=False, blank=False)
+    pricing_object = db.ForeignKey(
+        PricingObject,
+        null=False,
+        blank=False,
+        related_name='daily_pricing_objects',
+    )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
         related_name='daily_pricing_objects'
