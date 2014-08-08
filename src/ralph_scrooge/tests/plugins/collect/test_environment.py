@@ -43,7 +43,9 @@ class TestEnvironmentCollectPlugin(TestCase):
         sample_data2 = SAMPLE_ENVIRONMENTS[1]
         sample_data2['id'] = sample_data['id']
         self.assertFalse(update_environment(sample_data2, self.today))
-        environment = Environment.objects.get(environment_id=sample_data2['id'])
+        environment = Environment.objects.get(
+            environment_id=sample_data2['id']
+        )
         self._compare_environments(environment, sample_data2)
 
     @mock.patch('ralph_scrooge.plugins.collect.environment.update_environment')  # noqa

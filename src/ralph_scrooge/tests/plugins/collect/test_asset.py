@@ -48,7 +48,7 @@ class TestAssetPlugin(TestCase):
             'price': 100,
             'service_ci_uid': self.service_environment.service.ci_uid,
             'warehouse_id': self.warehouse.id_from_assets,
-            'environment_id': self.service_environment.environment.environment_id,
+            'environment_id': self.service_environment.environment.environment_id,  # noqa
             'cores_count': 4,
             'power_consumption': 200,
             'collocation': 2,

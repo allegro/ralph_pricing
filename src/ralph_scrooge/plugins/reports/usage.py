@@ -184,7 +184,7 @@ class UsageBasePlugin(BaseReportPlugin):
             warehouse,
             **kwargs
         ):
-            usages_per_service = self._get_usages_in_period_per_service_environment(
+            usages_per_service = self._get_usages_per_service_environment(
                 start=up_start,
                 end=up_end,
                 usage_type=usage_type,

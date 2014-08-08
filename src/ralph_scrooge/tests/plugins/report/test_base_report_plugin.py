@@ -17,7 +17,6 @@ from ralph_scrooge.plugins.reports.base import BaseReportPlugin
 from ralph_scrooge.tests.utils.factory import (
     DailyUsageFactory,
     ServiceEnvironmentFactory,
-    ServiceFactory,
     UsageTypeFactory,
     WarehouseFactory,
 )
@@ -79,7 +78,9 @@ class TestBaseReportPlugin(TestCase):
         for i, ut in enumerate(base_usage_types, start=1):
             days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
             for j, day in enumerate(days, start=1):
-                for k, service_environment in enumerate(self.service_environments, start=1):
+                for k, service_environment in enumerate(
+                    self.service_environments, start=1
+                ):
                     daily_usage = DailyUsageFactory(
                         date=day,
                         service_environment=service_environment,
@@ -317,10 +318,10 @@ class TestBaseReportPlugin(TestCase):
         self.assertEquals(result, 800.0)
 
     # =========================================================================
-    # _get_usages_in_period_per_service_environment
+    # _get_usages_per_service_environment
     # =========================================================================
-    def test_get_usages_in_period_per_service_environment(self):
-        result = self.plugin._get_usages_in_period_per_service_environment(
+    def test_get_usages_per_service_environment(self):
+        result = self.plugin._get_usages_per_service_environment(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
@@ -332,8 +333,8 @@ class TestBaseReportPlugin(TestCase):
             {'usage': 440.0, 'service_environment': 4},  # 11 * 40 = 440
         ])
 
-    def test_get_usages_in_period_per_service_environment_with_warehouse(self):
-        result = self.plugin._get_usages_in_period_per_service_environment(
+    def test_get_usages_per_service_environment_with_warehouse(self):
+        result = self.plugin._get_usages_per_service_environment(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
@@ -346,8 +347,8 @@ class TestBaseReportPlugin(TestCase):
             {'usage': 400.0, 'service_environment': 4},  # 5 * 80 = 400
         ])
 
-    def test_get_usages_in_period_per_service_environment_with_services(self):
-        result = self.plugin._get_usages_in_period_per_service_environment(
+    def test_get_usages_per_service_environment_with_services(self):
+        result = self.plugin._get_usages_per_service_environment(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
@@ -357,8 +358,8 @@ class TestBaseReportPlugin(TestCase):
             {'usage': 110.0, 'service_environment': 1},  # 11 * 10 = 110
         ])
 
-    def test_get_usages_in_period_per_service_environment_with_warehouse_and_service(self):
-        result = self.plugin._get_usages_in_period_per_service_environment(
+    def test_get_usages_per_service_environment_with_warehouse_service(self):
+        result = self.plugin._get_usages_per_service_environment(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
@@ -369,8 +370,8 @@ class TestBaseReportPlugin(TestCase):
             {'usage': 240.0, 'service_environment': 2}  # 6 * 40 = 240
         ])
 
-    def test_get_usages_in_period_per_service_environment_with_excluded_services(self):
-        result = self.plugin._get_usages_in_period_per_service_environment(
+    def test_get_usages_per_service_environment_with_excluded_services(self):
+        result = self.plugin._get_usages_per_service_environment(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
@@ -386,7 +387,7 @@ class TestBaseReportPlugin(TestCase):
     # =========================================================================
     # _distribute_costs
     # =========================================================================
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_usages_in_period_per_service_environment')  # noqa
+    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_usages_per_service_environment')  # noqa
     @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
     def test_distribute_costs(self, total_usage_mock, usages_per_service_mock):
         percentage = {
@@ -403,14 +404,32 @@ class TestBaseReportPlugin(TestCase):
         ):
             usages = {
                 self.usage_type.id: [
-                    {'service_environment': self.service_environment1.id, 'usage': 0},
-                    {'service_environment': self.service_environment2.id, 'usage': 0},
-                    {'service_environment': self.service_environment3.id, 'usage': 900},
-                    {'service_environment': self.service_environment4.id, 'usage': 100},
+                    {
+                        'service_environment': self.service_environment1.id,
+                        'usage': 0,
+                    },
+                    {
+                        'service_environment': self.service_environment2.id,
+                        'usage': 0,
+                    },
+                    {
+                        'service_environment': self.service_environment3.id,
+                        'usage': 900,
+                    },
+                    {
+                        'service_environment': self.service_environment4.id,
+                        'usage': 100,
+                    },
                 ],
                 self.usage_type_cost_wh.id: [
-                    {'service_environment': self.service_environment3.id, 'usage': 1200},
-                    {'service_environment': self.service_environment4.id, 'usage': 400},
+                    {
+                        'service_environment': self.service_environment3.id,
+                        'usage': 1200,
+                    },
+                    {
+                        'service_environment': self.service_environment4.id,
+                        'usage': 400,
+                    },
                 ]
             }
             return usages[usage_type.id]

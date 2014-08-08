@@ -76,7 +76,7 @@ class BaseReportPlugin(BasePlugin):
                 usage_type_id,
                 UsageType.objects.get(id=usage_type_id)
             )
-            usages_per_service = self._get_usages_in_period_per_service_environment(
+            usages_per_service = self._get_usages_per_service_environment(
                 start,
                 end,
                 usage_type,
@@ -174,7 +174,7 @@ class BaseReportPlugin(BasePlugin):
         ).get('total') or 0
 
     @memoize(skip_first=True)
-    def _get_usages_in_period_per_service_environment(self, *args, **kwargs):
+    def _get_usages_per_service_environment(self, *args, **kwargs):
         """
         Method similar to `_get_total_usage_in_period`, but instead of
         one-number result, it returns total cost per service in period of time
@@ -188,20 +188,22 @@ class BaseReportPlugin(BasePlugin):
             usage=Sum('value'),
         ).order_by('service_environment'))
 
-    # @memoize(skip_first=True)
-    # def _get_usages_in_period_per_service(self, *args, **kwargs):
-    #     """
-    #     Method similar to `_get_total_usage_in_period`, but instead of
-    #     one-number result, it returns total cost per service in period of time
-    #     (between start and end). Total usage can be calculated overall, for
-    #     single warehouse, for selected services or for services in warehouse.
+    @memoize(skip_first=True)
+    def _get_usages_per_service(self, *args, **kwargs):
+        """
+        Method similar to `_get_total_usage_in_period`, but instead of
+        one-number result, it returns total cost per service in period of time
+        (between start and end). Total usage can be calculated overall, for
+        single warehouse, for selected services or for services in warehouse.
 
-    #     :rtype: list
-    #     """
-    #     daily_usages = self._get_daily_usages_in_period(*args, **kwargs)
-    #     return list(daily_usages.values('service_environment__service').annotate(
-    #         usage=Sum('value'),
-    #     ).order_by('service_environment__service'))
+        :rtype: list
+        """
+        daily_usages = self._get_daily_usages_in_period(*args, **kwargs)
+        return list(
+            daily_usages.values('service_environment__service').annotate(
+                usage=Sum('value'),
+            ).order_by('service_environment__service')
+        )
 
     # TODO: rename
     @memoize(skip_first=True)
@@ -229,7 +231,9 @@ class BaseReportPlugin(BasePlugin):
             type=usage_type,
         )
         if services:
-            daily_usages = daily_usages.filter(service_environment__service__in=services)
+            daily_usages = daily_usages.filter(
+                service_environment__service__in=services
+            )
         if excluded_services:
             daily_usages = daily_usages.exclude(
                 service_environment__service__in=excluded_services

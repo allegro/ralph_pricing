@@ -16,7 +16,6 @@ from ralph_scrooge.models import (
     Owner,
     OwnershipType,
     Service,
-    ServiceEnvironment,
     ServiceOwnership,
 )
 

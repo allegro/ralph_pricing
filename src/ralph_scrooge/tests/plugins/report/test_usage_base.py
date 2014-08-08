@@ -82,7 +82,10 @@ class TestUsageBasePlugin(TestCase):
         self.service_environment2 = ServiceEnvironmentFactory()
         self.service_environment3 = ServiceEnvironmentFactory()
         self.service_environment4 = ServiceEnvironmentFactory()
-        self.services_subset = [self.service_environment1.service, self.service_environment2.service]
+        self.services_subset = [
+            self.service_environment1.service,
+            self.service_environment2.service,
+        ]
         self.service_environments = models.ServiceEnvironment.objects.all()
 
         # daily usages of base type
@@ -102,7 +105,10 @@ class TestUsageBasePlugin(TestCase):
         end = datetime.date(2013, 10, 22)
         base_usage_types = models.UsageType.objects.filter(type='BU')
         self.service_environments_pricing_objects = {}
-        for k, service_environment in enumerate(self.service_environments, start=1):
+        for k, service_environment in enumerate(
+            self.service_environments,
+            start=1
+        ):
             daily_pricing_object = DailyPricingObjectFactory()
             self.service_environments_pricing_objects[service_environment] = (
                 daily_pricing_object.pricing_object
@@ -548,7 +554,10 @@ class TestUsageBasePlugin(TestCase):
         for i, ut in enumerate(base_usage_types, start=1):
             days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
             for j, day in enumerate(days, start=1):
-                for k, service_environment in enumerate(self.service_environments, start=1):
+                for k, service_environment in enumerate(
+                    self.service_environments,
+                    start=1
+                ):
                     daily_usage = DailyUsageFactory(
                         date=day,
                         service_environment=service_environment,
@@ -669,7 +678,9 @@ class TestUsageBasePlugin(TestCase):
         cost_wh2_key = '{}cost_wh_{}'.format(ut_key, self.warehouse2.id)
         total_cost_key = '{}total_cost'.format(ut_key)
         self.assertEquals(result, {
-            self.service_environments_pricing_objects[self.service_environment1].id: {
+            self.service_environments_pricing_objects[
+                self.service_environment1
+            ].id: {
                 count_wh1_key: 100.0,  # 5 * 20 (5 is number of odd days)
                 cost_wh1_key: D('960'),  # 20 * (1 * 9 + 3 * 9 + 1 * 12)
                 count_wh2_key: 120.0,  # 6 * 20 (6 is number of even days)
