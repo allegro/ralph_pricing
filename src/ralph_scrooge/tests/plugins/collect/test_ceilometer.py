@@ -20,6 +20,7 @@ from ralph_scrooge.plugins.collect.ceilometer import (
     get_usage_type,
     get_ceilometer_usages,
     save_ceilometer_usages,
+    TenantNotFoundError,
 )
 from ralph_scrooge.models import DailyUsage
 from ralph_scrooge.tests.plugins.collect.samples.ceilometer import (
@@ -61,7 +62,7 @@ class TestCeilometer(TestCase):
 
     def test_get_daily_tenant_without_tenant(self):
         tenant = TenantInfoFactory.build()
-        with self.assertRaises(DailyTenantNotFoundError):
+        with self.assertRaises(TenantNotFoundError):
             get_daily_tenant(tenant.tenant_id, self.today)
 
     @mock.patch('ralph_scrooge.plugins.collect.ceilometer.create_engine')

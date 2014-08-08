@@ -77,7 +77,7 @@ class UsageType(db.Model):
         default=False,
     )
     show_in_services_report = db.BooleanField(
-        verbose_name=_("Display usage type in ventures report"),
+        verbose_name=_("Display usage type in services report"),
         default=True,
     )
     show_in_devices_report = db.BooleanField(

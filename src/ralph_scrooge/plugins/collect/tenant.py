@@ -31,18 +31,26 @@ class UnknownServiceNotConfigured(Exception):
 
 def get_tenant_service(tenant):
     try:
-        service_symbol = getattr(
+        # TODO: change to symbol
+        service_name = getattr(
             tenant,
             settings.OPENSTACK_TENANT_SERVICE_FIELD or ''
         )
-        # TODO: change to symbol
-        return Service.objects.get(name=service_symbol)
+        return Service.objects.get(name=service_name)
     except (AttributeError, Service.DoesNotExist) as e:
         raise InvalidTenantService(e)
 
 
 def save_tenant_info(tenant, unknown_service):
     created = False
+    try:
+        service = get_tenant_service(tenant)
+    except InvalidTenantService:
+        logger.warning('Invalid (or missing) service for tenant {}'.format(
+            tenant.name
+        ))
+        service = unknown_service
+
     try:
         tenant_info = TenantInfo.objects.get(tenant_id=tenant.id)
     except TenantInfo.DoesNotExist:
@@ -53,13 +61,6 @@ def save_tenant_info(tenant, unknown_service):
         )
     tenant_info.name = tenant.name
     tenant_info.remarks = tenant.description or ''
-    try:
-        service = get_tenant_service(tenant)
-    except InvalidTenantService:
-        logger.warning('Invalid (or missing) service for tenant {}'.format(
-            tenant.name
-        ))
-        service = unknown_service
     tenant_info.service = service
     tenant_info.save()
     return created, tenant_info
@@ -111,13 +112,13 @@ def get_tenants_list(site):
     """
     Returns list of tenants from OpenStack
     """
-    ks = client.Client(
+    keystone_client = client.Client(
         username=site['OS_USERNAME'],
         password=site['OS_PASSWORD'],
         tenant_name=site['OS_TENANT_NAME'],
         auth_url=site['OS_AUTH_URL'],
     )
-    return ks.tenants.list()
+    return keystone_client.tenants.list()
 
 
 @plugin.register(chain='scrooge', requires=['service'])

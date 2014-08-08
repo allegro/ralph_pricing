@@ -16,29 +16,36 @@ logger = logging.getLogger(__name__)
 
 
 def update_warehouses(data):
-    '''
-        Update information about warehouses
+    """
+    Update information about warehouses
 
-        :param dict data: dict with information about single warehouse
-        :returns boolean: Information for counting true processed warehouses
-        :rtype boolean:
-    '''
-    warehouse = Warehouse.objects.get_or_create(
+    :param dict data: dict with information about single warehouse
+    :returns boolean: True, if warehouse was created
+    :rtype boolean:
+    """
+    warehouse, created = Warehouse.objects.get_or_create(
         id_from_assets=data['warehouse_id']
-    )[0]
+    )
     warehouse.name = data['warehouse_name']
     warehouse.save()
-    return True
+    return created
 
 
 @plugin.register(chain='scrooge')
 def warehouse(**kwargs):
-    '''
-        Get all information about warehouses
+    """
+    Get all information about warehouses
 
-        :returns tuple: result status, message and kwargs
-    '''
+    :returns tuple: result status, message
+    """
+    new = total = 0
+    for warehouse in get_warehouses():
+        total += 1
+        if update_warehouses(warehouse):
+            new += 1
 
-    count = sum(update_warehouses(data) for data in get_warehouses())
-
-    return True, 'Got {0} warehouses'.format(count)
+    return True, 'Warehouses: {0} new, {1} updated, {2} total'.format(
+        new,
+        total-new,
+        total,
+    )
