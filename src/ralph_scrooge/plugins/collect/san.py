@@ -27,7 +27,7 @@ class DailyAssetInfoNotFound(Exception):
     pass
 
 
-def update_usage(daily_asset_info, service, date, value, usage_type):
+def update_usage(daily_asset_info, date, value, usage_type):
     """
     Saves single record to model
     """
@@ -36,10 +36,10 @@ def update_usage(daily_asset_info, service, date, value, usage_type):
         type=usage_type,
         daily_pricing_object=daily_asset_info,
         defaults=dict(
-            service=service,
+            service_environment=daily_asset_info.service_environment,
         )
     )
-    usage.service = service
+    usage.service_environment = daily_asset_info.service_environment
     usage.value = value
     usage.save()
     return created
@@ -52,10 +52,8 @@ def update_san(data, date, usage_type):
     try:
         asset_info = AssetInfo.objects.get(device_id=data['device_id'])
         daily_asset_info = asset_info.dailyassetinfo_set.get(date=date)
-        service = daily_asset_info.service
         return update_usage(
             daily_asset_info,
-            service,
             date,
             1,
             usage_type,

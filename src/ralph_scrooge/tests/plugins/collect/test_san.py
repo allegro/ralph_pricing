@@ -31,7 +31,6 @@ class TestSanCollectPlugin(TestCase):
         daily_asset_info = DailyAssetInfoFactory(date=self.today)
         self.assertTrue(update_usage(
             daily_asset_info,
-            daily_asset_info.service,
             self.today,
             1,
             self.san_usage_type,
@@ -39,14 +38,16 @@ class TestSanCollectPlugin(TestCase):
         self.assertEquals(self.san_usage_type.dailyusage_set.count(), 1)
         daily_usage = self.san_usage_type.dailyusage_set.all()[:1].get()
         self.assertEquals(daily_usage.date.date(), self.today)
-        self.assertEquals(daily_usage.service, daily_asset_info.service)
+        self.assertEquals(
+            daily_usage.service_environment,
+            daily_asset_info.service_environment
+        )
         self.assertEquals(daily_usage.type, self.san_usage_type)
         self.assertEquals(daily_usage.value, 1)
 
         # update
         self.assertFalse(update_usage(
             daily_asset_info,
-            daily_asset_info.service,
             self.today,
             2,
             self.san_usage_type,
@@ -66,7 +67,6 @@ class TestSanCollectPlugin(TestCase):
         ))
         update_usage_mock.assert_called_with(
             daily_asset_info,
-            daily_asset_info.service,
             self.today,
             1,
             self.san_usage_type,
