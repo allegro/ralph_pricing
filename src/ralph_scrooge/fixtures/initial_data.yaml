@@ -1,0 +1,8 @@
+# Warehouse
+
+- model: ralph_scrooge.Warehouse
+  pk: 1
+  fields:
+    name: Default
+    show_in_report: False
+    id_from_assets: -1

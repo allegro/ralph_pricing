@@ -97,6 +97,38 @@ class BusinessLineFactory(DjangoModelFactory):
     ci_uid = Sequence(lambda n: n)
 
 
+class TenantInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.TenantInfo
+
+    tenant_id = Sequence(lambda n: n)
+
+
+class DailyTenantInfoFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyTenantInfo
+
+    tenant_info = SubFactory(TenantInfoFactory)
+    enabled = True
+
+
+class DailyUsageFactory(DjangoModelFactory):
+    FACTORY_FOR = models.DailyUsage
+
+    date = datetime.date.today()
+    service = SubFactory(ServiceFactory)
+    daily_pricing_object = SubFactory(DailyPricingObjectFactory)
+    value = fuzzy.FuzzyDecimal(0, 1000)
+    warehouse = SubFactory(WarehouseFactory)
+    type = SubFactory(UsageTypeFactory)
+
+
+class OpenstackUsageTypeFactory(UsageTypeFactory):
+    symbol = Sequence(lambda n: 'openstack.instance%d' % n)
+
+
+class OpenstackDailyUsageTypeFactory(DailyUsageFactory):
+    type = SubFactory(OpenstackUsageTypeFactory)
+
+
 class ExtraCostTypeFactory(DjangoModelFactory):
     FACTORY_FOR = models.ExtraCostType
 
