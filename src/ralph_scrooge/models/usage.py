@@ -258,6 +258,11 @@ class DailyUsage(db.Model):
         null=False,
         blank=False,
     )
+    environment = db.ForeignKey(
+        'Environment',
+        null=False,
+        blank=False,
+    )
     daily_pricing_object = db.ForeignKey(
         'DailyPricingObject',
         verbose_name=_("Pricing Object"),

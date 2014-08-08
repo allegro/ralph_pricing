@@ -16,19 +16,26 @@ SHARE_VENTURE_SYMBOLS = {}
 
 # OpenStack
 OPENSTACK_TENANT_SERVICE_FIELD = None
+OPENSTACK_TENANT_ENVIRONMENT_FIELD = None
 
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
 
 # Default collect plugins to run
 COLLECT_PLUGINS = set([
-    'assets',
+    'asset',
+    'business_line',
+    'environment',
     'extra_cost',
-    'ventures',
-    'virtual',
+    'owner',
+    'service',
     'warehouse',
 ])
 
 UNKNOWN_SERVICES = {
-    'ceilometer': None,
+    'tenant': None,
+}
+
+UNKNOWN_ENVIRONMENTS = {
+    'tenant': None,
 }

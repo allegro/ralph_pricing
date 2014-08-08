@@ -20,7 +20,7 @@ from ralph_scrooge.tests.plugins.collect.samples.business_line import (
 )
 
 
-class TestOwnerCollectPlugin(TestCase):
+class TestBusinessLineCollectPlugin(TestCase):
     def setUp(self):
         self.today = date(2014, 07, 01)
 

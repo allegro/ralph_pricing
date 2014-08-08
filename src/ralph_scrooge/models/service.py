@@ -33,6 +33,18 @@ class BusinessLine(Named):
         app_label = 'ralph_scrooge'
 
 
+class Environment(Named):
+    environment_id = db.IntegerField(
+        verbose_name=_("ralph environment id"),
+        unique=True,
+        null=False,
+        blank=False,
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
 class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     name = db.CharField(
         verbose_name=_("name"),
@@ -67,6 +79,7 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
 
     class Meta:
         app_label = 'ralph_scrooge'
+        ordering = ['name']
 
     def __unicode__(self):
         return self.name

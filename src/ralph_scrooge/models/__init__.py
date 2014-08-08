@@ -24,6 +24,7 @@ from ralph_scrooge.models.pricing_object import (
 
 from ralph_scrooge.models.service import (
     BusinessLine,
+    Environment,
     HistoricalService,  # dynamic model
     PricingService,
     Service,
@@ -60,6 +61,7 @@ __all__ = [
     'DailyTenantInfo',
     'DailyUsage',
     'DailyVirtualInfo',
+    'Environment',
     'ExtraCost',
     'ExtraCostType',
     'HistoricalService',  # dynamic model
