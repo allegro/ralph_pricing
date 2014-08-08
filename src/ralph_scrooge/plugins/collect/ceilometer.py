@@ -95,6 +95,7 @@ def save_ceilometer_usages(usages, date, warehouse):
         DailyUsage(
             date=date,
             service=daily_tenant.service,
+            environment=daily_tenant.environment,
             daily_pricing_object=daily_tenant,
             value=value / 6.0,  # ceilometer usages are saved each 10 minutes
             type=usage_type,

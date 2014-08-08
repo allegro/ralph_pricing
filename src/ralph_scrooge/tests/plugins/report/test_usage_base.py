@@ -110,7 +110,7 @@ class TestUsageBasePlugin(TestCase):
             for i, ut in enumerate(base_usage_types, start=1):
                 days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
                 for j, day in enumerate(days, start=1):
-                    daily_usage = models.DailyUsage(
+                    daily_usage = DailyUsageFactory(
                         date=day,
                         service=service,
                         daily_pricing_object=daily_pricing_object,
