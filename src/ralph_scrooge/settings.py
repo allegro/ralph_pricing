@@ -8,7 +8,7 @@ NFSEN_FILES_PATH = ''
 VIRTUAL_VENTURE_NAMES = {}
 
 # Shares plugin default config
-SHARE_VENTURE_SYMBOLS = {}
+SHARE_SERVICE_CI_UID = {}
 
 # OpenStack
 OPENSTACK_TENANT_SERVICE_FIELD = None

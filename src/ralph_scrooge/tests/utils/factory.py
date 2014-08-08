@@ -60,6 +60,7 @@ class DailyPricingObjectFactory(DjangoModelFactory):
 class AssetInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.AssetInfo
 
+    device_id = Sequence(lambda n: n)
     sn = Sequence(lambda n: n)
     barcode = Sequence(lambda n: n)
     asset_id = Sequence(lambda n: n)
