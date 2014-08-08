@@ -14,12 +14,12 @@ from django.conf import settings
 
 from ralph.util import plugin
 from ralph_scrooge.models import (
-    UsageType,
-    Service,
+    DailyPricingObject,
     DailyUsage,
     PricingObject,
     PricingObjectType,
-    DailyPricingObject,
+    ServiceEnvironment,
+    UsageType,
 )
 
 
@@ -261,7 +261,7 @@ def get_usage_type():
 def update(
     network_usages,
     usage_type,
-    default_service,
+    default_service_environment,
     date,
 ):
     """
@@ -282,14 +282,14 @@ def update(
             name=ip,
             type=PricingObjectType.ip_address,
             defaults=dict(
-                service=default_service,
+                service_environment=default_service_environment,
             )
         )
         daily_pricing_object = DailyPricingObject.objects.get_or_create(
             date=date,
             pricing_object=pricing_object,
             defaults=dict(
-                service=pricing_object.service,
+                service_environment=pricing_object.service_environment,
             )
         )[0]
         daily_usage, usage_created = DailyUsage.objects.get_or_create(
@@ -297,10 +297,10 @@ def update(
             type=usage_type,
             daily_pricing_object=daily_pricing_object,
             defaults=dict(
-                service=daily_pricing_object.service,
+                service_environment=daily_pricing_object.service_environment,
             ),
         )
-        daily_usage.service = daily_pricing_object.service
+        daily_usage.service = daily_pricing_object.service_environment
         daily_usage.value = value
         daily_usage.save()
         if created:
@@ -323,12 +323,16 @@ def netflow(**kwargs):
     :returns tuple: Status, message and kwargs
     :rtype tuple:
     """
+    service_uid, environment_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
+        'netflow'
+    )
     try:
-        default_service = Service.objects.get(
-            ci_uid=settings.UNKNOWN_SERVICES['netflow'],
+        default_service = ServiceEnvironment.objects.get(
+            service__ci_uid=service_uid,
+            environment__name=environment_name,
         )
-    except Service.DoesNotExist:
-        return False, 'Unknow service netflow does not exist'
+    except ServiceEnvironment.DoesNotExist:
+        return False, 'Unknown service environment for netflow not configured'
 
     date = kwargs['today']
     new, updated, total = update(

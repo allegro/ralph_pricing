@@ -21,7 +21,7 @@ from ralph_scrooge.plugins.collect import netflow
 from ralph_scrooge.tests.utils.factory import (
     DailyPricingObjectFactory,
     PricingObjectFactory,
-    ServiceFactory,
+    ServiceEnvironmentFactory,
 )
 
 
@@ -228,21 +228,21 @@ class TestNetwork(TestCase):
 
     @override_settings(UNKNOWN_SERVICES={'netflow': 1})
     def test_update(self):
-        service_factory = ServiceFactory.create()
+        service_environment = ServiceEnvironmentFactory()
         pricing_object = PricingObjectFactory.create(
             name='8.8.8.8',
             type=PricingObjectType.ip_address,
-            service=service_factory,
+            service_environment=service_environment,
         )
         DailyPricingObjectFactory.create(
             pricing_object=pricing_object,
-            service=service_factory,
+            service_environment=service_environment,
         )
         self.assertEqual(
             netflow.update(
                 {'8.8.8.8': 30},
                 netflow.get_usage_type(),
-                service_factory,
+                service_environment,
                 date(year=2014, month=1, day=1),
             ),
             (0, 1, 1)
@@ -250,7 +250,7 @@ class TestNetwork(TestCase):
 
     @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
     @override_settings(
-        UNKNOWN_SERVICES={'netflow': 1},
+        UNKNOWN_SERVICES_ENVIRONMENTS={'netflow': (1, 'env1')},
         NFSEN_CHANNELS=['test-channel'],
         SSH_NFSEN_CREDENTIALS={
             'address': {
@@ -261,7 +261,10 @@ class TestNetwork(TestCase):
         NFSEN_CLASS_ADDRESS=['10.10.10.10'],
     )
     def test_network(self):
-        ServiceFactory.create(ci_uid=1)
+        ServiceEnvironmentFactory.create(
+            service__ci_uid=1,
+            environment__name='env1'
+        )
         self.assertEqual(
             netflow.netflow(today=date(year=2014, month=1, day=1))[1],
             '1 new, 0 updated, 1 total',
