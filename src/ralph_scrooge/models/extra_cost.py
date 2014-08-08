@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from lck.django.choices import Choices
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -25,6 +26,12 @@ class ExtraCostType(db.Model):
 
     def __unicode__(self):
         return self.name
+
+
+class ExtraCostChoices(Choices):
+    _ = Choices.Choice
+    daily_imprint = _('Daily imprint')
+    time_period_cost = _('Time period cost')
 
 
 class ExtraCost(db.Model):
@@ -66,13 +73,9 @@ class ExtraCost(db.Model):
         blank=True,
         default=None,
     )
-    MODE_CHOICES = (
-        ('0', _('Daily imprint')),
-        ('1', _('Time period cost')),
-    )
     mode = db.CharField(
         verbose_name=_("Extra cost mode"),
-        choices=MODE_CHOICES,
+        choices=ExtraCostChoices(),
         blank=False,
         null=False,
         max_length=30,
