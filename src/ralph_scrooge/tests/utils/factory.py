@@ -95,3 +95,21 @@ class BusinessLineFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Business Line #%s' % n)
     ci_uid = Sequence(lambda n: n)
+
+
+class ExtraCostTypeFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ExtraCostType
+
+    name = Sequence(lambda n: 'Extra_Cost_type_%s' % n)
+
+
+class ExtraCostFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ExtraCost
+
+    type = SubFactory(ExtraCostTypeFactory)
+    monthly_cost = 3100
+    service = SubFactory(ServiceFactory)
+    pricing_object = SubFactory(PricingObjectFactory)
+    start = datetime.date.today()
+    end = datetime.date.today()
+    mode = models.ExtraCostChoices.daily_imprint
