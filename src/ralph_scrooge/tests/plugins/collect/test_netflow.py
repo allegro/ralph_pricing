@@ -234,7 +234,7 @@ class TestNetwork(TestCase):
             type=PricingObjectType.ip_address,
             service=service_factory,
         )
-        daily_pricing_object = DailyPricingObjectFactory.create(
+        DailyPricingObjectFactory.create(
             pricing_object=pricing_object,
             service=service_factory,
         )
