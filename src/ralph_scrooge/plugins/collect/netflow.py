@@ -281,12 +281,16 @@ def update(
         pricing_object, created = PricingObject.objects.get_or_create(
             name=ip,
             type=PricingObjectType.ip_address,
-            service=default_service,
+            defaults=dict(
+                service=default_service,
+            )
         )
         daily_pricing_object = DailyPricingObject.objects.get_or_create(
             date=date,
             pricing_object=pricing_object,
-            service=default_service,
+            defaults=dict(
+                service=default_service,
+            )
         )[0]
         daily_usage, usage_created = DailyUsage.objects.get_or_create(
             date=date,
@@ -308,7 +312,7 @@ def update(
     return (new, updated, total)
 
 
-@plugin.register(chain='scrooge', requires=[])
+@plugin.register(chain='scrooge', requires=['service'])
 def netflow(**kwargs):
     """
     Getting network usage per service is included in the two steps.
