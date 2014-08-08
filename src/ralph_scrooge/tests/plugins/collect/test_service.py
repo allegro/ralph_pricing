@@ -136,6 +136,6 @@ class TestServiceCollectPlugin(TestCase):
             result,
             (True, '1 new service(s), 1 updated, 2 total')
         )
-        update_service_mock.call_count = 2
+        self.assertEquals(update_service_mock.call_count, 2)
         update_service_mock.assert_any_call(SAMPLE_SERVICES[0], date)
         update_service_mock.assert_any_call(SAMPLE_SERVICES[1], date)

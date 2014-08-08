@@ -14,6 +14,8 @@ from lck.django.common.models import (
     TimeTrackable,
 )
 
+from ralph_scrooge.models.warehouse import Warehouse
+
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -74,8 +76,8 @@ class UsageType(db.Model):
         verbose_name=_("Given value is a cost"),
         default=False,
     )
-    show_in_ventures_report = db.BooleanField(
-        verbose_name=_("Display usage type in ventures report"),
+    show_in_services_report = db.BooleanField(
+        verbose_name=_("Display usage type in services report"),
         default=True,
     )
     show_in_devices_report = db.BooleanField(
@@ -263,8 +265,14 @@ class DailyUsage(db.Model):
         blank=False,
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
-    type = db.ForeignKey(UsageType, verbose_name=_("type"))
-    warehouse = db.ForeignKey('Warehouse', null=True, on_delete=db.PROTECT)
+    type = db.ForeignKey(UsageType, verbose_name=_("daily_usages"))
+    warehouse = db.ForeignKey(
+        'Warehouse',
+        null=False,
+        blank=False,
+        on_delete=db.PROTECT,
+        default=lambda: Warehouse.objects.get(name='Default'),
+    )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
         help_text=_("Additional information."),
@@ -279,7 +287,7 @@ class DailyUsage(db.Model):
 
     def __unicode__(self):
         return '{0}/{1} ({2}) {3}'.format(
-            self.pricing_object,
+            self.daily_pricing_object,
             self.type,
             self.date,
             self.value,
