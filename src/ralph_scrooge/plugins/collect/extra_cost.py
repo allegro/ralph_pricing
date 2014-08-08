@@ -32,7 +32,7 @@ def update_extra_cost(data, date):
     return created
 
 
-@plugin.register(chain='scrooge', requires=[])
+@plugin.register(chain='scrooge', requires=['service'])
 def extra_cost(**kwargs):
     """
     Main method of daily imprint create.
