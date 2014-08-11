@@ -198,3 +198,6 @@ class ServiceEnvironment(db.Model):
         verbose_name = _("service environment")
         verbose_name_plural = _("service environments")
         app_label = 'ralph_scrooge'
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.service, self.environment)
