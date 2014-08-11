@@ -28,7 +28,6 @@ class UsageBasePlugin(BaseReportPlugin):
         start,
         end,
         warehouse=None,
-        team=None
     ):
         """
         Calculate if for every day in report there is price defined for usage
@@ -47,8 +46,6 @@ class UsageBasePlugin(BaseReportPlugin):
         )
         if usage_type.by_warehouse and warehouse:
             usage_prices = usage_prices.filter(warehouse=warehouse)
-        if usage_type.by_team and team:
-            usage_prices = usage_prices.filter(team=team)
         usage_prices = usage_prices.values('start', 'end').distinct()
         intervals = [(v['start'], v['end']) for v in usage_prices]
         sum_of_intervals = utils.sum_of_intervals(intervals)
