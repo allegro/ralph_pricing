@@ -160,3 +160,39 @@ class ExtraCostFactory(DjangoModelFactory):
     start = datetime.date.today()
     end = datetime.date.today()
     mode = models.ExtraCostChoices.daily_imprint
+
+
+class TeamFactory(DjangoModelFactory):
+    FACTORY_FOR = models.Team
+
+    name = Sequence(lambda n: 'Team #%s' % n)
+    show_in_report = True
+    show_percent_column = False
+    billing_type = models.TeamBillingType.time
+
+
+class TeamDaterangeFactory(DjangoModelFactory):
+    FACTORY_FOR = models.TeamDaterange
+
+    team = SubFactory(TeamFactory)
+    start = datetime.date.today()
+    end = datetime.date.today()
+
+
+class TeamCostFactory(DjangoModelFactory):
+    FACTORY_FOR = models.TeamCost
+
+    team = SubFactory(TeamFactory)
+    start = datetime.date.today()
+    end = datetime.date.today()
+    members_count = fuzzy.FuzzyInteger(10, 30)
+    cost = fuzzy.FuzzyDecimal(100, 1000)
+    forecast_cost = fuzzy.FuzzyDecimal(100, 1000)
+
+
+class TeamServiceEnvironmentPercentFactory(DjangoModelFactory):
+    FACTORY_FOR = models.TeamServiceEnvironmentPercent
+
+    team = SubFactory(TeamFactory)
+    service_environment = SubFactory(ServiceEnvironmentFactory)
+    percent = fuzzy.FuzzyDecimal(0, 100)

@@ -180,6 +180,10 @@ class TeamDaterangesInline(admin.TabularInline):
     model = models.TeamDaterange
 
 
+class TeamCostInline(admin.TabularInline):
+    model = models.TeamCost
+
+
 class TeamForm(forms.ModelForm):
     class Meta:
         model = models.Team
@@ -193,17 +197,17 @@ class TeamAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [
-        UsagePriceInline,
-        TeamDaterangesInline
+        TeamCostInline,
+        TeamDaterangesInline,
     ]
     form = TeamForm
 
 
-class TeamServicesPercentInline(admin.TabularInline):
-    model = models.TeamServicePercent
+class TeamServicesEnvironmentsPercentInline(admin.TabularInline):
+    model = models.TeamServiceEnvironmentPercent
 
 
 @register(models.TeamDaterange)
 class TeamDateranges(ModelAdmin):
     list_display = ('team', 'start', 'end')
-    inlines = [TeamServicesPercentInline]
+    inlines = [TeamServicesEnvironmentsPercentInline]

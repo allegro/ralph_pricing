@@ -15,7 +15,7 @@ from ralph_scrooge.models import (
     ExtraCost,
     Service,
     TeamDaterange,
-    TeamServicePercent,
+    TeamServiceEnvironmentPercent,
     UsagePrice,
     UsageType,
 )
@@ -67,8 +67,8 @@ class UsagePriceForm(forms.ModelForm):
 
         fields = [
             'warehouse',
-            'team',
-            'team_members_count',
+            # 'team',
+            # 'team_members_count',
             'internet_provider',
             'forecast_price',
             'price',
@@ -248,20 +248,20 @@ TeamDaterangeFormSet = forms.models.modelformset_factory(
 )
 
 
-class TeamServicePercentForm(forms.ModelForm):
+class TeamServiceEnvironmentPercentForm(forms.ModelForm):
     class Meta:
-        model = TeamServicePercent
+        model = TeamServiceEnvironmentPercent
 
-        fields = ['service', 'percent']
+        fields = ['service_environment', 'percent']
 
     def __init__(self, *args, **kwargs):
-        super(TeamServicePercent, self).__init__(*args, **kwargs)
+        super(TeamServiceEnvironmentPercent, self).__init__(*args, **kwargs)
         self.fields['service'].queryset = Service.objects.order_by('name')
 
 
-class TeamServicePercentBaseFormSet(forms.models.BaseModelFormSet):
+class TeamServiceEnvironmentPercentBaseFormSet(forms.models.BaseModelFormSet):
     """
-    Used by factory to create TeamServicePercentFormSet.
+    Used by factory to create TeamServiceEnvironmentPercentFormSet.
     Contains rules to validate correctness of
     """
     def clean(self):
@@ -288,10 +288,10 @@ class TeamServicePercentBaseFormSet(forms.models.BaseModelFormSet):
                 seen.add(venture)
 
 
-TeamServicePercentFormSet = forms.models.modelformset_factory(
-    TeamServicePercent,
-    form=TeamServicePercentForm,
-    formset=TeamServicePercentBaseFormSet,
+TeamServiceEnvironmentPercentFormSet = forms.models.modelformset_factory(
+    TeamServiceEnvironmentPercent,
+    form=TeamServiceEnvironmentPercentForm,
+    formset=TeamServiceEnvironmentPercentBaseFormSet,
     can_delete=True,
     extra=5,
 )
