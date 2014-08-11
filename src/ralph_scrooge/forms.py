@@ -319,12 +319,11 @@ class DateRangeForm(forms.Form):
     )
 
 
-class VenturesReportForm(DateRangeForm):
+class ServicesReportForm(DateRangeForm):
     forecast = forms.BooleanField(
         required=False,
         label=_("Forecast"),
     )
-
     is_active = forms.BooleanField(
         required=False,
         label=_("Show only active"),

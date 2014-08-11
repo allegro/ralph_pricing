@@ -13,13 +13,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.views.reports import Report
 from ralph_scrooge.models import (
+    PricingService,
     Service,
     UsageType,
-    # Venture,
 )
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.plugins import reports  # noqa
-from ralph_scrooge.plugins.reports.base import AttributeDict
+from ralph_scrooge.utils import AttributeDict
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class BasePluginReport(Report):
         """
         logger.debug("Getting usage types")
         query = UsageType.objects.filter(
-            show_in_ventures_report=True,
+            show_in_services_report=True,
             type='BU',
         )
         if filter_:
@@ -74,7 +74,7 @@ class BasePluginReport(Report):
         Returns regular usage types which should be visible on report
         """
         query = UsageType.objects.filter(
-            show_in_ventures_report=True,
+            show_in_services_report=True,
             type='RU',
         )
         if filter_:
@@ -102,28 +102,28 @@ class BasePluginReport(Report):
         return result
 
     @classmethod
-    def _get_services(cls):
+    def _get_pricing_services(cls):
         """
         Returns services which should be visible on report
         """
-        return Service.objects.order_by('name')
+        return PricingService.objects.order_by('name')
 
     @classmethod
     def _get_services_plugins(cls):
         """
         Returns plugins information (name and arguments) for services
         """
-        services = cls._get_services()
+        pricing_services = cls._get_pricing_services()
         result = []
-        for service in services:
-            service_info = AttributeDict(
-                name=service.name,
-                plugin_name=service.get_plugin_name(),
+        for pricing_service in pricing_services:
+            pricing_service_info = AttributeDict(
+                name=pricing_service.name,
+                plugin_name=pricing_service.get_plugin_name(),
                 plugin_kwargs={
-                    'service': service
+                    'pricing_service': pricing_service
                 }
             )
-            result.append(service_info)
+            result.append(pricing_service_info)
         return result
 
     @classmethod
@@ -225,7 +225,7 @@ class BasePluginReport(Report):
         return final_data
 
     @classmethod
-    def _get_ventures(cls, is_active):
+    def _get_services(cls, is_active):
         """
         This function return all ventures for which report will be ganarated
 
@@ -234,12 +234,9 @@ class BasePluginReport(Report):
         :rtype list:
         """
         logger.debug("Getting ventures")
-        # ventures = Venture.objects.order_by('name')
-        # if is_active:
-        #     ventures = ventures.filter(is_active=True)
-        ventures = []
-        logger.debug("Got {0} ventures".format(ventures.count()))
-        return ventures
+        services = Service.objects.order_by('name').all()
+        logger.debug("Got {0} ventures".format(services.count()))
+        return services
 
     @classmethod
     @memoize
@@ -255,7 +252,7 @@ class BasePluginReport(Report):
         for plugin in cls.get_plugins():
             try:
                 plugin_headers = plugin_runner.run(
-                    'reports',
+                    'scrooge_reports',
                     plugin.plugin_name,
                     type=cls.schema_name,
                     **plugin.get('plugin_kwargs', {})

@@ -10,16 +10,15 @@ from collections import OrderedDict
 
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models import Device
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.reports.base import BaseReportPlugin
 
 logger = logging.getLogger(__name__)
 
 
-@register(chain='reports')
+@register(chain='scrooge_reports')
 class Information(BaseReportPlugin):
-    def costs(self, *args, **kwargs):
+    def costs(self, services, *args, **kwargs):
         """
         Return information about given ventures
 
@@ -36,16 +35,10 @@ class Information(BaseReportPlugin):
         """
         logger.debug("Get information usage")
         usages = {}
-        for venture in kwargs.get('ventures'):
-            venture_name = '/'.join(
-                v.name for v in venture.get_ancestors(include_self=True),
-            )
-            usages[venture.id] = {
-                'venture_id': venture.venture_id,
-                'venture': venture_name,
-                'department': venture.department,
-                'business_segment': venture.business_segment,
-                'profit_center': venture.profit_center,
+        for service in services:
+            usages[service.id] = {
+                'service_id': service.ci_uid,
+                'service': service.name,
             }
         return usages
 
@@ -66,12 +59,13 @@ class Information(BaseReportPlugin):
         :rtype dict:
         """
         logger.debug("Get devices information")
-        devices = Device.objects.filter(
-            dailydevice__date__gte=start,
-            dailydevice__date__lte=end,
-            dailydevice__pricing_venture__in=ventures,
-        ).distinct().values('id', 'asset_id', 'name', 'sn', 'barcode')
-        return dict(((device['id'], device) for device in devices))
+        # devices = Device.objects.filter(
+        #     dailydevice__date__gte=start,
+        #     dailydevice__date__lte=end,
+        #     dailydevice__pricing_venture__in=ventures,
+        # ).distinct().values('id', 'asset_id', 'name', 'sn', 'barcode')
+        # return dict(((device['id'], device) for device in devices))
+        return {}
 
     def schema(self, *args, **kwargs):
         """
@@ -91,20 +85,11 @@ class Information(BaseReportPlugin):
         """
         logger.debug("Get information schema")
         schema = OrderedDict()
-        schema['venture_id'] = {
+        schema['service_id'] = {
             'name': _("ID"),
         }
-        schema['venture'] = {
-            'name': _("Venture"),
-        }
-        schema['department'] = {
-            'name': _("Department"),
-        }
-        schema['business_segment'] = {
-            'name': _("Business segment"),
-        }
-        schema['profit_center'] = {
-            'name': _("Profit center"),
+        schema['service'] = {
+            'name': _("Service"),
         }
         return schema
 
