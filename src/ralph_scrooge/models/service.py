@@ -33,6 +33,19 @@ class BusinessLine(Named):
         app_label = 'ralph_scrooge'
 
 
+class Environment(Named):
+    environment_id = db.IntegerField(
+        verbose_name=_("ralph environment id"),
+        unique=True,
+        null=False,
+        blank=False,
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+        ordering = ['name']
+
+
 class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     name = db.CharField(
         verbose_name=_("name"),
@@ -56,10 +69,16 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         through='ServiceOwnership',
         related_name='services'
     )
+    environments = db.ManyToManyField(
+        Environment,
+        through='ServiceEnvironment',
+        related_name='services',
+    )
     history = IntervalHistoricalRecords()
 
     class Meta:
         app_label = 'ralph_scrooge'
+        ordering = ['name']
 
     def __unicode__(self):
         return self.name
@@ -163,3 +182,22 @@ class ServiceUsageTypes(db.Model):
             self.start,
             self.end,
         )
+
+
+class ServiceEnvironment(db.Model):
+    service = db.ForeignKey(
+        Service,
+        related_name="environments_services",
+    )
+    environment = db.ForeignKey(
+        Environment,
+        related_name='services_environments',
+    )
+
+    class Meta:
+        verbose_name = _("service environment")
+        verbose_name_plural = _("service environments")
+        app_label = 'ralph_scrooge'
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.service, self.environment)

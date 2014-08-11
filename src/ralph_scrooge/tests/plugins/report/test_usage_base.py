@@ -17,7 +17,7 @@ from ralph_scrooge import models
 from ralph_scrooge.plugins.reports.usage import UsagePlugin
 from ralph_scrooge.tests.utils.factory import (
     DailyUsageFactory,
-    ServiceFactory,
+    ServiceEnvironmentFactory,
     UsageTypeFactory,
     WarehouseFactory,
     DailyPricingObjectFactory,
@@ -78,12 +78,15 @@ class TestUsageBasePlugin(TestCase):
         self.net_providers = models.InternetProvider.objects.all()
 
         # services
-        self.service1 = ServiceFactory()
-        self.service2 = ServiceFactory()
-        self.service3 = ServiceFactory()
-        self.service4 = ServiceFactory()
-        self.services_subset = [self.service1, self.service2]
-        self.services = models.Service.objects.all()
+        self.service_environment1 = ServiceEnvironmentFactory()
+        self.service_environment2 = ServiceEnvironmentFactory()
+        self.service_environment3 = ServiceEnvironmentFactory()
+        self.service_environment4 = ServiceEnvironmentFactory()
+        self.services_subset = [
+            self.service_environment1.service,
+            self.service_environment2.service,
+        ]
+        self.service_environments = models.ServiceEnvironment.objects.all()
 
         # daily usages of base type
         # ut1:
@@ -101,18 +104,21 @@ class TestUsageBasePlugin(TestCase):
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
         base_usage_types = models.UsageType.objects.filter(type='BU')
-        self.services_pricing_objects = {}
-        for k, service in enumerate(self.services, start=1):
+        self.service_environments_pricing_objects = {}
+        for k, service_environment in enumerate(
+            self.service_environments,
+            start=1
+        ):
             daily_pricing_object = DailyPricingObjectFactory()
-            self.services_pricing_objects[service] = (
+            self.service_environments_pricing_objects[service_environment] = (
                 daily_pricing_object.pricing_object
             )
             for i, ut in enumerate(base_usage_types, start=1):
                 days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
                 for j, day in enumerate(days, start=1):
-                    daily_usage = models.DailyUsage(
+                    daily_usage = DailyUsageFactory(
                         date=day,
-                        service=service,
+                        service_environment=service_environment,
                         daily_pricing_object=daily_pricing_object,
                         value=10 * i * k,
                         type=ut,
@@ -275,7 +281,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            services=[self.service1],
+            services=[self.service_environment1],
             forecast=True,
         )
         # 10-12: usage: 3 * 10 = 30; cost: 30 * 50 = 1500
@@ -349,7 +355,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            services=[self.service1],
+            services=[self.service_environment1],
             forecast=True,
         )
         # 5-12: (usages are from 8 to 12)
@@ -453,7 +459,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 5),
             end=datetime.date(2013, 10, 25),
             usage_type=self.usage_type_cost_sum,
-            services=self.services,
+            services=self.service_environments,
             forecast=False,
         )
         self.assertEquals(result, D('77000'))
@@ -464,7 +470,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 1),
             end=datetime.date(2013, 10, 28),
             usage_type=self.usage_type_cost_sum,
-            services=self.services,
+            services=self.service_environments,
             forecast=False,
             no_price_msg=True,
         )
@@ -475,7 +481,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            services=[self.service1],
+            services=[self.service_environment1],
             forecast=True,
         )
         # 5-12: (usages are from 8 to 12)
@@ -548,10 +554,13 @@ class TestUsageBasePlugin(TestCase):
         for i, ut in enumerate(base_usage_types, start=1):
             days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
             for j, day in enumerate(days, start=1):
-                for k, service in enumerate(self.services, start=1):
+                for k, service_environment in enumerate(
+                    self.service_environments,
+                    start=1
+                ):
                     daily_usage = DailyUsageFactory(
                         date=day,
-                        service=service,
+                        service_environment=service_environment,
                         value=10 * i * k,
                         type=ut,
                         warehouse=self.default_warehouse
@@ -658,7 +667,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            services=[self.service1],
+            services=[self.service_environment1],
             forecast=False,
             by_device=True,
         )
@@ -669,7 +678,9 @@ class TestUsageBasePlugin(TestCase):
         cost_wh2_key = '{}cost_wh_{}'.format(ut_key, self.warehouse2.id)
         total_cost_key = '{}total_cost'.format(ut_key)
         self.assertEquals(result, {
-            self.services_pricing_objects[self.service1].id: {
+            self.service_environments_pricing_objects[
+                self.service_environment1
+            ].id: {
                 count_wh1_key: 100.0,  # 5 * 20 (5 is number of odd days)
                 cost_wh1_key: D('960'),  # 20 * (1 * 9 + 3 * 9 + 1 * 12)
                 count_wh2_key: 120.0,  # 6 * 20 (6 is number of even days)
@@ -780,7 +791,7 @@ class TestUsageBasePlugin(TestCase):
         # test if sum of usages per day is properly calculated
         DailyUsageFactory(
             date=datetime.date(2013, 10, 11),
-            service=self.service2,
+            service_environment=self.service_environment2,
             value=100,
             type=self.usage_type,
         )
@@ -793,20 +804,20 @@ class TestUsageBasePlugin(TestCase):
         )
         self.assertEquals(result, {
             datetime.date(2013, 10, 10): {
-                self.service1.id: 10,
-                self.service2.id: 20,
+                self.service_environment1.id: 10,
+                self.service_environment2.id: 20,
             },
             datetime.date(2013, 10, 11): {
-                self.service1.id: 10,
-                self.service2.id: 120,  # additional usage!
+                self.service_environment1.id: 10,
+                self.service_environment2.id: 120,  # additional usage!
             },
             datetime.date(2013, 10, 12): {
-                self.service1.id: 10,
-                self.service2.id: 20,
+                self.service_environment1.id: 10,
+                self.service_environment2.id: 20,
             },
             datetime.date(2013, 10, 13): {
-                self.service1.id: 10,
-                self.service2.id: 20,
+                self.service_environment1.id: 10,
+                self.service_environment2.id: 20,
             },
         })
 

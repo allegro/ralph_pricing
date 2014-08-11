@@ -184,7 +184,7 @@ class UsageBasePlugin(BaseReportPlugin):
             warehouse,
             **kwargs
         ):
-            usages_per_service = self._get_usages_in_period_per_service(
+            usages_per_service = self._get_usages_per_service_environment(
                 start=up_start,
                 end=up_end,
                 usage_type=usage_type,
@@ -193,15 +193,15 @@ class UsageBasePlugin(BaseReportPlugin):
                 excluded_services=excluded_services,
             )
             for v in usages_per_service:
-                service = v['service']
-                result[service][count_key] += v['usage']
+                service_environment = v['service_environment']
+                result[service_environment][count_key] += v['usage']
                 cost = D(v['usage']) * price
                 if price_undefined:
-                    result[service][cost_key] = price_undefined
+                    result[service_environment][cost_key] = price_undefined
                 else:
-                    result[service][cost_key] += cost
+                    result[service_environment][cost_key] += cost
                 if usage_type.by_warehouse and not price_undefined:
-                    result[service][total_cost_key] += cost
+                    result[service_environment][total_cost_key] += cost
 
         def add_usages_per_device(
             up_start,
@@ -377,14 +377,14 @@ class UsageBasePlugin(BaseReportPlugin):
         )
         result = defaultdict(dict)
         dailyusages = usage_type.dailyusage_set.filter(
-            service__in=services,
+            service_environment__service__in=services,
             date__gte=start,
             date__lte=end,
         ).extra({
             'day': "date(date)"
         }).values(
             'day',
-            'service',
+            'service_environment',
         ).annotate(
             usage=Sum('value')
         )
@@ -393,7 +393,7 @@ class UsageBasePlugin(BaseReportPlugin):
             # on sqlite string is returned from query instead of datetime
             if isinstance(day, basestring):
                 day = datetime.strptime(day, "%Y-%m-%d").date()
-            result[day][d['service']] = d['usage']
+            result[day][d['service_environment']] = d['usage']
         return result
 
     def schema(self, usage_type, **kwargs):

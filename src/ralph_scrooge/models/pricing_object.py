@@ -45,8 +45,8 @@ class PricingObject(TimeTrackable, EditorTrackable):
         blank=True,
         default="",
     )
-    service = db.ForeignKey(
-        'Service',
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
         related_name='pricing_objects'
     )
 
@@ -65,7 +65,10 @@ class DailyPricingObject(db.Model):
         blank=False,
         related_name='daily_pricing_objects',
     )
-    service = db.ForeignKey('Service', related_name='daily_pricing_objects')
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
+        related_name='daily_pricing_objects'
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'

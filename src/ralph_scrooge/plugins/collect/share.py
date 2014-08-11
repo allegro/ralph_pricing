@@ -43,7 +43,7 @@ def update_usage(asset_info, usage_type, data, date):
     usage, created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
-        service=asset_info.service,
+        service_environment=asset_info.service_environment,
         daily_pricing_object=DailyPricingObject.objects.get(
             date=date,
             pricing_object=asset_info,

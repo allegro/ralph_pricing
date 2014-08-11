@@ -49,7 +49,10 @@ class TestSharesPlugin(TestCase):
         daily_usage = DailyUsage.objects.get()
         self.assertEqual(daily_usage.value, self.data['size'])
         self.assertEqual(daily_usage.type, self.usage_type)
-        self.assertEqual(daily_usage.service, self.asset_info.service)
+        self.assertEqual(
+            daily_usage.service_environment,
+            self.asset_info.service_environment
+        )
 
     def test_update_when_unknown_mount_device_id_error(self):
         self.data['mount_device_id'] = None

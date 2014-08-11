@@ -21,6 +21,18 @@ def register(model):
     return decorator
 
 
+class UpdateReadonlyMixin(object):
+    readonly_when_update = ()
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # editing an existing object
+            return list(self.readonly_fields) + list(self.readonly_when_update)
+        return self.readonly_fields
+
+
+# =============================================================================
+# WAREHOUSE
+# =============================================================================
 @register(models.Warehouse)
 class WarehouseAdmin(ModelAdmin):
     list_display = ('name',)
@@ -30,20 +42,41 @@ class WarehouseAdmin(ModelAdmin):
 # =============================================================================
 # PRICING OBJECT
 # =============================================================================
-class AssetInfoInline(admin.StackedInline):
+class PricingObjectChildInlineBase(admin.StackedInline):
+    show_type = None
+    exclude = [
+        f.name for f in models.PricingObject._meta.fields if f.name not in (
+            'id',
+            'cache_version',
+        )
+    ]
+
+
+class AssetInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     model = models.AssetInfo
+    readonly_when_update = ('asset_id', )
 
 
-class VirtualInfoInline(admin.StackedInline):
+class VirtualInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     model = models.VirtualInfo
+    readonly_when_update = ('device_id', )
+
+
+class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
+    model = models.TenantInfo
+    readonly_when_update = ('tenant_id', )
 
 
 @register(models.PricingObject)
-class PricingObjectAdmin(ModelAdmin):
+class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('name', 'service', 'type', 'remarks',)
-    search_fields = ('name', 'service__name', 'remarks',)
+    search_fields = ('name', 'service_environment__service__name', 'remarks',)
     list_filter = ('type', )
-    inlines = [AssetInfoInline, VirtualInfoInline]
+    readonly_when_update = ('type', )
+    inlines = [AssetInfoInline, VirtualInfoInline, TenantInfoInline]
+
+    def service(self, obj):
+        return obj.service_environment.service
 
 
 # =============================================================================
@@ -98,6 +131,13 @@ class BusinessLineAdmin(ModelAdmin):
     search_fields = ('name',)
 
 
+@register(models.Environment)
+class EnvironmentAdmin(UpdateReadonlyMixin, ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    readonly_when_update = ('environment_id', )
+
+
 @register(models.Owner)
 class OwnerAdmin(ModelAdmin):
     list_display = ('last_name', 'first_name')
@@ -107,26 +147,16 @@ class OwnerAdmin(ModelAdmin):
 class ServiceOwnershipInline(admin.TabularInline):
     model = models.ServiceOwnership
 
-# class ServiceForm(forms.ModelForm):
-#     class Meta:
-#         model = models.Service
 
-#     def save(self, commit=True):
-#         # NOTE: Previously assigned Ventures and their services are
-#         # silently reset
-#         instance = super(ServiceForm, self).save(commit=False)
-#         self.fields['ventures'].initial.update(service=None)
-#         instance.save()
-#         if self.cleaned_data['ventures']:
-#             self.cleaned_data['ventures'].update(service=instance)
-#         return instance
+class ServiceEnvironmentsInline(admin.TabularInline):
+    model = models.ServiceEnvironment
 
 
 @register(models.Service)
 class ServiceAdmin(SimpleHistoryAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    inlines = [ServiceOwnershipInline]
+    inlines = [ServiceOwnershipInline, ServiceEnvironmentsInline]
 
 
 # =============================================================================

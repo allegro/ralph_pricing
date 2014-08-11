@@ -16,7 +16,7 @@ from ralph_scrooge.models import (
     DailyAssetInfo,
     DailyUsage,
     PricingObjectType,
-    Service,
+    ServiceEnvironment,
     UsageType,
     Warehouse,
 )
@@ -25,7 +25,21 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 
-def get_asset_info(service, warehouse, data):
+class ServiceEnvironmentDoesNotExistError(Exception):
+    """
+    Raise this exception when service does not exist
+    """
+    pass
+
+
+class WarehouseDoesNotExistError(Exception):
+    """
+    Raise this exception when warehouse does not exist
+    """
+    pass
+
+
+def get_asset_info(service_environment, warehouse, data):
     """
     Update AssetInfo object or create it if not exist.
 
@@ -44,7 +58,7 @@ def get_asset_info(service, warehouse, data):
             type=PricingObjectType.asset,
         )
         created = True
-    asset_info.service = service
+    asset_info.service_environment = service_environment
     asset_info.name = data['asset_name']
     asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
@@ -70,10 +84,11 @@ def get_daily_asset_info(asset_info, date, data):
         asset_info=asset_info,
         date=date,
         defaults=dict(
-            service=asset_info.service,
-        )
+            service_environment=asset_info.service_environment,
+        ),
     )
-    daily_asset_info.service = asset_info.service
+    # set defaults if daily asset was not created
+    daily_asset_info.service_environment = asset_info.service_environment
     daily_asset_info.depreciation_rate = data['depreciation_rate']
     daily_asset_info.is_depreciated = data['is_depreciated']
     daily_asset_info.price = data['price']
@@ -81,7 +96,7 @@ def get_daily_asset_info(asset_info, date, data):
     return daily_asset_info
 
 
-def update_usage(service, pricing_object, usage_type, value, date, warehouse):
+def update_usage(daily_asset_info, warehouse, usage_type, value, date):
     """
     Updates (or creates) usage of given usage_type for device.
 
@@ -92,13 +107,20 @@ def update_usage(service, pricing_object, usage_type, value, date, warehouse):
     :param object date: datetime
     :param object warehouse: Django orm Warehouse object
     """
+    defaults = dict(
+        service_environment=daily_asset_info.service_environment,
+        warehouse=warehouse,
+    )
     usage, usage_created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
-        daily_pricing_object=pricing_object,
-        service=service,
-        warehouse=warehouse,
+        daily_pricing_object=daily_asset_info,
+        defaults=defaults
     )
+    # set defaults if daily usage was not created
+    if not usage_created:
+        for attr, value in defaults.iteritems():
+            setattr(usage, attr, value)
     usage.value = value
     usage.save()
 
@@ -121,22 +143,20 @@ def update_assets(data, date, usages):
     :rtype tuple:
     """
     try:
-        service = Service.objects.get(ci_uid=data['service_ci_uid'])
-    except Service.DoesNotExist:
-        logger.error('Service {0} does not exist'.format(
-            data['service_ci_uid'],
-        ))
-        return (False, False)
+        service_environment = ServiceEnvironment.objects.get(
+            service__ci_uid=data['service_ci_uid'],
+            environment__environment_id=data['environment_id'],
+        )
+    except ServiceEnvironment.DoesNotExist:
+        raise ServiceEnvironmentDoesNotExistError()
 
     try:
         warehouse = Warehouse.objects.get(id_from_assets=data['warehouse_id'])
     except Warehouse.DoesNotExist:
-        logger.error('Warehouse {0} does not exist'.format(
-            data['warehouse_id']
-        ))
-        return (False, False)
+        raise WarehouseDoesNotExistError()
+
     asset_info, new_created = get_asset_info(
-        service,
+        service_environment,
         warehouse,
         data,
     )
@@ -147,30 +167,27 @@ def update_assets(data, date, usages):
     )
 
     update_usage(
-        service,
         daily_asset_info,
-        usages['core'],
-        data['core'],
-        date,
         warehouse,
+        usages['cores_count'],
+        data['cores_count'],
+        date,
     )
     update_usage(
-        service,
         daily_asset_info,
+        warehouse,
         usages['power_consumption'],
         data['power_consumption'],
         date,
-        warehouse,
     )
     update_usage(
-        service,
         daily_asset_info,
+        warehouse,
         usages['collocation'],
         data['collocation'],
         date,
-        warehouse,
     )
-    return (True, new_created)
+    return new_created
 
 
 def get_usage(symbol, name, by_warehouse, by_cost, average):
@@ -197,7 +214,10 @@ def get_usage(symbol, name, by_warehouse, by_cost, average):
     return usage_type
 
 
-@plugin.register(chain='scrooge', requires=[])
+@plugin.register(
+    chain='scrooge',
+    requires=['service', 'environment', 'warehouse']
+)
 def asset(**kwargs):
     """
     Updates assets and usages
@@ -207,37 +227,47 @@ def asset(**kwargs):
     """
     date = kwargs['today']
     usages = {
-        'core': get_usage(
+        'cores_count': get_usage(
             'physical_cpu_cores',
             'Physical CPU cores',
-            False,
-            False,
-            True,
+            by_warehouse=False,
+            by_cost=False,
+            average=True,
         ),
         'power_consumption': get_usage(
             'power_consumption',
             'Power consumption',
-            True,
-            True,
-            False,
+            by_warehouse=True,
+            by_cost=True,
+            average=False,
         ),
         'collocation': get_usage(
-            'collection',
-            'Collection',
-            True,
-            True,
-            False,
+            'collocation',
+            'Collocation',
+            by_warehouse=True,
+            by_cost=True,
+            average=True,
         ),
     }
 
     new = update = total = 0
     for data in get_assets(date):
-        result = update_assets(data, date, usages)
-        if result[0]:
-            if result[1]:
+        total += 1
+        try:
+            if update_assets(data, date, usages):
                 new += 1
             else:
                 update += 1
-        total += 1
+        except ServiceEnvironmentDoesNotExistError:
+            logger.error('Service environment {}-{} does not exist'.format(
+                data['service_ci_uid'],
+                data['environment_id'],
+            ))
+            continue
+        except WarehouseDoesNotExistError:
+            logger.error('Warehouse {0} does not exist'.format(
+                data['warehouse_id']
+            ))
+            continue
 
     return True, '{0} new, {1} updated, {2} total'.format(new, update, total)

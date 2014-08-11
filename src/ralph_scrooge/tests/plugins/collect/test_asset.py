@@ -12,25 +12,28 @@ from django.test import TestCase
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
-    PricingObject,
     DailyPricingObject,
-    UsageType,
     DailyUsage,
+    PricingObject,
+    UsageType,
 )
 from ralph_scrooge.plugins.collect import asset
 from ralph_scrooge.tests.utils.factory import (
-    WarehouseFactory,
-    ServiceFactory,
-    PricingObjectFactory,
     AssetInfoFactory,
-    DailyPricingObjectFactory,
+    DailyAssetInfoFactory,
+    EnvironmentFactory,
+    ServiceEnvironmentFactory,
+    ServiceFactory,
     UsageTypeFactory,
+    WarehouseFactory,
 )
 
 
 class TestAssetPlugin(TestCase):
     def setUp(self):
-        self.service = ServiceFactory.create()
+        # self.service = ServiceFactory.create()
+        # self.environment = EnvironmentFactory.create()
+        self.service_environment = ServiceEnvironmentFactory()
         self.date = datetime.date.today()
         self.warehouse = WarehouseFactory.create()
         self.value = 100
@@ -43,23 +46,33 @@ class TestAssetPlugin(TestCase):
             'depreciation_rate': 25,
             'is_depreciated': True,
             'price': 100,
-            'service_ci_uid': self.service.ci_uid,
+            'service_ci_uid': self.service_environment.service.ci_uid,
             'warehouse_id': self.warehouse.id_from_assets,
-            'core': 4,
+            'environment_id': self.service_environment.environment.environment_id,  # noqa
+            'cores_count': 4,
             'power_consumption': 200,
             'collocation': 2,
         }
 
     def test_get_usage(self):
-        self.assertEqual(
-            asset.get_usage('test_symbol', 'test_name', True, False, True),
-            UsageType.objects.all()[0]
+        usage_type = asset.get_usage(
+            'test_symbol',
+            'test_name',
+            True,
+            False,
+            True
         )
+        self.assertEqual(usage_type, UsageType.objects.get())
+        self.assertEqual(usage_type.symbol, 'test_symbol')
+        self.assertEqual(usage_type.name, 'test_name')
+        self.assertEqual(usage_type.by_warehouse, True)
+        self.assertEqual(usage_type.by_cost, False)
+        self.assertEqual(usage_type.average, True)
 
     def test_get_asset_and_pricing_object_when_asset_info_not_exist(self):
         self.assertEqual(
             asset.get_asset_info(
-                self.service,
+                self.service_environment,
                 self.warehouse,
                 self.data,
             ),
@@ -76,7 +89,7 @@ class TestAssetPlugin(TestCase):
         )
         self.assertEqual(
             asset.get_asset_info(
-                self.service,
+                self.service_environment,
                 self.warehouse,
                 self.data,
             ),
@@ -98,14 +111,11 @@ class TestAssetPlugin(TestCase):
 
     def test_update_usage(self):
         asset.update_usage(
-            self.service,
-            DailyPricingObjectFactory.create(
-                pricing_object=PricingObjectFactory.create(),
-            ),
-            UsageTypeFactory.create(),
+            DailyAssetInfoFactory(),
+            self.warehouse,
+            UsageTypeFactory(),
             self.value,
             self.date,
-            self.warehouse,
         )
         self.assertEqual(
             DailyUsage.objects.all().count(),
@@ -113,48 +123,54 @@ class TestAssetPlugin(TestCase):
         )
 
     def test_update_assets_when_service_does_not_exist(self):
-        self.data['service_ci_uid'] = 2
-        self.assertEqual(
+        self.data['service_ci_uid'] = ServiceFactory.build().ci_uid
+        with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
             asset.update_assets(
                 self.data,
                 self.date,
                 {
-                    'core': UsageTypeFactory.create(),
+                    'cores_count': UsageTypeFactory.create(),
                     'power_consumption': UsageTypeFactory.create(),
                     'collocation': UsageTypeFactory.create(),
                 }
-            ),
-            (False, False)
-        )
+            )
 
     def test_update_assets_when_warehouse_does_not_exist(self):
-        self.data['warehouse_id'] = 2
-        self.assertEqual(
+        self.data['warehouse_id'] = WarehouseFactory.build().id_from_assets
+        with self.assertRaises(asset.WarehouseDoesNotExistError):
             asset.update_assets(
                 self.data,
                 self.date,
                 {
-                    'core': UsageTypeFactory.create(),
+                    'cores_count': UsageTypeFactory.create(),
                     'power_consumption': UsageTypeFactory.create(),
                     'collocation': UsageTypeFactory.create(),
                 }
-            ),
-            (False, False)
-        )
+            )
+
+    def test_update_assets_when_environment_does_not_exist(self):
+        self.data['environment_id'] = EnvironmentFactory.build().environment_id
+        with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
+            asset.update_assets(
+                self.data,
+                self.date,
+                {
+                    'cores_count': UsageTypeFactory.create(),
+                    'power_consumption': UsageTypeFactory.create(),
+                    'collocation': UsageTypeFactory.create(),
+                }
+            )
 
     def test_update_assets(self):
-        self.assertEqual(
-            asset.update_assets(
-                self.data,
-                self.date,
-                {
-                    'core': UsageTypeFactory.create(),
-                    'power_consumption': UsageTypeFactory.create(),
-                    'collocation': UsageTypeFactory.create(),
-                }
-            ),
-            (True, True)
-        )
+        self.assertTrue(asset.update_assets(
+            self.data,
+            self.date,
+            {
+                'cores_count': UsageTypeFactory.create(),
+                'power_consumption': UsageTypeFactory.create(),
+                'collocation': UsageTypeFactory.create(),
+            }
+        ))
         self.assertEqual(
             DailyUsage.objects.all().count(),
             3,
@@ -192,7 +208,7 @@ class TestAssetPlugin(TestCase):
         )
 
     def test_assets_when_no_effect(self):
-        self.data['service_ci_uid'] = 3
+        self.data['service_ci_uid'] = ServiceFactory.build().ci_uid
         asset.get_assets = lambda x: [self.data]
         self.assertEqual(
             asset.asset(today=self.date),

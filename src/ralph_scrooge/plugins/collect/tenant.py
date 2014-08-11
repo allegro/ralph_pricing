@@ -13,7 +13,7 @@ from ralph.util import plugin
 from ralph_scrooge.models import (
     DailyTenantInfo,
     PricingObjectType,
-    Service,
+    ServiceEnvironment,
     TenantInfo,
 )
 
@@ -21,35 +21,45 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 
-class InvalidTenantService(Exception):
+class InvalidTenantServiceEnvironment(Exception):
     pass
 
 
-class UnknownServiceNotConfigured(Exception):
+class UnknownServiceEnvironmentNotConfigured(Exception):
     pass
 
 
-def get_tenant_service(tenant):
+def get_tenant_service_environment(tenant):
     try:
         # TODO: change to symbol
         service_name = getattr(
             tenant,
             settings.OPENSTACK_TENANT_SERVICE_FIELD or ''
         )
-        return Service.objects.get(name=service_name)
-    except (AttributeError, Service.DoesNotExist) as e:
-        raise InvalidTenantService(e)
+        # TODO: change to symbol
+        environment_name = getattr(
+            tenant,
+            settings.OPENSTACK_TENANT_ENVIRONMENT_FIELD or ''
+        )
+        return ServiceEnvironment.objects.get(
+            service__name=service_name,
+            environment__name=environment_name,
+        )
+    except (AttributeError, ServiceEnvironment.DoesNotExist) as e:
+        raise InvalidTenantServiceEnvironment(e)
 
 
-def save_tenant_info(tenant, unknown_service):
+def save_tenant_info(tenant, unknown_service_environment):
     created = False
     try:
-        service = get_tenant_service(tenant)
-    except InvalidTenantService:
-        logger.warning('Invalid (or missing) service for tenant {}'.format(
-            tenant.name
-        ))
-        service = unknown_service
+        service_environment = get_tenant_service_environment(tenant)
+    except InvalidTenantServiceEnvironment:
+        logger.warning(
+            'Invalid (or missing) service environment for tenant {}'.format(
+                tenant.name
+            )
+        )
+        service_environment = unknown_service_environment
 
     try:
         tenant_info = TenantInfo.objects.get(tenant_id=tenant.id)
@@ -61,7 +71,7 @@ def save_tenant_info(tenant, unknown_service):
         )
     tenant_info.name = tenant.name
     tenant_info.remarks = tenant.description or ''
-    tenant_info.service = service
+    tenant_info.service_environment = service_environment
     tenant_info.save()
     return created, tenant_info
 
@@ -72,40 +82,47 @@ def save_daily_tenant_info(tenant, tenant_info, date):
         pricing_object=tenant_info,
         date=date,
         defaults=dict(
-            service=tenant_info.service,
+            service_environment=tenant_info.service_environment,
         )
     )
-    daily_tenant_info.service = tenant_info.service
+    daily_tenant_info.service_environment = tenant_info.service_environment
     daily_tenant_info.enabled = tenant.enabled
     daily_tenant_info.save()
     return daily_tenant_info
 
 
-def update_tenant(tenant, date, tenant_unknown_service):
+def update_tenant(tenant, date, unknown_service, unknown_environment):
     """
     Updates single tenant info
     """
-    created, tenant_info = save_tenant_info(tenant, tenant_unknown_service)
+    created, tenant_info = save_tenant_info(
+        tenant,
+        unknown_service,
+        unknown_environment,
+    )
     save_daily_tenant_info(tenant, tenant_info, date)
     return created
 
 
-def get_tenant_unknown_service():
+def get_tenant_unknown_service_environment():
     """
-    Returns unknown service for OpenStack tenants
+    Returns unknown service environment for OpenStack tenants
     """
-    unknown_service_uid = settings.UNKNOWN_SERVICES.get('tenant')
-    unknown_service = None
-    if unknown_service_uid:
+    service_uid, environment_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
+        'tenant'
+    )
+    unknown_service_environment = None
+    if service_uid:
         try:
-            unknown_service = Service.objects.get(
-                ci_uid=unknown_service_uid
+            unknown_service_environment = ServiceEnvironment.objects.get(
+                service__ci_uid=service_uid,
+                environment__name=environment_name,
             )
-        except Service.DoesNotExist:
+        except ServiceEnvironment.DoesNotExist:
             pass
-    if not unknown_service:
-        raise UnknownServiceNotConfigured()
-    return unknown_service
+    if not unknown_service_environment:
+        raise UnknownServiceEnvironmentNotConfigured()
+    return unknown_service_environment
 
 
 def get_tenants_list(site):
@@ -129,10 +146,16 @@ def tenant(today, **kwargs):
     if not settings.OPENSTACK_TENANT_SERVICE_FIELD:
         return False, 'Tenant service field not configured'
 
+    if not settings.OPENSTACK_TENANT_ENVIRONMENT_FIELD:
+        return False, 'Tenant environment field not configured'
+
     try:
-        unknown_service = get_tenant_unknown_service()
-    except UnknownServiceNotConfigured:
-        return False, 'Unknown service not configured for tenant plugin'
+        unknown_service_environment = get_tenant_unknown_service_environment()
+    except UnknownServiceEnvironmentNotConfigured:
+        return (
+            False,
+            'Unknown service environment not configured for tenant plugin'
+        )
 
     new = total = 0
     for site in settings.OPENSTACK_SITES:
@@ -141,7 +164,11 @@ def tenant(today, **kwargs):
         tenants = get_tenants_list(site)
         site_total = len(tenants)
         for tenant in tenants:
-            if update_tenant(tenant, today, unknown_service):
+            if update_tenant(
+                tenant,
+                today,
+                unknown_service_environment,
+            ):
                 site_new += 1
         logger.info('{} new, {} total tenants saved for site {}'.format(
             site_new,
