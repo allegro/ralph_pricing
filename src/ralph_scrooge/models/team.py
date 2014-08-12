@@ -66,67 +66,6 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         return self.name
 
 
-class TeamDaterange(db.Model):
-    team = db.ForeignKey(
-        Team,
-        verbose_name=_("Team"),
-        related_name="dateranges",
-        limit_choices_to={
-            'billing_type': TeamBillingType.time,
-        },
-    )
-    start = db.DateField()
-    end = db.DateField()
-
-    class Meta:
-        verbose_name = _("Team daterange")
-        verbose_name_plural = _("Teams dateranges")
-        app_label = 'ralph_scrooge'
-
-    def __unicode__(self):
-        return '{} ({} - {})'.format(
-            self.team,
-            self.start,
-            self.end,
-        )
-
-    def clean(self):
-        if self.start > self.end:
-            raise ValidationError('Start greater than start')
-
-
-class TeamServiceEnvironmentPercent(db.Model):
-    team_daterange = db.ForeignKey(
-        TeamDaterange,
-        verbose_name=_("team daterange"),
-        related_name="percentage",
-    )
-    service_environment = db.ForeignKey(
-        'ServiceEnvironment',
-    )
-    percent = db.FloatField(
-        verbose_name=_("percent"),
-        validators=[
-            MaxValueValidator(100.0),
-            MinValueValidator(0.0)
-        ]
-    )
-
-    class Meta:
-        verbose_name = _("Team service environment percent")
-        verbose_name_plural = _("Teams services environments percent")
-        unique_together = ('team_daterange', 'service_environment')
-        app_label = 'ralph_scrooge'
-
-    def __unicode__(self):
-        return '{}/{} ({} - {})'.format(
-            self.team_daterange.team,
-            self.service_environment,
-            self.team_daterange.start,
-            self.team_daterange.end,
-        )
-
-
 class TeamCost(db.Model):
     team = db.ForeignKey(Team, null=False, blank=False)
     members_count = db.IntegerField(
@@ -154,3 +93,38 @@ class TeamCost(db.Model):
         verbose_name = _("Team cost")
         verbose_name_plural = _("Teams costs")
         app_label = 'ralph_scrooge'
+
+    def __unicode__(self):
+        return '{} ({} - {})'.format(self.team, self.start, self.end)
+
+
+class TeamServiceEnvironmentPercent(db.Model):
+    team_cost = db.ForeignKey(
+        TeamCost,
+        verbose_name=_("team cost"),
+        related_name="percentage",
+    )
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
+    )
+    percent = db.FloatField(
+        verbose_name=_("percent"),
+        validators=[
+            MaxValueValidator(100.0),
+            MinValueValidator(0.0)
+        ]
+    )
+
+    class Meta:
+        verbose_name = _("Team service environment percent")
+        verbose_name_plural = _("Teams services environments percent")
+        unique_together = ('team_cost', 'service_environment')
+        app_label = 'ralph_scrooge'
+
+    def __unicode__(self):
+        return '{}/{} ({} - {})'.format(
+            self.team_cost.team,
+            self.service_environment,
+            self.team_cost.start,
+            self.team_cost.end,
+        )

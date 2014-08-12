@@ -18,7 +18,6 @@ from ralph_scrooge.plugins.reports.team import Team
 from ralph_scrooge.tests.utils.factory import (
     ServiceEnvironmentFactory,
     TeamCostFactory,
-    TeamDaterangeFactory,
     TeamFactory,
 )
 
@@ -37,15 +36,6 @@ class TestTeam(TestCase):
 
         self.plugin = Team
 
-        # usage type
-        # self.usage_type = models.UsageType(
-        #     name='Teams',
-        #     symbol='Teams',
-        #     by_team=True,
-        #     type='BU',
-        # )
-        # self.usage_type.save()
-
         # teams
         self.team_time = TeamFactory(show_percent_column=True)
         self.team_assets_cores = TeamFactory(
@@ -59,21 +49,9 @@ class TestTeam(TestCase):
         )
         self.teams = models.Team.objects.all()
 
-        # dateranges
-        self.daterange1 = TeamDaterangeFactory(
-            team=self.team_time,
-            start=date(2013, 10, 1),
-            end=date(2013, 10, 10),
-        )
-        self.daterange2 = TeamDaterangeFactory(
-            team=self.team_time,
-            start=date(2013, 10, 11),
-            end=date(2013, 10, 30),
-        )
-
         # costs
         # team time
-        TeamCostFactory(
+        team_time_cost1 = TeamCostFactory(
             cost=300,
             forecast_cost=600,
             start=date(2013, 10, 1),
@@ -81,7 +59,7 @@ class TestTeam(TestCase):
             team=self.team_time,
             members_count=10,
         )
-        TeamCostFactory(
+        team_time_cost2 = TeamCostFactory(
             cost=900,
             forecast_cost=450,
             start=date(2013, 10, 16),
@@ -138,39 +116,20 @@ class TestTeam(TestCase):
 
         # service_environments percentage (only for time team)
         percentage = (
-            (self.daterange1, [30, 30, 40]),
-            (self.daterange2, [20, 50, 30]),
+            (team_time_cost1, [30, 30, 40]),
+            (team_time_cost2, [20, 50, 30]),
         )
-        for team_daterange, percent in percentage:
+        for team_cost, percent in percentage:
             for service_environment, p in zip(
                 self.service_environments,
                 percent
             ):
                 tvp = models.TeamServiceEnvironmentPercent(
-                    team_daterange=team_daterange,
+                    team_cost=team_cost,
                     service_environment=service_environment,
                     percent=p,
                 )
                 tvp.save()
-
-    def test_get_team_dateranges_percentage(self):
-        result = self.plugin._get_team_dateranges_percentage(
-            start=date(2013, 10, 3),
-            end=date(2013, 10, 27),
-            team=self.team_time,
-        )
-        self.assertEquals(result, {
-            (date(2013, 10, 3), date(2013, 10, 10)): {
-                self.service_environment1.id: 30,
-                self.service_environment2.id: 30,
-                self.service_environment3.id: 40,
-            },
-            (date(2013, 10, 11), date(2013, 10, 27)): {
-                self.service_environment1.id: 20,
-                self.service_environment2.id: 50,
-                self.service_environment3.id: 30,
-            },
-        })
 
     def test_get_teams_dateranges_members_count(self):
         result = self.plugin._get_teams_dateranges_members_count(
@@ -211,16 +170,16 @@ class TestTeam(TestCase):
         percent_key = 'team_{}_percent'.format(self.team_time.id)
         self.assertEquals(result, {
             self.service_environment1.id: {
-                cost_key: D('212'),
-                percent_key: D('0.2163'),
+                cost_key: D('222'),  # 13/15 * 300 * 0.3 + 12/15 * 900 * 0.2
+                percent_key: D('0.2265'),
             },
             self.service_environment2.id: {
-                cost_key: D('458'),
-                percent_key: D('0.4673'),
+                cost_key: D('438'),  # 13/15 * 300 * 0.3 + 12/15 * 900 * 0.5
+                percent_key: D('0.4469'),
             },
             self.service_environment3.id: {
-                cost_key: D('310'),
-                percent_key: D('0.3163'),
+                cost_key: D('320'),  # 13/15 * 300 * 0.4 + 12/15 * 900 * 0.3
+                percent_key: D('0.3265'),
             },
         })
 
@@ -251,48 +210,6 @@ class TestTeam(TestCase):
             },
         })
 
-    def test_team_time_cost_no_price(self):
-        daterange = models.TeamDaterange(
-            team=self.team_time,
-            start=date(2013, 11, 1),
-            end=date(2013, 11, 10),
-        )
-        daterange.save()
-        for service_environment, percent in zip(
-            self.service_environments,
-            [30, 20, 50]
-        ):
-            tvp = models.TeamServiceEnvironmentPercent(
-                team_daterange=daterange,
-                service_environment=service_environment,
-                percent=percent,
-            )
-            tvp.save()
-        result = self.plugin._get_team_cost_per_service_environment(
-            start=date(2013, 11, 3),
-            end=date(2013, 11, 5),
-            team=self.team_time,
-            service_environments=self.service_environments,
-            forecast=False,
-            no_price_msg=True,
-        )
-        cost_key = 'team_{}_cost'.format(self.team_time.id)
-        percent_key = 'team_{}_percent'.format(self.team_time.id)
-        self.assertEquals(result, {
-            self.service_environment1.id: {
-                cost_key: _('No price'),
-                percent_key: D(0),
-            },
-            self.service_environment2.id: {
-                cost_key: _('No price'),
-                percent_key: D(0),
-            },
-            self.service_environment3.id: {
-                cost_key: _('No price'),
-                percent_key: D(0),
-            },
-        })
-
     def test_team_time_cost_forecast(self):
         result = self.plugin._get_team_cost_per_service_environment(
             start=date(2013, 10, 3),
@@ -305,16 +222,16 @@ class TestTeam(TestCase):
         percent_key = 'team_{}_percent'.format(self.team_time.id)
         self.assertEquals(result, {
             self.service_environment1.id: {
-                cost_key: D('208'),
-                percent_key: D('0.2364'),
+                cost_key: D('228'),  # 13/15 * 600 * 0.3 + 12/15 * 450 * 0.2
+                percent_key: D('0.2591'),
             },
             self.service_environment2.id: {
-                cost_key: D('376'),
-                percent_key: D('0.4273'),
+                cost_key: D('336'),  # 13/15 * 600 * 0.3 + 12/15 * 450 * 0.5
+                percent_key: D('0.3818'),
             },
             self.service_environment3.id: {
-                cost_key: D('296'),
-                percent_key: D('0.3364'),
+                cost_key: D('316'),  # 13/15 * 600 * 0.4 + 12/15 * 450 * 0.3
+                percent_key: D('0.3591'),
             },
         })
 
@@ -737,16 +654,16 @@ class TestTeam(TestCase):
         #       T3: 0.25 * 640 = 160
         #       Total: 400
         #   11-15:
-        #       T1: 0.2 * 250 = 50
+        #       T1: 0.3 * 250 = 75
         #       T2: 0.25 * 250 + 0.2 * 250 = 112.5
         #       T3: 0.25 * 250 = 62.5
-        #       Total: 225
+        #       Total: 250
         #   16-27:
         #       T1: 0.2 * 1920 = 384
         #       T2: 0.25 * 960 + 0.2 * 960 = 432
         #       T3: 0.25 * 960 = 240
         #       Total: 1056
-        #   total: 1681
+        #   total: 1706
 
         # service_environment2 (30%, 50%):
         #   3-10:
@@ -755,16 +672,16 @@ class TestTeam(TestCase):
         #       T3: 0.25 * 640 = 160
         #       Total: 464
         #   11-15:
-        #       T1: 0.5 * 250 = 125
+        #       T1: 0.3 * 250 = 75
         #       T2: 0.25 * 250 + 0.4 * 250 = 162.5
         #       T3: 0.25 * 250 = 62.5
-        #       Total: 350
+        #       Total: 300
         #   16-27:
         #       T1: 0.5 * 1920 = 960
         #       T2: 0.25 * 960 + 0.4 * 960 = 624
         #       T3: 0.25 * 960 = 240
         #       Total: 1824
-        #   total: 2638
+        #   total: 2588
 
         # service_environment3 (40%, 30%):
         #   3-10:
@@ -773,29 +690,29 @@ class TestTeam(TestCase):
         #       T3: 0.5 * 640 = 320
         #       Total: 736
         #   11-15:
-        #       T1: 0.3 * 250 = 75
+        #       T1: 0.4 * 250 = 100
         #       T2: 0.5 * 250 + 0.4 * 250 = 225
         #       T3: 0.5 * 250 = 125
-        #       Total: 425
+        #       Total: 450
         #   16-27:
         #       T1: 0.3 * 1920 = 576
         #       T2: 0.5 * 960 + 0.4 * 960 = 864
         #       T3: 0.5 * 960 = 480
         #       Total: 1920
-        #   total: 3081
+        #   total: 3106
 
         self.assertEquals(result, {
             self.service_environment1.id: {
-                cost_key: D('1681'),
-                percent_key: D('0.2272'),
+                cost_key: D('1706'),
+                percent_key: D('0.2305'),
             },
             self.service_environment2.id: {
-                cost_key: D('2638'),
-                percent_key: D('0.3565'),
+                cost_key: D('2588'),
+                percent_key: D('0.3497'),
             },
             self.service_environment3.id: {
-                cost_key: D('3081'),
-                percent_key: D('0.4164'),
+                cost_key: D('3106'),
+                percent_key: D('0.4197'),
             },
         })
 
@@ -837,16 +754,16 @@ class TestTeam(TestCase):
         # detailed calculations in `test_team_distribute_cost`
         self.assertEquals(result, {
             self.service_environment1.id: {
-                cost_key: D('840.4'),
-                percent_key: D('0.2271'),
+                cost_key: D('853'),
+                percent_key: D('0.2305'),
             },
             self.service_environment2.id: {
-                cost_key: D('1319'),
-                percent_key: D('0.3565'),
+                cost_key: D('1294'),
+                percent_key: D('0.3497'),
             },
             self.service_environment3.id: {
-                cost_key: D('1540'),
-                percent_key: D('0.4162'),
+                cost_key: D('1553'),
+                percent_key: D('0.4197'),
             },
         })
 
@@ -1107,166 +1024,6 @@ class TestTeam(TestCase):
             },
         })
 
-    def test_usages_by_time(self):
-        result = self.plugin.costs(
-            team=self.team_time,
-            start=date(2013, 10, 3),
-            end=date(2013, 10, 27),
-            service_environments=self.service_environments,
-            forecast=False,
-            no_price_msg=True,
-        )
-        cost_key = 'team_{}_cost'.format(self.team_time.id)
-        percent_key = 'team_{}_percent'.format(self.team_time.id)
-        self.assertEquals(result, {
-            self.service_environment1.id: {
-                cost_key: D('212'),
-                percent_key: D('0.2163'),
-            },
-            self.service_environment2.id: {
-                cost_key: D('458'),
-                percent_key: D('0.4673'),
-            },
-            self.service_environment3.id: {
-                cost_key: D('310'),
-                percent_key: D('0.3163'),
-            },
-        })
-
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_total_cores_count')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_cores_count_by_service_environment')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_total_assets_count')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_assets_count_by_service_environment')  # noqa
-    def test_usages_by_assets_cores(
-        self,
-        assets_count_mock,
-        total_assets_mock,
-        cores_count_mock,
-        total_cores_mock
-    ):
-        assets_count_mock.return_value = {
-            self.service_environment1.id: 200,
-            self.service_environment2.id: 200,
-            self.service_environment3.id: 100,
-        }
-        total_assets_mock.return_value = 500
-        cores_count_mock.return_value = {
-            self.service_environment1.id: 20,
-            self.service_environment2.id: 40,
-            self.service_environment3.id: 40,
-        }
-        total_cores_mock.return_value = 100
-        result = self.plugin.costs(
-            team=self.team_assets_cores,
-            start=date(2013, 10, 3),
-            end=date(2013, 10, 27),
-            service_environments=self.service_environments,
-            forecast=False,
-            no_price_msg=True,
-        )
-        cost_key = 'team_{}_cost'.format(self.team_assets_cores.id)
-        percent_key = 'team_{}_percent'.format(self.team_assets_cores.id)
-        self.assertEquals(result, {
-            self.service_environment1.id: {
-                cost_key: D('75'),
-                percent_key: D('0.3'),
-            },
-            self.service_environment2.id: {
-                cost_key: D('100'),
-                percent_key: D('0.4'),
-            },
-            self.service_environment3.id: {
-                cost_key: D('75'),
-                percent_key: D('0.3'),
-            },
-        })
-
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_total_assets_count')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_assets_count_by_service_environment')  # noqa
-    def test_usages_by_assets(
-        self,
-        assets_count_mock,
-        total_assets_mock,
-    ):
-        assets_count_mock.return_value = {
-            self.service_environment1.id: 200,
-            self.service_environment2.id: 200,
-            self.service_environment3.id: 100,
-        }
-        total_assets_mock.return_value = 500
-        result = self.plugin.costs(
-            team=self.team_assets,
-            start=date(2013, 10, 3),
-            end=date(2013, 10, 27),
-            service_environments=self.service_environments,
-            forecast=False,
-            no_price_msg=True,
-        )
-        cost_key = 'team_{}_cost'.format(self.team_assets.id)
-        percent_key = 'team_{}_percent'.format(self.team_assets.id)
-        self.assertEquals(result, {
-            self.service_environment1.id: {
-                cost_key: D('290'),
-                percent_key: D('0.4'),
-            },
-            self.service_environment2.id: {
-                cost_key: D('290'),
-                percent_key: D('0.4'),
-            },
-            self.service_environment3.id: {
-                cost_key: D('145'),
-                percent_key: D('0.2'),
-            },
-        })
-
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_total_cores_count')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_cores_count_by_service_environment')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_total_assets_count')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.team.Team._get_assets_count_by_service_environment')  # noqa
-    def test_usages(
-        self,
-        assets_count_mock,
-        total_assets_mock,
-        cores_count_mock,
-        total_cores_mock
-    ):
-        assets_count_mock.return_value = {
-            self.service_environment1.id: 200,
-            self.service_environment2.id: 200,
-            self.service_environment3.id: 100,
-        }
-        total_assets_mock.return_value = 500
-        cores_count_mock.return_value = {
-            self.service_environment1.id: 20,
-            self.service_environment2.id: 40,
-            self.service_environment3.id: 40,
-        }
-        total_cores_mock.return_value = 100
-        result = self.plugin.costs(
-            team=self.team_distribute,
-            start=date(2013, 10, 3),
-            end=date(2013, 10, 27),
-            service_environments=self.service_environments,
-            forecast=False,
-            no_price_msg=True,
-        )
-        cost_key = 'team_{}_cost'.format(self.team_distribute.id)
-        percent_key = 'team_{}_percent'.format(self.team_distribute.id)
-        self.assertEquals(result, {
-            self.service_environment1.id: {
-                cost_key: D('2188'),
-                percent_key: D('0.2957'),
-            },
-            self.service_environment2.id: {
-                cost_key: D('3145'),
-                percent_key: D('0.425'),
-            },
-            self.service_environment3.id: {
-                cost_key: D('2067'),
-                percent_key: D('0.2793'),
-            },
-        })
-
     def test_usages_subservice_environments_by_time(self):
         result = self.plugin.costs(
             team=self.team_time,
@@ -1278,8 +1035,8 @@ class TestTeam(TestCase):
         )
         self.assertEquals(result, {
             self.service_environment1.id: {
-                'team_{}_cost'.format(self.team_time.id): D('212'),
-                'team_{}_percent'.format(self.team_time.id): D('0.2163'),
+                'team_{}_cost'.format(self.team_time.id): D('222'),
+                'team_{}_percent'.format(self.team_time.id): D('0.2265'),
             },
         })
 
@@ -1372,8 +1129,8 @@ class TestTeam(TestCase):
         )
         self.assertEquals(result, {
             self.service_environment1.id: {
-                'team_{}_percent'.format(self.team_distribute.id): D('0.2957'),
-                'team_{}_cost'.format(self.team_distribute.id): D('2188'),
+                'team_{}_percent'.format(self.team_distribute.id): D('0.2991'),
+                'team_{}_cost'.format(self.team_distribute.id): D('2213'),
             },
         })
 
@@ -1404,7 +1161,7 @@ class TestTeam(TestCase):
             forecast=False,
             no_price_msg=True,
         )
-        self.assertEquals(result, D('212'))
+        self.assertEquals(result, D('222'))
 
     def test_exclude_service_environments(self):
         self.team_time.excluded_services.add(self.service_environment1.service)

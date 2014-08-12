@@ -135,29 +135,6 @@ class Team(BaseReportPlugin):
         if ut_days != total_days:
             return _('Incomplete price')
 
-    def _get_team_dateranges_percentage(self, start, end, team):
-        """
-        Returns percentage division (of team time) between service environments
-        in period of time (between start and end). Returned periods are not
-        overlapping.
-
-        :rtype: dict (key: (start, end) tuple;
-                value: dict service_environment-percent )
-        """
-        result = {}
-        for daterange in team.dateranges.filter(
-            start__lte=end,
-            end__gte=start
-        ):
-            dstart = max(daterange.start, start)
-            dend = min(daterange.end, end)
-
-            subresult = {}
-            for vp in daterange.percentage.all():
-                subresult[vp.service_environment.id] = vp.percent
-            result[(dstart, dend)] = subresult
-        return result
-
     def _get_teams_dateranges_members_count(self, start, end, teams):
         """
         Returns not overlaping members count of each time in periods of time
@@ -394,15 +371,22 @@ class Team(BaseReportPlugin):
                     period_daily_cost = daily_cost
                 tcstart = max(start, team_cost.start)
                 tcend = min(end, team_cost.end)
-                total_cost += period_daily_cost * ((tcend - tcstart).days + 1)
-                dateranges_percentage = self._get_team_dateranges_percentage(
-                    tcstart,
-                    tcend,
-                    team
-                )
-                for (dpstart, dpend), percent in dateranges_percentage.items():
-                    subcost = period_daily_cost * ((dpend - dpstart).days + 1)
-                    add_subcosts(dpstart, dpend, subcost, percent)
+                period_cost = period_daily_cost * ((tcend - tcstart).days + 1)
+                percentage = dict(team_cost.percentage.values_list(
+                    'service_environment__id',
+                    'percent',
+                ))
+                add_subcosts(tcstart, tcend, period_cost, percentage)
+                total_cost += period_cost
+                # dateranges_percentage = self._get_team_dateranges_percentage(
+                #     tcstart,
+                #     tcend,
+                #     team
+                # )
+                # for (dpstart, dpend), percent in dateranges_percentage.items():
+                #     subcost = period_daily_cost * ((dpend - dpstart).days + 1)
+                #     add_subcosts(dpstart, dpend, subcost, percent)
+
         else:
             # if price was not provided at all
             percentage = TeamServiceEnvironmentPercent.objects.filter(

@@ -17,20 +17,23 @@ class Migration(SchemaMigration):
         # Removing unique constraint on 'TeamServicePercent', fields ['team_daterange', 'service']
         db.delete_unique(u'ralph_scrooge_teamservicepercent', ['team_daterange_id', 'service_id'])
 
+        # Deleting model 'TeamDaterange'
+        db.delete_table(u'ralph_scrooge_teamdaterange')
+
         # Deleting model 'TeamServicePercent'
         db.delete_table(u'ralph_scrooge_teamservicepercent')
 
         # Adding model 'TeamServiceEnvironmentPercent'
         db.create_table(u'ralph_scrooge_teamserviceenvironmentpercent', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('team_daterange', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'percentage', to=orm['ralph_scrooge.TeamDaterange'])),
+            ('team_cost', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'percentage', to=orm['ralph_scrooge.TeamCost'])),
             ('service_environment', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_scrooge.ServiceEnvironment'])),
             ('percent', self.gf('django.db.models.fields.FloatField')()),
         ))
         db.send_create_signal(u'ralph_scrooge', ['TeamServiceEnvironmentPercent'])
 
-        # Adding unique constraint on 'TeamServiceEnvironmentPercent', fields ['team_daterange', 'service_environment']
-        db.create_unique(u'ralph_scrooge_teamserviceenvironmentpercent', ['team_daterange_id', 'service_environment_id'])
+        # Adding unique constraint on 'TeamServiceEnvironmentPercent', fields ['team_cost', 'service_environment']
+        db.create_unique(u'ralph_scrooge_teamserviceenvironmentpercent', ['team_cost_id', 'service_environment_id'])
 
         # Adding model 'TeamCost'
         db.create_table(u'ralph_scrooge_teamcost', (
@@ -52,14 +55,23 @@ class Migration(SchemaMigration):
 
 
         # Changing field 'Team.billing_type'
-        db.alter_column(u'ralph_scrooge_team', 'billing_type', self.gf('django.db.models.fields.PositiveIntegerField')(max_length=15))
+        db.alter_column(u'ralph_scrooge_team', 'billing_type', self.gf('django.db.models.fields.PositiveIntegerField')())
         # Deleting field 'UsageType.by_team'
         db.delete_column(u'ralph_scrooge_usagetype', 'by_team')
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'TeamServiceEnvironmentPercent', fields ['team_daterange', 'service_environment']
-        db.delete_unique(u'ralph_scrooge_teamserviceenvironmentpercent', ['team_daterange_id', 'service_environment_id'])
+        # Removing unique constraint on 'TeamServiceEnvironmentPercent', fields ['team_cost', 'service_environment']
+        db.delete_unique(u'ralph_scrooge_teamserviceenvironmentpercent', ['team_cost_id', 'service_environment_id'])
+
+        # Adding model 'TeamDaterange'
+        db.create_table(u'ralph_scrooge_teamdaterange', (
+            ('start', self.gf('django.db.models.fields.DateField')()),
+            ('end', self.gf('django.db.models.fields.DateField')()),
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('team', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'dateranges', to=orm['ralph_scrooge.Team'])),
+        ))
+        db.send_create_signal(u'ralph_scrooge', ['TeamDaterange'])
 
         # Adding model 'TeamServicePercent'
         db.create_table(u'ralph_scrooge_teamservicepercent', (
@@ -360,7 +372,7 @@ class Migration(SchemaMigration):
         },
         u'ralph_scrooge.team': {
             'Meta': {'object_name': 'Team'},
-            'billing_type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1', 'max_length': '15'}),
+            'billing_type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
@@ -382,19 +394,12 @@ class Migration(SchemaMigration):
             'start': ('django.db.models.fields.DateField', [], {}),
             'team': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Team']"})
         },
-        u'ralph_scrooge.teamdaterange': {
-            'Meta': {'object_name': 'TeamDaterange'},
-            'end': ('django.db.models.fields.DateField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'start': ('django.db.models.fields.DateField', [], {}),
-            'team': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'dateranges'", 'to': u"orm['ralph_scrooge.Team']"})
-        },
         u'ralph_scrooge.teamserviceenvironmentpercent': {
-            'Meta': {'unique_together': "((u'team_daterange', u'service_environment'),)", 'object_name': 'TeamServiceEnvironmentPercent'},
+            'Meta': {'unique_together': "((u'team_cost', u'service_environment'),)", 'object_name': 'TeamServiceEnvironmentPercent'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'percent': ('django.db.models.fields.FloatField', [], {}),
             'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
-            'team_daterange': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'percentage'", 'to': u"orm['ralph_scrooge.TeamDaterange']"})
+            'team_cost': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'percentage'", 'to': u"orm['ralph_scrooge.TeamCost']"})
         },
         u'ralph_scrooge.tenantinfo': {
             'Meta': {'object_name': 'TenantInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},

@@ -9,6 +9,7 @@ from bob.menu import MenuItem
 
 from ralph_scrooge.models import (
     Team,
+    TeamBillingType,
     # Venture,
     UsageType,
     Statement,
@@ -124,7 +125,9 @@ def teams_menu(href, selected=None):
     :returns list: list of menu items
     :rtype list:
     """
-    teams = Team.objects.filter(billing_type='TIME').order_by('name')
+    teams = Team.objects.filter(billing_type=TeamBillingType.time).order_by(
+        'name'
+    )
     items = []
     for team in teams:
         item = MenuItem(
@@ -139,7 +142,7 @@ def teams_menu(href, selected=None):
         )
         if item.name == selected:
             item.kwargs['collapsed'] = False
-        for dates in team.dateranges.values('start', 'end', 'id'):
+        for dates in team.teamcost_set.values('start', 'end', 'id'):
             daterange = '{0} - {1}'.format(dates['start'], dates['end'])
             subitem = MenuItem(
                 daterange,

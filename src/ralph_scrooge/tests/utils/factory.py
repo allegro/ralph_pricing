@@ -171,12 +171,12 @@ class TeamFactory(DjangoModelFactory):
     billing_type = models.TeamBillingType.time
 
 
-class TeamDaterangeFactory(DjangoModelFactory):
-    FACTORY_FOR = models.TeamDaterange
+# class TeamDaterangeFactory(DjangoModelFactory):
+#     FACTORY_FOR = models.TeamDaterange
 
-    team = SubFactory(TeamFactory)
-    start = datetime.date.today()
-    end = datetime.date.today()
+#     team = SubFactory(TeamFactory)
+#     start = datetime.date.today()
+#     end = datetime.date.today()
 
 
 class TeamCostFactory(DjangoModelFactory):

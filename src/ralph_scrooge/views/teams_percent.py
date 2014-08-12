@@ -14,7 +14,7 @@ from ralph_scrooge.forms import TeamServiceEnvironmentPercentFormSet
 from ralph_scrooge.menus import teams_menu
 from ralph_scrooge.models import (
     Team,
-    TeamDaterange,
+    TeamCost,
     TeamServiceEnvironmentPercent,
 )
 from ralph_scrooge.views.base import Base
@@ -35,7 +35,7 @@ class TeamsPercent(Base):
         self.team_name = self.kwargs.get('team')
         if self.kwargs.get('daterange'):
             self.daterange = get_object_or_404(
-                TeamDaterange,
+                TeamCost,
                 id=self.kwargs['daterange']
             )
         if self.team_name is not None:
@@ -92,7 +92,7 @@ class TeamsPercent(Base):
                 '/{0}/teams'.format(Scrooge.url_prefix),
                 self.team_name,
             ),
-            'sidebar_selected': self.daterange.id,
+            'sidebar_selected': self.daterange.id if self.daterange else None,
             'formset': self.formset,
         })
         return context
