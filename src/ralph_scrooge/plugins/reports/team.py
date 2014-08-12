@@ -76,7 +76,7 @@ logger = logging.getLogger(__name__)
 PERCENT_PRECISION = 4
 
 
-@register(chain='reports')
+@register(chain='scrooge_reports')
 class Team(BaseReportPlugin):
     @memoize(skip_first=True)
     def _get_teams(self):
@@ -758,7 +758,7 @@ class Team(BaseReportPlugin):
         func = functions.get(team.billing_type)
         if func:
             logger.debug("Getting team {0} costs".format(team))
-            return func(team, *args, **kwargs)
+            return func(team=team, *args, **kwargs)
         logger.warning('No handle method for billing type {0}'.format(
             team.billing_type
         ))

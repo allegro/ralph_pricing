@@ -60,10 +60,6 @@ class UsageType(db.Model):
         verbose_name=_("Usage type is by warehouse"),
         default=False,
     )
-    # by_team = db.BooleanField(
-    #     verbose_name=_("Usage type is by team"),
-    #     default=False,
-    # )
     by_internet_provider = db.BooleanField(
         verbose_name=_("Cost is given by internet provider"),
         default=False,
@@ -175,18 +171,6 @@ class UsagePrice(db.Model):
         blank=True,
         on_delete=db.PROTECT,
     )
-    # team = db.ForeignKey(
-    #     'Team',
-    #     null=True,
-    #     blank=True,
-    #     on_delete=db.PROTECT,
-    # )
-    # team_members_count = db.IntegerField(
-    #     null=True,
-    #     blank=True,
-    #     verbose_name=_("Team members count"),
-    #     default=0,
-    # )
     internet_provider = db.ForeignKey(
         InternetProvider,
         null=True,
@@ -203,8 +187,6 @@ class UsagePrice(db.Model):
         unique_together = [
             ('warehouse', 'start', 'type'),
             ('warehouse', 'end', 'type'),
-            # ('team', 'start', 'type'),
-            # ('team', 'end', 'type'),
             ('internet_provider', 'start', 'type'),
             ('internet_provider', 'end', 'type'),
         ]
@@ -218,13 +200,6 @@ class UsagePrice(db.Model):
                 self.start,
                 self.end,
             )
-        # if self.type and self.type.by_team:
-        #     return '{}-{} ({}-{})'.format(
-        #         self.team,
-        #         self.type,
-        #         self.start,
-        #         self.end,
-        #     )
         if self.type and self.type.by_internet_provider:
             return '{}-{} ({}-{})'.format(
                 self.internet_provider,
@@ -243,8 +218,6 @@ class UsagePrice(db.Model):
             raise ValidationError('Warehouse is required')
         if self.type.by_internet_provider and not self.internet_provider:
             raise ValidationError('Internet Provider is required')
-        # if self.type.by_team and not self.team:
-        #     raise ValidationError('Team is required')
 
 
 class DailyUsage(db.Model):

@@ -58,7 +58,7 @@ class BaseReportPlugin(BasePlugin):
         self,
         start,
         end,
-        services,
+        service_environments,
         cost,
         percentage,
     ):
@@ -80,7 +80,7 @@ class BaseReportPlugin(BasePlugin):
                 start,
                 end,
                 usage_type,
-                services=services,
+                service_environments=service_environments,
             )
             total_usage = self._get_total_usage_in_period(
                 start,
@@ -136,7 +136,7 @@ class BaseReportPlugin(BasePlugin):
         end,
         usage_type,
         warehouse=None,
-        services=None,
+        service_environments=None,
         excluded_services=None,
     ):
         """
@@ -149,9 +149,9 @@ class BaseReportPlugin(BasePlugin):
         )
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)
-        if services:
+        if service_environments:
             daily_usages = daily_usages.filter(
-                service_environment__service__in=services
+                service_environment__in=service_environments
             )
         if excluded_services:
             daily_usages = daily_usages.exclude(
@@ -212,7 +212,7 @@ class BaseReportPlugin(BasePlugin):
         start,
         end,
         usage_type,
-        services=None,
+        service_environments=None,
         warehouse=None,
         excluded_services=None,
     ):
@@ -230,9 +230,9 @@ class BaseReportPlugin(BasePlugin):
             date__lte=end,
             type=usage_type,
         )
-        if services:
+        if service_environments:
             daily_usages = daily_usages.filter(
-                service_environment__service__in=services
+                service_environment__in=service_environments
             )
         if excluded_services:
             daily_usages = daily_usages.exclude(

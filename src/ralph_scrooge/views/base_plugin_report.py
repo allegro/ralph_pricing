@@ -13,9 +13,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.views.reports import Report
 from ralph_scrooge.models import (
-    Environment,
     PricingService,
-    Service,
+    ServiceEnvironment,
+    Team,
     UsageType,
 )
 from ralph.util import plugin as plugin_runner
@@ -110,7 +110,7 @@ class BasePluginReport(Report):
         return PricingService.objects.order_by('name')
 
     @classmethod
-    def _get_services_plugins(cls):
+    def _get_pricing_services_plugins(cls):
         """
         Returns plugins information (name and arguments) for services
         """
@@ -125,6 +125,28 @@ class BasePluginReport(Report):
                 }
             )
             result.append(pricing_service_info)
+        return result
+
+    @classmethod
+    def _get_teams(cls):
+        """
+        Returns teams which should be visible on report
+        """
+        return Team.objects.filter(show_in_report=True).order_by('name')
+
+    @classmethod
+    def _get_teams_plugins(cls):
+        teams = cls._get_teams()
+        result = []
+        for team in teams:
+            team_info = AttributeDict(
+                name=team.name,
+                plugin_name='team',
+                plugin_kwargs={
+                    'team': team
+                }
+            )
+            result.append(team_info)
         return result
 
     @classmethod
@@ -226,7 +248,7 @@ class BasePluginReport(Report):
         return final_data
 
     @classmethod
-    def _get_services(cls, is_active):
+    def _get_services_environments(cls, is_active):
         """
         This function return all ventures for which report will be ganarated
 
@@ -234,17 +256,13 @@ class BasePluginReport(Report):
         :returns list: list of ventures
         :rtype list:
         """
-        logger.debug("Getting services")
-        services = Service.objects.all()
+        logger.debug("Getting services environments")
+        services = ServiceEnvironment.objects.order_by(
+            'service__name',
+            'environment__name',
+        )
         logger.debug("Got {0} services".format(services.count()))
         return services
-
-    @classmethod
-    def _get_environments(cls):
-        logger.debug('Getting environments')
-        environments = Environment.objects.all()
-        logger.debug('Got {} environments'.format(environments.count()))
-        return environments
 
     @classmethod
     @memoize

@@ -82,7 +82,7 @@ class TestUsageBasePlugin(TestCase):
         self.service_environment2 = ServiceEnvironmentFactory()
         self.service_environment3 = ServiceEnvironmentFactory()
         self.service_environment4 = ServiceEnvironmentFactory()
-        self.services_subset = [
+        self.services_environments_subset = [
             self.service_environment1.service,
             self.service_environment2.service,
         ]
@@ -257,7 +257,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         # 10-12: usage: 3 * (10 + 20) = 90; cost: 90 * 10 = 900
@@ -271,7 +271,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         self.assertEquals(result, D('6600'))
@@ -281,7 +281,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            services=[self.service_environment1],
+            service_environments=[self.service_environment1],
             forecast=True,
         )
         # 10-12: usage: 3 * 10 = 30; cost: 30 * 50 = 1500
@@ -295,7 +295,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         # 5-12: (usages are from 8 to 12)
@@ -355,7 +355,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            services=[self.service_environment1],
+            service_environments=[self.service_environment1],
             forecast=True,
         )
         # 5-12: (usages are from 8 to 12)
@@ -415,7 +415,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         # 5-12: (usages are from 8 to 12)
@@ -449,7 +449,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         self.assertEquals(result, D('16500'))
@@ -459,7 +459,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 5),
             end=datetime.date(2013, 10, 25),
             usage_type=self.usage_type_cost_sum,
-            services=self.service_environments,
+            service_environments=self.service_environments,
             forecast=False,
         )
         self.assertEquals(result, D('77000'))
@@ -470,7 +470,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 1),
             end=datetime.date(2013, 10, 28),
             usage_type=self.usage_type_cost_sum,
-            services=self.service_environments,
+            service_environments=self.service_environments,
             forecast=False,
             no_price_msg=True,
         )
@@ -481,7 +481,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            services=[self.service_environment1],
+            service_environments=[self.service_environment1],
             forecast=True,
         )
         # 5-12: (usages are from 8 to 12)
@@ -508,7 +508,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
             no_price_msg=False,
         )
@@ -530,7 +530,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 30),
             usage_type=self.usage_type,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
             no_price_msg=True,
         )
@@ -574,7 +574,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 11, 10),
             end=datetime.date(2013, 11, 20),
             usage_type=self.usage_type,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
             no_price_msg=True,
         )
@@ -596,7 +596,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         # prices:
@@ -667,7 +667,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
-            services=[self.service_environment1],
+            service_environments=[self.service_environment1],
             forecast=False,
             by_device=True,
         )
@@ -694,7 +694,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_average,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         count_key = 'ut_{}_count'.format(self.usage_type_average.id)
@@ -715,7 +715,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_average,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
             use_average=False,
         )
@@ -737,7 +737,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_sum,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
         )
         # 5-12: (usages are from 8 to 12)
@@ -770,7 +770,7 @@ class TestUsageBasePlugin(TestCase):
             start=datetime.date(2013, 10, 4),
             end=datetime.date(2013, 10, 26),
             usage_type=self.usage_type_cost_sum,
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             forecast=False,
             no_price_msg=True,
         )
@@ -799,7 +799,7 @@ class TestUsageBasePlugin(TestCase):
             usage_type=self.usage_type,
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 13),
-            services=self.services_subset,
+            service_environments=self.services_environments_subset,
             type='dailyusages',
         )
         self.assertEquals(result, {

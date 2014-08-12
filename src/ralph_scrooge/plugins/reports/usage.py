@@ -14,6 +14,7 @@ from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge import utils
+from ralph_scrooge.models import ServiceEnvironment
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.reports.base import BaseReportPlugin
 from ralph_scrooge.utils import AttributeDict
@@ -58,11 +59,19 @@ class UsageBasePlugin(BaseReportPlugin):
         if ut_days != total_days:
             return _('Incomplete price')
 
+    def _exclude_service_environments(self, usage_type, service_environments):
+        service_environments = list(set(service_environments) - set(
+            ServiceEnvironment.objects.filter(
+                service__in=usage_type.excluded_services.all())
+            )
+        )
+        return service_environments
+
     def _get_total_cost_by_warehouses(
         self,
         start,
         end,
-        services,
+        service_environments,
         usage_type,
         forecast=False,
         **kwargs
@@ -81,10 +90,10 @@ class UsageBasePlugin(BaseReportPlugin):
         # remove from services ones that should not be taken into consideration
         # when calculating costs for this usage type (and should not be counted
         # to total usages count)
-        if usage_type.excluded_services.count():
-            services = list(
-                set(services) - set(usage_type.excluded_services.all())
-            )
+        service_environments = self._exclude_service_environments(
+            usage_type,
+            service_environments,
+        )
 
         for warehouse in warehouses:
             usage_in_warehouse = 0
@@ -133,7 +142,7 @@ class UsageBasePlugin(BaseReportPlugin):
                     up_end,
                     usage_type,
                     warehouse,
-                    services
+                    service_environments
                 )
                 usage_in_warehouse += total_usage
                 cost = D(total_usage) * price
@@ -153,7 +162,7 @@ class UsageBasePlugin(BaseReportPlugin):
         start,
         end,
         forecast,
-        services,
+        service_environments,
         no_price_msg=False,
         use_average=True,
         by_device=False,
@@ -186,7 +195,7 @@ class UsageBasePlugin(BaseReportPlugin):
                 end=up_end,
                 usage_type=usage_type,
                 warehouse=warehouse,
-                services=services,
+                service_environments=service_environments,
                 excluded_services=excluded_services,
             )
             for v in usages_per_service:
@@ -211,7 +220,7 @@ class UsageBasePlugin(BaseReportPlugin):
                 start=up_start,
                 end=up_end,
                 usage_type=usage_type,
-                services=services,
+                service_environments=service_environments,
                 warehouse=warehouse,
                 excluded_services=excluded_services,
             )
@@ -311,7 +320,7 @@ class UsageBasePlugin(BaseReportPlugin):
         self,
         start,
         end,
-        services,
+        service_environments,
         usage_type,
         forecast=False,
         no_price_msg=False,
@@ -322,7 +331,7 @@ class UsageBasePlugin(BaseReportPlugin):
         return self._get_usages_per_warehouse(
             start=start,
             end=end,
-            services=services,
+            service_environments=service_environments,
             usage_type=usage_type,
             forecast=forecast,
             no_price_msg=no_price_msg,
@@ -333,7 +342,7 @@ class UsageBasePlugin(BaseReportPlugin):
         self,
         start,
         end,
-        services,
+        service_environments,
         usage_type,
         forecast=False,
         no_price_msg=False,
@@ -347,7 +356,7 @@ class UsageBasePlugin(BaseReportPlugin):
         return self._get_usages_per_warehouse(
             start=start,
             end=end,
-            services=services,
+            service_environments=service_environments,
             usage_type=usage_type,
             forecast=forecast,
             no_price_msg=no_price_msg,
@@ -355,7 +364,7 @@ class UsageBasePlugin(BaseReportPlugin):
             by_device=True,
         )
 
-    def dailyusages(self, start, end, usage_type, services):
+    def dailyusages(self, start, end, usage_type, service_environments):
         """
         Returns sum of usage type per service per day. Result format:
             result = {
@@ -374,7 +383,7 @@ class UsageBasePlugin(BaseReportPlugin):
         )
         result = defaultdict(dict)
         dailyusages = usage_type.dailyusage_set.filter(
-            service_environment__service__in=services,
+            service_environment__service__in=service_environments,
             date__gte=start,
             date__lte=end,
         ).extra({
@@ -455,7 +464,7 @@ class UsageBasePlugin(BaseReportPlugin):
         return usage_type.name
 
 
-@register(chain='reports')
+@register(chain='scrooge_reports')
 class UsagePlugin(UsageBasePlugin):
     """
     Base Usage Plugin as ralph plugin. Splitting it into two classes gives
