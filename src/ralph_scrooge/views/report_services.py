@@ -57,7 +57,14 @@ class ServicesReport(BasePluginReport):
         return plugins
 
     @classmethod
-    def _get_report_data(cls, start, end, is_active, forecast, service_environments):
+    def _get_report_data(
+        cls,
+        start,
+        end,
+        is_active,
+        forecast,
+        service_environments,
+    ):
         """
         Use plugins to get usages data for given ventures. Plugin logic can be
         so complicated but for this method, plugin must return value in

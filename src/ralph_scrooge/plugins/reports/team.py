@@ -378,15 +378,6 @@ class Team(BaseReportPlugin):
                 ))
                 add_subcosts(tcstart, tcend, period_cost, percentage)
                 total_cost += period_cost
-                # dateranges_percentage = self._get_team_dateranges_percentage(
-                #     tcstart,
-                #     tcend,
-                #     team
-                # )
-                # for (dpstart, dpend), percent in dateranges_percentage.items():
-                #     subcost = period_daily_cost * ((dpend - dpstart).days + 1)
-                #     add_subcosts(dpstart, dpend, subcost, percent)
-
         else:
             # if price was not provided at all
             percentage = TeamServiceEnvironmentPercent.objects.filter(
