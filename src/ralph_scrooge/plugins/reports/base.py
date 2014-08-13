@@ -149,7 +149,7 @@ class BaseReportPlugin(BasePlugin):
         )
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)
-        if service_environments:
+        if service_environments is not None:
             daily_usages = daily_usages.filter(
                 service_environment__in=service_environments
             )

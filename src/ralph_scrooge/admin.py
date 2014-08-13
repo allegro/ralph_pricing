@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.utils.translation import ugettext_lazy as _
 from lck.django.common.admin import ModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -162,6 +163,36 @@ class ServiceAdmin(SimpleHistoryAdmin):
 # =============================================================================
 # PRICING SERVICE
 # =============================================================================
+class PricingServiceForm(forms.ModelForm):
+    class Meta:
+        model = models.PricingService
+
+    services = forms.ModelMultipleChoiceField(
+        help_text=_('Services used to calculate costs of Pricing Service'),
+        queryset=models.Service.objects.all(),
+        required=False,
+        widget=FilteredSelectMultiple('Services', False),
+
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(PricingServiceForm, self).__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['services'].initial = (
+                self.instance.services.exclude(pricing_service=None)
+            )
+
+    def save(self, commit=True):
+        # NOTE: Previously assigned Services and their pricing services are
+        # silently reset
+        instance = super(PricingServiceForm, self).save(commit=False)
+        self.fields['services'].initial.update(pricing_service=None)
+        instance.save()
+        if self.cleaned_data['services']:
+            self.cleaned_data['services'].update(pricing_service=instance)
+        return instance
+
+
 class ServiceUsageTypesInline(admin.TabularInline):
     model = models.ServiceUsageTypes
 
@@ -170,6 +201,7 @@ class ServiceUsageTypesInline(admin.TabularInline):
 class PricingServiceAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+    form = PricingServiceForm
     inlines = [ServiceUsageTypesInline]
 
 
