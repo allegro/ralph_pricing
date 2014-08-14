@@ -49,10 +49,9 @@ class ExtraCost(db.Model):
         null=False,
         blank=False,
     )
-    service = db.ForeignKey(
-        'Service',
-        null=False,
-        blank=False,
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
+        related_name='extra_costs'
     )
     pricing_object = db.ForeignKey(
         'PricingObject',
@@ -98,11 +97,9 @@ class DailyExtraCost(db.Model):
     DailyExtraCost model contains cost per venture for each day.
     """
     date = db.DateField()
-    service = db.ForeignKey(
-        'Service',
-        verbose_name=_("pricing venture"),
-        null=False,
-        blank=False,
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
+        related_name='daily_extra_costs'
     )
     daily_pricing_object = db.ForeignKey(
         'DailyPricingObject',

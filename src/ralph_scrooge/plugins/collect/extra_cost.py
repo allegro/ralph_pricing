@@ -22,7 +22,7 @@ def update_extra_cost(data, date):
     """
     daily_extra_cost, created = DailyExtraCost.objects.get_or_create(
         date=date,
-        service=data.service,
+        service_environment=data.service_environment,
         type=data.type,
     )
     daily_extra_cost.value = (

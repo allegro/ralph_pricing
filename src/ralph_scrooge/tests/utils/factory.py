@@ -155,7 +155,7 @@ class ExtraCostFactory(DjangoModelFactory):
 
     type = SubFactory(ExtraCostTypeFactory)
     monthly_cost = 3100
-    service = SubFactory(ServiceFactory)
+    service_environment = SubFactory(ServiceEnvironmentFactory)
     pricing_object = SubFactory(PricingObjectFactory)
     start = datetime.date.today()
     end = datetime.date.today()
