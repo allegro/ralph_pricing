@@ -31,11 +31,18 @@ class PricingServiceBasePlugin(BaseReportPlugin):
     distribute_count_key_base_tmpl = 'service_{}_sut_{{}}_count'
     distribute_cost_key_base_tmpl = 'service_{}_sut_{{}}_cost'
 
-    def _get_usage_type_cost(self, start, end, usage_type, forecast, service_environments):
+    def _get_usage_type_cost(
+        self,
+        start,
+        end,
+        usage_type,
+        forecast,
+        service_environments
+    ):
         """
-        Calculates total cost of usage of given type for specified service_environments in
-        period of time (between start and end), using real or forecast
-        price/cost.
+        Calculates total cost of usage of given type for specified
+        service environments in period of time (between start and end), using
+        real or forecast price/cost.
         """
         try:
             return plugin_runner.run(
@@ -63,9 +70,10 @@ class PricingServiceBasePlugin(BaseReportPlugin):
         service_environments,
     ):
         """
-        Calculates total cost of base types usages for given pricing_service, using
-        real or forecast prices/costs. Total cost is calculated for period of
-        time (between start and end) and for specified service_environments.
+        Calculates total cost of base types usages for given pricing service,
+        using real or forecast prices/costs. Total cost is calculated for
+        period of time (between start and end) and for specified
+        service environments.
         """
         total_cost = D(0)
         for usage_type in UsageType.objects.filter(type='BU').exclude(
@@ -92,9 +100,10 @@ class PricingServiceBasePlugin(BaseReportPlugin):
         service_environments,
     ):
         """
-        Calculates total cost of regular types usages for given pricing_service, using
-        real or forecast prices/costs. Total cost is calculated for period of
-        time (between start and end) and for specified service_environments.
+        Calculates total cost of regular types usages for given pricing
+        service, using real or forecast prices/costs. Total cost is calculated
+        for period of time (between start and end) and for specified service
+        environments.
         """
         total_cost = D(0)
         for usage_type in pricing_service.regular_usage_types.all():
@@ -235,7 +244,14 @@ class PricingServiceBasePlugin(BaseReportPlugin):
                 del current_percentage[usage_type.usage_type.id]
         return result
 
-    def total_cost(self, start, end, pricing_service, forecast, service_environments):
+    def total_cost(
+        self,
+        start,
+        end,
+        pricing_service,
+        forecast,
+        service_environments,
+    ):
         """
         Calculates total cost of pricing service (in period of time).
 
@@ -256,7 +272,8 @@ class PricingServiceBasePlugin(BaseReportPlugin):
         :returns decimal: total cost of pricing_service
         :rtype decimal:
         """
-        # total cost of base usage types for service_environments providing this pricing_service
+        # total cost of base usage types for service_environments providing
+        # this pricing_service
         total_cost = self._get_service_base_usage_types_cost(
             start,
             end,
@@ -278,6 +295,7 @@ class PricingServiceBasePlugin(BaseReportPlugin):
             forecast,
             service_environments=service_environments,
         )
+        # TODO: enable when working with services
         # total_cost += self._get_service_extra_cost(
         #     start,
         #     end,
@@ -300,20 +318,32 @@ class PricingServiceBasePlugin(BaseReportPlugin):
             self.distribute_count_key_base_tmpl.format(pricing_service.id)
         )
 
-    def costs(self, pricing_service, start, end, service_environments, forecast=False, **kwargs):
+    def costs(
+        self,
+        pricing_service,
+        start,
+        end,
+        service_environments,
+        forecast=False,
+        **kwargs
+    ):
         """
-        Calculates usages and costs of pricing_service usages per service_environment.
+        Calculates usages and costs of pricing service usages per service
+        environment.
 
         Main steps:
         1) calculation of percentage division in date ranges
         2) for each daterange with different percentage division:
             2.1) calculation of pricing_service total cost in daterange
-            2.2) distribution of that cost to service_environments, basing on service_environment usage
-                 of pricing_service and using percentage division
-            2.3) sum service_environments costs of pricing_service usage types (eventually total
-                 cost)
+            2.2) distribution of that cost to service_environments, basing on
+                 service_environment usage of pricing_service and using
+                 percentage division
+            2.3) sum service_environments costs of pricing_service usage types
+                 (eventually total cost)
         """
-        logger.debug("Calculating report for pricing_service {0}".format(pricing_service))
+        logger.debug("Calculating report for pricing_service {0}".format(
+            pricing_service
+        ))
         self._fill_distribute_tmpl(pricing_service)
         date_ranges_percentage = self._get_date_ranges_percentage(
             start,
@@ -335,8 +365,8 @@ class PricingServiceBasePlugin(BaseReportPlugin):
                 forecast,
                 service_environments=pricing_service.service_environments,
             )
-            # distribute total cost between every service_environment proportionally to
-            # pricing_service usages
+            # distribute total cost between every service_environment
+            # proportionally to pricing_service usages
             service_report_in_daterange = self._distribute_costs(
                 start,
                 end,
@@ -344,11 +374,11 @@ class PricingServiceBasePlugin(BaseReportPlugin):
                 service_cost,
                 percentage
             )
-            for service_environment, service_environment_data in service_report_in_daterange.items():
-                for key, value in service_environment_data.items():
-                    result[service_environment][key] += value
+            for se, se_data in service_report_in_daterange.items():
+                for key, value in se_data.items():
+                    result[se][key] += value
                     if total_cost_column and key.endswith('cost'):
-                        result[service_environment][service_symbol] += value
+                        result[se][service_symbol] += value
         return result
 
     def schema(self, pricing_service):
@@ -378,8 +408,8 @@ class PricingServiceBasePlugin(BaseReportPlugin):
                 'currency': True,
                 'total_cost': len(usage_types) == 1,
             }
-        # if there is more than one schema usage type -> add total pricing_service
-        # usage column
+        # if there is more than one schema usage type -> add total
+        # pricing_service usage column
         if len(usage_types) > 1:
             service_symbol = "{0}_service_cost".format(pricing_service.id)
             schema[service_symbol] = {

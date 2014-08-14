@@ -12,12 +12,9 @@ from django.test import TestCase
 from ralph_scrooge import models
 from ralph_scrooge.tests.models import History, HistoricalHistory
 from ralph_scrooge.tests.utils.factory import (
-    DailyUsageFactory,
     DailyPricingObjectFactory,
     PricingServiceFactory,
     ServiceEnvironmentFactory,
-    # ServiceFactory,
-    TeamFactory,
     UsageTypeFactory,
     WarehouseFactory,
 )
@@ -99,34 +96,88 @@ class TestModelDiff(TestCase):
 
 
 class TestPricingService(TestCase):
-    def test_get_dependent_services(self):
+    def _set_sample_usages(self):
         # 3 Pricing Services (1 tested and dependent from others)
         # usage types:
-        ps1, ps2, ps3 = PricingServiceFactory.create_batch(3)
-        se1 = ServiceEnvironmentFactory(service__pricing_service=ps1)
-        se2 = ServiceEnvironmentFactory(service__pricing_service=ps1)
+        self.ps1, self.ps2, self.ps3 = PricingServiceFactory.create_batch(3)
+        se1 = ServiceEnvironmentFactory(service__pricing_service=self.ps1)
+        se2 = ServiceEnvironmentFactory(service__pricing_service=self.ps1)
 
-        ut1, ut2, ut3 = UsageTypeFactory.create_batch(3)
+        ut1, ut2, ut3 = UsageTypeFactory.create_batch(3, type='SU')
 
         models.ServiceUsageTypes(
             usage_type=ut1,
-            pricing_service=ps2,
+            pricing_service=self.ps2,
             start=datetime.date(2013, 10, 1),
             end=datetime.date(2013, 10, 30),
             percent=50,
         ).save()
         models.ServiceUsageTypes(
             usage_type=ut2,
-            pricing_service=ps2,
+            pricing_service=self.ps2,
             start=datetime.date(2013, 10, 1),
             end=datetime.date(2013, 10, 30),
             percent=50,
         ).save()
         models.ServiceUsageTypes(
             usage_type=ut3,
-            pricing_service=ps3,
+            pricing_service=self.ps3,
             start=datetime.date(2013, 10, 1),
             end=datetime.date(2013, 10, 30),
             percent=100,
         ).save()
-        self.assertEquals(1, 0)
+
+        # sample usages
+        models.DailyUsage(
+            daily_pricing_object=DailyPricingObjectFactory(),
+            type=ut1,
+            date=datetime.date(2013, 10, 3),
+            service_environment=se1,
+            value=100,
+        ).save()
+        models.DailyUsage(
+            daily_pricing_object=DailyPricingObjectFactory(),
+            type=ut2,
+            date=datetime.date(2013, 10, 20),
+            service_environment=se1,
+            value=100,
+        ).save()
+        models.DailyUsage(
+            daily_pricing_object=DailyPricingObjectFactory(),
+            type=ut1,
+            date=datetime.date(2013, 10, 5),
+            service_environment=se2,
+            value=100,
+            warehouse=WarehouseFactory(),
+        ).save()
+        models.DailyUsage(
+            daily_pricing_object=DailyPricingObjectFactory(),
+            type=ut3,
+            date=datetime.date(2013, 10, 28),
+            service_environment=se2,
+            value=100,
+        ).save()
+
+    def test_get_dependent_services(self):
+        self._set_sample_usages()
+        result = self.ps1.get_dependent_services(
+            start=datetime.date(2013, 10, 1),
+            end=datetime.date(2013, 10, 30)
+        )
+        self.assertEquals(set(result), set([self.ps2, self.ps3]))
+
+    def test_get_dependent_services_subset(self):
+        self._set_sample_usages()
+        result = self.ps1.get_dependent_services(
+            start=datetime.date(2013, 10, 22),
+            end=datetime.date(2013, 10, 30)
+        )
+        self.assertEquals(set(result), set([self.ps3]))
+
+    def test_get_dependent_services_empty(self):
+        self._set_sample_usages()
+        result = self.ps1.get_dependent_services(
+            start=datetime.date(2013, 11, 1),
+            end=datetime.date(2013, 11, 30)
+        )
+        self.assertEquals(set(result), set())

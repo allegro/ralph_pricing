@@ -11,7 +11,7 @@ from collections import defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum
-from lck.cache import memoize
+from ralph_scrooge.utils import memoize
 
 from ralph_scrooge.models import DailyUsage
 from ralph_scrooge.models import UsageType

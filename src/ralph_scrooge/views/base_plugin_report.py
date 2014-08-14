@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import logging
 from decimal import Decimal as D
 
-from lck.cache import memoize
+from ralph_scrooge.utils import memoize
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.views.reports import Report

@@ -32,3 +32,7 @@ UNKNOWN_SERVICES_ENVIRONMENTS = {
     'tenant': (None, None),
     'netflow': (None, None),
 }
+
+
+import sys
+TESTING = 'test' in sys.argv

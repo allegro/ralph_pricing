@@ -9,7 +9,7 @@ import logging
 import time
 
 from django.conf import settings
-from lck.cache import memoize
+from ralph_scrooge.utils import memoize
 from sqlalchemy import create_engine
 
 from ralph.util import plugin
