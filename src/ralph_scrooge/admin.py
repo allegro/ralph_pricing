@@ -176,8 +176,8 @@ class PricingServiceAdmin(ModelAdmin):
 # =============================================================================
 # TEAMS
 # =============================================================================
-class TeamDaterangesInline(admin.TabularInline):
-    model = models.TeamDaterange
+class TeamCostInline(admin.TabularInline):
+    model = models.TeamCost
 
 
 class TeamForm(forms.ModelForm):
@@ -192,18 +192,25 @@ class TeamForm(forms.ModelForm):
 class TeamAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    inlines = [
-        UsagePriceInline,
-        TeamDaterangesInline
-    ]
+    inlines = [TeamCostInline]
     form = TeamForm
 
 
-class TeamServicesPercentInline(admin.TabularInline):
-    model = models.TeamServicePercent
+class TeamServiceEnvironmentPercentInline(admin.TabularInline):
+    model = models.TeamServiceEnvironmentPercent
 
 
-@register(models.TeamDaterange)
-class TeamDateranges(ModelAdmin):
+@register(models.TeamCost)
+class TeamCostAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('team', 'start', 'end')
-    inlines = [TeamServicesPercentInline]
+    search_fields = ('team__name', 'start', 'end',)
+    list_filter = ('team__name', )
+    readonly_when_update = ('team', )
+    inlines = [TeamServiceEnvironmentPercentInline]
+
+    def team_name(self, obj):
+        return obj.team.service
+
+    def queryset(self, request):
+        result = super(TeamCostAdmin, self).queryset(request)
+        return result.filter(team__billing_type=models.TeamBillingType.time)

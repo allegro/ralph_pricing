@@ -284,7 +284,7 @@ class TestBaseReportPlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            services=[self.service_environment1]
+            service_environments=[self.service_environment1]
         )
         # 11 * 10 = 110
         self.assertEquals(result, 110.0)
@@ -295,7 +295,7 @@ class TestBaseReportPlugin(TestCase):
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
             warehouse=self.warehouse1,
-            services=[self.service_environment2],
+            service_environments=[self.service_environment2],
         )
         #  5 * 40 = 200
         # /^\
@@ -352,7 +352,7 @@ class TestBaseReportPlugin(TestCase):
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
-            services=[self.service_environment1],
+            service_environments=[self.service_environment1],
         )
         self.assertEquals(result, [
             {'usage': 110.0, 'service_environment': 1},  # 11 * 10 = 110
@@ -364,7 +364,7 @@ class TestBaseReportPlugin(TestCase):
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
             warehouse=self.warehouse2,
-            services=[self.service_environment2],
+            service_environments=[self.service_environment2],
         )
         self.assertEquals(result, [
             {'usage': 240.0, 'service_environment': 2}  # 6 * 40 = 240
@@ -400,7 +400,7 @@ class TestBaseReportPlugin(TestCase):
             end,
             usage_type,
             warehouse=None,
-            services=None
+            service_environments=None
         ):
             usages = {
                 self.usage_type.id: [
@@ -447,7 +447,7 @@ class TestBaseReportPlugin(TestCase):
         result = self.plugin._distribute_costs(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
-            services=self.service_environments,
+            service_environments=self.service_environments,
             cost=10000,
             percentage=percentage,
         )

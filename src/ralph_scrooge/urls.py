@@ -15,7 +15,6 @@ from ralph_scrooge.views.extra_costs import ExtraCosts
 from ralph_scrooge.views.home import Home
 from ralph_scrooge.views.usages import Usages
 from ralph_scrooge.views.statement import Statements
-from ralph_scrooge.views.teams import Teams
 from ralph_scrooge.views.teams_percent import TeamsPercent
 from ralph_scrooge.views.report_services import ServicesReport
 from ralph_scrooge.views.ventures_changes import VenturesChanges
@@ -54,13 +53,13 @@ urlpatterns = patterns(
     ),
     url(
         r'^teams/$',
-        login_required(Teams.as_view()),
+        login_required(TeamsPercent.as_view()),
         name='teams',
         kwargs={'team': None, 'daterange': None},
     ),
     url(
         r'^teams/(?P<team>[^/]+)/$',
-        login_required(Teams.as_view()),
+        login_required(TeamsPercent.as_view()),
         name='teams',
         kwargs={'daterange': None},
     ),

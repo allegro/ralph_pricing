@@ -9,12 +9,11 @@ from decimal import Decimal as D
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
     TimeTrackable,
 )
-
-from lck.django.choices import Choices
 
 
 PRICE_DIGITS = 16

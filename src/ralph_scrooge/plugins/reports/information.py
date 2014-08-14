@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @register(chain='scrooge_reports')
 class Information(BaseReportPlugin):
-    def costs(self, services, *args, **kwargs):
+    def costs(self, service_environments, *args, **kwargs):
         """
         Return information about given ventures
 
@@ -35,10 +35,11 @@ class Information(BaseReportPlugin):
         """
         logger.debug("Get information usage")
         usages = {}
-        for service in services:
-            usages[service.id] = {
-                'service_id': service.ci_uid,
-                'service': service.name,
+        for service_environment in service_environments:
+            usages[service_environment.id] = {
+                'service_id': service_environment.service.ci_uid,
+                'service': service_environment.service.name,
+                'environment': service_environment.environment.name,
             }
         return usages
 
@@ -90,6 +91,9 @@ class Information(BaseReportPlugin):
         }
         schema['service'] = {
             'name': _("Service"),
+        }
+        schema['environment'] = {
+            'name': _("Environment"),
         }
         return schema
 

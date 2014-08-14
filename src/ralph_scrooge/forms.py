@@ -14,8 +14,7 @@ from ralph.ui.widgets import DateWidget
 from ralph_scrooge.models import (
     ExtraCost,
     Service,
-    TeamDaterange,
-    TeamServicePercent,
+    TeamServiceEnvironmentPercent,
     UsagePrice,
     UsageType,
 )
@@ -67,8 +66,6 @@ class UsagePriceForm(forms.ModelForm):
 
         fields = [
             'warehouse',
-            'team',
-            'team_members_count',
             'internet_provider',
             'forecast_price',
             'price',
@@ -177,91 +174,20 @@ UsagesFormSet = forms.models.modelformset_factory(
 )
 
 
-class TeamDaterangeForm(forms.ModelForm):
+class TeamServiceEnvironmentPercentForm(forms.ModelForm):
     class Meta:
-        model = TeamDaterange
+        model = TeamServiceEnvironmentPercent
 
-        fields = ['start', 'end']
-
-        widgets = {
-            'start': DateWidget(attrs={'class': 'input-small'}),
-            'end': DateWidget(attrs={'class': 'input-small'}),
-        }
-
-    def clean_end(self):
-        """
-        Test if end date is later or equal to the start date
-
-        :returns string: the end of the time interval
-        :rtype string:
-        """
-        start = self.cleaned_data['start']
-        end = self.cleaned_data['end']
-        if start > end:
-            raise forms.ValidationError(
-                _("End date must be later than or equal to the start date."),
-            )
-        return end
-
-
-class TeamDaterangeBaseFormSet(forms.models.BaseModelFormSet):
-    """
-    Used by factory to create TeamDaterangeFormSet.
-    Contains rules to validate correctness of dateranges.
-    """
-    def clean(self):
-        if any(self.errors):
-            return
-        # check if dates are not-overlapping
-        dates = []
-        for form in self.forms:
-            start = form.cleaned_data.get('start')
-            end = form.cleaned_data.get('end')
-            if start and end:
-                dates.append((start, False))
-                dates.append((end, True))
-        dates = sorted(dates)
-        for form in self.forms:
-            open_intervals = 0
-            start = form.cleaned_data.get('start')
-            end = form.cleaned_data.get('end')
-            if not (start and end):
-                continue
-            for date, is_end in dates:
-                if date > end:
-                    break
-                if not is_end:
-                    open_intervals += 1
-                if date == end and open_intervals > 1:
-                    form._errors['end'] = form.error_class([
-                        "Overlaping intervals"
-                    ])
-                    break
-                if is_end:
-                    open_intervals -= 1
-
-TeamDaterangeFormSet = forms.models.modelformset_factory(
-    TeamDaterange,
-    form=TeamDaterangeForm,
-    formset=TeamDaterangeBaseFormSet,
-    can_delete=True,
-)
-
-
-class TeamServicePercentForm(forms.ModelForm):
-    class Meta:
-        model = TeamServicePercent
-
-        fields = ['service', 'percent']
+        fields = ['service_environment', 'percent']
 
     def __init__(self, *args, **kwargs):
-        super(TeamServicePercent, self).__init__(*args, **kwargs)
+        super(TeamServiceEnvironmentPercent, self).__init__(*args, **kwargs)
         self.fields['service'].queryset = Service.objects.order_by('name')
 
 
-class TeamServicePercentBaseFormSet(forms.models.BaseModelFormSet):
+class TeamServiceEnvironmentPercentBaseFormSet(forms.models.BaseModelFormSet):
     """
-    Used by factory to create TeamServicePercentFormSet.
+    Used by factory to create TeamServiceEnvironmentPercentFormSet.
     Contains rules to validate correctness of
     """
     def clean(self):
@@ -288,10 +214,10 @@ class TeamServicePercentBaseFormSet(forms.models.BaseModelFormSet):
                 seen.add(venture)
 
 
-TeamServicePercentFormSet = forms.models.modelformset_factory(
-    TeamServicePercent,
-    form=TeamServicePercentForm,
-    formset=TeamServicePercentBaseFormSet,
+TeamServiceEnvironmentPercentFormSet = forms.models.modelformset_factory(
+    TeamServiceEnvironmentPercent,
+    form=TeamServiceEnvironmentPercentForm,
+    formset=TeamServiceEnvironmentPercentBaseFormSet,
     can_delete=True,
     extra=5,
 )

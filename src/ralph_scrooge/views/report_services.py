@@ -49,14 +49,22 @@ class ServicesReport(BasePluginReport):
         # ]
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
-        services_plugins = cls._get_services_plugins()
+        services_plugins = cls._get_pricing_services_plugins()
+        teams_plugins = cls._get_teams_plugins()
         plugins = (base_plugins + base_usage_types_plugins +
-                   regular_usage_types_plugins + services_plugins)
-        # + extra_cost_plugins)
+                   regular_usage_types_plugins + services_plugins +
+                   teams_plugins)  # + extra_cost_plugins)
         return plugins
 
     @classmethod
-    def _get_report_data(cls, start, end, is_active, forecast, services):
+    def _get_report_data(
+        cls,
+        start,
+        end,
+        is_active,
+        forecast,
+        service_environments,
+    ):
         """
         Use plugins to get usages data for given ventures. Plugin logic can be
         so complicated but for this method, plugin must return value in
@@ -80,14 +88,14 @@ class ServicesReport(BasePluginReport):
         """
         logger.debug("Getting report date")
         old_queries_count = len(connection.queries)
-        data = {service.id: {} for service in services}
+        data = {se.id: {} for se in service_environments}
         for i, plugin in enumerate(cls.get_plugins()):
             try:
                 plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
                     'scrooge_reports',
                     plugin.plugin_name,
-                    services=services,
+                    service_environments=service_environments,
                     start=start,
                     end=end,
                     forecast=forecast,
@@ -136,12 +144,12 @@ class ServicesReport(BasePluginReport):
         :rtype tuple:
         """
         logger.info("Generating report from {0} to {1}".format(start, end))
-        services = cls._get_services(is_active)
+        services_environments = cls._get_services_environments(is_active)
         data = cls._get_report_data(
             start,
             end,
             is_active,
             forecast,
-            services,
+            services_environments,
         )
-        yield 100, cls._prepare_final_report(data, services)
+        yield 100, cls._prepare_final_report(data, services_environments)

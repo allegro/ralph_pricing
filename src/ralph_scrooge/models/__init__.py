@@ -39,8 +39,9 @@ from ralph_scrooge.models.statement import (
 
 from ralph_scrooge.models.team import (
     Team,
-    TeamDaterange,
-    TeamServicePercent,
+    TeamBillingType,
+    TeamCost,
+    TeamServiceEnvironmentPercent,
 )
 
 from ralph_scrooge.models.usage import (
@@ -80,8 +81,10 @@ __all__ = [
     'ServiceUsageTypes',
     'Statement',
     'Team',
+    'TeamBillingType',
+    'TeamCost',
     'TeamDaterange',
-    'TeamServicePercent',
+    'TeamServiceEnvironmentPercent',
     'TenantInfo',
     'UsageType',
     'UsagePrice',

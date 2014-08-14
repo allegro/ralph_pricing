@@ -10,9 +10,13 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 
 from ralph_scrooge.app import Scrooge
-from ralph_scrooge.forms import TeamServicePercentFormSet
+from ralph_scrooge.forms import TeamServiceEnvironmentPercentFormSet
 from ralph_scrooge.menus import teams_menu
-from ralph_scrooge.models import Team, TeamDaterange, TeamServicePercent
+from ralph_scrooge.models import (
+    Team,
+    TeamCost,
+    TeamServiceEnvironmentPercent,
+)
 from ralph_scrooge.views.base import Base
 
 
@@ -31,7 +35,7 @@ class TeamsPercent(Base):
         self.team_name = self.kwargs.get('team')
         if self.kwargs.get('daterange'):
             self.daterange = get_object_or_404(
-                TeamDaterange,
+                TeamCost,
                 id=self.kwargs['daterange']
             )
         if self.team_name is not None:
@@ -40,16 +44,18 @@ class TeamsPercent(Base):
                 name=self.team_name,
             )
             if self.daterange is not None:
-                self.ventures_percent = TeamServicePercent.objects.filter(
-                    team_daterange=self.daterange
+                self.ventures_percent = (
+                    TeamServiceEnvironmentPercent.objects.filter(
+                        team_daterange=self.daterange
+                    )
                 )
 
     def post(self, *args, **kwargs):
         self.init_args()
         if self.daterange:
-            self.formset = TeamServicePercentFormSet(
+            self.formset = TeamServiceEnvironmentPercentFormSet(
                 self.request.POST,
-                queryset=TeamServicePercent.objects.filter(
+                queryset=TeamServiceEnvironmentPercent.objects.filter(
                     team_daterange=self.daterange
                 ).order_by('venture'),
             )
@@ -70,8 +76,8 @@ class TeamsPercent(Base):
     def get(self, *args, **kwargs):
         self.init_args()
         if self.daterange:
-            self.formset = TeamServicePercentFormSet(
-                queryset=TeamServicePercent.objects.filter(
+            self.formset = TeamServiceEnvironmentPercentFormSet(
+                queryset=TeamServiceEnvironmentPercent.objects.filter(
                     team_daterange=self.daterange
                 ).order_by('venture'),
             )
@@ -86,7 +92,7 @@ class TeamsPercent(Base):
                 '/{0}/teams'.format(Scrooge.url_prefix),
                 self.team_name,
             ),
-            'sidebar_selected': self.daterange.id,
+            'sidebar_selected': self.daterange.id if self.daterange else None,
             'formset': self.formset,
         })
         return context
