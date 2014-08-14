@@ -66,8 +66,6 @@ class UsagePriceForm(forms.ModelForm):
 
         fields = [
             'warehouse',
-            # 'team',
-            # 'team_members_count',
             'internet_provider',
             'forecast_price',
             'price',
