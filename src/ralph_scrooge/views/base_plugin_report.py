@@ -257,7 +257,10 @@ class BasePluginReport(Report):
         :rtype list:
         """
         logger.debug("Getting services environments")
-        services = ServiceEnvironment.objects.order_by(
+        services = ServiceEnvironment.objects.select_related(
+            'service',
+            'environment',
+        ).order_by(
             'service__name',
             'environment__name',
         )

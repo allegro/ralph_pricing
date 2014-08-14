@@ -41,6 +41,7 @@ class ServicesReport(BasePluginReport):
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
         ]
+        return base_plugins
         # extra_cost_plugins = [
         #     AttributeDict(
         #         name='ExtraCostsPlugin',

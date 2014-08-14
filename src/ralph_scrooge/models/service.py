@@ -53,8 +53,9 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     )
     business_line = db.ForeignKey(
         BusinessLine,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
+        default=lambda: BusinessLine.objects.get(pk=1),
         related_name='services',
     )
     ci_uid = db.CharField(

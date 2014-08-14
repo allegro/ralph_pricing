@@ -6,11 +6,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import copy
 from datetime import datetime
 
 from django.db import models
 from django.forms.models import model_to_dict
-from simple_history.models import HistoricalRecords
+from simple_history.models import HistoricalRecords, transform_field
 
 try:
     from django.utils.timezone import now
@@ -32,7 +33,27 @@ class IntervalHistoricalRecords(HistoricalRecords):
         )
         result['active_from'] = models.DateTimeField(default=now)
         result['active_to'] = models.DateTimeField(default=datetime.max)
+        result['__str__'] = lambda self: '%s active from %s to %s' % (
+            self.history_object,
+            self.active_from,
+            self.active_to,
+        )
         return result
+
+    def copy_fields(self, model):
+        """
+        Copy fields with foreign keys relations
+        """
+        fields = {}
+        for field in model._meta.fields:
+            field = copy.copy(field)
+            field.rel = copy.copy(field.rel)
+            if isinstance(field, models.ForeignKey):
+                field.rel.related_name = '+'
+                field.attname = field.name
+            transform_field(field)
+            fields[field.name] = field
+        return fields
 
     def _update_most_recent(self, manager, **fields):
         """

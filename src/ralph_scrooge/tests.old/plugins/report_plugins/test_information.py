@@ -10,56 +10,11 @@ from dateutil import rrule
 
 from django.test import TestCase
 
-from ralph_scrooge import models
 from ralph_scrooge.tests import utils
 from ralph_scrooge.plugins.reports.information import Information
 
 
 class TestInformationPlugin(TestCase):
-    def setUp(self):
-        # ventures
-        self.venture1 = utils.get_or_create_venture(
-            is_active=True,
-            business_segment='bs1',
-            department='d1',
-            profit_center='p1',
-        )
-        self.venture2 = utils.get_or_create_venture(
-            is_active=True,
-            business_segment='bs1',
-            department='d1',
-            profit_center='p1',
-        )
-        self.venture3 = utils.get_or_create_venture(
-            is_active=True,
-            business_segment='bs1',
-            department='d1',
-            profit_center='p1',
-        )
-        self.ventures_subset = [self.venture1, self.venture2]
-        self.ventures = models.Venture.objects.all()
-
-    def test_costs(self):
-        result = Information(
-            ventures=self.ventures_subset,
-        )
-        self.assertEquals(result, {
-            self.venture1.id: {
-                'business_segment': 'bs1',
-                'department': 'd1',
-                'profit_center': 'p1',
-                'venture': self.venture1.name,
-                'venture_id': self.venture1.venture_id,
-            },
-            self.venture2.id: {
-                'business_segment': 'bs1',
-                'department': 'd1',
-                'profit_center': 'p1',
-                'venture': self.venture2.name,
-                'venture_id': self.venture2.venture_id,
-            }
-        })
-
     def test_costs_per_device(self):
         device1 = utils.get_or_create_device(
             asset_id=1234,

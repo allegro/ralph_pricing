@@ -33,7 +33,7 @@ class ServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.Service
 
     name = Sequence(lambda n: 'Service #%s' % n)
-    ci_uid = Sequence(lambda n: n)
+    ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
 class EnvironmentFactory(DjangoModelFactory):
