@@ -73,7 +73,7 @@ class Base(TemplateView):
     perms = [
         {
             'perm': Perm.has_scrooge_access,
-            'msg': _("You don't have permission to see Scrooge."),
+            'msg': _("You don't have permission to access Scrooge."),
         },
     ]
 
