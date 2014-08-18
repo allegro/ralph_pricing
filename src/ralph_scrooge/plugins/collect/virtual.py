@@ -70,6 +70,7 @@ def _update(hypervisor, service_environment, usage_type, data, date, value):
     virtual_info.name = data['name']
     virtual_info.save()
     daily_virtual_info, created = DailyVirtualInfo.objects.get_or_create(
+        service_environment=service_environment,
         pricing_object=virtual_info,
         virtual_info=virtual_info,
         date=date,
@@ -81,6 +82,7 @@ def _update(hypervisor, service_environment, usage_type, data, date, value):
         date=date,
         type=usage_type,
         daily_pricing_object=daily_virtual_info,
+        service_environment=service_environment,
     )
     usage.value = value
     usage.save()
@@ -96,15 +98,6 @@ def update(data, usages, date):
     """
     if data.get('device_id') is None:
         raise DeviceIdCannotBeNoneError()
-
-    if data.get('hypervisor_id') is not None:
-        asset_info = AssetInfo.objects.get(
-            device_id=data.get('hypervisor_id'),
-        )
-        hypervisor = DailyAssetInfo.objects.get(
-            asset_info=asset_info,
-            date=date,
-        )
     if data.get('service_ci_uid') is None:
         raise ServiceUidCannotBeNoneError()
     elif data.get('environment') is None:
@@ -113,6 +106,22 @@ def update(data, usages, date):
         service_environment = ServiceEnvironment.objects.get(
             service__ci_uid=data.get('service_ci_uid'),
             environment__name=data.get('environment'),
+        )
+
+    hypervisor = None
+    if data.get('hypervisor_id') is not None:
+        asset_info = AssetInfo.objects.get(
+            device_id=data.get('hypervisor_id'),
+        )
+        hypervisor = DailyAssetInfo.objects.get(
+            asset_info=asset_info,
+            date=date,
+        )
+    else:
+        logger.warning(
+            'For device {0} hypervisor is none'.format(
+                data['device_id'],
+            ),
         )
 
     for key, usage in usages.iteritems():
