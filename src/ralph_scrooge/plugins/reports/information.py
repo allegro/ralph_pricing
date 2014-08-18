@@ -41,9 +41,20 @@ class Information(BaseReportPlugin):
 
         # historical business lines
         day_after_end = end + timedelta(days=1)
+        # get records that are active (even partially) between
+        # <start date 00:00:00> and <end date 23:59:59>
+        # there are 4 possible cases of record activity:
+        #         start                 end
+        #           |____________________|
+        # 1)    |____________________________|
+        # 2)    |_______|
+        # 3)           |_________|
+        # 4)                        |________|
+        # in cases 1 and 2 start has to be between active_from and active_end
+        # in cases 3 and 4 active_from has to be between start and end
         services_history = HistoricalService.objects.filter(
-            (Q(active_from__gte=start) & Q(active_from__lt=day_after_end)) |
-            (Q(active_from__lte=start) & Q(active_to__gte=start)),
+            (Q(active_from__lte=start) & Q(active_to__gte=start)) |  # 1-2
+            (Q(active_from__gte=start) & Q(active_from__lt=day_after_end)),
             id__in=service_environments.values_list(
                 'service',
                 flat=True

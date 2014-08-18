@@ -57,12 +57,13 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         blank=False,
         default=lambda: BusinessLine.objects.get(pk=1),
         related_name='services',
+        verbose_name=_('business line')
     )
     ci_uid = db.CharField(
         unique=True,
         null=False,
         blank=False,
-        verbose_name='CMDB CI UID',
+        verbose_name=_('CMDB CI UID'),
         max_length=100,
     )
     ownership = db.ManyToManyField(
