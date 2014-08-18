@@ -10,7 +10,7 @@ import mock
 
 from django.test import TestCase
 
-from ralph_scrooge.models import Service, OwnershipType
+from ralph_scrooge.models import BusinessLine, Service, OwnershipType
 from ralph_scrooge.plugins.collect.service import (
     service as service_plugin,
     update_service,
@@ -25,6 +25,7 @@ from ralph_scrooge.tests.plugins.collect.samples.service import SAMPLE_SERVICES
 
 class TestServiceCollectPlugin(TestCase):
     def setUp(self):
+        self.default_business_line = BusinessLine(pk=1)
         self.business_line = BusinessLineFactory()
         self.owners = OwnerFactory.create_batch(7)
 
@@ -43,7 +44,7 @@ class TestServiceCollectPlugin(TestCase):
         General method to check if created/updated service match passed data
         """
         date = datetime.date(2014, 07, 01)
-        created = update_service(data, date)
+        created = update_service(data, date, self.default_business_line)
 
         saved_service = Service.objects.get(ci_uid=data['ci_uid'])
         self.assertEquals(saved_service.name, data['name'])
@@ -69,7 +70,7 @@ class TestServiceCollectPlugin(TestCase):
             ),
             set(data['technical_owners'])
         )
-        return created
+        return created, saved_service
 
     def test_new_service(self):
         """
@@ -77,18 +78,34 @@ class TestServiceCollectPlugin(TestCase):
         """
         data = self._sample_data()
         self.assertEquals(Service.objects.count(), 0)
-        self.assertTrue(self._create_and_test_service(data))
+        created, service = self._create_and_test_service(data)
+        self.assertTrue(created)
         self.assertEquals(Service.objects.count(), 1)
+        self.assertEquals(service.business_line, self.business_line)
+
+    def test_new_service_without_business_line(self):
+        """
+        Basic test for new service without business line
+        """
+        data = self._sample_data()
+        data['business_line'] = None
+        self.assertEquals(Service.objects.count(), 0)
+        created, service = self._create_and_test_service(data)
+        self.assertTrue(created)
+        self.assertEquals(Service.objects.count(), 1)
+        self.assertEquals(service.business_line, self.default_business_line)
 
     def test_service_update(self):
         """
         Check update of service data
         """
         data = self._sample_data()
-        self.assertTrue(self._create_and_test_service(data))
+        created, service = self._create_and_test_service(data)
+        self.assertTrue(created)
         service = ServiceFactory.build()
         data['name'] = service.name
-        self.assertFalse(self._create_and_test_service(data))
+        created, service = self._create_and_test_service(data)
+        self.assertFalse(created)
         self.assertEquals(Service.objects.count(), 1)
 
     def test_owners_delete(self):
@@ -96,12 +113,14 @@ class TestServiceCollectPlugin(TestCase):
         Checks if owners are correctly deleted
         """
         data = self._sample_data()
-        self.assertTrue(self._create_and_test_service(data))
+        created, service = self._create_and_test_service(data)
+        self.assertTrue(created)
         self.assertEquals(Service.objects.count(), 1)
         # remove one owner from technical and business
         data['technical_owners'].pop()
         del data['business_owners'][0]
-        self.assertFalse(self._create_and_test_service(data))
+        created, service = self._create_and_test_service(data)
+        self.assertFalse(created)
         self.assertEquals(Service.objects.count(), 1)
 
     def test_owners_change(self):
@@ -109,19 +128,21 @@ class TestServiceCollectPlugin(TestCase):
         Checks if owners are correctly added
         """
         data = self._sample_data()
-        self.assertTrue(self._create_and_test_service(data))
+        created, service = self._create_and_test_service(data)
+        self.assertTrue(created)
         self.assertEquals(Service.objects.count(), 1)
         # move one owner from technical to business
         data['business_owners'].append(data['technical_owners'].pop())
         # add new technical owner
         data['technical_owners'].append(self.owners[6].cmdb_id)
-        self.assertFalse(self._create_and_test_service(data))
+        created, service = self._create_and_test_service(data)
+        self.assertFalse(created)
         self.assertEquals(Service.objects.count(), 1)
 
     @mock.patch('ralph_scrooge.plugins.collect.service.update_service')
     @mock.patch('ralph_scrooge.plugins.collect.service.get_services')
     def test_batch_update(self, get_services_mock, update_service_mock):
-        def sample_update_service(data, date):
+        def sample_update_service(data, date, default_business_line):
             return int(data['ci_uid'].split('-')[-1]) % 2 == 0
 
         def sample_get_services():
@@ -137,5 +158,13 @@ class TestServiceCollectPlugin(TestCase):
             (True, '1 new service(s), 1 updated, 2 total')
         )
         self.assertEquals(update_service_mock.call_count, 2)
-        update_service_mock.assert_any_call(SAMPLE_SERVICES[0], date)
-        update_service_mock.assert_any_call(SAMPLE_SERVICES[1], date)
+        update_service_mock.assert_any_call(
+            SAMPLE_SERVICES[0],
+            date,
+            self.default_business_line,
+        )
+        update_service_mock.assert_any_call(
+            SAMPLE_SERVICES[1],
+            date,
+            self.default_business_line,
+        )

@@ -13,3 +13,10 @@
   fields:
     name: '-'
     environment_id: -1
+
+# Business Line
+- model: ralph_scrooge.BusinessLine
+  pk: 1
+  fields:
+    name: '-'
+    ci_uid: -1
