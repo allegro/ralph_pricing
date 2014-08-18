@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from lck.cache import memoize
+from ralph_scrooge.utils import memoize
 from django.conf import settings
 from django.db import connection
 from django.utils.translation import ugettext_lazy as _

@@ -358,6 +358,15 @@ class TestBaseReportPlugin(TestCase):
             {'usage': 110.0, 'service_environment': 1},  # 11 * 10 = 110
         ])
 
+    def test_get_usages_per_service_environment_without_services(self):
+        result = self.plugin._get_usages_per_service_environment(
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 20),
+            usage_type=self.usage_type,
+            service_environments=[],
+        )
+        self.assertEquals(result, [])
+
     def test_get_usages_per_service_environment_with_warehouse_service(self):
         result = self.plugin._get_usages_per_service_environment(
             start=datetime.date(2013, 10, 10),

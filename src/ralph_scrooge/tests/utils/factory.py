@@ -188,3 +188,10 @@ class TeamServiceEnvironmentPercentFactory(DjangoModelFactory):
     team = SubFactory(TeamFactory)
     service_environment = SubFactory(ServiceEnvironmentFactory)
     percent = fuzzy.FuzzyDecimal(0, 100)
+
+
+class PricingServiceFactory(DjangoModelFactory):
+    FACTORY_FOR = models.PricingService
+
+    name = Sequence(lambda n: 'Pricing Service #%s' % n)
+    use_universal_plugin = True

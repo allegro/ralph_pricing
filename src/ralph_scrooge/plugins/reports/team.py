@@ -55,7 +55,7 @@ from decimal import Decimal as D
 
 from django.db.models import Sum, Count
 from django.utils.translation import ugettext_lazy as _
-from lck.cache import memoize
+from ralph_scrooge.utils import memoize
 
 from ralph_scrooge.models import (
     DailyUsage,

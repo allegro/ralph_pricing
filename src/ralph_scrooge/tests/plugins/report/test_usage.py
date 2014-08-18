@@ -28,21 +28,21 @@ class TestUsageBasePlugin(TestCase):
     def setUp(self):
         # usage types
         self.usage_type = UsageTypeFactory(
-            symbol='ut1',
+            # symbol='ut1',
             by_warehouse=False,
             by_cost=False,
             type='BU',
             divide_by=1,
         )
         self.usage_type_cost_wh = UsageTypeFactory(
-            symbol='ut2',
+            # symbol='ut2',
             by_warehouse=True,
             by_cost=True,
             type='BU',
             rounding=2,
         )
         self.usage_type_cost_sum = UsageTypeFactory(
-            symbol='ut3',
+            # symbol='ut3',
             by_warehouse=False,
             by_cost=True,
             type='BU',
@@ -50,7 +50,7 @@ class TestUsageBasePlugin(TestCase):
             rounding=1,
         )
         self.usage_type_average = UsageTypeFactory(
-            symbol='ut4',
+            # symbol='ut4',
             by_warehouse=False,
             by_cost=False,
             type='BU',
@@ -60,8 +60,8 @@ class TestUsageBasePlugin(TestCase):
 
         # warehouses
         self.default_warehouse = models.Warehouse.objects.get(name='Default')
-        self.warehouse1 = WarehouseFactory(name='WH1', show_in_report=True)
-        self.warehouse2 = WarehouseFactory(name='WH2', show_in_report=True)
+        self.warehouse1 = WarehouseFactory(show_in_report=True)
+        self.warehouse2 = WarehouseFactory(show_in_report=True)
         self.warehouses = models.Warehouse.objects.exclude(
             pk=self.default_warehouse.pk
         )

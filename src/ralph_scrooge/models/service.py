@@ -18,6 +18,7 @@ from ralph_scrooge.models._history import (
     IntervalHistoricalRecords,
     ModelDiffMixin,
 )
+from ralph_scrooge.models.usage import DailyUsage
 
 
 class BusinessLine(Named):
@@ -76,6 +77,12 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         through='ServiceEnvironment',
         related_name='services',
     )
+    pricing_service = db.ForeignKey(
+        'PricingService',
+        related_name='services',
+        null=True,
+        blank=True,
+    )
     history = IntervalHistoricalRecords()
 
     class Meta:
@@ -95,14 +102,6 @@ class PricingService(Named):
     use_universal_plugin = db.BooleanField(
         verbose_name=_("Use universal plugin"),
         default=True,
-    )
-    services = db.ManyToManyField(
-        'Service',
-        verbose_name=_("Services"),
-        related_name='pricing_services',
-        help_text=_('Services used to calculate costs of Pricing Service'),
-        blank=False,
-        null=False,
     )
     usage_types = db.ManyToManyField(
         'UsageType',
@@ -144,10 +143,38 @@ class PricingService(Named):
         verbose_name_plural = _("pricing services")
         app_label = 'ralph_scrooge'
 
+    @property
+    def service_environments(self):
+        """
+        Returns all services environments related with this pricing service.
+        """
+        return ServiceEnvironment.objects.filter(
+            service__in=self.services.all()
+        )
+
     def get_plugin_name(self):
+        """
+        Returns plugin name for pricing service.
+        """
         if self.use_universal_plugin:
             return 'pricing_service_plugin'
         return self.symbol or self.name.lower().replace(' ', '_')
+
+    def get_dependent_services(self, start, end):
+        """
+        Returns pricing services, which resources (usage types) are used by
+        this service (between start and end dates).
+        """
+        return PricingService.objects.filter(
+            serviceusagetypes__id__in=DailyUsage.objects.filter(
+                type__type='SU',
+                service_environment__in=ServiceEnvironment.objects.filter(
+                    service__in=self.services.all(),
+                ),
+                date__gte=start,
+                date__lte=end
+            ).values_list('type', flat=True).distinct()
+        ).distinct()
 
 
 class ServiceUsageTypes(db.Model):
