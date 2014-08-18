@@ -31,6 +31,175 @@ class PricingServiceBasePlugin(BaseReportPlugin):
     distribute_count_key_base_tmpl = 'service_{}_sut_{{}}_count'
     distribute_cost_key_base_tmpl = 'service_{}_sut_{{}}_cost'
 
+    def total_cost(
+        self,
+        start,
+        end,
+        pricing_service,
+        forecast,
+        service_environments,
+    ):
+        """
+        Calculates total cost of pricing service (in period of time).
+
+        Total cost will be calculated only for service environments that are in
+        service_environment list (these service_environments could be totally
+        different than service environments of pricing service services).
+
+        Total cost is sum of cost of base usage types usages, all dependent
+        and extra costs.
+        services costs (for specified service_environments).
+
+        :param datatime start: Begin of time interval
+        :param datatime end: End of time interval
+        :param PricingService: Pricing Service for which total cost will be
+            calculated
+        :param iterable service_environments: List of service_environments for
+            which total cost should be calculated
+        :returns decimal: total cost of pricing_service
+        :rtype decimal:
+        """
+        # total cost of base usage types for service_environments providing
+        # this pricing_service
+        total_cost = self._get_service_base_usage_types_cost(
+            start,
+            end,
+            pricing_service,
+            forecast,
+            service_environments=service_environments,
+        )
+        total_cost += self._get_service_regular_usage_types_cost(
+            start,
+            end,
+            pricing_service,
+            forecast,
+            service_environments=service_environments,
+        )
+        total_cost += self._get_dependent_services_cost(
+            start,
+            end,
+            pricing_service,
+            forecast,
+            service_environments=service_environments,
+        )
+        # TODO: enable when working with services
+        # total_cost += self._get_service_extra_cost(
+        #     start,
+        #     end,
+        #     service_environments,
+        # )
+        total_cost += self._get_service_teams_cost(
+            start,
+            end,
+            pricing_service,
+            forecast,
+            service_environments=service_environments,
+        )
+        return total_cost
+
+    def costs(
+        self,
+        pricing_service,
+        start,
+        end,
+        service_environments,
+        forecast=False,
+        **kwargs
+    ):
+        """
+        Calculates usages and costs of pricing service usages per service
+        environment.
+
+        Main steps:
+        1) calculation of percentage division in date ranges
+        2) for each daterange with different percentage division:
+            2.1) calculation of pricing_service total cost in daterange
+            2.2) distribution of that cost to service_environments, basing on
+                 service_environment usage of pricing_service and using
+                 percentage division
+            2.3) sum service_environments costs of pricing_service usage types
+                 (eventually total cost)
+        """
+        logger.debug("Calculating report for pricing_service {0}".format(
+            pricing_service
+        ))
+        self._fill_distribute_tmpl(pricing_service)
+        date_ranges_percentage = self._get_date_ranges_percentage(
+            start,
+            end,
+            pricing_service,
+        )
+        service_symbol = "{0}_service_cost".format(pricing_service.id)
+        schema_usage_types = pricing_service.usage_types.all()
+        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
+        total_cost_column = len(usage_types) > 1
+
+        result = defaultdict(lambda: defaultdict(int))
+        for date_range, percentage in date_ranges_percentage.items():
+            dstart, dend = date_range[0], date_range[1]
+            service_cost = self.total_cost(
+                dstart,
+                dend,
+                pricing_service,
+                forecast,
+                service_environments=pricing_service.service_environments,
+            )
+            # distribute total cost between every service_environment
+            # proportionally to pricing_service usages
+            service_report_in_daterange = self._distribute_costs(
+                start,
+                end,
+                service_environments,
+                service_cost,
+                percentage
+            )
+            for se, se_data in service_report_in_daterange.items():
+                for key, value in se_data.items():
+                    result[se][key] += value
+                    if total_cost_column and key.endswith('cost'):
+                        result[se][service_symbol] += value
+        return result
+
+    def schema(self, pricing_service):
+        """
+        Returns pricing_service usages schema depending on schema usage types.
+        """
+        self._fill_distribute_tmpl(pricing_service)
+        schema_usage_types = pricing_service.usage_types.distinct()
+        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
+        schema = OrderedDict()
+        for usage_type in usage_types:
+            symbol = usage_type.id
+            usage_type_count_symbol = self.distribute_count_key_tmpl.format(
+                symbol
+            )
+            usage_type_cost_symbol = self.distribute_cost_key_tmpl.format(
+                symbol
+            )
+
+            schema[usage_type_count_symbol] = {
+                'name': _("{0} count".format(usage_type.name)),
+                'rounding': usage_type.rounding,
+                'divide_by': usage_type.divide_by,
+            }
+            schema[usage_type_cost_symbol] = {
+                'name': _("{0} cost".format(usage_type.name)),
+                'currency': True,
+                'total_cost': len(usage_types) == 1,
+            }
+        # if there is more than one schema usage type -> add total
+        # pricing_service usage column
+        if len(usage_types) > 1:
+            service_symbol = "{0}_service_cost".format(pricing_service.id)
+            schema[service_symbol] = {
+                'name': _("{0} cost".format(pricing_service.name)),
+                'currency': True,
+                'total_cost': True,
+            }
+
+        return schema
+
+    # HELPERS
     def _get_usage_type_cost(
         self,
         start,
@@ -244,181 +413,17 @@ class PricingServiceBasePlugin(BaseReportPlugin):
                 del current_percentage[usage_type.usage_type.id]
         return result
 
-    def total_cost(
-        self,
-        start,
-        end,
-        pricing_service,
-        forecast,
-        service_environments,
-    ):
-        """
-        Calculates total cost of pricing service (in period of time).
-
-        Total cost will be calculated only for service environments that are in
-        service_environment list (these service_environments could be totally
-        different than service environments of pricing service services).
-
-        Total cost is sum of cost of base usage types usages, all dependent
-        and extra costs.
-        services costs (for specified service_environments).
-
-        :param datatime start: Begin of time interval
-        :param datatime end: End of time interval
-        :param PricingService: Pricing Service for which total cost will be
-            calculated
-        :param iterable service_environments: List of service_environments for
-            which total cost should be calculated
-        :returns decimal: total cost of pricing_service
-        :rtype decimal:
-        """
-        # total cost of base usage types for service_environments providing
-        # this pricing_service
-        total_cost = self._get_service_base_usage_types_cost(
-            start,
-            end,
-            pricing_service,
-            forecast,
-            service_environments=service_environments,
-        )
-        total_cost += self._get_service_regular_usage_types_cost(
-            start,
-            end,
-            pricing_service,
-            forecast,
-            service_environments=service_environments,
-        )
-        total_cost += self._get_dependent_services_cost(
-            start,
-            end,
-            pricing_service,
-            forecast,
-            service_environments=service_environments,
-        )
-        # TODO: enable when working with services
-        # total_cost += self._get_service_extra_cost(
-        #     start,
-        #     end,
-        #     service_environments,
-        # )
-        total_cost += self._get_service_teams_cost(
-            start,
-            end,
-            pricing_service,
-            forecast,
-            service_environments=service_environments,
-        )
-        return total_cost
-
     def _fill_distribute_tmpl(self, pricing_service):
+        """
+        Set distribute templates using pricing service id (templates required
+        by base class).
+        """
         self.distribute_cost_key_tmpl = (
             self.distribute_cost_key_base_tmpl.format(pricing_service.id)
         )
         self.distribute_count_key_tmpl = (
             self.distribute_count_key_base_tmpl.format(pricing_service.id)
         )
-
-    def costs(
-        self,
-        pricing_service,
-        start,
-        end,
-        service_environments,
-        forecast=False,
-        **kwargs
-    ):
-        """
-        Calculates usages and costs of pricing service usages per service
-        environment.
-
-        Main steps:
-        1) calculation of percentage division in date ranges
-        2) for each daterange with different percentage division:
-            2.1) calculation of pricing_service total cost in daterange
-            2.2) distribution of that cost to service_environments, basing on
-                 service_environment usage of pricing_service and using
-                 percentage division
-            2.3) sum service_environments costs of pricing_service usage types
-                 (eventually total cost)
-        """
-        logger.debug("Calculating report for pricing_service {0}".format(
-            pricing_service
-        ))
-        self._fill_distribute_tmpl(pricing_service)
-        date_ranges_percentage = self._get_date_ranges_percentage(
-            start,
-            end,
-            pricing_service,
-        )
-        service_symbol = "{0}_service_cost".format(pricing_service.id)
-        schema_usage_types = pricing_service.usage_types.all()
-        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
-        total_cost_column = len(usage_types) > 1
-
-        result = defaultdict(lambda: defaultdict(int))
-        for date_range, percentage in date_ranges_percentage.items():
-            dstart, dend = date_range[0], date_range[1]
-            service_cost = self.total_cost(
-                dstart,
-                dend,
-                pricing_service,
-                forecast,
-                service_environments=pricing_service.service_environments,
-            )
-            # distribute total cost between every service_environment
-            # proportionally to pricing_service usages
-            service_report_in_daterange = self._distribute_costs(
-                start,
-                end,
-                service_environments,
-                service_cost,
-                percentage
-            )
-            for se, se_data in service_report_in_daterange.items():
-                for key, value in se_data.items():
-                    result[se][key] += value
-                    if total_cost_column and key.endswith('cost'):
-                        result[se][service_symbol] += value
-        return result
-
-    def schema(self, pricing_service):
-        """
-        Returns pricing_service usages schema depending on schema usage types.
-        """
-        self._fill_distribute_tmpl(pricing_service)
-        schema_usage_types = pricing_service.usage_types.distinct()
-        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
-        schema = OrderedDict()
-        for usage_type in usage_types:
-            symbol = usage_type.id
-            usage_type_count_symbol = self.distribute_count_key_tmpl.format(
-                symbol
-            )
-            usage_type_cost_symbol = self.distribute_cost_key_tmpl.format(
-                symbol
-            )
-
-            schema[usage_type_count_symbol] = {
-                'name': _("{0} count".format(usage_type.name)),
-                'rounding': usage_type.rounding,
-                'divide_by': usage_type.divide_by,
-            }
-            schema[usage_type_cost_symbol] = {
-                'name': _("{0} cost".format(usage_type.name)),
-                'currency': True,
-                'total_cost': len(usage_types) == 1,
-            }
-        # if there is more than one schema usage type -> add total
-        # pricing_service usage column
-        if len(usage_types) > 1:
-            service_symbol = "{0}_service_cost".format(pricing_service.id)
-            schema[service_symbol] = {
-                'name': _("{0} cost".format(pricing_service.name)),
-                'currency': True,
-                'total_cost': True,
-            }
-
-        return schema
 
 
 @register(chain='reports')

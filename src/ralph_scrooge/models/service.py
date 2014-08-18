@@ -101,14 +101,6 @@ class PricingService(Named):
         verbose_name=_("Use universal plugin"),
         default=True,
     )
-    # services = db.ManyToManyField(
-    #     'Service',
-    #     verbose_name=_("Services"),
-    #     related_name='pricing_services',
-    #     help_text=_('Services used to calculate costs of Pricing Service'),
-    #     blank=False,
-    #     null=False,
-    # )
     usage_types = db.ManyToManyField(
         'UsageType',
         through='ServiceUsageTypes',
@@ -151,11 +143,17 @@ class PricingService(Named):
 
     @property
     def service_environments(self):
+        """
+        Returns all services environments related with this pricing service.
+        """
         return ServiceEnvironment.objects.filter(
             service__in=self.services.all()
         )
 
     def get_plugin_name(self):
+        """
+        Returns plugin name for pricing service.
+        """
         if self.use_universal_plugin:
             return 'pricing_service_plugin'
         return self.symbol or self.name.lower().replace(' ', '_')
