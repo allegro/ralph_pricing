@@ -9,34 +9,27 @@ from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from lck.django.choices import Choices
 
-from ralph_scrooge.models.base import BaseUsage
+from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
-class ExtraCostType(db.Model):
+class ExtraCostType(BaseUsage):
     """
     Contains all type of extra costs like license or call center.
     """
-    name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
-
     class Meta:
         verbose_name = _("extra cost type")
         verbose_name_plural = _("extra cost types")
         app_label = 'ralph_scrooge'
 
-    def __unicode__(self):
-        return self.name
+    def save(self, *args, **kwargs):
+        self.type = BaseUsageType.extra_cost
+        super(ExtraCostType, self).save(*args, **kwargs)
 
 
-class ExtraCostChoices(Choices):
-    _ = Choices.Choice
-    daily_imprint = _('Daily imprint')
-    time_period_cost = _('Time period cost')
-
-
-class ExtraCost(BaseUsage):
+class ExtraCost(db.Model):
     """
     Contains information about cost of extra cost types per venture.
     This is a static value without any time interval becouse this
@@ -44,23 +37,16 @@ class ExtraCost(BaseUsage):
     DailyExtraCost model.
     """
     extra_cost_type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
-    monthly_cost = db.DecimalField(
+    cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
-        verbose_name=_("monthly cost"),
+        verbose_name=_("cost"),
         null=False,
         blank=False,
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
         related_name='extra_costs'
-    )
-    pricing_object = db.ForeignKey(
-        'PricingObject',
-        verbose_name=_("Pricing Object"),
-        null=True,
-        blank=True,
-        default=None,
     )
     start = db.DateField(
         verbose_name=_("start time"),
@@ -74,13 +60,6 @@ class ExtraCost(BaseUsage):
         blank=True,
         default=None,
     )
-    mode = db.CharField(
-        verbose_name=_("Extra cost mode"),
-        choices=ExtraCostChoices(),
-        blank=False,
-        null=False,
-        max_length=30,
-    )
 
     class Meta:
         verbose_name = _("Extra cost")
@@ -89,45 +68,6 @@ class ExtraCost(BaseUsage):
 
     def __unicode__(self):
         return '{} - {}'.format(
-            self.service,
-            self.type,
-        )
-
-
-class DailyExtraCost(db.Model):
-    """
-    DailyExtraCost model contains cost per venture for each day.
-    """
-    date = db.DateField()
-    service_environment = db.ForeignKey(
-        'ServiceEnvironment',
-        related_name='daily_extra_costs'
-    )
-    daily_pricing_object = db.ForeignKey(
-        'DailyPricingObject',
-        verbose_name=_("Daily pricing object"),
-        null=True,
-        blank=True,
-        default=None,
-    )
-    value = db.FloatField(verbose_name=_("value"), default=0)
-    type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
-    remarks = db.TextField(
-        verbose_name=_("Remarks"),
-        help_text=_("Additional information."),
-        blank=True,
-        default="",
-    )
-
-    class Meta:
-        verbose_name = _("daily extra costs")
-        verbose_name_plural = _("daily extra costs")
-        app_label = 'ralph_scrooge'
-
-    def __unicode__(self):
-        return '{0} {1} ({2}) {3}'.format(
-            self.service,
-            self.type,
-            self.date,
-            self.value,
+            self.service_environment,
+            self.extra_cost_type,
         )

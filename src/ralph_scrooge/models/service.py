@@ -172,7 +172,7 @@ class PricingService(BaseUsage):
         """
         return PricingService.objects.filter(
             serviceusagetypes__id__in=DailyUsage.objects.filter(
-                type__type='SU',
+                type__usage_type='SU',
                 service_environment__in=ServiceEnvironment.objects.filter(
                     service__in=self.services.all(),
                 ),
@@ -188,7 +188,7 @@ class ServiceUsageTypes(db.Model):
         verbose_name=_("Usage type"),
         related_name="service_division",
         limit_choices_to={
-            'type': 'SU',
+            'usage_type': 'SU',
         },
     )
     pricing_service = db.ForeignKey(
