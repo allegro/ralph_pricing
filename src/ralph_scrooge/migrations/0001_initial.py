@@ -143,7 +143,7 @@ class Migration(SchemaMigration):
         # Adding model 'DailyVirtualInfo'
         db.create_table(u'ralph_scrooge_dailyvirtualinfo', (
             ('dailypricingobject_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['ralph_scrooge.DailyPricingObject'], unique=True, primary_key=True)),
-            ('hypervisor', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'daily_virtuals', to=orm['ralph_scrooge.DailyAssetInfo'])),
+            ('hypervisor', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name=u'daily_virtuals', null=True, to=orm['ralph_scrooge.DailyAssetInfo'])),
             ('virtual_info', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'daily_virtuals', to=orm['ralph_scrooge.VirtualInfo'])),
         ))
         db.send_create_signal(u'ralph_scrooge', ['DailyVirtualInfo'])
@@ -689,7 +689,7 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.dailyvirtualinfo': {
             'Meta': {'object_name': 'DailyVirtualInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
             'dailypricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.DailyPricingObject']", 'unique': 'True', 'primary_key': 'True'}),
-            'hypervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_virtuals'", 'to': u"orm['ralph_scrooge.DailyAssetInfo']"}),
+            'hypervisor': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'daily_virtuals'", 'null': 'True', 'to': u"orm['ralph_scrooge.DailyAssetInfo']"}),
             'virtual_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_virtuals'", 'to': u"orm['ralph_scrooge.VirtualInfo']"})
         },
         u'ralph_scrooge.environment': {
