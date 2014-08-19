@@ -46,7 +46,14 @@ class DeviceIdCannotBeNoneError(Exception):
     pass
 
 
-def update_virtual_usage(hypervisor, service_environment, usage_type, data, date, value):
+def update_virtual_usage(
+    hypervisor,
+    service_environment,
+    usage_type,
+    data,
+    date,
+    value,
+):
     """
     Update single virtual device. Create daily usage and virtual info objects
 
