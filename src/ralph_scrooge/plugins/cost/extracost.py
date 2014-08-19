@@ -28,7 +28,7 @@ class ExtraCostPlugin(BaseCostPlugin):
     cost model.
     """
 
-    def costs(self, date, service, extra_cost_type, *args, **kwargs):
+    def costs(self, date, service_environments, extra_cost_type, *args, **kwargs):
         """
         Return cost for given service. Format of
         returned data looks like:
@@ -47,7 +47,7 @@ class ExtraCostPlugin(BaseCostPlugin):
         extra_costs = ExtraCost.objects.filter(
             end__gte=date,
             start__lte=date,
-            pricing_venture__in=service,
+            service_environment__in=service_environments,
             type=extra_cost_type,
         )
 
