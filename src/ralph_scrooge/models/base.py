@@ -7,13 +7,26 @@ from __future__ import unicode_literals
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from lck.django.choices import Choices
+from lck.django.common.models import Named
 
 
-class BaseUsage(db.Model):
-    name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
+class BaseUsageType(Choices):
+    _ = Choices.Choice
+    usage_type = _("Usage Type")
+    team = _("Team")
+    extra_cost = _("Extra Cost")
+    pricing_service = _("Pricing Service")
+
+
+class BaseUsage(Named):
+    type = db.PositiveIntegerField(
+        verbose_name=_("type"),
+        choices=BaseUsageType(),
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'
 
     def __unicode__(self):
-        return self.name
+        return '{} - {}'.format(self.type, self.name)

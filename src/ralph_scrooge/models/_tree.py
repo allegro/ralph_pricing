@@ -23,14 +23,6 @@ class MultiPathNode(db.Model):
     class Meta:
         abstract = True
 
-    def _create_path(self, parent_path):
-        path_field_value = getattr(self, self._path_field)
-        l = []
-        if parent_path:
-            l.append(parent_path)
-        l.append(path_field_value)
-        return self._path_link.join(map(str, l))
-
     def save(self, *args, **kwargs):
         if not self._path_field:
             raise PathFieldNotConfiguredError()
@@ -41,7 +33,22 @@ class MultiPathNode(db.Model):
             self.path = self._create_path('')
         return super(MultiPathNode, self).save(*args, **kwargs)
 
+    def _create_path(self, parent_path):
+        """
+        Returns path as join of parent path with value of current object path
+        field value.
+        """
+        path_field_value = getattr(self, self._path_field)
+        l = []
+        if parent_path:
+            l.append(parent_path)
+        l.append(path_field_value)
+        return self._path_link.join(map(str, l))
+
     def add_child(self, **kwargs):
+        """
+        Adds single child to object (link self as parent).
+        """
         newobj = self.__class__(**kwargs)
         newobj.parent = self
         newobj.save()

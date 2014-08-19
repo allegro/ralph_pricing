@@ -14,7 +14,6 @@ from lck.django.common.models import (
     TimeTrackable,
 )
 
-from ralph_scrooge.models.warehouse import Warehouse
 from ralph_scrooge.models.base import BaseUsage
 
 

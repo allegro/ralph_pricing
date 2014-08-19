@@ -22,18 +22,21 @@ class DailyCost(MultiPathNode):
         null=True,
         blank=True,
         related_name='daily_costs',
+        verbose_name=_('pricing object'),
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
         null=False,
         blank=False,
         related_name='daily_costs',
+        verbose_name=_('service environment'),
     )
     type = db.ForeignKey(
         'BaseUsage',
         null=False,
         blank=False,
         related_name='daily_costs',
+        verbose_name=_('type'),
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
     percent = db.FloatField(verbose_name=_('percent'), default=0)
@@ -43,7 +46,9 @@ class DailyCost(MultiPathNode):
         default=0,
         verbose_name=_("cost"),
     )
-    date = db.DateField()
+    date = db.DateField(
+        verbose_name=_('date')
+    )
 
     class Meta:
         verbose_name = _("daily cost")

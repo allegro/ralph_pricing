@@ -43,7 +43,7 @@ class ExtraCost(BaseUsage):
     value (cost) is accumulate each day by collect plugin in
     DailyExtraCost model.
     """
-    type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
+    extra_cost_type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
     monthly_cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
