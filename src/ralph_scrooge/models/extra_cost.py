@@ -9,6 +9,8 @@ from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from lck.django.choices import Choices
 
+from ralph_scrooge.models.base import BaseUsage
+
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
@@ -34,14 +36,14 @@ class ExtraCostChoices(Choices):
     time_period_cost = _('Time period cost')
 
 
-class ExtraCost(db.Model):
+class ExtraCost(BaseUsage):
     """
     Contains information about cost of extra cost types per venture.
     This is a static value without any time interval becouse this
     value (cost) is accumulate each day by collect plugin in
     DailyExtraCost model.
     """
-    type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
+    extra_cost_type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
     monthly_cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,

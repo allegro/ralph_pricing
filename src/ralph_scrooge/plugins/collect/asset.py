@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+from decimal import Decimal as D
 
 from django.db.transaction import commit_on_success
 
@@ -17,6 +18,7 @@ from ralph_scrooge.models import (
     DailyUsage,
     PricingObjectType,
     ServiceEnvironment,
+    UsagePrice,
     UsageType,
     Warehouse,
 )
@@ -169,6 +171,20 @@ def update_assets(data, date, usages):
     update_usage(
         daily_asset_info,
         warehouse,
+        usages['depreciation'],
+        daily_asset_info.daily_cost,
+        date,
+    )
+    update_usage(
+        daily_asset_info,
+        warehouse,
+        usages['assets_count'],
+        1,
+        date,
+    )
+    update_usage(
+        daily_asset_info,
+        warehouse,
         usages['cores_count'],
         data['cores_count'],
         date,
@@ -226,7 +242,29 @@ def asset(**kwargs):
     :rtype tuple:
     """
     date = kwargs['today']
+    depreciation_usage = get_usage(
+        'depreciation',
+        'Depreciation',
+        by_warehouse=False,
+        by_cost=False,
+        average=True,
+    )
+    UsagePrice(
+        type=depreciation_usage,
+        price=D('1'),
+        forecast_price=D('1'),
+        start=date.min,
+        end=date.max,
+    ).save()
     usages = {
+        'depreciation': depreciation_usage,
+        'assets_count': get_usage(
+            'assets_count',
+            'Assets Count',
+            by_warehouse=False,
+            by_cost=False,
+            average=True,
+        ),
         'cores_count': get_usage(
             'physical_cpu_cores',
             'Physical CPU cores',

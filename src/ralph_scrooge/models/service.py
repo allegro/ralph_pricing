@@ -18,6 +18,7 @@ from ralph_scrooge.models._history import (
     IntervalHistoricalRecords,
     ModelDiffMixin,
 )
+from ralph_scrooge.models.base import BaseUsage
 from ralph_scrooge.models.usage import DailyUsage
 
 
@@ -56,7 +57,7 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         BusinessLine,
         null=False,
         blank=False,
-        default=lambda: BusinessLine.objects.get(pk=1),
+        default=1,
         related_name='services',
         verbose_name=_('business line')
     )
@@ -98,7 +99,7 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         return self.symbol or self.name.lower().replace(' ', '_')
 
 
-class PricingService(Named):
+class PricingService(BaseUsage):
     use_universal_plugin = db.BooleanField(
         verbose_name=_("Use universal plugin"),
         default=True,

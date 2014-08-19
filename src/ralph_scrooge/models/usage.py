@@ -14,7 +14,7 @@ from lck.django.common.models import (
     TimeTrackable,
 )
 
-from ralph_scrooge.models.warehouse import Warehouse
+from ralph_scrooge.models.base import BaseUsage
 
 
 PRICE_DIGITS = 16
@@ -33,11 +33,10 @@ class InternetProvider(
         return self.name
 
 
-class UsageType(db.Model):
+class UsageType(BaseUsage):
     """
     Model contains usage types
     """
-    name = db.CharField(verbose_name=_("name"), max_length=255, unique=True)
     symbol = db.CharField(
         verbose_name=_("symbol"),
         max_length=255,
@@ -102,7 +101,7 @@ class UsageType(db.Model):
         ('RU', _("Regular usage type")),
         ('SU', _("Service usage type")),
     )
-    type = db.CharField(
+    usage_type = db.CharField(
         verbose_name=_("Type"),
         max_length=2,
         choices=TYPE_CHOICES,
@@ -243,7 +242,7 @@ class DailyUsage(db.Model):
         null=False,
         blank=False,
         on_delete=db.PROTECT,
-        default=lambda: Warehouse.objects.get(name='Default'),
+        default=1,
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
