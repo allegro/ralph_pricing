@@ -11,7 +11,8 @@ class Migration(SchemaMigration):
         # Adding model 'BaseUsage'
         db.create_table(u'ralph_scrooge_baseusage', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
+            ('type', self.gf('django.db.models.fields.PositiveIntegerField')()),
         ))
         db.send_create_signal(u'ralph_scrooge', ['BaseUsage'])
 
@@ -40,7 +41,7 @@ class Migration(SchemaMigration):
         # Adding model 'ExtraCost'
         db.create_table(u'ralph_scrooge_extracost', (
             ('baseusage_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['ralph_scrooge.BaseUsage'], unique=True, primary_key=True)),
-            ('type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_scrooge.ExtraCostType'])),
+            ('extra_cost_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ralph_scrooge.ExtraCostType'])),
             ('monthly_cost', self.gf('django.db.models.fields.DecimalField')(max_digits=16, decimal_places=6)),
             ('service_environment', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'extra_costs', to=orm['ralph_scrooge.ServiceEnvironment'])),
             ('pricing_object', self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['ralph_scrooge.PricingObject'], null=True, blank=True)),
@@ -161,20 +162,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'ralph_scrooge', ['DailyTenantInfo'])
 
-        # Adding model 'Warehouse'
-        db.create_table(u'ralph_scrooge_warehouse', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('cache_version', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
-            ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
-            ('show_in_report', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('id_from_assets', self.gf('django.db.models.fields.IntegerField')(unique=True)),
-        ))
-        db.send_create_signal(u'ralph_scrooge', ['Warehouse'])
-
         # Adding model 'InternetProvider'
         db.create_table(u'ralph_scrooge_internetprovider', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -203,7 +190,7 @@ class Migration(SchemaMigration):
             ('order', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('divide_by', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('rounding', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('type', self.gf('django.db.models.fields.CharField')(default=u'RU', max_length=2)),
+            ('usage_type', self.gf('django.db.models.fields.CharField')(default=u'RU', max_length=2)),
             ('use_universal_plugin', self.gf('django.db.models.fields.BooleanField')(default=True)),
         ))
         db.send_create_signal(u'ralph_scrooge', ['UsageType'])
@@ -419,6 +406,20 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'TeamServiceEnvironmentPercent', fields ['team_cost', 'service_environment']
         db.create_unique(u'ralph_scrooge_teamserviceenvironmentpercent', ['team_cost_id', 'service_environment_id'])
 
+        # Adding model 'Warehouse'
+        db.create_table(u'ralph_scrooge_warehouse', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('cache_version', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
+            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
+            ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
+            ('show_in_report', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('id_from_assets', self.gf('django.db.models.fields.IntegerField')(unique=True)),
+        ))
+        db.send_create_signal(u'ralph_scrooge', ['Warehouse'])
+
 
     def backwards(self, orm):
         # Removing unique constraint on 'TeamServiceEnvironmentPercent', fields ['team_cost', 'service_environment']
@@ -484,9 +485,6 @@ class Migration(SchemaMigration):
         # Deleting model 'DailyTenantInfo'
         db.delete_table(u'ralph_scrooge_dailytenantinfo')
 
-        # Deleting model 'Warehouse'
-        db.delete_table(u'ralph_scrooge_warehouse')
-
         # Deleting model 'InternetProvider'
         db.delete_table(u'ralph_scrooge_internetprovider')
 
@@ -546,6 +544,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'TeamServiceEnvironmentPercent'
         db.delete_table(u'ralph_scrooge_teamserviceenvironmentpercent')
+
+        # Deleting model 'Warehouse'
+        db.delete_table(u'ralph_scrooge_warehouse')
 
 
     models = {
@@ -618,7 +619,8 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.baseusage': {
             'Meta': {'object_name': 'BaseUsage'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'type': ('django.db.models.fields.PositiveIntegerField', [], {})
         },
         u'ralph_scrooge.businessline': {
             'Meta': {'object_name': 'BusinessLine'},
@@ -698,12 +700,12 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ExtraCost', '_ormbases': [u'ralph_scrooge.BaseUsage']},
             'baseusage_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.BaseUsage']", 'unique': 'True', 'primary_key': 'True'}),
             'end': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'extra_cost_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.ExtraCostType']"}),
             'mode': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
             'monthly_cost': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
             'pricing_object': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': u"orm['ralph_scrooge.PricingObject']", 'null': 'True', 'blank': 'True'}),
             'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'extra_costs'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
-            'start': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
-            'type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.ExtraCostType']"})
+            'start': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.extracosttype': {
             'Meta': {'object_name': 'ExtraCostType'},
@@ -885,7 +887,7 @@ class Migration(SchemaMigration):
             'show_price_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'symbol': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '255', 'blank': 'True'}),
-            'type': ('django.db.models.fields.CharField', [], {'default': "u'RU'", 'max_length': '2'}),
+            'usage_type': ('django.db.models.fields.CharField', [], {'default': "u'RU'", 'max_length': '2'}),
             'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
         },
         u'ralph_scrooge.virtualinfo': {

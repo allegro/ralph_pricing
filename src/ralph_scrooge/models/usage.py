@@ -101,7 +101,7 @@ class UsageType(BaseUsage):
         ('RU', _("Regular usage type")),
         ('SU', _("Service usage type")),
     )
-    type = db.CharField(
+    usage_type = db.CharField(
         verbose_name=_("Type"),
         max_length=2,
         choices=TYPE_CHOICES,
