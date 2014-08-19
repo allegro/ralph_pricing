@@ -38,6 +38,13 @@ class DailyCost(MultiPathNode):
         related_name='daily_costs',
         verbose_name=_('type'),
     )
+    warehouse = db.ForeignKey(
+        'Warehouse',
+        null=True,
+        blank=True,
+        related_name='daily_costs',
+        verbose_name=_('warehouse'),
+    )
     value = db.FloatField(verbose_name=_("value"), default=0)
     percent = db.FloatField(verbose_name=_('percent'), default=0)
     cost = db.DecimalField(

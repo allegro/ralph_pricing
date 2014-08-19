@@ -24,6 +24,7 @@ class Migration(SchemaMigration):
             ('pricing_object', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name=u'daily_costs', null=True, to=orm['ralph_scrooge.PricingObject'])),
             ('service_environment', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'daily_costs', to=orm['ralph_scrooge.ServiceEnvironment'])),
             ('type', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'daily_costs', to=orm['ralph_scrooge.BaseUsage'])),
+            ('warehouse', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name=u'daily_costs', null=True, to=orm['ralph_scrooge.Warehouse'])),
             ('value', self.gf('django.db.models.fields.FloatField')(default=0)),
             ('percent', self.gf('django.db.models.fields.FloatField')(default=0)),
             ('cost', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=6)),
@@ -648,7 +649,8 @@ class Migration(SchemaMigration):
             'pricing_object': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'daily_costs'", 'null': 'True', 'to': u"orm['ralph_scrooge.PricingObject']"}),
             'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_costs'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_costs'", 'to': u"orm['ralph_scrooge.BaseUsage']"}),
-            'value': ('django.db.models.fields.FloatField', [], {'default': '0'})
+            'value': ('django.db.models.fields.FloatField', [], {'default': '0'}),
+            'warehouse': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'daily_costs'", 'null': 'True', 'to': u"orm['ralph_scrooge.Warehouse']"})
         },
         u'ralph_scrooge.dailyextracost': {
             'Meta': {'object_name': 'DailyExtraCost'},
