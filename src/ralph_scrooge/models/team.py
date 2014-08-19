@@ -11,11 +11,10 @@ from django.utils.translation import ugettext_lazy as _
 from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
-    Named,
     TimeTrackable,
-    WithConcurrentGetOrCreate,
 )
 
+from ralph_scrooge.models.base import BaseUsage
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -32,7 +31,7 @@ class TeamBillingType(Choices):
     average = _('Average')
 
 
-class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
+class Team(TimeTrackable, EditorTrackable, BaseUsage):
     show_in_report = db.BooleanField(
         verbose_name=_("Show team in report"),
         default=True,
@@ -60,9 +59,6 @@ class Team(TimeTrackable, EditorTrackable, Named, WithConcurrentGetOrCreate):
         verbose_name = _("Team")
         verbose_name_plural = _("Teams")
         app_label = 'ralph_scrooge'
-
-    def __unicode__(self):
-        return self.name
 
 
 class TeamCost(db.Model):
