@@ -87,7 +87,6 @@ class VirtualInfoFactory(PricingObjectFactory):
 
     name = Sequence(lambda n: "name_{0}".format(n))
     device_id = Sequence(lambda n: n)
-    service_environment = SubFactory(ServiceEnvironmentFactory)
 
 
 class DailyAssetInfoFactory(DailyPricingObjectFactory):

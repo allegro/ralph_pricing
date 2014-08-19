@@ -46,7 +46,7 @@ class DeviceIdCannotBeNoneError(Exception):
     pass
 
 
-def _update(hypervisor, service_environment, usage_type, data, date, value):
+def update_virtual_usage(hypervisor, service_environment, usage_type, data, date, value):
     """
     Update single virtual device. Create daily usage and virtual info objects
 
@@ -90,7 +90,7 @@ def _update(hypervisor, service_environment, usage_type, data, date, value):
 
 def update(data, usages, date):
     """
-    Check if everything is correct and run _update
+    Check if everything is correct and run update_virtual_usage
 
     :param dict usages: dict with UsageType objects
     :param dict data: Dict with data from ralph
@@ -125,7 +125,7 @@ def update(data, usages, date):
         )
 
     for key, usage in usages.iteritems():
-        _update(
+        update_virtual_usage(
             hypervisor,
             service_environment,
             usage,

@@ -86,7 +86,7 @@ class TestVirtualPlugin(TestCase):
         virtual.AssetInfo.objects.get.assert_called_once_with(device_id=1)
 
     @patch.object(virtual, '_update', MagicMock())
-    def test_update(self):
+    def test_update_virtual_usage(self):
         service_environment = ServiceEnvironmentFactory.create()
         virtual.update(
             AttributeDict(
@@ -97,10 +97,10 @@ class TestVirtualPlugin(TestCase):
             {'key': 'value'},
             self.today,
         )
-        self.assertEqual(virtual._update.call_count, 1)
+        self.assertEqual(virtual.update_virtual_usage.call_count, 1)
 
-    def test__update_when_no_virtual_info(self):
-        virtual._update(
+    def test_update_virtual_usage_when_no_virtual_info(self):
+        virtual.update_virtual_usage(
             DailyAssetInfoFactory.create(),
             ServiceEnvironmentFactory.create(),
             UsageTypeFactory.create(),
@@ -112,8 +112,8 @@ class TestVirtualPlugin(TestCase):
         self.assertEqual(models.DailyVirtualInfo.objects.all().count(), 1)
         self.assertEqual(models.DailyUsage.objects.all().count(), 1)
 
-    def test__update(self):
-        virtual._update(
+    def test_update_virtual_usage(self):
+        virtual.update_virtual_usage(
             DailyAssetInfoFactory.create(),
             ServiceEnvironmentFactory.create(),
             UsageTypeFactory.create(),
