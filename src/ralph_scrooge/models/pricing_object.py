@@ -148,7 +148,12 @@ class VirtualInfo(PricingObject):
 
 
 class DailyVirtualInfo(DailyPricingObject):
-    hypervisor = db.ForeignKey(DailyAssetInfo, related_name='daily_virtuals')
+    hypervisor = db.ForeignKey(
+        DailyAssetInfo,
+        related_name='daily_virtuals',
+        null=True,
+        blank=True,
+    )
     virtual_info = db.ForeignKey(
         VirtualInfo,
         related_name='daily_virtuals',
