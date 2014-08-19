@@ -43,7 +43,9 @@ class ExtraCosts(Base):
             if self.formset.is_valid():
                 for form in self.formset.extra_forms:
                     if form.has_changed():
-                        form.instance.type = self.extra_cost_type
+                        form.instance.extra_cost_type = (
+                            self.extra_cost_type
+                        )
                 self.formset.save()
                 messages.success(self.request, "Extra costs updated.")
                 return HttpResponseRedirect(self.request.path)

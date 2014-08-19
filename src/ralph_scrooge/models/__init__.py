@@ -3,10 +3,8 @@ from ralph_scrooge.models.base import BaseUsage
 from ralph_scrooge.models.cost import DailyCost
 
 from ralph_scrooge.models.extra_cost import (
-    DailyExtraCost,
     ExtraCost,
     ExtraCostType,
-    ExtraCostChoices,
 )
 
 from ralph_scrooge.models.owner import (
@@ -64,7 +62,6 @@ __all__ = [
     'BusinessLine',
     'DailyAssetInfo',
     'DailyCost',
-    'DailyExtraCost',
     'DailyPricingObject',
     'DailyTenantInfo',
     'DailyUsage',
@@ -72,7 +69,6 @@ __all__ = [
     'Environment',
     'ExtraCost',
     'ExtraCostType',
-    'ExtraCostChoices',
     'HistoricalService',  # dynamic model
     'OwnershipType',
     'Owner',

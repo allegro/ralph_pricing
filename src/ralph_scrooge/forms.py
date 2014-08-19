@@ -28,12 +28,11 @@ class ExtraCostForm(forms.ModelForm):
     """
     class Meta:
         model = ExtraCost
-        fields = 'mode', 'service_environment', 'monthly_cost', 'start', 'end'
+        fields = 'service_environment', 'cost', 'start', 'end'
 
         widgets = {
             'start': DateWidget(attrs={'class': 'input-small'}),
             'end': DateWidget(attrs={'class': 'input-small'}),
-            'mode': forms.Select(attrs={'class': 'mode_selector'}),
         }
 
 
