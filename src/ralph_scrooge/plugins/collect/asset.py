@@ -249,13 +249,18 @@ def asset(**kwargs):
         by_cost=False,
         average=True,
     )
-    UsagePrice(
-        type=depreciation_usage,
-        price=D('1'),
-        forecast_price=D('1'),
-        start=date.min,
-        end=date.max,
-    ).save()
+    try:
+        usage_price = UsagePrice.objects.get(
+            type=depreciation_usage
+        )
+    except UsagePrice.DoesNotExist:
+        usage_price = UsagePrice(type=depreciation_usage)
+    usage_price.start = date.min
+    usage_price.end = date.max
+    usage_price.price = D('1')
+    usage_price.forecast_price = D('1')
+    usage_price.save()
+
     usages = {
         'depreciation': depreciation_usage,
         'assets_count': get_usage(

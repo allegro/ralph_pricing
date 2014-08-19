@@ -91,14 +91,13 @@ def save_daily_tenant_info(tenant, tenant_info, date):
     return daily_tenant_info
 
 
-def update_tenant(tenant, date, unknown_service, unknown_environment):
+def update_tenant(tenant, date, unknown_service_environment):
     """
     Updates single tenant info
     """
     created, tenant_info = save_tenant_info(
         tenant,
-        unknown_service,
-        unknown_environment,
+        unknown_service_environment,
     )
     save_daily_tenant_info(tenant, tenant_info, date)
     return created

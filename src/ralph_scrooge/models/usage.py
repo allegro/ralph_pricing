@@ -8,29 +8,11 @@ from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.common.models import (
-    EditorTrackable,
-    Named,
-    TimeTrackable,
-)
 
-from ralph_scrooge.models.base import BaseUsage
-
+from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
-
-
-class InternetProvider(
-    TimeTrackable,
-    EditorTrackable,
-    Named
-):
-    class Meta:
-        app_label = 'ralph_scrooge'
-
-    def __unicode__(self):
-        return self.name
 
 
 class UsageType(BaseUsage):
@@ -51,16 +33,8 @@ class UsageType(BaseUsage):
         verbose_name=_("Show percentage of value"),
         default=False,
     )
-    show_price_percentage = db.BooleanField(
-        verbose_name=_("Show percentage of price"),
-        default=False,
-    )
     by_warehouse = db.BooleanField(
         verbose_name=_("Usage type is by warehouse"),
-        default=False,
-    )
-    by_internet_provider = db.BooleanField(
-        verbose_name=_("Cost is given by internet provider"),
         default=False,
     )
     is_manually_type = db.BooleanField(
@@ -127,6 +101,10 @@ class UsageType(BaseUsage):
     def __unicode__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.type = BaseUsageType.usage_type
+        super(UsageType, self).save(*args, **kwargs)
+
     def get_plugin_name(self):
         if self.use_universal_plugin:
             return 'usage_plugin'
@@ -170,13 +148,6 @@ class UsagePrice(db.Model):
         blank=True,
         on_delete=db.PROTECT,
     )
-    internet_provider = db.ForeignKey(
-        InternetProvider,
-        null=True,
-        blank=True,
-        on_delete=db.PROTECT,
-        verbose_name=_("Internet Provider"),
-    )
 
     class Meta:
         verbose_name = _("usage price")
@@ -186,8 +157,6 @@ class UsagePrice(db.Model):
         unique_together = [
             ('warehouse', 'start', 'type'),
             ('warehouse', 'end', 'type'),
-            ('internet_provider', 'start', 'type'),
-            ('internet_provider', 'end', 'type'),
         ]
         ordering = ('type', '-start')
 
@@ -195,13 +164,6 @@ class UsagePrice(db.Model):
         if self.type and self.type.by_warehouse:
             return '{}-{} ({}-{})'.format(
                 self.warehouse,
-                self.type,
-                self.start,
-                self.end,
-            )
-        if self.type and self.type.by_internet_provider:
-            return '{}-{} ({}-{})'.format(
-                self.internet_provider,
                 self.type,
                 self.start,
                 self.end,
@@ -215,8 +177,6 @@ class UsagePrice(db.Model):
     def clean(self):
         if self.type.by_warehouse and not self.warehouse:
             raise ValidationError('Warehouse is required')
-        if self.type.by_internet_provider and not self.internet_provider:
-            raise ValidationError('Internet Provider is required')
 
 
 class DailyUsage(db.Model):
@@ -224,7 +184,7 @@ class DailyUsage(db.Model):
     DailyUsage model contains daily usage information for each
     usage
     """
-    date = db.DateTimeField()
+    date = db.DateField()
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
         related_name='daily_usages'

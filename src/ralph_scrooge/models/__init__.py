@@ -50,7 +50,6 @@ from ralph_scrooge.models.team import (
 
 from ralph_scrooge.models.usage import (
     DailyUsage,
-    InternetProvider,
     UsageType,
     UsagePrice,
 )
@@ -75,7 +74,6 @@ __all__ = [
     'ExtraCostType',
     'ExtraCostChoices',
     'HistoricalService',  # dynamic model
-    'InternetProvider',
     'OwnershipType',
     'Owner',
     'PricingObject',

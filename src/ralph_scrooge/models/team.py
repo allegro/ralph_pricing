@@ -14,7 +14,7 @@ from lck.django.common.models import (
     TimeTrackable,
 )
 
-from ralph_scrooge.models.base import BaseUsage
+from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -59,6 +59,10 @@ class Team(TimeTrackable, EditorTrackable, BaseUsage):
         verbose_name = _("Team")
         verbose_name_plural = _("Teams")
         app_label = 'ralph_scrooge'
+
+    def save(self, *args, **kwargs):
+        self.type = BaseUsageType.usage_type
+        super(Team, self).save(*args, **kwargs)
 
 
 class TeamCost(db.Model):

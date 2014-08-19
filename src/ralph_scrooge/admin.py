@@ -103,12 +103,6 @@ class UsageTypeAdmin(ModelAdmin):
     form = UsageTypeForm
 
 
-@register(models.InternetProvider)
-class InternetProviderAdmin(ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
-
-
 # =============================================================================
 # EXTRA COSTS
 # =============================================================================
