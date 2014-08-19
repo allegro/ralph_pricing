@@ -6,9 +6,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 
-from bob.menu import MenuItem
-from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 
