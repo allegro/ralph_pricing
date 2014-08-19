@@ -10,6 +10,7 @@ from ralph_pricing.views.base import Base
 
 class Home(Base):
     template_name = 'ralph_pricing/home.html'
+    submodule_name = 'home'
 
     def get_context_data(self, **kwargs):
         context = super(Home, self).get_context_data(**kwargs)

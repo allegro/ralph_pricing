@@ -18,6 +18,7 @@ from ralph_pricing.views.base import Base
 
 class Teams(Base):
     template_name = 'ralph_pricing/teams.html'
+    submodule_name = 'teams'
 
     def __init__(self, *args, **kwargs):
         super(Teams, self).__init__(*args, **kwargs)
@@ -62,7 +63,6 @@ class Teams(Base):
     def get_context_data(self, **kwargs):
         context = super(Teams, self).get_context_data(**kwargs)
         context.update({
-            'section': 'teams',
             'sidebar_items': teams_menu(
                 '/{0}/teams'.format(Scrooge.url_prefix),
                 self.team_name

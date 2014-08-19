@@ -32,9 +32,9 @@ class VenturesChanges(Report):
     """
     template_name = 'ralph_pricing/ventures_daily_usages.html'
     Form = DevicesVenturesChangesForm
-    section = 'ventures-changes'
     report_name = _('Ventures Changes Report')
     allow_statement = False
+    submodule_name = 'ventures-changes'
 
     @classmethod
     def get_data(

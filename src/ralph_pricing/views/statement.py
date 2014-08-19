@@ -24,7 +24,7 @@ class Statements(Base):
     Statement view with generate to csv option.
     """
     template_name = 'ralph_pricing/statement.html'
-    section = 'all-ventures-statement'
+    submodule_name = 'statement'
 
     def __init__(self, *args, **kwargs):
         super(Statements, self).__init__(*args, **kwargs)
