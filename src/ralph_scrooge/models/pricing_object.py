@@ -52,6 +52,12 @@ class PricingObject(TimeTrackable, EditorTrackable):
     class Meta:
         app_label = 'ralph_scrooge'
 
+    def __unicode__(self):
+        return '{} ({})'.format(
+            self.name,
+            PricingObjectType.name_from_id(self.type),
+        )
+
     # TODO: AssetInfo / VirtualInfo should be required if PricingObject has
     # asset or virtual type
 
@@ -71,6 +77,9 @@ class DailyPricingObject(db.Model):
 
     class Meta:
         app_label = 'ralph_scrooge'
+
+    def __unicode__(self):
+        return '{} ({})'.format(self.pricing_object, self.date)
 
 
 class AssetInfo(PricingObject):

@@ -20,9 +20,22 @@ from ralph_scrooge.plugins.base import BasePlugin
 logger = logging.getLogger(__name__)
 
 
-class BaseReportPlugin(BasePlugin):
+class NoPriceCostError(Exception):
     """
-    Base report plugin
+    Raised when price is not defined for specified date.
+    """
+    pass
+
+
+class MultiplePriceCostError(Exception):
+    """
+    Raised when multiple prices are defined for specified date.
+    """
+
+
+class BaseCostPlugin(BasePlugin):
+    """
+    Base cost plugin
 
     Every plugin which inherit from BaseReportPlugin should implement 3
     methods: usages, schema and total_cost.
@@ -46,13 +59,13 @@ class BaseReportPlugin(BasePlugin):
     def costs(self, *args, **kwargs):
         pass
 
-    @abc.abstractmethod
-    def schema(self, *args, **kwargs):
-        pass
+    # @abc.abstractmethod
+    # def schema(self, *args, **kwargs):
+    #     pass
 
-    @abc.abstractmethod
-    def total_cost(self, *args, **kwargs):
-        pass
+    # @abc.abstractmethod
+    # def total_cost(self, *args, **kwargs):
+    #     pass
 
     def _distribute_costs(
         self,
@@ -132,9 +145,10 @@ class BaseReportPlugin(BasePlugin):
     @memoize(skip_first=True)
     def _get_daily_usages_in_period(
         self,
-        start,
-        end,
         usage_type,
+        date=None,
+        start=None,
+        end=None,
         warehouse=None,
         service_environments=None,
         excluded_services=None,
@@ -143,10 +157,13 @@ class BaseReportPlugin(BasePlugin):
         Filter daily usages based on passed params
         """
         daily_usages = DailyUsage.objects.filter(
-            date__gte=start,
-            date__lte=end,
             type=usage_type,
         )
+        if start and end:
+            daily_usages.filter(date__gte=start, date__lte=end)
+        elif date:
+            daily_usages.filter(date=date)
+
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)
         if service_environments is not None:
@@ -160,7 +177,7 @@ class BaseReportPlugin(BasePlugin):
         return daily_usages
 
     @memoize(skip_first=True)
-    def _get_total_usage_in_period(self, *args, **kwargs):
+    def _get_total_usage(self, *args, **kwargs):
         """
         Calculates total usage of usage type in period of time (between start
         and end). Total usage can be calculated overall, for single warehouse,
@@ -205,43 +222,14 @@ class BaseReportPlugin(BasePlugin):
             ).order_by('service_environment__service')
         )
 
-    # TODO: rename
     @memoize(skip_first=True)
-    def _get_usages_in_period_per_device(
-        self,
-        start,
-        end,
-        usage_type,
-        service_environments=None,
-        warehouse=None,
-        excluded_services=None,
-    ):
+    def _get_usages_per_pricing_object(self, *args, **kwargs):
         """
         Works almost exactly as `_get_usages_in_period_per_service`, but
         instead of returning data grouped by service, it returns usages
-        aggregated by single device.
+        aggregated by single pricing_object.
 
         :rtype: list
         """
-        # TODO: change to usage per pricing object (pass pricing object type)
-        # TODO: use self._get_daily_usages_in_period
-        daily_usages = DailyUsage.objects.filter(
-            date__gte=start,
-            date__lte=end,
-            type=usage_type,
-        )
-        if service_environments:
-            daily_usages = daily_usages.filter(
-                service_environment__in=service_environments
-            )
-        if excluded_services:
-            daily_usages = daily_usages.exclude(
-                service_environment__service__in=excluded_services
-            )
-        if warehouse:
-            daily_usages = daily_usages.filter(warehouse=warehouse)
-        return list(daily_usages.values(
-            'daily_pricing_object__pricing_object'
-        ).annotate(usage=Sum('value')).order_by(
-            'daily_pricing_object__pricing_object'
-        ))
+        daily_usages = self._get_daily_usages_in_period(*args, **kwargs)
+        return daily_usages

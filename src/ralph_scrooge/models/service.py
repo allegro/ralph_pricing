@@ -18,7 +18,7 @@ from ralph_scrooge.models._history import (
     IntervalHistoricalRecords,
     ModelDiffMixin,
 )
-from ralph_scrooge.models.base import BaseUsage
+from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 from ralph_scrooge.models.usage import DailyUsage
 
 
@@ -124,7 +124,7 @@ class PricingService(BaseUsage):
         'UsageType',
         related_name='excluded_from_pricing_service',
         limit_choices_to={
-            'type': 'BU',
+            'usage_type': 'BU',
         },
         blank=True,
         null=True,
@@ -133,7 +133,7 @@ class PricingService(BaseUsage):
         'UsageType',
         related_name='pricing_services',
         limit_choices_to={
-            'type': 'RU',
+            'usage_type': 'RU',
         },
         blank=True,
         null=True,
@@ -143,6 +143,10 @@ class PricingService(BaseUsage):
         verbose_name = _("pricing service")
         verbose_name_plural = _("pricing services")
         app_label = 'ralph_scrooge'
+
+    def save(self, *args, **kwargs):
+        self.type = BaseUsageType.pricing_service
+        super(PricingService, self).save(*args, **kwargs)
 
     @property
     def service_environments(self):
