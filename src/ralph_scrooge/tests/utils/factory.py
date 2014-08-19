@@ -82,6 +82,13 @@ class AssetInfoFactory(PricingObjectFactory):
     warehouse = SubFactory(WarehouseFactory)
 
 
+class VirtualInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.VirtualInfo
+
+    name = Sequence(lambda n: "name_{0}".format(n))
+    device_id = Sequence(lambda n: n)
+
+
 class DailyAssetInfoFactory(DailyPricingObjectFactory):
     FACTORY_FOR = models.DailyAssetInfo
 
