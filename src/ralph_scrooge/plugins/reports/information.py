@@ -156,6 +156,3 @@ class Information(BaseReportPlugin):
             'name': _('Device name'),
         }
         return schema
-
-    def total_cost(self, *args, **kwargs):
-        raise NotImplementedError()

@@ -19,6 +19,7 @@ from ralph_scrooge.models import (
     UsageType,
 )
 from ralph.util import plugin as plugin_runner
+from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.plugins import reports  # noqa
 from ralph_scrooge.utils import AttributeDict
 
@@ -37,6 +38,21 @@ class BasePluginReport(Report):
         return []
 
     @classmethod
+    def _get_extra_cost_plugins(cls, filter_=None):
+        """
+        Returns plugins for extracost (name and arguments)
+        """
+        return [
+            AttributeDict(
+                name='ExtraCostsPlugin',
+                plugin_name='extra_cost_plugin',
+                plugin_kwargs={
+                    'extra_cost_type': extra_cost_type,
+                }
+            ) for extra_cost_type in ExtraCostType.objects.all()
+        ]
+
+    @classmethod
     def _get_base_usage_types(cls, filter_=None):
         """
         Returns base usage types which should be visible on report
@@ -44,7 +60,7 @@ class BasePluginReport(Report):
         logger.debug("Getting usage types")
         query = UsageType.objects.filter(
             show_in_services_report=True,
-            type='BU',
+            usage_type='BU',
         )
         if filter_:
             query = query.filter(**filter_)
@@ -76,7 +92,7 @@ class BasePluginReport(Report):
         """
         query = UsageType.objects.filter(
             show_in_services_report=True,
-            type='RU',
+            usage_type='RU',
         )
         if filter_:
             query = query.filter(**filter_)

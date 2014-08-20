@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+import datetime
 
 from ralph_scrooge.utils import memoize
 from django.conf import settings
@@ -41,12 +42,9 @@ class ServicesReport(BasePluginReport):
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
         ]
-        # extra_cost_plugins = [
-        #     AttributeDict(
-        #         name='ExtraCostsPlugin',
-        #         plugin_name='extra_cost_plugin',
-        #     ),
-        # ]
+        extra_cost_plugins = _get_extra_cost_plugins()
+        plugins = (base_plugins + extra_cost_plugins)
+        '''
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
         services_plugins = cls._get_pricing_services_plugins()
@@ -54,6 +52,7 @@ class ServicesReport(BasePluginReport):
         plugins = (base_plugins + base_usage_types_plugins +
                    regular_usage_types_plugins + services_plugins +
                    teams_plugins)  # + extra_cost_plugins)
+        '''
         return plugins
 
     @classmethod
@@ -87,7 +86,6 @@ class ServicesReport(BasePluginReport):
         :rtype dict:
         """
         logger.debug("Getting report date")
-        old_queries_count = len(connection.queries)
         data = {se.id: {} for se in service_environments}
         for i, plugin in enumerate(cls.get_plugins()):
             try:
@@ -105,13 +103,7 @@ class ServicesReport(BasePluginReport):
                 for service_id, service_usage in plugin_report.iteritems():
                     if service_id in data:
                         data[service_id].update(service_usage)
-                plugin_queries_count = (
-                    len(connection.queries) - plugin_old_queries_count
-                )
-                if settings.DEBUG:
-                    logger.debug('Plugin SQL queries: {0}\n'.format(
-                        plugin_queries_count
-                    ))
+
             except KeyError:
                 logger.warning(
                     "Usage '{0}' has no usage plugin".format(plugin.name)
@@ -121,9 +113,6 @@ class ServicesReport(BasePluginReport):
                     "Error while generating the report: {0}".format(e)
                 )
                 raise
-        queries_count = len(connection.queries) - old_queries_count
-        if settings.DEBUG:
-            logger.debug('Total SQL queries: {0}'.format(queries_count))
         return data
 
     @classmethod
