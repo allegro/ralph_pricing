@@ -42,13 +42,14 @@ class ServicesReport(BasePluginReport):
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
         ]
-        extra_cost_plugins = _get_extra_cost_plugins()
-        plugins = (base_plugins + extra_cost_plugins)
+        extra_cost_plugins = cls._get_extra_cost_plugins()
+        teams_plugins = cls._get_teams_plugins()
+        plugins = (base_plugins + extra_cost_plugins + teams_plugins)
         '''
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
         services_plugins = cls._get_pricing_services_plugins()
-        teams_plugins = cls._get_teams_plugins()
+
         plugins = (base_plugins + base_usage_types_plugins +
                    regular_usage_types_plugins + services_plugins +
                    teams_plugins)  # + extra_cost_plugins)
