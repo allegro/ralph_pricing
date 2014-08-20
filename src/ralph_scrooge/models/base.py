@@ -25,6 +25,19 @@ class BaseUsage(Named):
         choices=BaseUsageType(),
         editable=False,
     )
+    divide_by = db.IntegerField(
+        verbose_name=_("Divide by"),
+        help_text=_(
+            "Divide value by 10 to the power of entered value. Ex. with "
+            "divide by = 3 and value = 1 000 000, presented value is 1 000."
+        ),
+        default=0,
+    )
+    rounding = db.IntegerField(
+        verbose_name=("Value rounding"),
+        help_text=_("Decimal places"),
+        default=0,
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'

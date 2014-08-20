@@ -44,10 +44,10 @@ class BasePluginReport(Report):
         """
         return [
             AttributeDict(
-                name='ExtraCostsPlugin',
+                name='ExtraCostPlugin',
                 plugin_name='extra_cost_plugin',
                 plugin_kwargs={
-                    'extra_cost_type': extra_cost_type,
+                    'base_usage': extra_cost_type,
                 }
             ) for extra_cost_type in ExtraCostType.objects.all()
         ]
@@ -157,9 +157,9 @@ class BasePluginReport(Report):
         for team in teams:
             team_info = AttributeDict(
                 name=team.name,
-                plugin_name='team',
+                plugin_name='team_plugin',
                 plugin_kwargs={
-                    'team': team
+                    'base_usage': team
                 }
             )
             result.append(team_info)
