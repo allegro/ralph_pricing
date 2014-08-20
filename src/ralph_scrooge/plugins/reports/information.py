@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 @register(chain='scrooge_reports')
 class Information(BaseReportPlugin):
-    def costs(self, service_environments, start, end,  *args, **kwargs):
+    def costs(self, service_environments, start, end, *args, **kwargs):
         """
         Return information about given ventures
 

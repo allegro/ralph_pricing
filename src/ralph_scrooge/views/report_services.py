@@ -18,7 +18,6 @@ from ralph_scrooge.forms import ServicesReportForm
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.plugins import reports  # noqa
 from ralph_scrooge.utils import AttributeDict
-from ralph_scrooge.models import ExtraCostType
 
 
 logger = logging.getLogger(__name__)
@@ -43,15 +42,7 @@ class ServicesReport(BasePluginReport):
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
         ]
-        extra_cost_plugins = [
-            AttributeDict(
-                name='ExtraCostsPlugin',
-                plugin_name='extra_cost_plugin',
-                plugin_kwargs={
-                    'extra_cost_type': extra_cost_type,
-                }
-            ) for extra_cost_type in ExtraCostType.objects.all()
-        ]
+        extra_cost_plugins = _get_extra_cost_plugins()
         plugins = (base_plugins + extra_cost_plugins)
         '''
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
@@ -97,32 +88,31 @@ class ServicesReport(BasePluginReport):
         logger.debug("Getting report date")
         data = {se.id: {} for se in service_environments}
         for i, plugin in enumerate(cls.get_plugins()):
-            for days in xrange((end - start).days + 1):
-                try:
-                    plugin_old_queries_count = len(connection.queries)
-                    plugin_report = plugin_runner.run(
-                        'scrooge_reports',
-                        plugin.plugin_name,
-                        service_environments=service_environments,
-                        start=start,
-                        end=end,
-                        forecast=forecast,
-                        type='costs',
-                        **plugin.get('plugin_kwargs', {})
-                    )
-                    for service_id, service_usage in plugin_report.iteritems():
-                        if service_id in data:
-                            data[service_id].update(service_usage)
+            try:
+                plugin_old_queries_count = len(connection.queries)
+                plugin_report = plugin_runner.run(
+                    'scrooge_reports',
+                    plugin.plugin_name,
+                    service_environments=service_environments,
+                    start=start,
+                    end=end,
+                    forecast=forecast,
+                    type='costs',
+                    **plugin.get('plugin_kwargs', {})
+                )
+                for service_id, service_usage in plugin_report.iteritems():
+                    if service_id in data:
+                        data[service_id].update(service_usage)
 
-                except KeyError:
-                    logger.warning(
-                        "Usage '{0}' has no usage plugin".format(plugin.name)
-                    )
-                except Exception as e:
-                    logger.exception(
-                        "Error while generating the report: {0}".format(e)
-                    )
-                    raise
+            except KeyError:
+                logger.warning(
+                    "Usage '{0}' has no usage plugin".format(plugin.name)
+                )
+            except Exception as e:
+                logger.exception(
+                    "Error while generating the report: {0}".format(e)
+                )
+                raise
         return data
 
     @classmethod

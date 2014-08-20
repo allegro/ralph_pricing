@@ -19,6 +19,7 @@ from ralph_scrooge.models import (
     UsageType,
 )
 from ralph.util import plugin as plugin_runner
+from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.plugins import reports  # noqa
 from ralph_scrooge.utils import AttributeDict
 
@@ -35,6 +36,21 @@ class BasePluginReport(Report):
         Should return list of plugins to call
         """
         return []
+
+    @classmethod
+    def _get_extra_cost_plugins(cls, filter_=None):
+        """
+        Returns plugins for extracost (name and arguments)
+        """
+        return [
+            AttributeDict(
+                name='ExtraCostsPlugin',
+                plugin_name='extra_cost_plugin',
+                plugin_kwargs={
+                    'extra_cost_type': extra_cost_type,
+                }
+            ) for extra_cost_type in ExtraCostType.objects.all()
+        ]
 
     @classmethod
     def _get_base_usage_types(cls, filter_=None):
