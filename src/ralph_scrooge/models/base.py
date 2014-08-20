@@ -23,6 +23,7 @@ class BaseUsage(Named):
     type = db.PositiveIntegerField(
         verbose_name=_("type"),
         choices=BaseUsageType(),
+        editable=False,
     )
 
     class Meta:

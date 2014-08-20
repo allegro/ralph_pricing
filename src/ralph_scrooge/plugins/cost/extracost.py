@@ -6,14 +6,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import OrderedDict, defaultdict
-from decimal import Decimal as D
+from collections import defaultdict
 
-from django.db.models import Sum
-
-from ralph_scrooge.models import ExtraCost, ExtraCostType
+from ralph_scrooge.models import ExtraCost
 from ralph_scrooge.plugins.base import register
-from ralph_scrooge.plugins.reports.base import BaseReportPlugin
 from ralph_scrooge.plugins.cost.base import (
     BaseCostPlugin,
 )
@@ -21,7 +17,7 @@ from ralph_scrooge.plugins.cost.base import (
 logger = logging.getLogger(__name__)
 
 
-@register(chain='cost')
+@register(chain='scrooge_costs')
 class ExtraCostPlugin(BaseCostPlugin):
     """
     Extra cost plugin, total cost and cost from daily extra
@@ -48,16 +44,17 @@ class ExtraCostPlugin(BaseCostPlugin):
             end__gte=date,
             start__lte=date,
             service_environment__in=service_environments,
-            type=extra_cost_type,
+            extra_cost_type=extra_cost_type,
         )
 
-        usages = defaultdict(lambda: defaultdict(list))
+        usages = defaultdict(list)
         for extra_cost in extra_costs:
             usages[extra_cost.service_environment.id].append(
                 {
-                    'cost': (extra_cost.cost / ((extra_cost.end
-                        - extra_cost.start).days + 1)
-                    )
+                    'cost': (extra_cost.cost /
+                             ((extra_cost.end - extra_cost.start).days + 1)
+                             ),
+                    'type': extra_cost_type,
                 }
             )
         return usages
