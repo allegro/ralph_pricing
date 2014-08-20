@@ -30,4 +30,4 @@ class BaseUsage(Named):
         app_label = 'ralph_scrooge'
 
     def __unicode__(self):
-        return '{} - {}'.format(self.type, self.name)
+        return self.name
