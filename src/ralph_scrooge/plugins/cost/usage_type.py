@@ -125,7 +125,8 @@ class UsageTypeBaseCostPlugin(BaseCostPlugin):
                     'value': v.value,
                     'cost': D(v.value) * price_per_unit,
                     'percent': float(v.value) / total_usages,
-                    'pricing_object': v.daily_pricing_object.pricing_object_id,
+                    'pricing_object_id': v.daily_pricing_object.pricing_object_id,
+                    'type': usage_type,
                 }
                 if warehouse:
                     pricing_object_cost['warehouse'] = warehouse
@@ -151,21 +152,21 @@ class UsageTypeBaseCostPlugin(BaseCostPlugin):
                     'percent': 0.4,
                     'cost': Decimal('11.11'),
                     'warehouse': warehouse1,
-                    'pricing_object': pricing_object1,
+                    'pricing_object_id': pricing_object1.id,
                 },
                 {
                     'value': 550,
                     'percent': 1.0, # percent per warehouse
                     'cost': Decimal('155.11'),
                     'warehouse': warehouse2,
-                    'pricing_object': pricing_object2,
+                    'pricing_object_id': pricing_object2.id,
                 },
                 {
                     'value': 120,
                     'percent': 0.6,
                     'cost': Decimal('15.11'),
                     'warehouse': warehouse2,
-                    'pricing_object': pricing_object3,
+                    'pricing_object_id': pricing_object3.id,
                 },
             ],
             service_environment2.id: [
@@ -183,7 +184,7 @@ class UsageTypeBaseCostPlugin(BaseCostPlugin):
         )
 
 
-@register(chain='scrooge_reports')
+@register(chain='scrooge_costs')
 class UsageTypeCostPlugin(UsageTypeBaseCostPlugin):
     """
     Base Usage Plugin as ralph plugin. Splitting it into two classes gives

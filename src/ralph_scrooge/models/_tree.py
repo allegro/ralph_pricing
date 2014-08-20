@@ -23,6 +23,9 @@ class MultiPathNode(db.Model):
     class Meta:
         abstract = True
 
+    def __init__(self, *args, **kwargs):
+        super(MultiPathNode, self).__init__(*args, **kwargs)
+
     def save(self, *args, **kwargs):
         if not self._path_field:
             raise PathFieldNotConfiguredError()
@@ -55,7 +58,7 @@ class MultiPathNode(db.Model):
         return newobj
 
     @classmethod
-    def build_tree(cls, tree, parent=None):
+    def build_tree(cls, tree, parent=None, **global_params):
         """
         Build MultiPath tree Nodes according to tree list
 
@@ -66,7 +69,8 @@ class MultiPathNode(db.Model):
         assert isinstance(tree, (list, tuple))
         for child in tree:
             assert isinstance(child, dict)
-            params = dict([(k, v) for k, v in child if not k.startswith('_')])
+            params = dict([(k, v) for k, v in child.items() if not k.startswith('_')])
+            params.update(global_params)
             if parent is None:
                 newobj = cls(**params)
                 newobj.save()

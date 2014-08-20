@@ -302,10 +302,13 @@ def asset(**kwargs):
             else:
                 update += 1
         except ServiceEnvironmentDoesNotExistError:
-            logger.error('Service environment {}-{} does not exist'.format(
-                data['service_ci_uid'],
-                data['environment_id'],
-            ))
+            logger.error(
+                'Asset {}: Service environment {} - {} does not exist'.format(
+                    data['asset_id'],
+                    data['service_ci_uid'],
+                    data['environment_id'],
+                )
+            )
             continue
         except WarehouseDoesNotExistError:
             logger.error('Warehouse {0} does not exist'.format(
