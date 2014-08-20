@@ -44,7 +44,7 @@ class BasePluginReport(Report):
         logger.debug("Getting usage types")
         query = UsageType.objects.filter(
             show_in_services_report=True,
-            type='BU',
+            usage_type='BU',
         )
         if filter_:
             query = query.filter(**filter_)
@@ -76,7 +76,7 @@ class BasePluginReport(Report):
         """
         query = UsageType.objects.filter(
             show_in_services_report=True,
-            type='RU',
+            usage_type='RU',
         )
         if filter_:
             query = query.filter(**filter_)

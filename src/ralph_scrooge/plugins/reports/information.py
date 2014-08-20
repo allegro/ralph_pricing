@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 @register(chain='scrooge_reports')
 class Information(BaseReportPlugin):
-    def costs(self, service_environments, start, end, *args, **kwargs):
+    def costs(self, service_environments, start, end,  *args, **kwargs):
         """
         Return information about given ventures
 
@@ -156,6 +156,3 @@ class Information(BaseReportPlugin):
             'name': _('Device name'),
         }
         return schema
-
-    def total_cost(self, *args, **kwargs):
-        raise NotImplementedError()
