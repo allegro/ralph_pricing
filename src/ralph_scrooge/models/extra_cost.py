@@ -44,6 +44,12 @@ class ExtraCost(db.Model):
         null=False,
         blank=False,
     )
+    forecast_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        default=0.00,
+        verbose_name=_("forecast cost"),
+    )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
         related_name='extra_costs'

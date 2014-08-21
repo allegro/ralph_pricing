@@ -50,7 +50,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum, Count
@@ -79,6 +79,46 @@ PERCENT_PRECISION = 4
 
 @register(chain='scrooge_costs')
 class Team(BaseCostPlugin):
+    def costs(self, team, **kwargs):
+        """
+        Calculates teams costs.
+        """
+        logger.debug("Get teams usages")
+        return self._get_team_cost_per_service_environment(team, **kwargs)
+
+    def total_cost(self, team, date, forecast=False, *args, **kwargs):
+        return self._get_team_daily_cost(team, date, forecast)
+
+    def _get_team_cost_per_service_environment(self, team, *args, **kwargs):
+        """
+        Call proper function to calculate team cost, based on team billing type
+        """
+        functions = {
+            TeamBillingType.time: (
+                self._get_team_time_cost_per_service_environment
+            ),
+            TeamBillingType.distribute: (
+                self._get_team_distributed_cost_per_service_environment
+            ),
+            TeamBillingType.assets_cores: (
+                self._get_team_assets_cores_cost_per_service_environment
+            ),
+            TeamBillingType.assets: (
+                self._get_team_assets_cost_per_service_environment
+            ),
+            TeamBillingType.average: (
+                self._get_team_average_cost_per_service_environment
+            ),
+        }
+        func = functions.get(team.billing_type)
+        if func:
+            logger.debug("Getting team {0} costs".format(team))
+            return func(team=team, *args, **kwargs)
+        logger.warning('No handle method for billing type {0}'.format(
+            team.billing_type
+        ))
+        return {}
+
     @memoize(skip_first=True)
     def _get_teams(self):
         """
@@ -250,9 +290,9 @@ class Team(BaseCostPlugin):
         if team.excluded_services.count():
             service_environments = list(set(service_environments) - set(
                 ServiceEnvironment.objects.filter(
-                    service__in=team.excluded_services.all())
+                    service__in=team.excluded_services.all()
                 )
-            )
+            ))
         return service_environments
 
     def _get_team_time_cost_per_service_environment(
@@ -347,6 +387,9 @@ class Team(BaseCostPlugin):
             team,
             service_environments
         )
+        excluded_service_environments = ServiceEnvironment.objects.filter(
+            service__in=team.excluded_services.all(),
+        )
 
         team_cost_days, daily_cost, team_cost = self._get_team_daily_cost(
             team,
@@ -363,9 +406,7 @@ class Team(BaseCostPlugin):
             )
             total = total_count_func(
                 date,
-                excluded_service_environments=ServiceEnvironment.objects.filter(
-                    service__in=team.excluded_services.all(),
-                ),
+                excluded_service_environments=excluded_service_environments,
             )
             # if there is more than one resource, calculate 1/n of total
             # cost
@@ -551,40 +592,3 @@ class Team(BaseCostPlugin):
             })
 
         return result
-
-    def _get_team_cost_per_service_environment(self, team, *args, **kwargs):
-        """
-        Call proper function to calculate team cost, based on team billing type
-        """
-        functions = {
-            TeamBillingType.time: (
-                self._get_team_time_cost_per_service_environment
-            ),
-            TeamBillingType.distribute: (
-                self._get_team_distributed_cost_per_service_environment
-            ),
-            TeamBillingType.assets_cores: (
-                self._get_team_assets_cores_cost_per_service_environment
-            ),
-            TeamBillingType.assets: (
-                self._get_team_assets_cost_per_service_environment
-            ),
-            TeamBillingType.average: (
-                self._get_team_average_cost_per_service_environment
-            ),
-        }
-        func = functions.get(team.billing_type)
-        if func:
-            logger.debug("Getting team {0} costs".format(team))
-            return func(team=team, *args, **kwargs)
-        logger.warning('No handle method for billing type {0}'.format(
-            team.billing_type
-        ))
-        return {}
-
-    def costs(self, team, **kwargs):
-        """
-        Calculates teams costs.
-        """
-        logger.debug("Get teams usages")
-        return self._get_team_cost_per_service_environment(team, **kwargs)

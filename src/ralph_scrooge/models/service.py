@@ -162,10 +162,10 @@ class PricingService(BaseUsage):
         Returns plugin name for pricing service.
         """
         if self.use_universal_plugin:
-            return 'pricing_service_plugin'
+            return 'pricing_service_cost_plugin'
         return self.symbol or self.name.lower().replace(' ', '_')
 
-    def get_dependent_services(self, start, end):
+    def get_dependent_services(self, date):
         """
         Returns pricing services, which resources (usage types) are used by
         this service (between start and end dates).
@@ -176,8 +176,7 @@ class PricingService(BaseUsage):
                 service_environment__in=ServiceEnvironment.objects.filter(
                     service__in=self.services.all(),
                 ),
-                date__gte=start,
-                date__lte=end
+                date=date,
             ).values_list('type', flat=True).distinct()
         ).distinct()
 

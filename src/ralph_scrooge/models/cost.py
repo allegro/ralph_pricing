@@ -46,7 +46,6 @@ class DailyCost(MultiPathNode):
         verbose_name=_('warehouse'),
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
-    percent = db.FloatField(verbose_name=_('percent'), default=0)
     cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
