@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @register(chain='scrooge_reports')
-class ExtraCostPlugin(BaseReportPlugin):
+class TeamPlugin(BaseReportPlugin):
     """
     Extra costs plugin
     """
