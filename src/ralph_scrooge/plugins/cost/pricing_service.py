@@ -101,6 +101,10 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         return result
 
     def _add_hierarchy_costs(self, po, po_usages, hierarchy, depth=0):
+        """
+        For every record in hierarchy, add record to result with cost
+        proportional to pricing object usage of pricing service resource.
+        """
         subresult = []
         for base_usage, (cost, children) in hierarchy.items():
             base_usage_result = {
@@ -134,6 +138,11 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         costs_hierarchy,
         service_usage_types,
     ):
+        """
+        Distribute pricing service costs (in general: hierarchy of pricing
+        service costs) between services (pricing objects) according to daily
+        usages of pricing service resources (and its percentage division).
+        """
         usages = defaultdict(list)
         total_usages = []
         percentage = []
@@ -159,6 +168,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             ))
             percentage.append(service_usage_type.percent)
 
+        # create hierarchy basing on usages
         for (po, se), po_usages in usages.items():
             po_usages_info = zip(po_usages, total_usages, percentage)
             result[se].extend(
