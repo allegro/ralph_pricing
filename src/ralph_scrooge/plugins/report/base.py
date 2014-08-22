@@ -63,7 +63,7 @@ class BaseReportPlugin(BasePlugin):
 
         :returns dict: cost per service
         """
-        logger.debug("Get extra costs usages")
+        logger.debug("Get {} usages".format(base_usage))
 
         daily_costs = DailyCost.objects.filter(
             date__gte=start,

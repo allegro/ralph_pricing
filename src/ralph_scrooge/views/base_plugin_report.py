@@ -79,6 +79,7 @@ class BasePluginReport(Report):
                 plugin_name=but.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': but,
+                    'base_usage': but,
                     'no_price_msg': True,
                 }
             )
@@ -112,6 +113,7 @@ class BasePluginReport(Report):
                 plugin_name=rut.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': rut,
+                    'base_usage': rut,
                     'no_price_msg': True,
                 }
             )
@@ -137,7 +139,8 @@ class BasePluginReport(Report):
                 name=pricing_service.name,
                 plugin_name=pricing_service.get_plugin_name(),
                 plugin_kwargs={
-                    'pricing_service': pricing_service
+                    'pricing_service': pricing_service,
+                    'base_usage': pricing_service,
                 }
             )
             result.append(pricing_service_info)

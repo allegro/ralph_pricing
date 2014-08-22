@@ -32,6 +32,8 @@ class TestPricingServicePlugin(TestCase):
         self.start = date(2013, 10, 1)
         self.end = date(2013, 10, 30)
 
+        # TODO: unify with usages generator
+
         # base usages
         self.base_usage_type = UsageTypeFactory(
             usage_type='BU',
@@ -338,6 +340,8 @@ class TestPricingServicePlugin(TestCase):
                 }
             ]
         })
+
+    # TODO: add tests for _distribute_costs
 
     def test_costs(self):
         costs = PricingServicePlugin(

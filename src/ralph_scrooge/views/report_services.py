@@ -41,16 +41,14 @@ class ServicesReport(BasePluginReport):
         ]
         extra_cost_plugins = cls._get_extra_cost_plugins()
         teams_plugins = cls._get_teams_plugins()
-        plugins = (base_plugins + extra_cost_plugins + teams_plugins)
-        '''
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
         services_plugins = cls._get_pricing_services_plugins()
 
         plugins = (base_plugins + base_usage_types_plugins +
                    regular_usage_types_plugins + services_plugins +
-                   teams_plugins)  # + extra_cost_plugins)
-        '''
+                   teams_plugins + extra_cost_plugins)
+
         return plugins
 
     @classmethod
@@ -87,6 +85,10 @@ class ServicesReport(BasePluginReport):
         data = {se.id: {} for se in service_environments}
         for i, plugin in enumerate(cls.get_plugins()):
             try:
+                logger.info('Calling plugin {} with base usage {}'.format(
+                    plugin.plugin_name,
+                    plugin.get('plugin_kwargs', {}).get('base_usage', '-'),
+                ))
                 plugin_report = plugin_runner.run(
                     'scrooge_reports',
                     plugin.plugin_name,

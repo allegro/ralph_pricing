@@ -144,12 +144,12 @@ class TestBaseCostPlugin(TestCase):
 
         self.assertEquals(result, D(20))  # 2000 / 100 = 20
         get_total_usage_mock.assert_called_with(
-            datetime.date(2013, 10, 10),
-            datetime.date(2013, 10, 10),
-            self.usage_type_cost_wh,
-            None,
-            None,
-            None,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            usage_type=self.usage_type_cost_wh,
+            excluded_services=None,
+            warehouse=None,
+            service_environments=None,
         )
 
     @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
@@ -172,12 +172,12 @@ class TestBaseCostPlugin(TestCase):
 
         self.assertEquals(result, D(20))  # 2000 / 100 = 20
         get_total_usage_mock.assert_called_with(
-            datetime.date(2013, 10, 10),
-            datetime.date(2013, 10, 10),
-            self.usage_type_cost_wh,
-            self.warehouse1,
-            None,
-            None,
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            usage_type=self.usage_type_cost_wh,
+            excluded_services=None,
+            warehouse=self.warehouse1,
+            service_environments=None,
         )
 
     @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
@@ -196,12 +196,12 @@ class TestBaseCostPlugin(TestCase):
 
         self.assertEquals(result, D(30))  # 3000 / 100 = 30
         get_total_usage_mock.assert_called_with(
-            datetime.date(2013, 10, 10),
-            datetime.date(2013, 10, 10),
-            self.usage_type_cost_wh,
-            None,
-            None,
-            None
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            usage_type=self.usage_type_cost_wh,
+            excluded_services=None,
+            warehouse=None,
+            service_environments=None,
         )
 
     @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
@@ -240,12 +240,12 @@ class TestBaseCostPlugin(TestCase):
 
         self.assertEquals(result, D(300))
         get_total_usage_mock.assert_called_with(
-            datetime.date(2013, 10, 10),
-            datetime.date(2013, 10, 10),
-            self.usage_type_cost_wh,
-            None,
-            None,
-            [self.service_environment1]
+            start=datetime.date(2013, 10, 10),
+            end=datetime.date(2013, 10, 10),
+            usage_type=self.usage_type_cost_wh,
+            excluded_services=[self.service_environment1],
+            warehouse=None,
+            service_environments=None,
         )
 
     # =========================================================================
