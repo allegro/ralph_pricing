@@ -90,7 +90,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         def add_costs(hierarchy, root):
             for cost in hierarchy:
                 type_id = cost['type_id']
-                if not type_id in root:
+                if type_id not in root:
                     root[type_id] = [D(0), {}]
                 root[type_id][0] += cost['cost']
                 if '_children' in cost:

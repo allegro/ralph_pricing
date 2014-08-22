@@ -123,7 +123,9 @@ class UsageTypeBasePlugin(BaseCostPlugin):
                 service_environment = v.service_environment_id
                 pricing_object_cost = {
                     'cost': D(v.value) * price_per_unit,
-                    'pricing_object_id': v.daily_pricing_object.pricing_object_id,
+                    'pricing_object_id': (
+                        v.daily_pricing_object.pricing_object_id
+                    ),
                     'type': usage_type,
                 }
                 if warehouse:

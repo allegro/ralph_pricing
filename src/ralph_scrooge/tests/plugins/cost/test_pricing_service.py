@@ -300,22 +300,22 @@ class TestPricingServicePlugin(TestCase):
         )
         self.assertEquals(costs, {
             self.pricing_service1.id: (
-                    D('566'),
-                    {
-                        self.base_usage_type.id: (D('40'), {}),
-                        self.regular_usage_type.id: (D('200'), {}),
-                        self.team.id: (D('4'), {}),
-                        self.extra_cost_type.id: (D('200'), {}),
-                        self.pricing_service2.id: [
-                            D('122'),
-                            {
-                                self.base_usage_type.id: [D('20'), {}],
-                                self.team.id: [D('2.00'), {}],
-                                self.extra_cost_type.id: [D('100'), {}]
-                            }
-                        ]
-                    }
-                )
+                D('566'),
+                {
+                    self.base_usage_type.id: (D('40'), {}),
+                    self.regular_usage_type.id: (D('200'), {}),
+                    self.team.id: (D('4'), {}),
+                    self.extra_cost_type.id: (D('200'), {}),
+                    self.pricing_service2.id: [
+                        D('122'),
+                        {
+                            self.base_usage_type.id: [D('20'), {}],
+                            self.team.id: [D('2.00'), {}],
+                            self.extra_cost_type.id: [D('100'), {}]
+                        }
+                    ]
+                }
+            )
         })
 
     def test_get_total_costs_from_costs(self):

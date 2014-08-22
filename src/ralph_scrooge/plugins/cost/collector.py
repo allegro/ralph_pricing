@@ -87,7 +87,11 @@ class Collector(object):
     def process_period(self, start, end, **kwargs):
         service_environments = self._get_services_environments()
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self.process(day, service_environments=service_environments, **kwargs)
+            self.process(
+                day,
+                service_environments=service_environments,
+                **kwargs
+            )
 
     @commit_on_success
     def process(

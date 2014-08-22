@@ -7,14 +7,12 @@ from __future__ import unicode_literals
 
 import abc
 import logging
-from collections import defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum
 from ralph_scrooge.utils import memoize
 
 from ralph_scrooge.models import DailyUsage
-from ralph_scrooge.models import UsageType
 from ralph_scrooge.plugins.base import BasePlugin
 
 logger = logging.getLogger(__name__)
