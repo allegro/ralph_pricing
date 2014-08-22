@@ -70,6 +70,7 @@ class BaseReportPlugin(BasePlugin):
             date__lte=end,
             service_environment__in=service_environments,
             type=base_usage,
+            depth=0,
         ).values(
             'service_environment__id'
         ).annotate(
@@ -85,7 +86,7 @@ class BaseReportPlugin(BasePlugin):
                 ] = daily_cost['total_cost']
             if self.base_usage_count_symbol:
                 usages[daily_cost['service_environment__id']][
-                    self.base_usage_cost_symbol.format(base_usage.id)
+                    self.base_usage_count_symbol.format(base_usage.id)
                 ] = daily_cost['total_value']
         return usages
 

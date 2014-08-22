@@ -19,12 +19,6 @@ class UsageType(BaseUsage):
     """
     Model contains usage types
     """
-    symbol = db.CharField(
-        verbose_name=_("symbol"),
-        max_length=255,
-        default="",
-        blank=True,
-    )
     average = db.BooleanField(
         verbose_name=_("Average the values over multiple days"),
         default=False,

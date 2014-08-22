@@ -126,7 +126,7 @@ class UsageTypeBasePlugin(BaseCostPlugin):
                     'pricing_object_id': (
                         v.daily_pricing_object.pricing_object_id
                     ),
-                    'type': usage_type,
+                    'type_id': usage_type.id,
                 }
                 if warehouse:
                     pricing_object_cost['warehouse'] = warehouse
