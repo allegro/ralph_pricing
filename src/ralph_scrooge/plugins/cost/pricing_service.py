@@ -100,6 +100,72 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             add_costs(se_costs, result)
         return result
 
+    def _add_hierarchy_costs(self, po, po_usages, hierarchy, depth=0):
+        subresult = []
+        for base_usage, (cost, children) in hierarchy.items():
+            base_usage_result = {
+                'type_id': base_usage,
+                'pricing_object_id': po,
+                'cost': D(0),
+            }
+            for usage, total, percent in po_usages:
+                base_usage_result['cost'] += (
+                    D(cost) * (D(usage) / D(total)) * (D(percent) / 100)
+                )
+            # add value if there is only one usage type defined for pricing
+            # service and depth is 0 (whole pricing service level)
+            if len(po_usages) == 1 and depth == 0:
+                base_usage_result['value'] = po_usages[0][0]
+            if children:
+                base_usage_result['_children'] = self._add_hierarchy_costs(
+                    po,
+                    po_usages,
+                    children,
+                    depth+1,
+                )
+            subresult.append(base_usage_result)
+        return subresult
+
+    def _distribute_costs(
+        self,
+        date,
+        pricing_service,
+        service_environments,
+        costs_hierarchy,
+        service_usage_types,
+    ):
+        usages = defaultdict(list)
+        total_usages = []
+        percentage = []
+        result = defaultdict(list)
+        for service_usage_type in service_usage_types:
+            usages_per_po = self._get_usages_per_pricing_object(
+                usage_type=service_usage_type.usage_type,
+                date=date,
+                service_environments=service_environments,
+                excluded_services=pricing_service.services.all(),
+            ).values_list(
+                'daily_pricing_object__pricing_object',
+                'service_environment',
+            ).annotate(usage=Sum('value'))
+            for pricing_object, se, usage in usages_per_po:
+                usages[(pricing_object, se)].append(usage)
+
+            total_usages.append(self._get_total_usage(
+                usage_type=service_usage_type.usage_type,
+                date=date,
+                service_environments=service_environments,
+                excluded_services=pricing_service.services.all(),
+            ))
+            percentage.append(service_usage_type.percent)
+
+        for (po, se), po_usages in usages.items():
+            po_usages_info = zip(po_usages, total_usages, percentage)
+            result[se].extend(
+                self._add_hierarchy_costs(po, po_usages_info, costs_hierarchy)
+            )
+        return result
+
     def _get_pricing_service_costs(
         self,
         date,
@@ -170,70 +236,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         return {
             pricing_service.id: (total_cost, costs)
         }
-
-    def _distribute_costs(
-        self,
-        date,
-        pricing_service,
-        service_environments,
-        costs_hierarchy,
-        service_usage_types,
-    ):
-        usages = defaultdict(list)
-        total_usages = []
-        percentage = []
-        result = defaultdict(list)
-        for service_usage_type in service_usage_types:
-            usages_per_po = self._get_usages_per_pricing_object(
-                usage_type=service_usage_type.usage_type,
-                date=date,
-                service_environments=service_environments,
-                excluded_services=pricing_service.services.all(),
-            ).values_list(
-                'daily_pricing_object__pricing_object',
-                'service_environment',
-            ).annotate(usage=Sum('value'))
-            for pricing_object, se, usage in usages_per_po:
-                usages[(pricing_object, se)].append(usage)
-
-            total_usages.append(self._get_total_usage(
-                usage_type=service_usage_type.usage_type,
-                date=date,
-                service_environments=service_environments,
-                excluded_services=pricing_service.services.all(),
-            ))
-            percentage.append(service_usage_type.percent)
-
-        def add_costs(po, po_usages, hierarchy, depth=0):
-            subresult = []
-            for base_usage, (cost, children) in hierarchy.items():
-                base_usage_result = {
-                    'type_id': base_usage,
-                    'pricing_object_id': po,
-                    'cost': D(0),
-                }
-                for usage, total, percent in po_usages:
-                    base_usage_result['cost'] += (
-                        D(cost) * (D(usage) / D(total)) * (D(percent) / 100)
-                    )
-                # add value if there is only one usage type defined for pricing
-                # service and depth is 0 (whole pricing service level)
-                if len(po_usages) == 1 and depth == 0:
-                    base_usage_result['value'] = po_usages[0][0]
-                if children:
-                    base_usage_result['_children'] = add_costs(
-                        po,
-                        po_usages,
-                        children,
-                        depth+1,
-                    )
-                subresult.append(base_usage_result)
-            return subresult
-
-        for (po, se), po_usages in usages.items():
-            po_usages_info = zip(po_usages, total_usages, percentage)
-            result[se].extend(add_costs(po, po_usages_info, costs_hierarchy))
-        return result
 
     def _get_usage_type_costs(
         self,
