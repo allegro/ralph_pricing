@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from django.test import TestCase
 
 from ralph_scrooge import models
-from ralph_scrooge.plugins.reports.information import Information
+from ralph_scrooge.plugins.report.information import Information
 from ralph_scrooge.tests.utils.factory import (
     BusinessLineFactory,
     ServiceEnvironmentFactory,

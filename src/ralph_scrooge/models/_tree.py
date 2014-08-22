@@ -22,9 +22,7 @@ class MultiPathNode(db.Model):
 
     class Meta:
         abstract = True
-
-    def __init__(self, *args, **kwargs):
-        super(MultiPathNode, self).__init__(*args, **kwargs)
+        app_label = 'ralph_scrooge'
 
     def save(self, *args, **kwargs):
         if not self._path_field:
@@ -69,11 +67,13 @@ class MultiPathNode(db.Model):
         assert isinstance(tree, (list, tuple))
         for child in tree:
             assert isinstance(child, dict)
-            params = dict([(k, v) for k, v in child.items() if not k.startswith('_')])
+            params = dict(
+                [(k, v) for k, v in child.items() if not k.startswith('_')]
+            )
             params.update(global_params)
             if parent is None:
                 newobj = cls(**params)
                 newobj.save()
             else:
-                parent.add_child(**params)
-            cls.build_tree(child.get('_children', []), newobj)
+                newobj = parent.add_child(**params)
+            cls.build_tree(child.get('_children', []), newobj, **global_params)

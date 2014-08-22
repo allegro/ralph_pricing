@@ -103,7 +103,7 @@ class TestPricingService(TestCase):
         se1 = ServiceEnvironmentFactory(service__pricing_service=self.ps1)
         se2 = ServiceEnvironmentFactory(service__pricing_service=self.ps1)
 
-        ut1, ut2, ut3 = UsageTypeFactory.create_batch(3, type='SU')
+        ut1, ut2, ut3 = UsageTypeFactory.create_batch(3, usage_type='SU')
 
         models.ServiceUsageTypes(
             usage_type=ut1,
@@ -145,7 +145,7 @@ class TestPricingService(TestCase):
         models.DailyUsage(
             daily_pricing_object=DailyPricingObjectFactory(),
             type=ut1,
-            date=datetime.date(2013, 10, 5),
+            date=datetime.date(2013, 10, 28),
             service_environment=se2,
             value=100,
             warehouse=WarehouseFactory(),
@@ -153,7 +153,7 @@ class TestPricingService(TestCase):
         models.DailyUsage(
             daily_pricing_object=DailyPricingObjectFactory(),
             type=ut3,
-            date=datetime.date(2013, 10, 28),
+            date=datetime.date(2013, 10, 3),
             service_environment=se2,
             value=100,
         ).save()
@@ -161,23 +161,20 @@ class TestPricingService(TestCase):
     def test_get_dependent_services(self):
         self._set_sample_usages()
         result = self.ps1.get_dependent_services(
-            start=datetime.date(2013, 10, 1),
-            end=datetime.date(2013, 10, 30)
+            date=datetime.date(2013, 10, 3),
         )
         self.assertEquals(set(result), set([self.ps2, self.ps3]))
 
     def test_get_dependent_services_subset(self):
         self._set_sample_usages()
         result = self.ps1.get_dependent_services(
-            start=datetime.date(2013, 10, 22),
-            end=datetime.date(2013, 10, 30)
+            date=datetime.date(2013, 10, 28),
         )
-        self.assertEquals(set(result), set([self.ps3]))
+        self.assertEquals(set(result), set([self.ps2]))
 
     def test_get_dependent_services_empty(self):
         self._set_sample_usages()
         result = self.ps1.get_dependent_services(
-            start=datetime.date(2013, 11, 1),
-            end=datetime.date(2013, 11, 30)
+            date=datetime.date(2013, 11, 30)
         )
         self.assertEquals(set(result), set())

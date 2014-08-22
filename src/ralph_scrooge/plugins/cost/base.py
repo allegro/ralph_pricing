@@ -7,14 +7,12 @@ from __future__ import unicode_literals
 
 import abc
 import logging
-from collections import defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum
 from ralph_scrooge.utils import memoize
 
 from ralph_scrooge.models import DailyUsage
-from ralph_scrooge.models import UsageType
 from ralph_scrooge.plugins.base import BasePlugin
 
 logger = logging.getLogger(__name__)
@@ -37,16 +35,12 @@ class BaseCostPlugin(BasePlugin):
     """
     Base cost plugin
 
-    Every plugin which inherit from BaseReportPlugin should implement 3
-    methods: usages, schema and total_cost.
+    Every plugin which inherit from BaseCostPlugin should implement 1
+    methods - costs.
 
-    Usages and schema methods are connected - schema defines output format of
-    usages method. Usages method should return information about usages (one
-    or more types - depending on plugins needs) per every service.
+    This class provides base methods for costs calculation, such as generating
+    usages (for given date) per service environment, pricing object etc.
     """
-    distribute_count_key_tmpl = 'ut_{0}_count'
-    distribute_cost_key_tmpl = 'ut_{0}_cost'
-
     def run(self, type='costs', *args, **kwargs):
         # find method with name the same as type param
         if hasattr(self, type):
@@ -57,61 +51,18 @@ class BaseCostPlugin(BasePlugin):
 
     @abc.abstractmethod
     def costs(self, *args, **kwargs):
+        """
+        Should returns information about costs of usage (ex. team, service) per
+        service environment in format accepted by collector.
+        """
         pass
 
-    # @abc.abstractmethod
-    # def schema(self, *args, **kwargs):
-    #     pass
-
-    # @abc.abstractmethod
-    # def total_cost(self, *args, **kwargs):
-    #     pass
-
-    def _distribute_costs(
-        self,
-        start,
-        end,
-        service_environments,
-        cost,
-        percentage,
-    ):
+    def total_cost(self, *args, **kwargs):
         """
-        Distributes some cost between all services proportionally to usages of
-        pricing service resources (taken from percentage).
+        By default total cost is just sum of all costs from `costs` method.
         """
-        # first level: service
-        # second level: usage type key (count or cost)
-        result = defaultdict(lambda: defaultdict(int))
-        usage_types = {}  # usage types cache
-
-        for usage_type_id, percent in percentage.items():
-            usage_type = usage_types.setdefault(
-                usage_type_id,
-                UsageType.objects.get(id=usage_type_id)
-            )
-            usages_per_service = self._get_usages_per_service_environment(
-                start,
-                end,
-                usage_type,
-                service_environments=service_environments,
-            )
-            total_usage = self._get_total_usage_in_period(
-                start,
-                end,
-                usage_type,
-            )
-            cost_part = D(percent) * cost / D(100)
-
-            count_key = self.distribute_count_key_tmpl.format(usage_type_id)
-            cost_key = self.distribute_cost_key_tmpl.format(usage_type_id)
-
-            for service_usage in usages_per_service:
-                service_environment = service_usage['service_environment']
-                usage = service_usage['usage']
-                result[service_environment][count_key] = usage
-                service_cost = D(usage) / D(total_usage) * cost_part
-                result[service_environment][cost_key] = service_cost
-        return result
+        costs = self.costs(*args, **kwargs)
+        return sum([sum([s['cost'] for s in c]) for c in costs.values()])
 
     @memoize(skip_first=True)
     def _get_price_from_cost(
@@ -119,7 +70,7 @@ class BaseCostPlugin(BasePlugin):
         usage_price,
         forecast,
         warehouse=None,
-        services=None,
+        service_environments=None,
         excluded_services=None,
     ):
         """
@@ -128,13 +79,13 @@ class BaseCostPlugin(BasePlugin):
 
         Price can be calculated overall or for single warehouse.
         """
-        total_usage = self._get_total_usage_in_period(
-            usage_price.start,
-            usage_price.end,
-            usage_price.type,
-            warehouse,
-            services,
-            excluded_services,
+        total_usage = self._get_total_usage(
+            usage_type=usage_price.type,
+            start=usage_price.start,
+            end=usage_price.end,
+            warehouse=warehouse,
+            service_environments=service_environments,
+            excluded_services=excluded_services,
         )
         cost = usage_price.forecast_cost if forecast else usage_price.cost
         price = 0
@@ -160,9 +111,9 @@ class BaseCostPlugin(BasePlugin):
             type=usage_type,
         )
         if start and end:
-            daily_usages.filter(date__gte=start, date__lte=end)
+            daily_usages = daily_usages.filter(date__gte=start, date__lte=end)
         elif date:
-            daily_usages.filter(date=date)
+            daily_usages = daily_usages.filter(date=date)
 
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)

@@ -107,7 +107,7 @@ class TestCeilometer(TestCase):
         )
         daily_tenant2_usage = daily_tenant2.dailyusage_set.all()[:1].get()
         self.assertEquals(DailyUsage.objects.count(), 3)
-        self.assertEquals(daily_tenant2_usage.date.date(), self.today)
+        self.assertEquals(daily_tenant2_usage.date, self.today)
         self.assertEquals(
             daily_tenant2_usage.service_environment,
             daily_tenant2.service_environment

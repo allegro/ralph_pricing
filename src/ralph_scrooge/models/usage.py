@@ -94,7 +94,7 @@ class UsageType(BaseUsage):
 
     def get_plugin_name(self):
         if self.use_universal_plugin:
-            return 'usage_type_cost_plugin'
+            return 'usage_type_plugin'
         return self.symbol or self.name.lower().replace(' ', '_')
 
 

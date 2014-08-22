@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.models import HistoricalService
 from ralph_scrooge.plugins.base import register
-from ralph_scrooge.plugins.reports.base import BaseReportPlugin
+from ralph_scrooge.plugins.report.base import BaseReportPlugin
 
 logger = logging.getLogger(__name__)
 

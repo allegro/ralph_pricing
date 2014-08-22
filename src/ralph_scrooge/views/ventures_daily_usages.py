@@ -15,7 +15,7 @@ from ralph_scrooge.views.base_plugin_report import BasePluginReport
 from ralph_scrooge.models import UsageType
 from ralph_scrooge.forms import VenturesDailyUsagesForm
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.plugins import reports  # noqa
+from ralph_scrooge.plugins import report  # noqa
 
 
 logger = logging.getLogger(__name__)

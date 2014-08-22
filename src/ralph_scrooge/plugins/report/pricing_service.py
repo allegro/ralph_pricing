@@ -8,15 +8,15 @@ from __future__ import unicode_literals
 import logging
 
 from ralph_scrooge.plugins.base import register
-from ralph_scrooge.plugins.reports.base import BaseReportPlugin
+from ralph_scrooge.plugins.report.base import BaseReportPlugin
 
 
 logger = logging.getLogger(__name__)
 
 
 @register(chain='scrooge_reports')
-class ExtraCostPlugin(BaseReportPlugin):
+class PricingServicePlugin(BaseReportPlugin):
     """
-    Extra costs plugin
+    Pricing Service reports plugin
     """
     base_usage_cost_symbol = '{0}'

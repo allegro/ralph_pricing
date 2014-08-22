@@ -166,7 +166,6 @@ class ExtraCostFactory(DjangoModelFactory):
     pricing_object = SubFactory(PricingObjectFactory)
     start = datetime.date.today()
     end = datetime.date.today()
-    mode = models.ExtraCostChoices.daily_imprint
 
 
 class TeamFactory(DjangoModelFactory):
