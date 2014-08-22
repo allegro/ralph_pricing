@@ -96,8 +96,10 @@ class Migration(SchemaMigration):
         },
         u'ralph_scrooge.baseusage': {
             'Meta': {'object_name': 'BaseUsage'},
+            'divide_by': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'rounding': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'type': ('django.db.models.fields.PositiveIntegerField', [], {})
         },
         u'ralph_scrooge.businessline': {
@@ -333,11 +335,9 @@ class Migration(SchemaMigration):
             'baseusage_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.BaseUsage']", 'unique': 'True', 'primary_key': 'True'}),
             'by_cost': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'by_warehouse': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'divide_by': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'excluded_services': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_usage_types'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['ralph_scrooge.Service']"}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'rounding': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'show_in_devices_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_in_services_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),

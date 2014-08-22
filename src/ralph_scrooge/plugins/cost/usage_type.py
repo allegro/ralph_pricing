@@ -20,7 +20,7 @@ from ralph_scrooge.plugins.cost.base import (
 logger = logging.getLogger(__name__)
 
 
-class UsageTypeBaseCostPlugin(BaseCostPlugin):
+class UsageTypeBasePlugin(BaseCostPlugin):
     def _get_price_per_unit(
         self,
         date,
@@ -55,8 +55,8 @@ class UsageTypeBaseCostPlugin(BaseCostPlugin):
         if usage_type.by_cost:
             price = self._get_price_from_cost(
                 usage_price,
-                forecast,
-                warehouse,
+                forecast=forecast,
+                warehouse=warehouse,
                 excluded_services=excluded_services,
             )
         else:
@@ -177,7 +177,7 @@ class UsageTypeBaseCostPlugin(BaseCostPlugin):
 
 
 @register(chain='scrooge_costs')
-class UsageTypeCostPlugin(UsageTypeBaseCostPlugin):
+class UsageTypePlugin(UsageTypeBasePlugin):
     """
     Base Usage Plugin as ralph plugin. Splitting it into two classes gives
     ability to inherit from UsageBasePlugin.

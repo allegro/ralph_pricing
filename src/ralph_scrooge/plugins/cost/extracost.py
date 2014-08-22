@@ -34,17 +34,21 @@ class ExtraCostPlugin(BaseCostPlugin):
         **kwargs
     ):
         """
-        Return cost for given service. Format of
-        returned data looks like:
+        Return extra costs for date per services environments.
 
-        usages = {
-            'service_id': [{
-                'cost': cost,
-            }],
+        :returns dict: dict of list of dicts
+
+        Example result:
+        {
+            service_environment1.id : [
+                {'type': extra_cost1.id, cost: 100},
+                {'type': extra_cost1.id, cost: 200},
+            ],
+            service_environment2.id: [
+                {'type': extra_cost1.id, cost: 300},
+            ],
             ...
         }
-
-        :returns dict: cost per service
         """
         logger.debug("Get extra cost {} costs".format(extra_cost_type.name))
 
@@ -59,7 +63,9 @@ class ExtraCostPlugin(BaseCostPlugin):
         for extra_cost in extra_costs:
             cost = extra_cost.forecast_cost if forecast else extra_cost.cost
             usages[extra_cost.service_environment.id].append({
-                'cost': (cost / ((extra_cost.end - extra_cost.start).days + 1)),
+                'cost': (cost / (
+                    (extra_cost.end - extra_cost.start).days + 1)
+                ),
                 'type': extra_cost_type,
             })
         return usages

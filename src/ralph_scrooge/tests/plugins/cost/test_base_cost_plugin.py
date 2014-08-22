@@ -13,7 +13,7 @@ from decimal import Decimal as D
 from django.test import TestCase
 
 from ralph_scrooge import models
-from ralph_scrooge.plugins.reports.base import BaseReportPlugin
+from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 from ralph_scrooge.tests.utils.factory import (
     DailyUsageFactory,
     ServiceEnvironmentFactory,
@@ -22,33 +22,27 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class SampleReportPlugin(BaseReportPlugin):
+class SampleCostPlugin(BaseCostPlugin):
     def costs(self, *args, **kwargs):
         pass
 
-    def schema(self, *args, **kwargs):
-        pass
 
-    def total_cost(self, *args, **kwargs):
-        pass
-
-
-class TestBaseReportPlugin(TestCase):
+class TestBaseCostPlugin(TestCase):
     def setUp(self):
-        self.plugin = SampleReportPlugin()
+        self.plugin = SampleCostPlugin()
 
         # usage types
         self.usage_type = UsageTypeFactory(
             symbol='ut1',
             by_warehouse=False,
             by_cost=False,
-            type='BU',
+            usage_type='BU',
         )
         self.usage_type_cost_wh = UsageTypeFactory(
             symbol='ut2',
             by_warehouse=True,
             by_cost=True,
-            type='BU',
+            usage_type='BU',
         )
 
         # warehouses
@@ -74,7 +68,7 @@ class TestBaseReportPlugin(TestCase):
         #   service2: 40 (half in warehouse1, half in warehouse2)
         start = datetime.date(2013, 10, 8)
         end = datetime.date(2013, 10, 22)
-        base_usage_types = models.UsageType.objects.filter(type='BU')
+        base_usage_types = models.UsageType.objects.filter(usage_type='BU')
         for i, ut in enumerate(base_usage_types, start=1):
             days = rrule.rrule(rrule.DAILY, dtstart=start, until=end)
             for j, day in enumerate(days, start=1):
@@ -137,9 +131,9 @@ class TestBaseReportPlugin(TestCase):
     # =========================================================================
     # _get_price_from_cost
     # =========================================================================
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
-    def test_get_price_from_cost(self, get_total_usage_in_period_mock):
-        get_total_usage_in_period_mock.return_value = 100.0
+    @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
+    def test_get_price_from_cost(self, get_total_usage_mock):
+        get_total_usage_mock.return_value = 100.0
         usage_price = models.UsagePrice(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 10),
@@ -149,7 +143,7 @@ class TestBaseReportPlugin(TestCase):
         result = self.plugin._get_price_from_cost(usage_price, False)
 
         self.assertEquals(result, D(20))  # 2000 / 100 = 20
-        get_total_usage_in_period_mock.assert_called_with(
+        get_total_usage_mock.assert_called_with(
             datetime.date(2013, 10, 10),
             datetime.date(2013, 10, 10),
             self.usage_type_cost_wh,
@@ -158,12 +152,12 @@ class TestBaseReportPlugin(TestCase):
             None,
         )
 
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
     def test_get_price_from_cost_with_warehouse(
         self,
-        get_total_usage_in_period_mock
+        get_total_usage_mock
     ):
-        get_total_usage_in_period_mock.return_value = 100.0
+        get_total_usage_mock.return_value = 100.0
         usage_price = models.UsagePrice(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 10),
@@ -177,7 +171,7 @@ class TestBaseReportPlugin(TestCase):
         )
 
         self.assertEquals(result, D(20))  # 2000 / 100 = 20
-        get_total_usage_in_period_mock.assert_called_with(
+        get_total_usage_mock.assert_called_with(
             datetime.date(2013, 10, 10),
             datetime.date(2013, 10, 10),
             self.usage_type_cost_wh,
@@ -186,12 +180,12 @@ class TestBaseReportPlugin(TestCase):
             None,
         )
 
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
     def test_get_price_from_cost_with_forecast(
         self,
-        get_total_usage_in_period_mock
+        get_total_usage_mock
     ):
-        get_total_usage_in_period_mock.return_value = 100.0
+        get_total_usage_mock.return_value = 100.0
         usage_price = models.UsagePrice(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 10),
@@ -201,7 +195,7 @@ class TestBaseReportPlugin(TestCase):
         result = self.plugin._get_price_from_cost(usage_price, True)
 
         self.assertEquals(result, D(30))  # 3000 / 100 = 30
-        get_total_usage_in_period_mock.assert_called_with(
+        get_total_usage_mock.assert_called_with(
             datetime.date(2013, 10, 10),
             datetime.date(2013, 10, 10),
             self.usage_type_cost_wh,
@@ -210,12 +204,12 @@ class TestBaseReportPlugin(TestCase):
             None
         )
 
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
     def test_get_price_from_cost_total_usage_0(
         self,
-        get_total_usage_in_period_mock
+        get_total_usage_mock
     ):
-        get_total_usage_in_period_mock.return_value = 0.0
+        get_total_usage_mock.return_value = 0.0
         usage_price = models.UsagePrice(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 10),
@@ -226,12 +220,12 @@ class TestBaseReportPlugin(TestCase):
 
         self.assertEquals(result, D(0))
 
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
     def test_get_price_from_cost_total_excluded_services(
         self,
-        get_total_usage_in_period_mock
+        get_total_usage_mock
     ):
-        get_total_usage_in_period_mock.return_value = 10.0
+        get_total_usage_mock.return_value = 10.0
         usage_price = models.UsagePrice(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 10),
@@ -245,7 +239,7 @@ class TestBaseReportPlugin(TestCase):
         )
 
         self.assertEquals(result, D(300))
-        get_total_usage_in_period_mock.assert_called_with(
+        get_total_usage_mock.assert_called_with(
             datetime.date(2013, 10, 10),
             datetime.date(2013, 10, 10),
             self.usage_type_cost_wh,
@@ -255,10 +249,10 @@ class TestBaseReportPlugin(TestCase):
         )
 
     # =========================================================================
-    # _get_total_usage_in_period
+    # _get_total_usage
     # =========================================================================
-    def test_get_total_usage_in_period(self):
-        result = self.plugin._get_total_usage_in_period(
+    def test_get_total_usage(self):
+        result = self.plugin._get_total_usage(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
@@ -266,8 +260,8 @@ class TestBaseReportPlugin(TestCase):
         # 11*(10 + 20 + 30 + 40) = 1100
         self.assertEquals(result, 1100.0)
 
-    def test_get_total_usage_in_period_with_warehouse(self):
-        result = self.plugin._get_total_usage_in_period(
+    def test_get_total_usage_with_warehouse(self):
+        result = self.plugin._get_total_usage(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
@@ -279,8 +273,8 @@ class TestBaseReportPlugin(TestCase):
         #  +--- every even day between 10 and 20 (inclusive)
         self.assertEquals(result, 1200.0)
 
-    def test_get_total_usage_in_period_with_services(self):
-        result = self.plugin._get_total_usage_in_period(
+    def test_get_total_usage_with_services(self):
+        result = self.plugin._get_total_usage(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type,
@@ -289,8 +283,8 @@ class TestBaseReportPlugin(TestCase):
         # 11 * 10 = 110
         self.assertEquals(result, 110.0)
 
-    def test_get_total_usage_in_period_with_services_and_warehouse(self):
-        result = self.plugin._get_total_usage_in_period(
+    def test_get_total_usage_with_services_and_warehouse(self):
+        result = self.plugin._get_total_usage(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
@@ -303,8 +297,8 @@ class TestBaseReportPlugin(TestCase):
         #  +--- every odd day between 10 and 20 (inclusive)
         self.assertEquals(result, 200.0)
 
-    def test_get_total_usage_in_period_with_excluded_services(self):
-        result = self.plugin._get_total_usage_in_period(
+    def test_get_total_usage_with_excluded_services(self):
+        result = self.plugin._get_total_usage(
             start=datetime.date(2013, 10, 10),
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
@@ -393,100 +387,100 @@ class TestBaseReportPlugin(TestCase):
             {'usage': 400.0, 'service_environment': 4},  # 5 * 80 = 400
         ])
 
-    # =========================================================================
-    # _distribute_costs
-    # =========================================================================
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_usages_per_service_environment')  # noqa
-    @mock.patch('ralph_scrooge.plugins.reports.base.BaseReportPlugin._get_total_usage_in_period')  # noqa
-    def test_distribute_costs(self, total_usage_mock, usages_per_service_mock):
-        percentage = {
-            self.usage_type.id: 20,
-            self.usage_type_cost_wh.id: 80,
-        }
+    # # =========================================================================
+    # # _distribute_costs
+    # # =========================================================================
+    # @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_usages_per_service_environment')  # noqa
+    # @mock.patch('ralph_scrooge.plugins.cost.base.BaseCostPlugin._get_total_usage')  # noqa
+    # def test_distribute_costs(self, total_usage_mock, usages_per_service_mock):
+    #     percentage = {
+    #         self.usage_type.id: 20,
+    #         self.usage_type_cost_wh.id: 80,
+    #     }
 
-        def sample_usages(
-            start,
-            end,
-            usage_type,
-            warehouse=None,
-            service_environments=None
-        ):
-            usages = {
-                self.usage_type.id: [
-                    {
-                        'service_environment': self.service_environment1.id,
-                        'usage': 0,
-                    },
-                    {
-                        'service_environment': self.service_environment2.id,
-                        'usage': 0,
-                    },
-                    {
-                        'service_environment': self.service_environment3.id,
-                        'usage': 900,
-                    },
-                    {
-                        'service_environment': self.service_environment4.id,
-                        'usage': 100,
-                    },
-                ],
-                self.usage_type_cost_wh.id: [
-                    {
-                        'service_environment': self.service_environment3.id,
-                        'usage': 1200,
-                    },
-                    {
-                        'service_environment': self.service_environment4.id,
-                        'usage': 400,
-                    },
-                ]
-            }
-            return usages[usage_type.id]
+    #     def sample_usages(
+    #         start,
+    #         end,
+    #         usage_type,
+    #         warehouse=None,
+    #         service_environments=None
+    #     ):
+    #         usages = {
+    #             self.usage_type.id: [
+    #                 {
+    #                     'service_environment': self.service_environment1.id,
+    #                     'usage': 0,
+    #                 },
+    #                 {
+    #                     'service_environment': self.service_environment2.id,
+    #                     'usage': 0,
+    #                 },
+    #                 {
+    #                     'service_environment': self.service_environment3.id,
+    #                     'usage': 900,
+    #                 },
+    #                 {
+    #                     'service_environment': self.service_environment4.id,
+    #                     'usage': 100,
+    #                 },
+    #             ],
+    #             self.usage_type_cost_wh.id: [
+    #                 {
+    #                     'service_environment': self.service_environment3.id,
+    #                     'usage': 1200,
+    #                 },
+    #                 {
+    #                     'service_environment': self.service_environment4.id,
+    #                     'usage': 400,
+    #                 },
+    #             ]
+    #         }
+    #         return usages[usage_type.id]
 
-        def sample_total_usage(start, end, usage_type):
-            total_usages = {
-                self.usage_type.id: 1000,
-                self.usage_type_cost_wh.id: 1600,
-            }
-            return total_usages[usage_type.id]
+    #     def sample_total_usage(start, end, usage_type):
+    #         total_usages = {
+    #             self.usage_type.id: 1000,
+    #             self.usage_type_cost_wh.id: 1600,
+    #         }
+    #         return total_usages[usage_type.id]
 
-        usages_per_service_mock.side_effect = sample_usages
-        total_usage_mock.side_effect = sample_total_usage
+    #     usages_per_service_mock.side_effect = sample_usages
+    #     total_usage_mock.side_effect = sample_total_usage
 
-        result = self.plugin._distribute_costs(
-            start=datetime.date(2013, 10, 10),
-            end=datetime.date(2013, 10, 20),
-            service_environments=self.service_environments,
-            cost=10000,
-            percentage=percentage,
-        )
-        usage_type_count = 'ut_{0}_count'.format(self.usage_type.id)
-        usage_type_cost = 'ut_{0}_cost'.format(self.usage_type.id)
-        usage_type_cost_wh_count = 'ut_{0}_count'.format(
-            self.usage_type_cost_wh.id
-        )
-        usage_type_cost_wh_cost = 'ut_{0}_cost'.format(
-            self.usage_type_cost_wh.id
-        )
-        self.assertEquals(result, {
-            self.service_environment1.id: {
-                usage_type_count: 0,
-                usage_type_cost: D(0),
-            },
-            self.service_environment2.id: {
-                usage_type_count: 0,
-                usage_type_cost: D(0),
-            },
-            self.service_environment3.id: {
-                usage_type_count: 900,
-                usage_type_cost: D('1800'),
-                usage_type_cost_wh_count: 1200,
-                usage_type_cost_wh_cost: D('6000'),
-            },
-            self.service_environment4.id: {
-                usage_type_count: 100,
-                usage_type_cost: D('200'),
-                usage_type_cost_wh_count: 400,
-                usage_type_cost_wh_cost: D('2000'),
-            },
-        })
+    #     result = self.plugin._distribute_costs(
+    #         start=datetime.date(2013, 10, 10),
+    #         end=datetime.date(2013, 10, 20),
+    #         service_environments=self.service_environments,
+    #         cost=10000,
+    #         percentage=percentage,
+    #     )
+    #     usage_type_count = 'ut_{0}_count'.format(self.usage_type.id)
+    #     usage_type_cost = 'ut_{0}_cost'.format(self.usage_type.id)
+    #     usage_type_cost_wh_count = 'ut_{0}_count'.format(
+    #         self.usage_type_cost_wh.id
+    #     )
+    #     usage_type_cost_wh_cost = 'ut_{0}_cost'.format(
+    #         self.usage_type_cost_wh.id
+    #     )
+    #     self.assertEquals(result, {
+    #         self.service_environment1.id: {
+    #             usage_type_count: 0,
+    #             usage_type_cost: D(0),
+    #         },
+    #         self.service_environment2.id: {
+    #             usage_type_count: 0,
+    #             usage_type_cost: D(0),
+    #         },
+    #         self.service_environment3.id: {
+    #             usage_type_count: 900,
+    #             usage_type_cost: D('1800'),
+    #             usage_type_cost_wh_count: 1200,
+    #             usage_type_cost_wh_cost: D('6000'),
+    #         },
+    #         self.service_environment4.id: {
+    #             usage_type_count: 100,
+    #             usage_type_cost: D('200'),
+    #             usage_type_cost_wh_count: 400,
+    #             usage_type_cost_wh_cost: D('2000'),
+    #         },
+    #     })

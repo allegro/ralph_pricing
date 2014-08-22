@@ -20,7 +20,7 @@ from ralph_scrooge.models import (
 )
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import ExtraCostType
-from ralph_scrooge.plugins import reports  # noqa
+from ralph_scrooge.plugins import report  # noqa
 from ralph_scrooge.utils import AttributeDict
 
 

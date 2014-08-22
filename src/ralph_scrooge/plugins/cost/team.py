@@ -78,7 +78,7 @@ PERCENT_PRECISION = 4
 
 
 @register(chain='scrooge_costs')
-class Team(BaseCostPlugin):
+class TeamPlugin(BaseCostPlugin):
     def costs(self, team, **kwargs):
         """
         Calculates teams costs.
@@ -86,8 +86,8 @@ class Team(BaseCostPlugin):
         logger.debug("Get teams usages")
         return self._get_team_cost_per_service_environment(team, **kwargs)
 
-    def total_cost(self, team, date, forecast=False, *args, **kwargs):
-        return self._get_team_daily_cost(team, date, forecast)
+    # def total_cost(self, team, date, forecast=False, *args, **kwargs):
+    #     return self._get_team_daily_cost(team, date, forecast)[1]
 
     def _get_team_cost_per_service_environment(self, team, *args, **kwargs):
         """

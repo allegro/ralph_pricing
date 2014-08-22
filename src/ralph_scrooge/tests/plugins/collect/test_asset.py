@@ -166,6 +166,8 @@ class TestAssetPlugin(TestCase):
             self.data,
             self.date,
             {
+                'depreciation': UsageTypeFactory.create(),
+                'assets_count': UsageTypeFactory.create(),
                 'cores_count': UsageTypeFactory.create(),
                 'power_consumption': UsageTypeFactory.create(),
                 'collocation': UsageTypeFactory.create(),
@@ -173,7 +175,7 @@ class TestAssetPlugin(TestCase):
         ))
         self.assertEqual(
             DailyUsage.objects.all().count(),
-            3,
+            5,
         )
         self.assertEqual(
             AssetInfo.objects.all().count(),

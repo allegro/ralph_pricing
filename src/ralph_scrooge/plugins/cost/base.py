@@ -37,12 +37,11 @@ class BaseCostPlugin(BasePlugin):
     """
     Base cost plugin
 
-    Every plugin which inherit from BaseReportPlugin should implement 3
-    methods: usages, schema and total_cost.
+    Every plugin which inherit from BaseCostPlugin should implement 1
+    methods - costs.
 
-    Usages and schema methods are connected - schema defines output format of
-    usages method. Usages method should return information about usages (one
-    or more types - depending on plugins needs) per every service.
+    This class provides base methods for costs calculation, such as generating
+    usages (for given date) per service environment, pricing object etc.
     """
     def run(self, type='costs', *args, **kwargs):
         # find method with name the same as type param
@@ -54,13 +53,16 @@ class BaseCostPlugin(BasePlugin):
 
     @abc.abstractmethod
     def costs(self, *args, **kwargs):
+        """
+        Should returns information about costs of usage (ex. team, service) per
+        service environment in format accepted by collector.
+        """
         pass
 
-    # @abc.abstractmethod
-    # def schema(self, *args, **kwargs):
-    #     pass
-
     def total_cost(self, *args, **kwargs):
+        """
+        By default total cost is just sum of all costs from `costs` method.
+        """
         costs = self.costs(*args, **kwargs)
         return sum([sum([s['cost'] for s in c]) for c in costs.values()])
 
@@ -70,7 +72,7 @@ class BaseCostPlugin(BasePlugin):
         usage_price,
         forecast,
         warehouse=None,
-        services=None,
+        service_environments=None,
         excluded_services=None,
     ):
         """
@@ -79,13 +81,13 @@ class BaseCostPlugin(BasePlugin):
 
         Price can be calculated overall or for single warehouse.
         """
-        total_usage = self._get_total_usage_in_period(
-            usage_price.start,
-            usage_price.end,
-            usage_price.type,
-            warehouse,
-            services,
-            excluded_services,
+        total_usage = self._get_total_usage(
+            usage_type=usage_price.type,
+            start=usage_price.start,
+            end=usage_price.end,
+            warehouse=warehouse,
+            service_environments=service_environments,
+            excluded_services=excluded_services,
         )
         cost = usage_price.forecast_cost if forecast else usage_price.cost
         price = 0
@@ -111,9 +113,9 @@ class BaseCostPlugin(BasePlugin):
             type=usage_type,
         )
         if start and end:
-            daily_usages.filter(date__gte=start, date__lte=end)
+            daily_usages = daily_usages.filter(date__gte=start, date__lte=end)
         elif date:
-            daily_usages.filter(date=date)
+            daily_usages = daily_usages.filter(date=date)
 
         if warehouse:
             daily_usages = daily_usages.filter(warehouse=warehouse)

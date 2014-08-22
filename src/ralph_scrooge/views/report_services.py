@@ -6,17 +6,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-import datetime
 
 from ralph_scrooge.utils import memoize
-from django.conf import settings
-from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.views.base_plugin_report import BasePluginReport
 from ralph_scrooge.forms import ServicesReportForm
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.plugins import reports  # noqa
+from ralph_scrooge.plugins import report  # noqa
 from ralph_scrooge.utils import AttributeDict
 
 
@@ -90,7 +87,6 @@ class ServicesReport(BasePluginReport):
         data = {se.id: {} for se in service_environments}
         for i, plugin in enumerate(cls.get_plugins()):
             try:
-                plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
                     'scrooge_reports',
                     plugin.plugin_name,

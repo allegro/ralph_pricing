@@ -22,18 +22,19 @@ from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 logger = logging.getLogger(__name__)
 
 
-class PricingServiceBaseCostPlugin(BaseCostPlugin):
+class PricingServiceBasePlugin(BaseCostPlugin):
     """
-    Base plugin for all pricing services in report. Provides 3 main methods:
-    * usages - service resources usages count and cost per service_environment
-    * schema - schema (output format) of usages method
+    Base plugin for all pricing services in report. Provides 2 main methods:
+    * costs - tree of costs for pricing service
     * total_cost - returns total cost of service
     """
-    def total_costs(self, collapse=True, *args, **kwargs):
-        service_costs = self._get_service_costs()
+    def total_cost(self, collapse=True, *args, **kwargs):
+        service_costs = self.costs(*args, **kwargs)
         if collapse:
             return sum([v[0] for v in service_costs.values()])
-        return service_costs
+        else:
+            # sum by type on each level
+            return self._get_total_costs_from_costs(service_costs)
 
     def costs(
         self,
@@ -61,7 +62,7 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
             pricing_service
         ))
         percentage = self._get_percentage(date, pricing_service)
-        costs = self._get_service_costs(
+        costs = self._get_pricing_service_costs(
             date,
             pricing_service,
             forecast,
@@ -78,7 +79,28 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         )
 
     # HELPERS
-    def _get_service_costs(
+    def _get_total_costs_from_costs(self, costs):
+        """
+        Transforms costs result structure (costs per service environment
+        with _children hierarchy) to format accepted by _get_service_costs
+        (dict with type_id as key and tuple (cost, children dict) as value)
+        """
+        result = {}
+
+        def add_costs(hierarchy, root):
+            for cost in hierarchy:
+                type_id = cost['type_id']
+                if not type_id in root:
+                    root[type_id] = [D(0), {}]
+                root[type_id][0] += cost['cost']
+                if '_children' in cost:
+                    add_costs(cost['_children'], root[type_id][1])
+
+        for se, se_costs in costs.items():
+            add_costs(se_costs, result)
+        return result
+
+    def _get_pricing_service_costs(
         self,
         date,
         pricing_service,
@@ -182,7 +204,7 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
             ))
             percentage.append(service_usage_type.percent)
 
-        def add_costs(po, po_usages, hierarchy):
+        def add_costs(po, po_usages, hierarchy, depth=0):
             subresult = []
             for base_usage, (cost, children) in hierarchy.items():
                 base_usage_result = {
@@ -194,11 +216,16 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
                     base_usage_result['cost'] += (
                         D(cost) * (D(usage) / D(total)) * (D(percent) / 100)
                     )
+                # add value if there is only one usage type defined for pricing
+                # service and depth is 0 (whole pricing service level)
+                if len(po_usages) == 1 and depth == 0:
+                    base_usage_result['value'] = po_usages[0][0]
                 if children:
                     base_usage_result['_children'] = add_costs(
                         po,
                         po_usages,
                         children,
+                        depth+1,
                     )
                 subresult.append(base_usage_result)
             return subresult
@@ -306,7 +333,7 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
             try:
                 team_cost = plugin_runner.run(
                     'scrooge_costs',
-                    'team',
+                    'team_plugin',
                     type='total_cost',
                     date=date,
                     team=team,
@@ -345,11 +372,7 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
                     forecast=forecast,
                     service_environments=service_environments,
                 )
-                dependent_total_cost = sum(
-                    [v[0] for v in dependent_cost.values()]
-                )
-                if dependent_total_cost != 0:
-                    result[dependent.id] = dependent_total_cost, dependent_cost
+                result.update(dependent_cost)
             except (KeyError, AttributeError):
                 logger.warning(
                     'Invalid call for {0} total cost'.format(dependent.name)
@@ -412,7 +435,7 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
 
 
 @register(chain='scrooge_costs')
-class PricingServiceCostPlugin(PricingServiceBaseCostPlugin):
+class PricingServicePlugin(PricingServiceBasePlugin):
     """
     Base Service Plugin as ralph plugin. Splitting it into two classes gives
     ability to inherit from ServiceBasePlugin.

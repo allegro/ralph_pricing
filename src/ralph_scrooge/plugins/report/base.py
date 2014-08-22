@@ -5,28 +5,17 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import abc
 import logging
 from collections import OrderedDict, defaultdict
-from decimal import Decimal as D
 
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models import DailyUsage, UsageType, DailyCost
+from ralph_scrooge.models import DailyCost
 from ralph_scrooge.plugins.base import BasePlugin
 
 
 logger = logging.getLogger(__name__)
-
-
-class AttributeDict(dict):
-    """
-    Attribute dict. Used to attribute access to dict
-    """
-    def __init__(self, *args, **kwargs):
-        super(AttributeDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
 
 
 class BaseReportPlugin(BasePlugin):
