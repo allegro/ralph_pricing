@@ -117,6 +117,6 @@ class Base(TemplateView):
         context.update({
             'mainmenu_items': MAIN_MENU,
             'footer_items': footer_items,
-            'home_url': reverse('home'),
+            'home_url': reverse('scrooge_home'),
         })
         return context
