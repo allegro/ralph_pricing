@@ -73,7 +73,7 @@ class Base(TemplateView):
     perms = [
         {
             'perm': Perm.has_scrooge_access,
-            'msg': _("You don't have permission to see Scrooge."),
+            'msg': _("You don't have permission to access Scrooge."),
         },
     ]
 
@@ -117,6 +117,6 @@ class Base(TemplateView):
         context.update({
             'mainmenu_items': MAIN_MENU,
             'footer_items': footer_items,
-            'home_url': reverse('home'),
+            'home_url': reverse('scrooge_home'),
         })
         return context

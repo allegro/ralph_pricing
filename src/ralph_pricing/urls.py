@@ -28,7 +28,7 @@ for r in (ServiceUsageResource, ):
 urlpatterns = patterns(
     '',
     url(r'^api/', include(v09_api.urls)),
-    url(r'^$', login_required(Home.as_view()), name='home'),
+    url(r'^$', login_required(Home.as_view()), name='scrooge_home'),
     url(
         r'^extra-costs/$',
         login_required(ExtraCosts.as_view()),
