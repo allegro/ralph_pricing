@@ -6,6 +6,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.core.urlresolvers import reverse
+
 from ralph.app import RalphModule
 
 
@@ -24,6 +26,10 @@ class Scrooge(RalphModule):
     def required_permission(self):
         from ralph.account.models import Perm
         return Perm.has_scrooge_access
+
+    @property
+    def home_url(self):
+        return reverse('scrooge_home')
 
     def __init__(self, **kwargs):
         super(Scrooge, self).__init__(
