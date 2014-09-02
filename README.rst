@@ -1,10 +1,10 @@
-.. image:: https://pypip.in/v/scrooge/badge.png
-    :target: https://crate.io/packages/scrooge/
+.. image:: https://pypip.in/v/ralph_scrooge/badge.png
+    :target: https://crate.io/packages/ralph_scrooge/
     :alt: Latest PyPI version
 
 
-.. image:: https://pypip.in/d/scrooge/badge.svg
-    :target: https://crate.io/packages/scrooge/
+.. image:: https://pypip.in/d/ralph_scrooge/badge.svg
+    :target: https://crate.io/packages/ralph_scrooge/
     :alt: Number of PyPI downloads
 
 
@@ -16,8 +16,8 @@
   :target: https://coveralls.io/r/allegro/ralph_pricing?branch=develop
 
 
-.. image:: https://pypip.in/license/scrooge/badge.svg
-    :target: https://crate.io/packages/scrooge/
+.. image:: https://pypip.in/license/ralph_scrooge/badge.svg
+    :target: https://crate.io/packages/ralph_scrooge/
 
 The pricing module aggregates data from Ralph and from Ralph Assets to generate
 reports showing the prices of the servers in inventory per their owners daily.
