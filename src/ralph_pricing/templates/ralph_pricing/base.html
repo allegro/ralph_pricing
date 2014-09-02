@@ -1,76 +1,29 @@
-<!DOCTYPE html>
-{% load url from future %}
-{% load icons %}
+{% extends 'ui/base.html' %}
 {% load bob %}
+{% load icons %}
 
-<html><head>
-<meta charset="utf-8">
-<title>{% block title %}{% block titlesection %}{% block titlesubsection %}{% endblock %}{{ section.title }}{% endblock %} - Ralph Pricing{% endblock %}</title>
-<link rel="stylesheet" href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css">
-<link rel="stylesheet" href="{{ STATIC_URL }}fugue-icons.css">
-<link rel="stylesheet" href="{{ STATIC_URL }}ui/custom.css">
-<link rel="stylesheet" href="{{ STATIC_URL }}ui/datepicker.css">
-<link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/style.css">
-{% block extra_headers %}{% endblock %}
-</head><body>
-<div class="container-fluid browser-min-width">
-    <div class="row-fluid"><div class="span12">
-        {% block header %}
-        <p></p>
-        {%   main_menu mainmenu_items section white="true" title="Scrooge" title_url=home_url %}
-        {% endblock %}
-    </div>
-    {%   if messages %}
-    <div class="row-fluid"><div class="span12 alerts">
-        {% block alerts %}
-        {%     for message in messages %}
-        <div class="alert alert-{{ message.tags }} fade in">
-            <a class="close" data-dismiss="alert" href="#">&times;</a>
-            <p>{{ message.tags|alert_icon }} {{ message }}</p>
-        </div>
-        {%     endfor %}
-        {% endblock %}
-    </div></div>
-    {%   endif %}
-    {% block contentarea %}
-    <div class="row-fluid main-body"><div class="span2">
-        {% block sidebar %}
-        {% sidebar_menu sidebar_items sidebar_selected %}
-        {% endblock %}
-    </div><div class="span10">
-        {% block breadcrumbs %}{% endblock %}
-        {% block tabs %}{% endblock %}
-        <div class="row-fluid">
-        {% block content %}{% endblock %}
-        </div>
-    </div></div>
-    {% endblock contentarea %}
-    <div class="row-fluid"><div class="span12">
-        {% block footer %}
-        <p></p>
-        {%   main_menu footer_items section white=1 %}
-        {% endblock %}
-    </div>
-</div>
-{% block scripts %}
-<script src="{{ STATIC_URL }}require.js"></script>
-<script src="{{ STATIC_URL }}jquery-1.7.2.min.js"></script>
-<script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
-<script src="{{ STATIC_URL }}bootstrap/js/bob.js"></script>
-<script src="{{ STATIC_URL }}bootstrap-datepicker.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}assets/js/split.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/table_fixed_header.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
-<!-- Use require.js for mustache! -->
-<!-- <script src="{{ STATIC_URL }}mustache.js"></script> -->
-<script src="{{ STATIC_URL }}ui/main.js"></script>
-<script type="text/javascript">
-    requirejs.config({
-        baseUrl: '{{ STATIC_URL }}',
-        paths: {}
-    });
-</script>
+{% block styles %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/style.css">
 {% endblock %}
-</body></html>
-<!--STATS-->
 
+{% block scripts %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/js/split.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/table_fixed_header.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
+{% endblock %}
+
+{% block contentarea %}
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+    {% if sidebar_items %}
+        {% sidebar_menu sidebar_items sidebar_selected %}
+    {% endif %}
+    {% block sidebar_search %}
+    {% endblock %}
+{% endblock %}
