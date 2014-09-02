@@ -29,6 +29,7 @@ class BusinessLine(Named):
         blank=False,
         verbose_name='CMDB CI UID',
         max_length=100,
+        verbose_name=_("id from cmdb"),
     )
 
     class Meta:
@@ -72,19 +73,24 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         'Owner',
         through='ServiceOwnership',
         related_name='services'
+        verbose_name=_("ownership"),
     )
     environments = db.ManyToManyField(
         Environment,
         through='ServiceEnvironment',
         related_name='services',
+        verbose_name=_("environments"),
     )
     pricing_service = db.ForeignKey(
         'PricingService',
         related_name='services',
         null=True,
         blank=True,
+        verbose_name=_("pricing service"),
     )
-    history = IntervalHistoricalRecords()
+    history = IntervalHistoricalRecords(
+        verbose_name=_("history")
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'
@@ -108,6 +114,7 @@ class PricingService(BaseUsage):
         'UsageType',
         through='ServiceUsageTypes',
         related_name='services',
+        verbose_name=_("usage types"),
     )
     excluded_services = db.ManyToManyField(
         'Service',
@@ -128,6 +135,7 @@ class PricingService(BaseUsage):
         },
         blank=True,
         null=True,
+        verbose_name=_("excluded base usage types"),
     )
     regular_usage_types = db.ManyToManyField(
         'UsageType',
@@ -137,6 +145,7 @@ class PricingService(BaseUsage):
         },
         blank=True,
         null=True,
+        verbose_name=_("regular usage types"),
     )
 
     class Meta:
@@ -195,13 +204,14 @@ class ServiceUsageTypes(db.Model):
         PricingService,
         verbose_name=_("Pricing Service"),
     )
-    start = db.DateField()
-    end = db.DateField()
+    start = db.DateField(verbose_name=_("start"))
+    end = db.DateField(verbose_name=_("end"))
     percent = db.FloatField(
         validators=[
             MaxValueValidator(100.0),
             MinValueValidator(0.0)
-        ]
+        ],
+        verbose_name=_("percent"),
     )
 
     class Meta:
@@ -222,10 +232,12 @@ class ServiceEnvironment(db.Model):
     service = db.ForeignKey(
         Service,
         related_name="environments_services",
+        verbose_name=_("service"),
     )
     environment = db.ForeignKey(
         Environment,
         related_name='services_environments',
+        verbose_name=_("environment"),
     )
 
     class Meta:

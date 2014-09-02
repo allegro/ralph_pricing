@@ -22,7 +22,7 @@ class UsageType(BaseUsage):
     symbol = db.CharField(
         verbose_name=_("symbol"),
         max_length=255,
-        default="",
+        null=True,
         blank=True,
     )
     average = db.BooleanField(
@@ -147,17 +147,13 @@ class UsagePrice(db.Model):
         null=True,
         blank=True,
         on_delete=db.PROTECT,
+        verbose_name=_("warehouse"),
     )
 
     class Meta:
         verbose_name = _("usage price")
         verbose_name_plural = _("usage prices")
         app_label = 'ralph_scrooge'
-
-        unique_together = [
-            ('warehouse', 'start', 'type'),
-            ('warehouse', 'end', 'type'),
-        ]
         ordering = ('type', '-start')
 
     def __unicode__(self):
@@ -187,7 +183,8 @@ class DailyUsage(db.Model):
     date = db.DateField()
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
-        related_name='daily_usages'
+        related_name='daily_usages',
+        verbose_name=_("service environment"),
     )
     daily_pricing_object = db.ForeignKey(
         'DailyPricingObject',
@@ -203,6 +200,7 @@ class DailyUsage(db.Model):
         blank=False,
         on_delete=db.PROTECT,
         default=1,
+        verbose_name=_("warehouse"),
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),

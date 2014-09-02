@@ -30,13 +30,15 @@ class PricingObjectType(Choices):
 
 class PricingObject(TimeTrackable, EditorTrackable):
     name = db.CharField(
+        verbose_name=_("name"),
         max_length=200,
         null=True,
         blank=True,
         default=None,
     )
     type = db.PositiveIntegerField(
-        verbose_name=_("type"), choices=PricingObjectType(),
+        verbose_name=_("type"),
+        choices=PricingObjectType(),
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
@@ -45,8 +47,9 @@ class PricingObject(TimeTrackable, EditorTrackable):
         default="",
     )
     service_environment = db.ForeignKey(
+        verbose_name=_("service environment"),
         'ServiceEnvironment',
-        related_name='pricing_objects'
+        related_name='pricing_objects',
     )
 
     class Meta:
@@ -63,16 +66,22 @@ class PricingObject(TimeTrackable, EditorTrackable):
 
 
 class DailyPricingObject(db.Model):
-    date = db.DateField(null=False, blank=False)
-    pricing_object = db.ForeignKey(
-        PricingObject,
+    date = db.DateField(
+        verbose_name=_("date"),
         null=False,
         blank=False,
+    )
+    pricing_object = db.ForeignKey(
+        PricingObject,
+        verbose_name=_("pricing object"),
         related_name='daily_pricing_objects',
+        null=False,
+        blank=False,
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
-        related_name='daily_pricing_objects'
+        verbose_name=_("service environment"),
+        related_name='daily_pricing_objects',
     )
 
     class Meta:
@@ -83,8 +92,20 @@ class DailyPricingObject(db.Model):
 
 
 class AssetInfo(PricingObject):
-    sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
-    barcode = db.CharField(max_length=200, null=True, blank=True, unique=True)
+    sn = db.CharField(
+        verbose_name=_("serial number"),
+        max_length=200,
+        null=True,
+        blank=True,
+        unique=True,
+    )
+    barcode = db.CharField(
+        verbose_name=_("barcode"),
+        max_length=200,
+        null=True,
+        blank=True,
+        unique=True,
+    )
     device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
@@ -98,7 +119,10 @@ class AssetInfo(PricingObject):
         null=False,
         blank=False,
     )
-    warehouse = db.ForeignKey('Warehouse')
+    warehouse = db.ForeignKey(
+        'Warehouse',
+        verbose_name=_("warehouse"),
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'
@@ -107,11 +131,12 @@ class AssetInfo(PricingObject):
 class DailyAssetInfo(DailyPricingObject):
     asset_info = db.ForeignKey(
         AssetInfo,
+        verbose_name=_("asset defails"),
     )
     depreciation_rate = db.DecimalField(
+        verbose_name=_("Depreciation rate"),
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
-        verbose_name=_("Depreciation rate"),
         default=0,
     )
     is_depreciated = db.BooleanField(
@@ -119,6 +144,7 @@ class DailyAssetInfo(DailyPricingObject):
         verbose_name=_("Is depreciated"),
     )
     price = db.DecimalField(
+        verbose_name=_("price"),
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         default=0,
@@ -159,6 +185,7 @@ class VirtualInfo(PricingObject):
 class DailyVirtualInfo(DailyPricingObject):
     hypervisor = db.ForeignKey(
         DailyAssetInfo,
+        verbose_name=_("hypervisor"),
         related_name='daily_virtuals',
         null=True,
         blank=True,
@@ -166,6 +193,7 @@ class DailyVirtualInfo(DailyPricingObject):
     virtual_info = db.ForeignKey(
         VirtualInfo,
         related_name='daily_virtuals',
+        verbose_name=_("virtual defails"),
     )
 
     class Meta:
@@ -189,6 +217,7 @@ class DailyTenantInfo(DailyPricingObject):
     tenant_info = db.ForeignKey(
         TenantInfo,
         related_name='daily_tenant',
+        verbose_name=_("tenant defails"),
     )
     enabled = db.BooleanField(
         null=False,

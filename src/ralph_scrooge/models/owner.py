@@ -19,11 +19,30 @@ class OwnershipType(Choices):
 
 
 class Owner(TimeTrackable):
-    cmdb_id = db.IntegerField(unique=True, null=False, blank=False)
-    first_name = db.CharField(max_length=50)
-    last_name = db.CharField(max_length=100)
-    email = db.EmailField(unique=True, null=True)
-    sAMAccountName = db.CharField(max_length=256, blank=True)
+    cmdb_id = db.IntegerField(
+        unique=True,
+        null=False,
+        blank=False,
+        verbose_name=_("id from cmdb"),
+    )
+    first_name = db.CharField(
+        max_length=5,
+        verbose_name=_("first name"),
+    )
+    last_name = db.CharField(
+        max_length=100,
+        verbose_name=_("last name"),
+    )
+    email = db.EmailField(
+        unique=True,
+        null=True,
+        verbose_name=_("email"),
+    )
+    sAMAccountName = db.CharField(
+        max_length=256,
+        blank=True,
+        verbose_name=_("sam account name"),
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'
@@ -35,15 +54,18 @@ class Owner(TimeTrackable):
 class ServiceOwnership(db.Model):
     service = db.ForeignKey(
         'Service'
+        verbose_name=_("service"),
     )
     owner = db.ForeignKey(
         Owner,
+        verbose_name=_("owner"),
     )
     type = db.PositiveIntegerField(
         null=False,
         blank=False,
         default=1,
         choices=OwnershipType()
+        verbose_name=_("Type"),
     )
 
     class Meta:
