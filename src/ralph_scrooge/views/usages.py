@@ -18,6 +18,7 @@ from ralph_scrooge.views.base import Base
 
 class Usages(Base):
     template_name = 'ralph_scrooge/usages.html'
+    submodule_name = 'usages'
 
     def __init__(self, *args, **kwargs):
         super(Usages, self).__init__(*args, **kwargs)
@@ -73,7 +74,6 @@ class Usages(Base):
         by_cost = self.usage_type.by_cost if self.usage_type else None
         by_team = self.usage_type.by_team if self.usage_type else None
         context.update({
-            'section': 'usages',
             'sidebar_items': usages_menu(
                 '/{0}/usages'.format(Scrooge.url_prefix),
                 self.usage_type_name

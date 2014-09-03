@@ -18,6 +18,7 @@ from ralph_scrooge.views.base import Base
 
 class ExtraCosts(Base):
     template_name = 'ralph_scrooge/extra_costs.html'
+    submodule_name = 'extra-costs'
 
     def __init__(self, *args, **kwargs):
         super(ExtraCosts, self).__init__(*args, **kwargs)
@@ -62,7 +63,6 @@ class ExtraCosts(Base):
     def get_context_data(self, **kwargs):
         context = super(ExtraCosts, self).get_context_data(**kwargs)
         context.update({
-            'section': 'extra-costs',
             'sidebar_items': extra_costs_menu(
                 '/{0}/extra-costs'.format(Scrooge.url_prefix),
                 self.extra_cost_type_id
