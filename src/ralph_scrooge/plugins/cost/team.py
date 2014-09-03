@@ -86,9 +86,6 @@ class TeamPlugin(BaseCostPlugin):
         logger.debug("Get teams usages")
         return self._get_team_cost_per_service_environment(team, **kwargs)
 
-    # def total_cost(self, team, date, forecast=False, *args, **kwargs):
-    #     return self._get_team_daily_cost(team, date, forecast)[1]
-
     def _get_team_cost_per_service_environment(self, team, *args, **kwargs):
         """
         Call proper function to calculate team cost, based on team billing type
@@ -275,7 +272,7 @@ class TeamPlugin(BaseCostPlugin):
             team_cost = team.teamcost_set.get(start__lte=date, end__gte=date)
         except TeamCost.DoesNotExist:
             raise NoPriceCostError()
-        except TeamCost.MultipleObjectsReturned():
+        except TeamCost.MultipleObjectsReturned:
             raise MultiplePriceCostError()
 
         # calculate daily cost if not provided
@@ -341,7 +338,7 @@ class TeamPlugin(BaseCostPlugin):
                 result[service_environment].append({
                     'cost': D(daily_cost) * D(percent) / 100,
                     'type': team,
-                    'percent': D(percent) / team_cost_days,
+                    'percent': D(percent) / 100,
                 })
 
         return result
@@ -397,7 +394,7 @@ class TeamPlugin(BaseCostPlugin):
             forecast,
             daily_cost,
         )
-        total_cost = D(daily_cost * team_cost_days)
+        # total_cost = D(daily_cost * team_cost_days)
         service_environments_costs = defaultdict(D)
         for count_func, total_count_func in funcs:
             count_per_service_environment = count_func(
@@ -419,7 +416,7 @@ class TeamPlugin(BaseCostPlugin):
             result[service_environment].append({
                 'cost': cost,
                 'type': team,
-                'percent': cost / total_cost,
+                'percent': D(cost) / D(daily_cost),
             })
 
         return result
@@ -533,7 +530,7 @@ class TeamPlugin(BaseCostPlugin):
             se_info = {
                 'type': team,
                 'cost': cost,
-                'percent': cost / (daily_cost * team_cost_days)
+                'percent': cost / daily_cost
             }
             result[service_environment].append(se_info)
 
@@ -569,19 +566,20 @@ class TeamPlugin(BaseCostPlugin):
         # calculate costs and percent of other teams per
         # service_environment
         service_environment_percent = defaultdict(D)
-        total_percent = D(0)
+        total_percent = len(teams)
+
         for dependent_team in teams:
-            for sei in self._get_team_cost_per_service_environment(
+            seis = self._get_team_cost_per_service_environment(
                 team=dependent_team,
                 date=date,
                 service_environments=service_environments,
                 forecast=forecast,
-            ).items():
+            )
+            for sei in seis.items():
                 se = sei[0]
-                percent = sei[1]['percent']
+                percent = sei[1][0]['percent']
                 service_environment_percent[se] += percent
-                total_percent += percent
-
+                # total_percent += percent
         # distribute cost of current team according to calculated percent
         for se, percent in service_environment_percent.iteritems():
             percent_scaled = percent / total_percent
