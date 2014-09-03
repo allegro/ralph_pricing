@@ -30,6 +30,7 @@ class Devices(BasePluginReport):
     section = 'devices'
     report_name = _('Devices Report')
     schema_name = 'schema_devices'
+    submodule_name = 'devices'
 
     @classmethod
     def get_plugins(cls):
