@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-
+from bob.menu import MenuItem
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 
@@ -28,43 +28,3 @@ class Base(MenuMixin, TemplateView):
     @ralph_permission(perms)
     def dispatch(self, *args, **kwargs):
         return super(Base, self).dispatch(*args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super(Base, self).get_context_data(**kwargs)
-        footer_items = []
-        if self.request.user.is_staff:
-            footer_items.append(
-                MenuItem(
-                    'Admin',
-                    fugue_icon='fugue-toolbox',
-                    href='/admin/ralph_scrooge',
-                ),
-            )
-        footer_items.append(
-            MenuItem(
-                'logout',
-                fugue_icon='fugue-door-open-out',
-                pull_right=True,
-                href=settings.LOGOUT_URL,
-            )
-        )
-        footer_items.append(
-            MenuItem(
-                'Ralph',
-                fugue_icon='fugue-home',
-                href=reverse('search'),
-            )
-        )
-        footer_items.append(
-            MenuItem(
-                "Version %s" % '.'.join((str(part) for part in VERSION)),
-                fugue_icon='fugue-document-number',
-            )
-        )
-
-        context.update({
-            'mainmenu_items': MAIN_MENU,
-            'footer_items': footer_items,
-            'home_url': reverse('home'),
-        })
-        return context

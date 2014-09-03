@@ -87,36 +87,5 @@
         {% endif %}
     {% endif %}
     </div>
-    {% endblock %}
-</div>
-</form>
-</div>
-<div class="clearfix"></div>
-{% if got_query and progress < 100 %}
-{% block progress_bar %}
-<div class="well">
-    <p>Calculating the report, please wait...</p>
-    <div class="progress progress-striped active">
-        <div class="bar" style="width: {{ progress }}%;"></div>
-    </div>
-</div>
-{% endblock %}
-{% endif %}
-{% if progress > 0 %}
-{%   if header %}
-{%     block table %}
-{% include "ralph_scrooge/all_venture_report_table.html" %}
-{%     endblock %}
-{%   else %}
-{%     if got_query %}
-<div class="alert alert-error">
-    <p><strong>Error!</strong> We are extremely sorry, but unfortunately,
-    the calculation of this report could not be completed due to an error
-    in the code. The people responsible for that will be severely punished.</p>
-    <p>Thank you and have a nice day.</p>
-</div>
-{%     endif %}
-{%   endif %}
-{% endif %}
-</div></div>
+
 {% endblock contentarea %}

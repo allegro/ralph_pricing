@@ -14,8 +14,8 @@ from ralph.menu import Menu
 
 class ScroogeMenu(Menu):
     module = MenuItem(
-        'Assets',
-        name='module_assets',
+        'Scrooge',
+        name='ralph_scrooge',
         fugue_icon='fugue-money-coin',
         href='/scrooge/',
     )
@@ -24,7 +24,7 @@ class ScroogeMenu(Menu):
         return [
             MenuItem(
                 _("Ventures report"),
-                name='all-ventures',
+                name='report-services',
                 fugue_icon='fugue-store-medium',
                 view_name='all_ventures',
             ),
@@ -71,5 +71,8 @@ class ScroogeMenu(Menu):
                 view_name='statement',
             ),
         ]
+
+    def get_sidebar_items(self):
+        return {}
 
 menu_class = ScroogeMenu

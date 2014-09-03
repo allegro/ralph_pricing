@@ -28,6 +28,7 @@ class ServicesReport(BasePluginReport):
     Form = ServicesReportForm
     section = 'report-services'
     report_name = _('Services Report')
+    submodule_name = 'report-services'
 
     @classmethod
     @memoize
