@@ -6,14 +6,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import defaultdict, OrderedDict
+import itertools
+from collections import defaultdict
 from decimal import Decimal as D
 
-from django.utils.translation import ugettext_lazy as _
+from django.db.models import Sum
 
 from ralph.util import plugin as plugin_runner
 
-from ralph_scrooge.models import Team, UsageType
+from ralph_scrooge.models import ExtraCostType, Team, UsageType
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 
@@ -21,20 +22,163 @@ from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 logger = logging.getLogger(__name__)
 
 
-class PricingServiceBaseCostPlugin(BaseCostPlugin):
+class PricingServiceBasePlugin(BaseCostPlugin):
     """
-    Base plugin for all pricing services in report. Provides 3 main methods:
-    * usages - service resources usages count and cost per service_environment
-    * schema - schema (output format) of usages method
+    Base plugin for all pricing services in report. Provides 2 main methods:
+    * costs - tree of costs for pricing service
     * total_cost - returns total cost of service
     """
-    distribute_count_key_base_tmpl = 'service_{}_sut_{{}}_count'
-    distribute_cost_key_base_tmpl = 'service_{}_sut_{{}}_cost'
+    def total_cost(self, collapse=True, *args, **kwargs):
+        service_costs = self.costs(*args, **kwargs)
+        if collapse:
+            return sum([v[0] for v in service_costs.values()])
+        else:
+            # sum by type on each level
+            return self._get_total_costs_from_costs(service_costs)
 
-    def total_cost(
+    def costs(
         self,
-        start,
-        end,
+        pricing_service,
+        date,
+        service_environments,
+        forecast=False,
+        **kwargs
+    ):
+        """
+        Calculates usages and costs of pricing service usages per service
+        environment.
+
+        Main steps:
+        1) calculation of percentage division in date ranges
+        2) for each daterange with different percentage division:
+            2.1) calculation of pricing_service total cost in daterange
+            2.2) distribution of that cost to service_environments, basing on
+                 service_environment usage of pricing_service and using
+                 percentage division
+            2.3) sum service_environments costs of pricing_service usage types
+                 (eventually total cost)
+        """
+        logger.debug("Calculating report for pricing_service {0}".format(
+            pricing_service
+        ))
+        percentage = self._get_percentage(date, pricing_service)
+        costs = self._get_pricing_service_costs(
+            date,
+            pricing_service,
+            forecast,
+            service_environments=pricing_service.service_environments,
+        )
+        # distribute total cost between every service_environment
+        # proportionally to pricing_service usages
+        return self._distribute_costs(
+            date,
+            pricing_service,
+            service_environments,
+            costs,
+            percentage
+        )
+
+    # HELPERS
+    def _get_total_costs_from_costs(self, costs):
+        """
+        Transforms costs result structure (costs per service environment
+        with _children hierarchy) to format accepted by _get_service_costs
+        (dict with type_id as key and tuple (cost, children dict) as value)
+        """
+        result = {}
+
+        def add_costs(hierarchy, root):
+            for cost in hierarchy:
+                type_id = cost['type_id']
+                if type_id not in root:
+                    root[type_id] = [D(0), {}]
+                root[type_id][0] += cost['cost']
+                if '_children' in cost:
+                    add_costs(cost['_children'], root[type_id][1])
+
+        for se, se_costs in costs.items():
+            add_costs(se_costs, result)
+        return result
+
+    def _add_hierarchy_costs(self, po, po_usages, hierarchy, depth=0):
+        """
+        For every record in hierarchy, add record to result with cost
+        proportional to pricing object usage of pricing service resource.
+        """
+        subresult = []
+        for base_usage, (cost, children) in hierarchy.items():
+            base_usage_result = {
+                'type_id': base_usage,
+                'pricing_object_id': po,
+                'cost': D(0),
+            }
+            for usage, total, percent in po_usages:
+                base_usage_result['cost'] += (
+                    D(cost) * (D(usage) / D(total)) * (D(percent) / 100)
+                )
+            # add value if there is only one usage type defined for pricing
+            # service and depth is 0 (whole pricing service level)
+            if len(po_usages) == 1 and depth == 0:
+                base_usage_result['value'] = po_usages[0][0]
+            if children:
+                base_usage_result['_children'] = self._add_hierarchy_costs(
+                    po,
+                    po_usages,
+                    children,
+                    depth+1,
+                )
+            subresult.append(base_usage_result)
+        return subresult
+
+    def _distribute_costs(
+        self,
+        date,
+        pricing_service,
+        service_environments,
+        costs_hierarchy,
+        service_usage_types,
+    ):
+        """
+        Distribute pricing service costs (in general: hierarchy of pricing
+        service costs) between services (pricing objects) according to daily
+        usages of pricing service resources (and its percentage division).
+        """
+        usages = defaultdict(list)
+        total_usages = []
+        percentage = []
+        result = defaultdict(list)
+        for service_usage_type in service_usage_types:
+            usages_per_po = self._get_usages_per_pricing_object(
+                usage_type=service_usage_type.usage_type,
+                date=date,
+                service_environments=service_environments,
+                excluded_services=pricing_service.services.all(),
+            ).values_list(
+                'daily_pricing_object__pricing_object',
+                'service_environment',
+            ).annotate(usage=Sum('value'))
+            for pricing_object, se, usage in usages_per_po:
+                usages[(pricing_object, se)].append(usage)
+
+            total_usages.append(self._get_total_usage(
+                usage_type=service_usage_type.usage_type,
+                date=date,
+                service_environments=service_environments,
+                excluded_services=pricing_service.services.all(),
+            ))
+            percentage.append(service_usage_type.percent)
+
+        # create hierarchy basing on usages
+        for (po, se), po_usages in usages.items():
+            po_usages_info = zip(po_usages, total_usages, percentage)
+            result[se].extend(
+                self._add_hierarchy_costs(po, po_usages_info, costs_hierarchy)
+            )
+        return result
+
+    def _get_pricing_service_costs(
+        self,
+        date,
         pricing_service,
         forecast,
         service_environments,
@@ -61,149 +205,51 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         """
         # total cost of base usage types for service_environments providing
         # this pricing_service
-        total_cost = self._get_service_base_usage_types_cost(
-            start,
-            end,
+        base_usage_types_costs = self._get_service_base_usage_types_cost(
+            date,
             pricing_service,
             forecast,
             service_environments=service_environments,
         )
-        total_cost += self._get_service_regular_usage_types_cost(
-            start,
-            end,
+        regular_usage_types_costs = self._get_service_regular_usage_types_cost(
+            date,
             pricing_service,
             forecast,
             service_environments=service_environments,
         )
-        total_cost += self._get_dependent_services_cost(
-            start,
-            end,
+        dependent_services_costs = self._get_dependent_services_cost(
+            date,
             pricing_service,
             forecast,
             service_environments=service_environments,
         )
-        # TODO: enable when working with services
-        # total_cost += self._get_service_extra_cost(
-        #     start,
-        #     end,
-        #     service_environments,
-        # )
-        total_cost += self._get_service_teams_cost(
-            start,
-            end,
-            pricing_service,
+        teams_costs = self._get_service_teams_cost(
+            date,
             forecast,
             service_environments=service_environments,
         )
-        return total_cost
+        extra_costs = self._get_service_extra_cost(
+            date,
+            forecast,
+            service_environments=service_environments,
+        )
 
-    def costs(
-        self,
-        pricing_service,
-        start,
-        end,
-        service_environments,
-        forecast=False,
-        **kwargs
-    ):
-        """
-        Calculates usages and costs of pricing service usages per service
-        environment.
-
-        Main steps:
-        1) calculation of percentage division in date ranges
-        2) for each daterange with different percentage division:
-            2.1) calculation of pricing_service total cost in daterange
-            2.2) distribution of that cost to service_environments, basing on
-                 service_environment usage of pricing_service and using
-                 percentage division
-            2.3) sum service_environments costs of pricing_service usage types
-                 (eventually total cost)
-        """
-        logger.debug("Calculating report for pricing_service {0}".format(
-            pricing_service
+        costs = dict(itertools.chain(
+            base_usage_types_costs.items(),
+            regular_usage_types_costs.items(),
+            dependent_services_costs.items(),
+            teams_costs.items(),
+            extra_costs.items(),
         ))
-        self._fill_distribute_tmpl(pricing_service)
-        date_ranges_percentage = self._get_date_ranges_percentage(
-            start,
-            end,
-            pricing_service,
-        )
-        service_symbol = "{0}_service_cost".format(pricing_service.id)
-        schema_usage_types = pricing_service.usage_types.all()
-        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
-        total_cost_column = len(usage_types) > 1
+        total_cost = sum([v[0] for v in costs.values()])
 
-        result = defaultdict(lambda: defaultdict(int))
-        for date_range, percentage in date_ranges_percentage.items():
-            dstart, dend = date_range[0], date_range[1]
-            service_cost = self.total_cost(
-                dstart,
-                dend,
-                pricing_service,
-                forecast,
-                service_environments=pricing_service.service_environments,
-            )
-            # distribute total cost between every service_environment
-            # proportionally to pricing_service usages
-            service_report_in_daterange = self._distribute_costs(
-                start,
-                end,
-                service_environments,
-                service_cost,
-                percentage
-            )
-            for se, se_data in service_report_in_daterange.items():
-                for key, value in se_data.items():
-                    result[se][key] += value
-                    if total_cost_column and key.endswith('cost'):
-                        result[se][service_symbol] += value
-        return result
+        return {
+            pricing_service.id: (total_cost, costs)
+        }
 
-    def schema(self, pricing_service):
-        """
-        Returns pricing_service usages schema depending on schema usage types.
-        """
-        self._fill_distribute_tmpl(pricing_service)
-        schema_usage_types = pricing_service.usage_types.distinct()
-        usage_types = sorted(set(schema_usage_types), key=lambda a: a.name)
-        schema = OrderedDict()
-        for usage_type in usage_types:
-            symbol = usage_type.id
-            usage_type_count_symbol = self.distribute_count_key_tmpl.format(
-                symbol
-            )
-            usage_type_cost_symbol = self.distribute_cost_key_tmpl.format(
-                symbol
-            )
-
-            schema[usage_type_count_symbol] = {
-                'name': _("{0} count".format(usage_type.name)),
-                'rounding': usage_type.rounding,
-                'divide_by': usage_type.divide_by,
-            }
-            schema[usage_type_cost_symbol] = {
-                'name': _("{0} cost".format(usage_type.name)),
-                'currency': True,
-                'total_cost': len(usage_types) == 1,
-            }
-        # if there is more than one schema usage type -> add total
-        # pricing_service usage column
-        if len(usage_types) > 1:
-            service_symbol = "{0}_service_cost".format(pricing_service.id)
-            schema[service_symbol] = {
-                'name': _("{0} cost".format(pricing_service.name)),
-                'currency': True,
-                'total_cost': True,
-            }
-
-        return schema
-
-    # HELPERS
-    def _get_usage_type_cost(
+    def _get_usage_type_costs(
         self,
-        start,
-        end,
+        date,
         usage_type,
         forecast,
         service_environments
@@ -215,11 +261,10 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         """
         try:
             return plugin_runner.run(
-                'scrooge_reports',
+                'scrooge_costs',
                 usage_type.get_plugin_name(),
                 type='total_cost',
-                start=start,
-                end=end,
+                date=date,
                 usage_type=usage_type,
                 forecast=forecast,
                 service_environments=service_environments,
@@ -232,8 +277,7 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
 
     def _get_service_base_usage_types_cost(
         self,
-        start,
-        end,
+        date,
         pricing_service,
         forecast,
         service_environments,
@@ -244,26 +288,25 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         period of time (between start and end) and for specified
         service environments.
         """
-        total_cost = D(0)
-        for usage_type in UsageType.objects.filter(type='BU').exclude(
+        result = {}
+        for usage_type in UsageType.objects.filter(usage_type='BU').exclude(
                 id__in=pricing_service.excluded_base_usage_types.values_list(
                     'id',
                     flat=True
                 )):
-            usage_type_total_cost = self._get_usage_type_cost(
-                start,
-                end,
+            usage_type_costs = self._get_usage_type_costs(
+                date,
                 usage_type,
                 forecast,
                 service_environments,
             )
-            total_cost += usage_type_total_cost
-        return total_cost
+            if usage_type_costs != 0:
+                result[usage_type.id] = usage_type_costs, {}
+        return result
 
     def _get_service_regular_usage_types_cost(
         self,
-        start,
-        end,
+        date,
         pricing_service,
         forecast,
         service_environments,
@@ -274,23 +317,21 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         for period of time (between start and end) and for specified service
         environments.
         """
-        total_cost = D(0)
+        result = {}
         for usage_type in pricing_service.regular_usage_types.all():
-            usage_type_total_cost = self._get_usage_type_cost(
-                start,
-                end,
+            usage_type_costs = self._get_usage_type_costs(
+                date,
                 usage_type,
                 forecast,
                 service_environments,
             )
-            total_cost += usage_type_total_cost
-        return total_cost
+            if usage_type_costs != 0:
+                result[usage_type.id] = usage_type_costs, {}
+        return result
 
     def _get_service_teams_cost(
         self,
-        start,
-        end,
-        pricing_service,
+        date,
         forecast,
         service_environments,
     ):
@@ -299,29 +340,29 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         real or forecast prices/costs. Total cost is calculated for period of
         time (between start and end) and for specified service environments.
         """
-        total_cost = D(0)
+        result = {}
         for team in Team.objects.all():
             try:
-                total_cost += plugin_runner.run(
-                    'scrooge_reports',
-                    'team',
+                team_cost = plugin_runner.run(
+                    'scrooge_costs',
+                    'team_plugin',
                     type='total_cost',
-                    start=start,
-                    end=end,
+                    date=date,
                     team=team,
                     forecast=forecast,
                     service_environments=service_environments,
                 )
+                if team_cost != 0:
+                    result[team.id] = team_cost, {}
             except (KeyError, AttributeError):
                 logger.warning(
                     'Invalid call for {0} total cost'.format(team.name)
                 )
-        return total_cost
+        return result
 
     def _get_dependent_services_cost(
         self,
-        start,
-        end,
+        date,
         pricing_service,
         forecast,
         service_environments
@@ -329,30 +370,31 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         """
         Calculates cost of dependent services used by pricing_service.
         """
-        total_cost = 0
-        dependent_services = pricing_service.get_dependent_services(start, end)
+        result = {}
+        dependent_services = pricing_service.get_dependent_services(date)
         for dependent in dependent_services:
             try:
-                total_cost += plugin_runner.run(
-                    'scrooge_reports',
+                dependent_cost = plugin_runner.run(
+                    'scrooge_costs',
                     dependent.get_plugin_name(),
                     pricing_service=dependent,
                     type='total_cost',
-                    start=start,
-                    end=end,
+                    collapse=False,
+                    date=date,
                     forecast=forecast,
                     service_environments=service_environments,
                 )
+                result.update(dependent_cost)
             except (KeyError, AttributeError):
                 logger.warning(
                     'Invalid call for {0} total cost'.format(dependent.name)
                 )
-        return total_cost
+        return result
 
     def _get_service_extra_cost(
         self,
-        start,
-        end,
+        date,
+        forecast,
         service_environments,
     ):
         """
@@ -364,20 +406,29 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         :returns decimal: price
         :rtype decimal:
         """
-        try:
-            return plugin_runner.run(
-                'scrooge_reports',
-                'extra_cost_plugin',
-                type='total_cost',
-                start=start,
-                end=end,
-                service_environments=service_environments,
-            )
-        except (KeyError, AttributeError):
-            logger.warning('Invalid call for total extra cost')
-            return D(0)
+        result = {}
+        for extra_cost_type in ExtraCostType.objects.all():
+            try:
+                extra_cost = plugin_runner.run(
+                    'scrooge_costs',
+                    'extra_cost_plugin',
+                    type='total_cost',
+                    date=date,
+                    forecast=forecast,
+                    extra_cost_type=extra_cost_type,
+                    service_environments=service_environments,
+                )
+                if extra_cost != 0:
+                    result[extra_cost_type.id] = extra_cost, {}
+            except (KeyError, AttributeError):
+                logger.warning(
+                    'Invalid call for {0} total cost'.format(
+                        extra_cost_type.name
+                    )
+                )
+        return result
 
-    def _get_date_ranges_percentage(self, start, end, pricing_service):
+    def _get_percentage(self, date, pricing_service):
         """
         Returns list of minimum date ranges that have different percentage
         division in given pricing_service.
@@ -388,46 +439,15 @@ class PricingServiceBaseCostPlugin(BaseCostPlugin):
         :rtype dict:
         """
         usage_types = pricing_service.serviceusagetypes_set.filter(
-            start__lte=end,
-            end__gte=start,
+            start__lte=date,
+            end__gte=date,
         )
-        dates = defaultdict(lambda: defaultdict(list))
-        for usage_type in usage_types:
-            dates[max(usage_type.start, start)]['start'].append(usage_type)
-            dates[min(usage_type.end, end)]['end'].append(usage_type)
-
-        result = {}
-        current_percentage = {}
-        current_start = None
-
-        # iterate through dict items sorted by key (date)
-        for date, usage_types in sorted(dates.items(), key=lambda k: k[0]):
-            if usage_types['start']:
-                current_start = date
-            for sut in usage_types['start']:
-                current_percentage[sut.usage_type.id] = sut.percent
-
-            if usage_types['end']:
-                result[(current_start, date)] = current_percentage.copy()
-            for usage_type in usage_types['end']:
-                del current_percentage[usage_type.usage_type.id]
-        return result
-
-    def _fill_distribute_tmpl(self, pricing_service):
-        """
-        Set distribute templates using pricing service id (templates required
-        by base class).
-        """
-        self.distribute_cost_key_tmpl = (
-            self.distribute_cost_key_base_tmpl.format(pricing_service.id)
-        )
-        self.distribute_count_key_tmpl = (
-            self.distribute_count_key_base_tmpl.format(pricing_service.id)
-        )
+        assert abs(sum([s.percent for s in usage_types]) - 100) < 0.01
+        return usage_types
 
 
 @register(chain='scrooge_costs')
-class PricingServiceCostPlugin(PricingServiceBaseCostPlugin):
+class PricingServicePlugin(PricingServiceBasePlugin):
     """
     Base Service Plugin as ralph plugin. Splitting it into two classes gives
     ability to inherit from ServiceBasePlugin.

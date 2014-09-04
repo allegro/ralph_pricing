@@ -37,7 +37,7 @@ class TestSanCollectPlugin(TestCase):
         ))
         self.assertEquals(self.san_usage_type.dailyusage_set.count(), 1)
         daily_usage = self.san_usage_type.dailyusage_set.all()[:1].get()
-        self.assertEquals(daily_usage.date.date(), self.today)
+        self.assertEquals(daily_usage.date, self.today)
         self.assertEquals(
             daily_usage.service_environment,
             daily_asset_info.service_environment

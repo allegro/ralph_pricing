@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.choices import Choices
 
 from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
@@ -43,6 +42,12 @@ class ExtraCost(db.Model):
         verbose_name=_("cost"),
         null=False,
         blank=False,
+    )
+    forecast_cost = db.DecimalField(
+        max_digits=PRICE_DIGITS,
+        decimal_places=PRICE_PLACES,
+        default=0.00,
+        verbose_name=_("forecast cost"),
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',

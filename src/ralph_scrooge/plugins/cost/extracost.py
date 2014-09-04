@@ -24,21 +24,33 @@ class ExtraCostPlugin(BaseCostPlugin):
     cost model.
     """
 
-    def costs(self, date, service_environments, extra_cost_type, *args, **kwargs):
+    def costs(
+        self,
+        date,
+        service_environments,
+        extra_cost_type,
+        forecast=False,
+        *args,
+        **kwargs
+    ):
         """
-        Return cost for given service. Format of
-        returned data looks like:
+        Return extra costs for date per services environments.
 
-        usages = {
-            'service_id': [{
-                'cost': cost,
-            }],
+        :returns dict: dict of list of dicts
+
+        Example result:
+        {
+            service_environment1.id : [
+                {'type': extra_cost1.id, cost: 100},
+                {'type': extra_cost1.id, cost: 200},
+            ],
+            service_environment2.id: [
+                {'type': extra_cost1.id, cost: 300},
+            ],
             ...
         }
-
-        :returns dict: cost per service
         """
-        logger.debug("Get extra costs usages")
+        logger.debug("Get extra cost {} costs".format(extra_cost_type.name))
 
         extra_costs = ExtraCost.objects.filter(
             end__gte=date,
@@ -49,12 +61,11 @@ class ExtraCostPlugin(BaseCostPlugin):
 
         usages = defaultdict(list)
         for extra_cost in extra_costs:
-            usages[extra_cost.service_environment.id].append(
-                {
-                    'cost': (extra_cost.cost /
-                             ((extra_cost.end - extra_cost.start).days + 1)
-                             ),
-                    'type': extra_cost_type,
-                }
-            )
+            cost = extra_cost.forecast_cost if forecast else extra_cost.cost
+            usages[extra_cost.service_environment.id].append({
+                'cost': (cost / (
+                    (extra_cost.end - extra_cost.start).days + 1)
+                ),
+                'type': extra_cost_type,
+            })
         return usages

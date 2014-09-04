@@ -14,8 +14,15 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
+class DailyCostManager(db.Manager):
+    def get_queryset(self):
+        return super(DailyCostManager, self).get_queryset().filter(depth=0)
+
+
 class DailyCost(MultiPathNode):
     _path_field = 'type_id'
+    objects = DailyCostManager()
+    objects_tree = db.Manager()
 
     pricing_object = db.ForeignKey(
         'PricingObject',
@@ -46,7 +53,6 @@ class DailyCost(MultiPathNode):
         verbose_name=_('warehouse'),
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
-    percent = db.FloatField(verbose_name=_('percent'), default=0)
     cost = db.DecimalField(
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,

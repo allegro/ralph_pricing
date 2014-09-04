@@ -35,10 +35,63 @@ class VerifiedDailyCostsExistsError(Exception):
 
 
 class Collector(object):
+    """
+    Costs collector
+
+    Collects all costs (of usage types, teams, extra costs and pricing
+    services) and process them (save in database as tree structure).
+
+    All plugins used by collector should return data in following format:
+    {
+        <service_environment_id>: [
+            {
+                'type': <type or type_id>,
+                'cost': <cost>,
+                '_children': [
+                    {
+                        'type': <type or type_id>,
+                        'cost': <cost>,
+                        '_children': [...],
+                        **kwargs
+                    }
+                ],
+                **kwargs
+            }
+        ],
+        <service_environment_id>: [...],
+        ...
+    }
+
+    Notice that:
+    * kwargs are additional params, that should match DailyCost fields, ex.
+        pricing_object(_id), value etc.
+    * _children is optional field, and could be nested infinitely
+
+    Example:
+    {
+        service_environment1.id: [
+            {'type': <BaseUsage 1>, 'costs': 100,},
+            {'type': 2, 'costs': 200, 'value': 40, 'pricing_object_id': 33,},
+        ],
+        service_environment2.id: [
+            {
+                'type': <BaseUsage 1>,
+                'costs': 100,
+                '_children': [
+                    {'type': <BaseUsage 2>, 'costs': 500,},
+                    ...
+                ]
+            },
+    }
+    """
     def process_period(self, start, end, **kwargs):
         service_environments = self._get_services_environments()
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self.process(day, service_environments=service_environments, **kwargs)
+            self.process(
+                day,
+                service_environments=service_environments,
+                **kwargs
+            )
 
     @commit_on_success
     def process(
@@ -48,6 +101,15 @@ class Collector(object):
         delete_verified=False,
         service_environments=None,
     ):
+        """
+        Process costs for single date.
+
+        Process parts:
+        1) delete previously saved costs (if they were not verified, except
+            sitution, where delete_verified=True was passed explicitly)
+        2) collect costs from all plugins
+        3) save costs in database in tree format
+        """
         if service_environments is None:
             service_environments = self._get_services_environments()
         self._delete_daily_costs(date, delete_verified)
@@ -68,6 +130,9 @@ class Collector(object):
         DailyCost.objects.filter(date=date).delete()
 
     def _save_costs(self, date, costs, forecast):
+        """
+        For every service environment in costs save tree structure in database
+        """
         for service_environment, se_costs in costs.iteritems():
             DailyCost.build_tree(
                 tree=se_costs,
@@ -77,6 +142,9 @@ class Collector(object):
             )
 
     def _collect_costs(self, date, service_environments, forecast):
+        """
+        Collects costs from all plugins and stores them per service environment
+        """
         logger.debug("Getting report date")
         old_queries_count = len(connection.queries)
         data = {se.id: [] for se in service_environments}
@@ -258,6 +326,9 @@ class Collector(object):
 
     @classmethod
     def _get_teams_plugins(cls):
+        """
+        Returns information about team plugins for each team
+        """
         teams = cls._get_teams()
         result = []
         for team in teams:
@@ -273,10 +344,16 @@ class Collector(object):
 
     @classmethod
     def _get_extra_costs(cls):
+        """
+        Returns all extra costs
+        """
         return ExtraCostType.objects.order_by('name')
 
     @classmethod
     def _get_extra_cost_plugins(cls):
+        """
+        Returns information about extra cost plugins for each extra cost
+        """
         extra_costs = cls._get_extra_costs()
         result = []
         for extra_cost in extra_costs:

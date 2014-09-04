@@ -8,27 +8,29 @@ from __future__ import unicode_literals
 import logging
 
 from ralph_scrooge.utils import memoize
+from django.conf import settings
+from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.views.base_plugin_report import BasePluginReport
-from ralph_scrooge.forms import ServicesReportForm
+from ralph_scrooge.forms import VenturesReportForm
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.plugins import report  # noqa
+from ralph_scrooge.plugins import reports  # noqa
 from ralph_scrooge.utils import AttributeDict
 
 
 logger = logging.getLogger(__name__)
 
 
-class ServicesReport(BasePluginReport):
+class AllVentures(BasePluginReport):
     """
-    Reports for services
+    Reports for all ventures
     """
-    template_name = 'ralph_scrooge/report_services.html'
-    Form = ServicesReportForm
-    section = 'report-services'
-    report_name = _('Services Report')
-    submodule_name = 'report-services'
+    template_name = 'ralph_scrooge/ventures_all.html'
+    Form = VenturesReportForm
+    section = 'all-ventures'
+    report_name = _('All Ventures Report')
+    submodule_name = 'all-ventures'
 
     @classmethod
     @memoize
@@ -40,27 +42,22 @@ class ServicesReport(BasePluginReport):
         base_plugins = [
             AttributeDict(name='Information', plugin_name='information'),
         ]
-        extra_cost_plugins = cls._get_extra_cost_plugins()
-        teams_plugins = cls._get_teams_plugins()
+        extra_cost_plugins = [
+            AttributeDict(
+                name='ExtraCostsPlugin',
+                plugin_name='extra_cost_plugin',
+            ),
+        ]
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
-        services_plugins = cls._get_pricing_services_plugins()
-
+        services_plugins = cls._get_services_plugins()
         plugins = (base_plugins + base_usage_types_plugins +
                    regular_usage_types_plugins + services_plugins +
-                   teams_plugins + extra_cost_plugins)
-
+                   extra_cost_plugins)
         return plugins
 
     @classmethod
-    def _get_report_data(
-        cls,
-        start,
-        end,
-        is_active,
-        forecast,
-        service_environments,
-    ):
+    def _get_report_data(cls, start, end, is_active, forecast, ventures):
         """
         Use plugins to get usages data for given ventures. Plugin logic can be
         so complicated but for this method, plugin must return value in
@@ -83,36 +80,43 @@ class ServicesReport(BasePluginReport):
         :rtype dict:
         """
         logger.debug("Getting report date")
-        data = {se.id: {} for se in service_environments}
+        old_queries_count = len(connection.queries)
+        data = {venture.id: {} for venture in ventures}
         for i, plugin in enumerate(cls.get_plugins()):
             try:
-                logger.info('Calling plugin {} with base usage {}'.format(
-                    plugin.plugin_name,
-                    plugin.get('plugin_kwargs', {}).get('base_usage', '-'),
-                ))
+                plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
-                    'scrooge_reports',
+                    'reports',
                     plugin.plugin_name,
-                    service_environments=service_environments,
+                    ventures=ventures,
                     start=start,
                     end=end,
                     forecast=forecast,
                     type='costs',
                     **plugin.get('plugin_kwargs', {})
                 )
-                for service_id, service_usage in plugin_report.iteritems():
-                    if service_id in data:
-                        data[service_id].update(service_usage)
-
+                for venture_id, venture_usage in plugin_report.iteritems():
+                    if venture_id in data:
+                        data[venture_id].update(venture_usage)
+                plugin_queries_count = (
+                    len(connection.queries) - plugin_old_queries_count
+                )
+                if settings.DEBUG:
+                    logger.debug('Plugin SQL queries: {0}\n'.format(
+                        plugin_queries_count
+                    ))
             except KeyError:
                 logger.warning(
-                    "Usage '{0}' has no usage plugin".format(plugin.name)
+                    "Usage '{0}' have no usage plugin".format(plugin.name)
                 )
             except Exception as e:
                 logger.exception(
                     "Error while generating the report: {0}".format(e)
                 )
                 raise
+        queries_count = len(connection.queries) - old_queries_count
+        if settings.DEBUG:
+            logger.debug('Total SQL queries: {0}'.format(queries_count))
         return data
 
     @classmethod
@@ -125,7 +129,7 @@ class ServicesReport(BasePluginReport):
         **kwargs
     ):
         """
-        Main method. Create a full report for services. Process of creating
+        Main method. Create a full report for all ventures. Process of creating
         report consists of two parts. First of them is collect all requirement
         data. Second step is prepare data to render in html
 
@@ -133,12 +137,12 @@ class ServicesReport(BasePluginReport):
         :rtype tuple:
         """
         logger.info("Generating report from {0} to {1}".format(start, end))
-        services_environments = cls._get_services_environments(is_active)
+        ventures = cls._get_ventures(is_active)
         data = cls._get_report_data(
             start,
             end,
             is_active,
             forecast,
-            services_environments,
+            ventures,
         )
-        yield 100, cls._prepare_final_report(data, services_environments)
+        yield 100, cls._prepare_final_report(data, ventures)

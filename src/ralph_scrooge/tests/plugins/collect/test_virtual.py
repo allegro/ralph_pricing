@@ -85,7 +85,7 @@ class TestVirtualPlugin(TestCase):
         )
         virtual.AssetInfo.objects.get.assert_called_once_with(device_id=1)
 
-    @patch.object(virtual, '_update', MagicMock())
+    @patch.object(virtual, 'update_virtual_usage', MagicMock())
     def test_update(self):
         service_environment = ServiceEnvironmentFactory.create()
         virtual.update(
