@@ -5,14 +5,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from bob.menu import MenuItem
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 
 from ralph.account.models import Perm, ralph_permission
 from ralph.ui.views.common import MenuMixin
 
-from ralph_scrooge import VERSION
 from ralph_scrooge.app import Scrooge as app
 
 

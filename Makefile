@@ -1,8 +1,8 @@
 quicktest:
-	DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_scrooge
+	DJANGO_SETTINGS_DIR=src/ralph_scrooge DJANGO_SETTINGS_PROFILE=test-scrooge ralph test ralph_scrooge
 
 test-with-coveralls:
-	DJANGO_SETTINGS_PROFILE=test-pricing coverage run --source=ralph_scrooge --omit='*migrations*,*tests*,*__init__*' '$(VIRTUAL_ENV)/bin/ralph' test ralph_scrooge
+	DJANGO_SETTINGS_DIR=src/ralph_scrooge DJANGO_SETTINGS_PROFILE=test-scrooge coverage run --source=ralph_scrooge --omit='*migrations*,*tests*,*__init__*' '$(VIRTUAL_ENV)/bin/ralph' test ralph_scrooge
 
 coverage:
 	make test-with-coveralls

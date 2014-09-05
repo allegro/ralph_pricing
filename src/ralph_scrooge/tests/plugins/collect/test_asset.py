@@ -187,7 +187,7 @@ class TestAssetPlugin(TestCase):
         )
         self.assertEqual(
             PricingObject.objects.all().count(),
-            1,
+            2,  # 1 dummy for service environment, 1 regular
         )
         self.assertEqual(
             DailyPricingObject.objects.all().count(),

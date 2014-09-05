@@ -42,6 +42,9 @@ setup(
         'django.pluggable_app': [
             'scrooge = ralph_scrooge.app:Scrooge',
         ],
+        'scrooge.collect_plugins': [
+            'scrooge = ralph_scrooge.plugins.collect',
+        ]
     },
     classifiers=[
         'Development Status :: 4 - Beta',

@@ -355,57 +355,8 @@ class TestPricingServicePlugin(TestCase):
         po2 = self.se4_dpo[1].pricing_object.id
         po3 = self.se5_dpo[0].pricing_object.id
         po4 = self.se5_dpo[1].pricing_object.id
-        self.assertEquals(costs, {
+        result = {
             self.service_environments[3].id: [
-                {
-                    'cost': D('141.5'),
-                    'pricing_object_id': po1,
-                    'type_id': self.pricing_service1.id,
-                    '_children': [
-                        {
-                            'cost': D('10'),
-                            'pricing_object_id': po1,
-                            'type_id': self.base_usage_type.id,
-                        },
-                        {
-                            'cost': D('50'),
-                            'pricing_object_id': po1,
-                            'type_id': self.regular_usage_type.id,
-                        },
-                        {
-                            'cost': D('1'),
-                            'pricing_object_id': po1,
-                            'type_id': self.team.id,
-                        },
-                        {
-                            'cost': D('50'),
-                            'pricing_object_id': po1,
-                            'type_id': self.extra_cost_type.id,
-                        },
-                        {
-                            'cost': D('30.5'),
-                            'pricing_object_id': po1,
-                            'type_id': self.pricing_service2.id,
-                            '_children': [
-                                {
-                                    'cost': D('5'),
-                                    'pricing_object_id': po1,
-                                    'type_id': self.base_usage_type.id,
-                                },
-                                {
-                                    'cost': D('0.5'),
-                                    'pricing_object_id': po1,
-                                    'type_id': self.team.id,
-                                },
-                                {
-                                    'cost': D('25'),
-                                    'pricing_object_id': po1,
-                                    'type_id': self.extra_cost_type.id,
-                                }
-                            ],
-                        },
-                    ],
-                },
                 {
                     'cost': D('141.5'),
                     'pricing_object_id': po2,
@@ -455,57 +406,57 @@ class TestPricingServicePlugin(TestCase):
                         },
                     ],
                 },
-            ],
-            self.service_environments[4].id: [
                 {
-                    'cost': D('424.5'),
-                    'pricing_object_id': po3,
+                    'cost': D('141.5'),
+                    'pricing_object_id': po1,
                     'type_id': self.pricing_service1.id,
                     '_children': [
                         {
-                            'cost': D('30'),
-                            'pricing_object_id': po3,
-                            'type_id': self.base_usage_type.id
+                            'cost': D('10'),
+                            'pricing_object_id': po1,
+                            'type_id': self.base_usage_type.id,
                         },
                         {
-                            'cost': D('150'),
-                            'pricing_object_id': po3,
+                            'cost': D('50'),
+                            'pricing_object_id': po1,
                             'type_id': self.regular_usage_type.id,
                         },
                         {
-                            'cost': D('3'),
-                            'pricing_object_id': po3,
+                            'cost': D('1'),
+                            'pricing_object_id': po1,
                             'type_id': self.team.id,
                         },
                         {
-                            'cost': D('150'),
-                            'pricing_object_id': po3,
+                            'cost': D('50'),
+                            'pricing_object_id': po1,
                             'type_id': self.extra_cost_type.id,
                         },
                         {
-                            'cost': D('91.5'),
-                            'pricing_object_id': po3,
+                            'cost': D('30.5'),
+                            'pricing_object_id': po1,
                             'type_id': self.pricing_service2.id,
                             '_children': [
                                 {
-                                    'cost': D('15'),
-                                    'pricing_object_id': po3,
+                                    'cost': D('5'),
+                                    'pricing_object_id': po1,
                                     'type_id': self.base_usage_type.id,
                                 },
                                 {
-                                    'cost': D('1.5'),
-                                    'pricing_object_id': po3,
+                                    'cost': D('0.5'),
+                                    'pricing_object_id': po1,
                                     'type_id': self.team.id,
                                 },
                                 {
-                                    'cost': D('75'),
-                                    'pricing_object_id': po3,
+                                    'cost': D('25'),
+                                    'pricing_object_id': po1,
                                     'type_id': self.extra_cost_type.id,
                                 }
                             ],
-                        }
-                    ]
+                        },
+                    ],
                 },
+            ],
+            self.service_environments[4].id: [
                 {
                     'cost': D('424.5'),
                     'pricing_object_id': po4,
@@ -555,5 +506,55 @@ class TestPricingServicePlugin(TestCase):
                         }
                     ]
                 },
+                {
+                    'cost': D('424.5'),
+                    'pricing_object_id': po3,
+                    'type_id': self.pricing_service1.id,
+                    '_children': [
+                        {
+                            'cost': D('30'),
+                            'pricing_object_id': po3,
+                            'type_id': self.base_usage_type.id
+                        },
+                        {
+                            'cost': D('150'),
+                            'pricing_object_id': po3,
+                            'type_id': self.regular_usage_type.id,
+                        },
+                        {
+                            'cost': D('3'),
+                            'pricing_object_id': po3,
+                            'type_id': self.team.id,
+                        },
+                        {
+                            'cost': D('150'),
+                            'pricing_object_id': po3,
+                            'type_id': self.extra_cost_type.id,
+                        },
+                        {
+                            'cost': D('91.5'),
+                            'pricing_object_id': po3,
+                            'type_id': self.pricing_service2.id,
+                            '_children': [
+                                {
+                                    'cost': D('15'),
+                                    'pricing_object_id': po3,
+                                    'type_id': self.base_usage_type.id,
+                                },
+                                {
+                                    'cost': D('1.5'),
+                                    'pricing_object_id': po3,
+                                    'type_id': self.team.id,
+                                },
+                                {
+                                    'cost': D('75'),
+                                    'pricing_object_id': po3,
+                                    'type_id': self.extra_cost_type.id,
+                                }
+                            ],
+                        }
+                    ]
+                },
             ]
-        })
+        }
+        self.assertEquals(costs, result)
