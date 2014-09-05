@@ -13,23 +13,24 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.views.base_plugin_report import BasePluginReport
 from ralph_scrooge.models import UsageType
-from ralph_scrooge.forms import VenturesDailyUsagesForm
+from ralph_scrooge.forms import ServicesUsagesReportForm
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.plugins import report  # noqa
 
 
 logger = logging.getLogger(__name__)
 
 
-class VenturesDailyUsages(BasePluginReport):
+class ServicesUsagesReport(BasePluginReport):
     """
-    Reports for ventures dailyusages
+    Report with usages of resources (usage types) by service environments
+    per days
     """
-    template_name = 'ralph_scrooge/ventures_daily_usages.html'
-    Form = VenturesDailyUsagesForm
-    section = 'ventures-daily-usages'
-    report_name = _('Ventures Daily Usages Report')
-    submodule_name = 'ventures-daily-usages'
+    template_name = 'ralph_scrooge/report_services_usages.html'
+    Form = ServicesUsagesReportForm
+    section = 'services-usages-report'
+    report_name = _('Services Usages Report')
+    submodule_name = 'services-usages-report'
+    allow_statement = False   # temporary
 
     @property
     def initial(self):
@@ -37,8 +38,8 @@ class VenturesDailyUsages(BasePluginReport):
         Initially selected values for usage types on form.
         """
         usage_types = UsageType.objects.filter(symbol__in=[
-            'deprecation',
-            'physical_cpu_cores'
+            'depreciation',
+            'cores_count'
         ])
         return {'usage_types': [u.id for u in usage_types]}
 
@@ -58,20 +59,27 @@ class VenturesDailyUsages(BasePluginReport):
         return value
 
     @classmethod
-    def _prepare_final_report(cls, start, end, usage_types, data, ventures):
+    def _prepare_final_report(
+        cls,
+        start,
+        end,
+        usage_types,
+        data,
+        service_environments
+    ):
         """
         Convert information from dict to list. In this case data must be
         understandable for generating reports in html. Data format is:
 
         data = {
             day: {
-                usage_type1_symbol: {
-                    venture1_id: value1,
-                    venture2_id: value2,
+                usage_type1_id: {
+                    service_environment_1_id: value1,
+                    service_environment_2_id: value2,
                 },
-                usage_type2_symbol: {
-                    venture1_id: value1,
-                    venture2_id: value2,
+                usage_type2_id: {
+                    service_environment_1_id: value1,
+                    service_environment_2_id: value2,
                 },
                 ...
             },
@@ -79,27 +87,25 @@ class VenturesDailyUsages(BasePluginReport):
         }
 
         As a result method should return list of lists where each sublist is
-        row with usages for specified venture (0 when there are no usages of
-        usage type).
+        row with usages for specified service environment (0 when there are
+        no usages of usage type).
 
-        :param dict data: Complete report data for ventures daily usages.
+        :param dict data: Complete report data for service environments daily
+        usages.
         :returns list: prepared data to generating report in html
         :rtype list:
         """
         logger.debug("Preparing final report")
         final_data = []
-        for venture in ventures:
-            # venture ancestors path
-            venture_name = '/'.join(
-                v.name for v in venture.get_ancestors(include_self=True),
-            )
-            venture_data = [venture_name]
+        for se in service_environments:
+            # TODO: add historical information (name between start and end)
+            se_data = [se.service.name, se.environment.name]
             for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
                 date = day.date()
                 for usage_type in usage_types:
                     try:
                         value = cls._prepare_field(
-                            data[date][usage_type.symbol][venture.id],
+                            data[date][usage_type.id][se.id],
                             usage_type
                         )
                     except KeyError:
@@ -107,20 +113,20 @@ class VenturesDailyUsages(BasePluginReport):
                             0,
                             usage_type
                         )
-                    venture_data.append(value)
-            final_data.append(venture_data)
+                    se_data.append(value)
+            final_data.append(se_data)
         return final_data
 
     @classmethod
-    def _get_report_data(cls, start, end, usage_types, ventures):
+    def _get_report_data(cls, start, end, usage_types, service_environments):
         """
-        Use plugins to get daily usages data for given ventures. Plugin return
-        value format:
+        Use plugins to get daily usages data for given service environments.
+        Plugin should return data in following format:
 
         data_from_plugin = {
             'day': {
-                'venture_id': value,
-                'venture_id2': value2,
+                'service_environment_1_id': value,
+                'service_environment_2_id': value2,
             },
             ...
         }
@@ -128,11 +134,13 @@ class VenturesDailyUsages(BasePluginReport):
         :param datatime start: Start of time interval for report
         :param datatime end: End of time interval for report
         :param list usage_types: Usage types to use
-        :param list ventures: List of ventures for which data must be taken
-        :returns dict: Complete report data for ventures daily usages
+        :param list service_environments: List of service environments for
+            which data must be taken
+        :returns dict: Complete report data for service environments daily
+            usages
         :rtype dict:
         """
-        logger.debug("Getting ventures dailyusages report data")
+        logger.debug("Getting services environments dailyusages report data")
         data = {day.date(): {} for day in rrule.rrule(
             rrule.DAILY,
             dtstart=start,
@@ -142,22 +150,25 @@ class VenturesDailyUsages(BasePluginReport):
             plugin_name = usage_type.get_plugin_name()
             try:
                 plugin_report = plugin_runner.run(
-                    'reports',
+                    'scrooge_reports',
                     plugin_name,
-                    ventures=ventures,
+                    type='usages',
                     start=start,
                     end=end,
                     usage_type=usage_type,
-                    type='dailyusages',
+                    service_environments=service_environments,
                 )
                 for day, day_usages in plugin_report.iteritems():
-                    data[day][usage_type.symbol] = day_usages
+                    data[day][usage_type.id] = day_usages
             except KeyError:
                 logger.warning(
                     "Usage '{0}' has no usage plugin".format(plugin_name)
                 )
-            except BaseException as e:
-                logger.error("Report generate error: {0}".format(e))
+            except Exception as e:
+                logger.exception(
+                    "Error while generating the report: {0}".format(e)
+                )
+                raise
         return data
 
     @classmethod
@@ -170,33 +181,35 @@ class VenturesDailyUsages(BasePluginReport):
         **kwargs
     ):
         """
-        Main method. Create a full report for daily usages by ventures.
-        Process of creating report consists of two parts. First of them is
-        collecting all required data. Second step is preparing data to render
-        in html.
+        Main method. Create a full report for daily usages by service
+        environments. Process of creating report consists of two parts. First
+        of them is collecting all required data. Second step is preparing data
+        to render in html.
 
         :returns tuple: percent of progress and report data
         :rtype tuple:
         """
-        logger.info(
-            "Generating venture dailyusages report from {0} to {1}".format(
+        logger.info((
+            "Generating service environments dailyusages report from {0} "
+            "to {1}"
+            ).format(
                 start,
                 end,
             )
         )
-        ventures = cls._get_ventures(is_active)
+        service_environments = cls._get_services_environments(is_active)
         data = cls._get_report_data(
             start,
             end,
             usage_types,
-            ventures,
+            service_environments,
         )
         yield 100, cls._prepare_final_report(
             start,
             end,
             usage_types,
             data,
-            ventures,
+            service_environments
         )
 
     @classmethod
@@ -210,17 +223,18 @@ class VenturesDailyUsages(BasePluginReport):
         logger.debug("Getting headers for report")
         header = [
             [
-                (_('Venture'), {'rowspan': 2})
+                (_('Service'), {'rowspan': 2}),
+                (_('Environment'), {'rowspan': 2}),
             ],
             [],
         ]
         usage_types_headers = []
         for usage_type in usage_types:
             usage_type_header = plugin_runner.run(
-                'reports',
+                'scrooge_reports',
                 usage_type.get_plugin_name(),
                 usage_type=usage_type,
-                type='dailyusages_header',
+                type='usages_schema',
             )
             usage_types_headers.append(usage_type_header)
 

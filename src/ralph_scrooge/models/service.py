@@ -116,11 +116,6 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     def __unicode__(self):
         return self.name
 
-    def get_plugin_name(self):
-        if self.use_universal_plugin:
-            return 'service_plugin'
-        return self.symbol or self.name.lower().replace(' ', '_')
-
 
 class PricingService(BaseUsage):
     use_universal_plugin = db.BooleanField(

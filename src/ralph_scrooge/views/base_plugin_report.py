@@ -11,7 +11,7 @@ from decimal import Decimal as D
 from ralph_scrooge.utils import memoize
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.views.reports import Report
+from ralph_scrooge.views.base_report import BaseReport
 from ralph_scrooge.models import (
     PricingService,
     ServiceEnvironment,
@@ -23,11 +23,10 @@ from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.plugins import report  # noqa
 from ralph_scrooge.utils import AttributeDict
 
-
 logger = logging.getLogger(__name__)
 
 
-class BasePluginReport(Report):
+class BasePluginReport(BaseReport):
     schema_name = 'schema'
 
     @classmethod
