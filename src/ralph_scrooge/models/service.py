@@ -200,7 +200,8 @@ class ServiceUsageTypes(db.Model):
         validators=[
             MaxValueValidator(100.0),
             MinValueValidator(0.0)
-        ]
+        ],
+        default=0,
     )
 
     class Meta:

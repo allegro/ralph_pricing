@@ -20,6 +20,12 @@ class BaseUsageType(Choices):
 
 
 class BaseUsage(Named):
+    symbol = db.CharField(
+        verbose_name=_("symbol"),
+        max_length=255,
+        default="",
+        blank=True,
+    )
     type = db.PositiveIntegerField(
         verbose_name=_("type"),
         choices=BaseUsageType(),
