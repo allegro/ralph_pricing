@@ -394,7 +394,6 @@ class TeamPlugin(BaseCostPlugin):
             forecast,
             daily_cost,
         )
-        # total_cost = D(daily_cost * team_cost_days)
         service_environments_costs = defaultdict(D)
         for count_func, total_count_func in funcs:
             count_per_service_environment = count_func(
@@ -579,7 +578,6 @@ class TeamPlugin(BaseCostPlugin):
                 se = sei[0]
                 percent = sei[1][0]['percent']
                 service_environment_percent[se] += percent
-                # total_percent += percent
         # distribute cost of current team according to calculated percent
         for se, percent in service_environment_percent.iteritems():
             percent_scaled = percent / total_percent
