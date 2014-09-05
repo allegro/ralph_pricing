@@ -12,7 +12,6 @@ from tastypie.api import Api
 from ralph_scrooge.api import ServiceUsageResource
 from ralph_scrooge.views.devices import Devices
 from ralph_scrooge.views.extra_costs import ExtraCosts
-from ralph_scrooge.views.home import Home
 from ralph_scrooge.views.usages import Usages
 from ralph_scrooge.views.statement import Statements
 from ralph_scrooge.views.teams_percent import TeamsPercent
