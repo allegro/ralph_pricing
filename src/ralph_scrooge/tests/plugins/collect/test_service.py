@@ -10,13 +10,13 @@ import mock
 
 from django.test import TestCase
 
-from ralph_scrooge.models import BusinessLine, Service, OwnershipType
+from ralph_scrooge.models import ProfitCenter, Service, OwnershipType
 from ralph_scrooge.plugins.collect.service import (
     service as service_plugin,
     update_service,
 )
 from ralph_scrooge.tests.utils.factory import (
-    BusinessLineFactory,
+    ProfitCenterFactory,
     OwnerFactory,
     ServiceFactory,
 )
@@ -25,8 +25,8 @@ from ralph_scrooge.tests.plugins.collect.samples.service import SAMPLE_SERVICES
 
 class TestServiceCollectPlugin(TestCase):
     def setUp(self):
-        self.default_business_line = BusinessLine(pk=1)
-        self.business_line = BusinessLineFactory()
+        self.default_profit_center = ProfitCenter(pk=1)
+        self.profit_center = ProfitCenterFactory()
         self.owners = OwnerFactory.create_batch(7)
 
     def _sample_data(self):
@@ -34,7 +34,7 @@ class TestServiceCollectPlugin(TestCase):
         return {
             'ci_uid': service.ci_uid,
             'name': service.name,
-            'business_line': self.business_line.ci_uid,
+            'profit_center': self.profit_center.ci_uid,
             'technical_owners': [o.cmdb_id for o in self.owners[:3]],
             'business_owners': [o.cmdb_id for o in self.owners[3:6]],
         }
@@ -44,7 +44,7 @@ class TestServiceCollectPlugin(TestCase):
         General method to check if created/updated service match passed data
         """
         date = datetime.date(2014, 07, 01)
-        created = update_service(data, date, self.default_business_line)
+        created = update_service(data, date, self.default_profit_center)
 
         saved_service = Service.objects.get(ci_uid=data['ci_uid'])
         self.assertEquals(saved_service.name, data['name'])
@@ -81,19 +81,19 @@ class TestServiceCollectPlugin(TestCase):
         created, service = self._create_and_test_service(data)
         self.assertTrue(created)
         self.assertEquals(Service.objects.count(), 1)
-        self.assertEquals(service.business_line, self.business_line)
+        self.assertEquals(service.profit_center, self.profit_center)
 
-    def test_new_service_without_business_line(self):
+    def test_new_service_without_profit_center(self):
         """
         Basic test for new service without business line
         """
         data = self._sample_data()
-        data['business_line'] = None
+        data['profit_center'] = None
         self.assertEquals(Service.objects.count(), 0)
         created, service = self._create_and_test_service(data)
         self.assertTrue(created)
         self.assertEquals(Service.objects.count(), 1)
-        self.assertEquals(service.business_line, self.default_business_line)
+        self.assertEquals(service.profit_center, self.default_profit_center)
 
     def test_service_update(self):
         """
@@ -142,7 +142,7 @@ class TestServiceCollectPlugin(TestCase):
     @mock.patch('ralph_scrooge.plugins.collect.service.update_service')
     @mock.patch('ralph_scrooge.plugins.collect.service.get_services')
     def test_batch_update(self, get_services_mock, update_service_mock):
-        def sample_update_service(data, date, default_business_line):
+        def sample_update_service(data, date, default_profit_center):
             return int(data['ci_uid'].split('-')[-1]) % 2 == 0
 
         def sample_get_services():
@@ -161,10 +161,10 @@ class TestServiceCollectPlugin(TestCase):
         update_service_mock.assert_any_call(
             SAMPLE_SERVICES[0],
             date,
-            self.default_business_line,
+            self.default_profit_center,
         )
         update_service_mock.assert_any_call(
             SAMPLE_SERVICES[1],
             date,
-            self.default_business_line,
+            self.default_profit_center,
         )

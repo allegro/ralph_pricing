@@ -61,19 +61,19 @@ class Information(BaseReportPlugin):
             ).distinct(),
         ).select_related('business_line').order_by('history_id')
         services = {}
-        business_lines = defaultdict(list)
+        profit_centers = defaultdict(list)
         for service_history in services_history:
             services[service_history.id] = service_history.history_object
-            business_lines[service_history.id].append(
-                service_history.business_line
+            profit_centers[service_history.id].append(
+                service_history.profit_center
             )
         for service_environment in service_environments:
             info[service_environment.id] = {
                 'service_id': service_environment.service.ci_uid,
                 'service': service_environment.service.name,
                 'environment': service_environment.environment.name,
-                'business_line': ' / '.join([
-                    bl.name for bl in business_lines[
+                'profit_center': ' / '.join([
+                    pc.name for pc in profit_centers[
                         service_environment.service.id
                     ]
                 ]),

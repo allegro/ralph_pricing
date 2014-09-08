@@ -20,3 +20,10 @@
   fields:
     name: '-'
     ci_uid: -1
+
+# Profit Center
+- model: ralph_scrooge.ProfitCenter
+  pk: 1
+  fields:
+    name: '-'
+    ci_uid: -1
