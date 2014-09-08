@@ -5,8 +5,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from copy import deepcopy
+
 from django import forms
 from django.contrib import admin
+from django.contrib.admin.filters import ChoicesFieldListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 from lck.django.common.admin import ModelAdmin
@@ -68,16 +71,56 @@ class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     readonly_when_update = ('tenant_id', )
 
 
+class PricingObjectTypeFilter(ChoicesFieldListFilter):
+    """
+    Hides dummy pricing object type on filter list
+    """
+    def __init__(self, field, request, *args, **kwargs):
+        types = models.PricingObjectType()
+        types.remove((
+            models.PricingObjectType.dummy.id,
+            models.PricingObjectType.dummy.desc
+        ))
+        field = deepcopy(field)
+        field._choices = types
+        return super(PricingObjectTypeFilter, self).__init__(
+            field,
+            request,
+            *args,
+            **kwargs
+        )
+
+
 @register(models.PricingObject)
 class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('name', 'service', 'type', 'remarks',)
     search_fields = ('name', 'service_environment__service__name', 'remarks',)
-    list_filter = ('type', )
-    readonly_when_update = ('type', )
+    list_filter = (('type', PricingObjectTypeFilter), )
     inlines = [AssetInfoInline, VirtualInfoInline, TenantInfoInline]
+    # TODO: display inlines based on pricing object type
 
     def service(self, obj):
         return obj.service_environment.service
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Allows to change pricing object type when unknown
+        """
+        if obj and obj.type == models.PricingObjectType.unknown:
+            self.readonly_when_update = tuple()
+        else:
+            self.readonly_when_update = ('type', )
+        return super(PricingObjectAdmin, self).get_readonly_fields(
+            request,
+            obj
+        )
+
+    def queryset(self, request):
+        """
+        Do not display dummy pricing objects
+        """
+        result = super(PricingObjectAdmin, self).queryset(request)
+        return result.exclude(type=models.PricingObjectType.dummy)
 
 
 # =============================================================================

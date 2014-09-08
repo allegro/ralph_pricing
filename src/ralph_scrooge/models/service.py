@@ -20,6 +20,7 @@ from ralph_scrooge.models._history import (
 )
 from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 from ralph_scrooge.models.usage import DailyUsage
+from ralph_scrooge.models.pricing_object import PricingObjectType
 
 
 class BusinessLine(Named):
@@ -235,3 +236,18 @@ class ServiceEnvironment(db.Model):
 
     def __unicode__(self):
         return '{} - {}'.format(self.service, self.environment)
+
+    @property
+    def dummy_pricing_object(self):
+        """
+        Returns dummy pricing object for service environment
+        """
+        return self.pricing_objects.get_or_create(
+            type=PricingObjectType.dummy
+        )[0]
+
+    def save(self, *args, **kwargs):
+        result = super(ServiceEnvironment, self).save(*args, **kwargs)
+        # call property to create dummy pricing object if not exists
+        self.dummy_pricing_object
+        return result

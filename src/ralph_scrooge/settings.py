@@ -33,6 +33,8 @@ UNKNOWN_SERVICES_ENVIRONMENTS = {
     'netflow': (None, None),
 }
 
+ADDITIONAL_PRICING_OBJECT_TYPES = {}
+
 
 import sys
 TESTING = 'test' in sys.argv
