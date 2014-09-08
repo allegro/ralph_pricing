@@ -23,7 +23,7 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
     """
     show_in_report = db.BooleanField(
         verbose_name=_("Show warehouse in report"),
-        null=True,
+        default=False,
     )
     id_from_assets = db.IntegerField(
         verbose_name=_("Warehouse id from assets"),

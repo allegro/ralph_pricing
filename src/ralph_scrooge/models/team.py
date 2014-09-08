@@ -113,7 +113,6 @@ class TeamServiceEnvironmentPercent(db.Model):
             MaxValueValidator(100.0),
             MinValueValidator(0.0)
         ],
-       verbose_name=_("percent"),
     )
 
     class Meta:

@@ -51,7 +51,7 @@ class ExtraCost(db.Model):
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
-        related_name='extra_costs'
+        related_name='extra_costs',
         verbose_name=_("service environment"),
     )
     start = db.DateField(

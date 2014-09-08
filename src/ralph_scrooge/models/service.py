@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from datetime import datetime
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
@@ -27,7 +29,6 @@ class BusinessLine(Named):
         unique=True,
         null=False,
         blank=False,
-        verbose_name='CMDB CI UID',
         max_length=100,
         verbose_name=_("id from cmdb"),
     )
@@ -60,7 +61,7 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         blank=False,
         default=1,
         related_name='services',
-        verbose_name=_('business line')
+        verbose_name=_('business line'),
     )
     ci_uid = db.CharField(
         unique=True,
@@ -72,7 +73,7 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     ownership = db.ManyToManyField(
         'Owner',
         through='ServiceOwnership',
-        related_name='services'
+        related_name='services',
         verbose_name=_("ownership"),
     )
     environments = db.ManyToManyField(
@@ -89,7 +90,7 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         verbose_name=_("pricing service"),
     )
     history = IntervalHistoricalRecords(
-        verbose_name=_("history")
+        verbose_name=_("history"),
     )
 
     class Meta:
@@ -203,20 +204,22 @@ class ServiceUsageTypes(db.Model):
         PricingService,
         verbose_name=_("Pricing Service"),
     )
-    start = db.DateField(verbose_name=_("start"))
-    end = db.DateField(verbose_name=_("end"))
+    start = db.DateField(verbose_name=_("start"), default=datetime.min)
+    end = db.DateField(verbose_name=_("end"), default=datetime.max)
     percent = db.FloatField(
         validators=[
             MaxValueValidator(100.0),
             MinValueValidator(0.0)
         ],
         verbose_name=_("percent"),
+        default=100,
     )
 
     class Meta:
         verbose_name = _("service usage type")
         verbose_name_plural = _("service usage types")
         app_label = 'ralph_scrooge'
+        unique_together = ('usage_type', 'pricing_service', 'start', 'end')
 
     def __unicode__(self):
         return '{}/{} ({} - {})'.format(
@@ -243,6 +246,7 @@ class ServiceEnvironment(db.Model):
         verbose_name = _("service environment")
         verbose_name_plural = _("service environments")
         app_label = 'ralph_scrooge'
+        unique_together = ('service', 'environment')
 
     def __unicode__(self):
         return '{} - {}'.format(self.service, self.environment)

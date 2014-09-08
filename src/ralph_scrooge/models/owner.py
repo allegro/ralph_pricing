@@ -6,8 +6,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.db import models as db
+from django.utils.translation import ugettext_lazy as _
 from lck.django.common.models import TimeTrackable
-
 from lck.django.choices import Choices
 
 
@@ -53,7 +53,7 @@ class Owner(TimeTrackable):
 
 class ServiceOwnership(db.Model):
     service = db.ForeignKey(
-        'Service'
+        'Service',
         verbose_name=_("service"),
     )
     owner = db.ForeignKey(
@@ -64,9 +64,10 @@ class ServiceOwnership(db.Model):
         null=False,
         blank=False,
         default=1,
-        choices=OwnershipType()
+        choices=OwnershipType(),
         verbose_name=_("Type"),
     )
 
     class Meta:
         app_label = 'ralph_scrooge'
+        unique_together = ('owner', 'service', 'type')

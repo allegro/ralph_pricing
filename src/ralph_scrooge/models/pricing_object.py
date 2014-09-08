@@ -47,13 +47,14 @@ class PricingObject(TimeTrackable, EditorTrackable):
         default="",
     )
     service_environment = db.ForeignKey(
-        verbose_name=_("service environment"),
         'ServiceEnvironment',
+        verbose_name=_("service environment"),
         related_name='pricing_objects',
     )
 
     class Meta:
         app_label = 'ralph_scrooge'
+        unique_together = ('service_environment', 'type', 'name')
 
     def __unicode__(self):
         return '{} ({})'.format(
@@ -86,6 +87,7 @@ class DailyPricingObject(db.Model):
 
     class Meta:
         app_label = 'ralph_scrooge'
+        unique_together = ('service_environment', 'pricing_object', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.pricing_object, self.date)
@@ -207,6 +209,7 @@ class TenantInfo(PricingObject):
         blank=False,
         db_index=True,
         verbose_name=_("OpenStack Tenant ID"),
+        unique=True,
     )
 
     class Meta:

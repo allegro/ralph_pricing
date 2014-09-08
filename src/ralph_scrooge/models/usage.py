@@ -22,8 +22,9 @@ class UsageType(BaseUsage):
     symbol = db.CharField(
         verbose_name=_("symbol"),
         max_length=255,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
+        unique=True,
     )
     average = db.BooleanField(
         verbose_name=_("Average the values over multiple days"),
