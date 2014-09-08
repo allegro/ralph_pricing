@@ -324,7 +324,7 @@ def netflow(**kwargs):
     :rtype tuple:
     """
     service_uid, environment_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
-        'netflow'
+        'netflow', (None, None)
     )
     try:
         default_service = ServiceEnvironment.objects.get(

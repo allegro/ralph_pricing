@@ -12,10 +12,12 @@ from django.db.transaction import commit_on_success
 from ralph.util import plugin
 from ralph.util.api_pricing import get_services
 from ralph_scrooge.models import (
+    Environment,
     ProfitCenter,
     Owner,
     OwnershipType,
     Service,
+    ServiceEnvironment,
     ServiceOwnership,
 )
 
@@ -73,12 +75,16 @@ def update_service(data, date, default_profit_center):
             ) for owner in Owner.objects.filter(cmdb_id__in=to_add)
         ])
 
-    # save environments
-    # TODO
+    for environment_id in (data.get('environments') or []):
+        environment = Environment.objects.get(environment_id=environment_id)
+        ServiceEnvironment.objects.get_or_create(
+            service=service,
+            environment=environment,
+        )
     return created
 
 
-@plugin.register(chain='scrooge', requires=['business_line', 'owner'])
+@plugin.register(chain='scrooge', requires=['profit_center', 'owner'])
 def service(today, **kwargs):
     """
     Updates Services from CMDB

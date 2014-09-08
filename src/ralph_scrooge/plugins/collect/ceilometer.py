@@ -60,6 +60,7 @@ def get_usage_type(flavor_name):
         defaults=dict(
             name=usage_name,
             show_in_services_report=False,
+            type='SU',
         ),
     )[0]
 
