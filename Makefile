@@ -1,5 +1,8 @@
 quicktest:
 	DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_pricing
+	
+install:
+	pip install -e . 
 
 test-with-coveralls:
 	DJANGO_SETTINGS_PROFILE=test-pricing coverage run --source=ralph_pricing --omit='*migrations*,*tests*,*__init__*' '$(VIRTUAL_ENV)/bin/ralph' test ralph_pricing
