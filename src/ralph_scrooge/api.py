@@ -6,7 +6,7 @@ ReST API for Scrooge
 Done with TastyPie.
 
 Scrooge API provide endpoint for services to push usages of their resources
-by ventures.
+by services / pricing objects.
 
 """
 
@@ -24,7 +24,13 @@ from tastypie.authentication import ApiKeyAuthentication
 from tastypie.resources import Resource
 from tastypie.exceptions import ImmediateHttpResponse
 
-from ralph_scrooge.models import DailyUsage, Service, UsageType
+from ralph_scrooge.models import (
+    DailyUsage,
+    PricingObject,
+    PricingService,
+    ServiceEnvironment,
+    UsageType,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -51,45 +57,58 @@ class UsageObject(object):
         }
 
 
-class VentureUsageObject(object):
+class UsagesObject(object):
     """
-    Container for venture usages
+    Container for service or pricing object usages
     """
-    venture = None
+    service = None
+    environment = None
+    pricing_object = None
     usages = []  # list of UsageObject
 
-    def __init__(self, venture=None, usages=None, **kwargs):
-        self.venture = venture
+    def __init__(
+        self,
+        service=None,
+        environment=None,
+        pricing_object=None,
+        usages=None,
+        **kwargs
+    ):
+        self.service = service
+        self.environment = environment
+        self.pricing_object = pricing_object
         self.usages = usages or []
 
     def to_dict(self):
         return {
-            'venture': self.venture,
+            'service': self.service,
+            'environment': self.environment,
+            'pricing_object': self.pricing_object,
             'usages': [u.to_dict() for u in self.usages],
         }
 
 
-class ServiceUsageObject(object):
+class PricingServiceUsageObject(object):
     """
-    Container for service resources usages per venture
+    Container for pricing service resources usages per service
     """
-    service = None
+    pricing_service = None
     date = None
     overwrite = None
-    venture_usages = []  # list of VentureUsageObject
+    usages = []  # list of UsagesObject
 
-    def __init__(self, service=None, venture_usages=None, date=None, **kwargs):
-        self.service = service
+    def __init__(self, pricing_service=None, usages=None, date=None, **kwargs):
+        self.pricing_service = pricing_service
         self.date = date
-        self.venture_usages = venture_usages or []
+        self.usages = usages or []
         self.overwrite = 'no'  # default overwrite
 
     def to_dict(self):
         result = {
             'date': self.date,
-            'service': self.service,
+            'pricing_service': self.pricing_service,
             'overwrite': self.overwrite,
-            'venture_usages': [vu.to_dict() for vu in self.venture_usages]
+            'usages': [u.to_dict() for u in self.usages]
         }
         return result
 
@@ -103,12 +122,14 @@ class UsageResource(Resource):
         object_class = UsageObject
 
 
-class VentureUsageResource(Resource):
-    venture = fields.CharField(attribute='venture')
+class UsagesResource(Resource):
+    service = fields.CharField(attribute='service', null=True)  # symbol
+    environment = fields.CharField(attribute='environment', null=True)  # name
+    pricing_object = fields.CharField(attribute='pricing_object', null=True)
     usages = fields.ToManyField(UsageResource, 'usages')
 
     class Meta:
-        object_class = VentureUsageObject
+        object_class = UsagesObject
 
     def hydrate_usages(self, bundle):
         # need to use hydrate_m2m due to limitations of tastypie in dealing
@@ -118,18 +139,20 @@ class VentureUsageResource(Resource):
         return bundle
 
 
-class ServiceUsageResource(Resource):
+class PricingServiceUsageResource(Resource):
     """
     Provides PUSH REST API for services. Each service can use this API to post
-    information about usage of service resources by ventures.
+    information about usage of service resources by services.
 
     This endpoint supports only POST HTTP method. API format is as follows:
     {
-        "service": "<service_symbol>",
+        "pricing_service": "<service_symbol>",
         "date": "<date>",
-        "venture_usages": [
+        "overwrite: "no|values_only|delete_all_previous",
+        "usages": [
             {
-                "venture": "<venture_symbol>",
+                "service": "<service_symbol>",
+                "pricing_object": "<pricing_object_name>",
                 "usages": [
                     {
                         "symbol": "<usage_type_1_symbol>",
@@ -142,15 +165,16 @@ class ServiceUsageResource(Resource):
         ]
     }
 
-    Service, venture and usage symbol are symbols defined in Scrooge models.
+    Service, service and usage symbol are symbols defined in Scrooge models.
 
     Example:
     {
-        "service": "service_symbol",
+        "pricing_service": "pricing_service_symbol",
         "date": "2013-10-10",
-        "venture_usages": [
+        "usages": [
             {
-                "venture": "venture1",
+                "service": "service1",
+                "environment": "env1",
                 "usages": [
                     {
                         "symbol": "requests",
@@ -163,7 +187,7 @@ class ServiceUsageResource(Resource):
                 ]
             },
             {
-                "venture": "venture2",
+                "pricing_object": "pricing_object1",
                 "usages": [
                     {
                         "symbol": "requests",
@@ -176,7 +200,8 @@ class ServiceUsageResource(Resource):
                 ]
             },
             {
-                "venture": "venture3",
+                "service": "service2",
+                "environment": "env2",
                 "usages": [
                     {
                         "symbol": "requests",
@@ -193,30 +218,31 @@ class ServiceUsageResource(Resource):
 
     Possible return HTTP codes:
     201 - everything ok.
-    400 - invalid symbol (venture, usage or service).
+    400 - invalid symbol or name (pricing service, usage, service, environment,
+          pricing object).
     401 - authentication/authorization error.
     500 - error during parsing request/data.
     """
-    service = fields.CharField(attribute='service')
-    date = fields.DateTimeField(attribute='date')
+    pricing_service = fields.CharField(attribute='pricing_service')
+    date = fields.DateField(attribute='date')
     overwrite = fields.CharField(attribute='overwrite')
-    venture_usages = fields.ToManyField(
-        VentureUsageResource,
-        'venture_usages',
+    usages = fields.ToManyField(
+        UsagesResource,
+        'usages',
         full=True
     )
 
     class Meta:
         list_allowed_methos = ['post']
-        resource_name = 'serviceusages'
+        resource_name = 'pricingserviceusages'
         authentication = ApiKeyAuthentication()
-        object_class = ServiceUsageObject
+        object_class = PricingServiceUsageObject
         include_resource_uri = False
 
     @classmethod
-    def save_usages(cls, service_usages):
+    def save_usages(cls, pricing_service_usages):
         """
-        Save usages of service resources per venture
+        Save usages of service resources per service
 
         If any error occur during parsing service usages, no usage is saved
         and Bad Request response is returned.
@@ -226,40 +252,68 @@ class ServiceUsageResource(Resource):
 
         # check if service exists
         try:
-            Service.objects.get(symbol=service_usages.service)
-        except Service.DoesNotExist:
-            raise ImmediateHttpResponse(
-                response=http.HttpBadRequest(
-                    "Invalid service symbol: {}".format(service_usages.service)
-                )
+            PricingService.objects.get(
+                symbol=pricing_service_usages.pricing_service
             )
+        except PricingService.DoesNotExist:
+            raise ImmediateHttpResponse(response=http.HttpBadRequest(
+                "Invalid pricing service symbol: {}".format(
+                    pricing_service_usages.pricing_service
+                )
+            ))
 
         # check if date is properly set
-        assert isinstance(
-            service_usages.date,
-            (datetime.date, datetime.datetime)
+        assert isinstance(pricing_service_usages.date, datetime.date)
+        # check if overwrite is properly set
+        assert pricing_service_usages.overwrite in (
+            'no',
+            'delete_all_previous',
+            'values_only',
         )
-        usages_ventures = defaultdict(list)
-        for venture_usages in service_usages.venture_usages:
+        usages_daily_pricing_objects = defaultdict(list)
+        for usages in pricing_service_usages.usages:
             try:
-                # venture = Venture.objects.get(
-                #     symbol=venture_usages.venture,
-                #     is_active=True,
-                # )
-                venture = None
-                for usage in venture_usages.usages:
+                pricing_object = None
+                if usages.pricing_object:
+                    pricing_object = PricingObject.objects.get(
+                        name=usages.pricing_object,
+                    )
+                elif usages.service and usages.environment:
+                    service_environment = ServiceEnvironment.objects.get(
+                        service__name=usages.service,  # TODO: change to symbol
+                        environment__name=usages.environment,
+                    )
+                    pricing_object = service_environment.dummy_pricing_object
+                else:
+                    raise ImmediateHttpResponse(response=http.HttpBadRequest((
+                        "Pricing Object (Host, IP etc) or Service and "
+                        "Environment has to be provided"
+                    )))
+
+                for usage in usages.usages:
                     try:
                         usage_type = usage_types.get(
                             usage.symbol,
                             UsageType.objects.get(symbol=usage.symbol)
                         )
-                        usages_ventures[usage_type].append(venture)
-                        daily_usages.append(DailyUsage(
-                            date=service_usages.date,
-                            pricing_venture=venture,
+                        daily_pricing_object = (
+                            pricing_object.get_daily_pricing_object(
+                                pricing_service_usages.date
+                            )
+                        )
+                        daily_usage = DailyUsage(
+                            date=pricing_service_usages.date,
                             type=usage_type,
                             value=usage.value,
-                        ))
+                            daily_pricing_object=daily_pricing_object,
+                            service_environment=(
+                                daily_pricing_object.service_environment
+                            ),
+                        )
+                        daily_usages.append(daily_usage)
+                        usages_daily_pricing_objects[usage_type].append(
+                            daily_pricing_object
+                        )
                     except UsageType.DoesNotExist:
                         raise ImmediateHttpResponse(
                             response=http.HttpBadRequest(
@@ -268,31 +322,39 @@ class ServiceUsageResource(Resource):
                                 )
                             )
                         )
-            except Exception:
-                raise ImmediateHttpResponse(
-                    response=http.HttpBadRequest(
-                        "Invalid or inactive venture (symbol: {})".format(
-                            venture_usages.venture
-                        )
+            except PricingObject.DoesNotExist:
+                raise ImmediateHttpResponse(response=http.HttpBadRequest(
+                    "Invalid pricing object name ({})".format(
+                        usages.pricing_object
                     )
-                )
-        logger.info(
-            "Saving usages for service {0}".format(service_usages.service)
-        )
+                ))
+            except ServiceEnvironment.DoesNotExist:
+                raise ImmediateHttpResponse(response=http.HttpBadRequest(
+                    "Invalid service or environment name ({} / {})".format(
+                        usages.service,
+                        usages.environment,
+                    )
+                ))
+        logger.info("Saving usages for service {0}".format(
+            pricing_service_usages.pricing_service
+        ))
 
         # remove previous daily usages
-        if service_usages.overwrite in ('values_only', 'delete_all_previous'):
+        if pricing_service_usages.overwrite in (
+            'values_only',
+            'delete_all_previous'
+        ):
             logger.debug('Remove previous values ({})'.format(
-                service_usages.overwrite,
+                pricing_service_usages.overwrite,
             ))
-            for usage_type, ventures in usages_ventures.iteritems():
+            for usage_type, dpos in usages_daily_pricing_objects.iteritems():
                 previuos_usages = DailyUsage.objects.filter(
-                    date=service_usages.date,
+                    date=pricing_service_usages.date,
                     type=usage_type,
                 )
-                if service_usages.overwrite == 'values_only':
+                if pricing_service_usages.overwrite == 'values_only':
                     previuos_usages = previuos_usages.filter(
-                        pricing_venture__in=ventures
+                        daily_pricing_object__in=dpos
                     )
                 previuos_usages.delete()
 
@@ -300,14 +362,14 @@ class ServiceUsageResource(Resource):
         DailyUsage.objects.bulk_create(daily_usages)
 
     def obj_create(self, bundle, request=None, **kwargs):
-        bundle.obj = ServiceUsageObject()
+        bundle.obj = PricingServiceUsageObject()
         try:
             bundle = self.full_hydrate(bundle)
             self.save_usages(bundle.obj)
         except Exception:
             logger.exception(
                 "Exception occured while saving usages (service: {0})".format(
-                    bundle.obj.service
+                    bundle.obj.pricing_service
                 )
             )
             raise
@@ -316,10 +378,10 @@ class ServiceUsageResource(Resource):
     def detail_uri_kwargs(self, bundle_or_obj):
         return {}
 
-    def hydrate_venture_usages(self, bundle):
+    def hydrate_usages(self, bundle):
         # need to use hydrate_m2m due to limitations of tastypie in dealing
         # with fields.ToManyField hydration
-        venture_usages_bundles = self.venture_usages.hydrate_m2m(bundle)
-        # save usages per venture in bundle object
-        bundle.obj.venture_usages = [vub.obj for vub in venture_usages_bundles]
+        usages_bundles = self.usages.hydrate_m2m(bundle)
+        # save usages per service / pricing object in bundle object
+        bundle.obj.usages = [vub.obj for vub in usages_bundles]
         return bundle
