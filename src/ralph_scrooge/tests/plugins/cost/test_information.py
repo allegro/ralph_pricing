@@ -12,27 +12,27 @@ from django.test import TestCase
 from ralph_scrooge import models
 from ralph_scrooge.plugins.report.information import Information
 from ralph_scrooge.tests.utils.factory import (
-    BusinessLineFactory,
+    ProfitCenterFactory,
     ServiceEnvironmentFactory,
 )
 
 
 class TestInformationPlugin(TestCase):
     def setUp(self):
-        self.business_line1 = BusinessLineFactory()
-        self.business_line2 = BusinessLineFactory()
+        self.profit_center1 = ProfitCenterFactory()
+        self.profit_center2 = ProfitCenterFactory()
 
         self.report_start = date.today()
         self.report_end = self.report_start + timedelta(days=1)
         self.service_environment1 = ServiceEnvironmentFactory(
-            service__business_line=self.business_line1
+            service__profit_center=self.profit_center1
         )
         self.service_environment2 = ServiceEnvironmentFactory(
-            service__business_line=self.business_line2
+            service__profit_center=self.profit_center2
         )
         self.service_environments = models.ServiceEnvironment.objects.all()
 
-        self.service_environment1.service.business_line = self.business_line2
+        self.service_environment1.service.profit_center = self.profit_center2
         self.service_environment1.service.save()
 
     def test_costs(self):
@@ -43,16 +43,16 @@ class TestInformationPlugin(TestCase):
         )
         self.assertEquals(result, {
             self.service_environment1.id: {
-                'business_line': ' / '.join((
-                    self.business_line1.name,
-                    self.business_line2.name
+                'profit_center': ' / '.join((
+                    self.profit_center1.name,
+                    self.profit_center2.name
                 )),
                 'service_id': self.service_environment1.service.ci_uid,
                 'service': self.service_environment1.service.name,
                 'environment': self.service_environment1.environment.name,
             },
             self.service_environment2.id: {
-                'business_line': self.business_line2.name,
+                'profit_center': self.profit_center2.name,
                 'service_id': self.service_environment2.service.ci_uid,
                 'service': self.service_environment2.service.name,
                 'environment': self.service_environment2.environment.name,

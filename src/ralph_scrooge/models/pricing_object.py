@@ -7,8 +7,10 @@ from __future__ import unicode_literals
 
 from decimal import Decimal as D
 
+from django.conf import settings
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from dj.choices import _ChoicesMeta
 from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
@@ -20,12 +22,41 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
+class PricingObjectTypeMeta(_ChoicesMeta):
+    """
+    Metaclass which allows to define additional Pricing Object Types, without
+    breaking original ids. Additional pricing object types should be added to
+    settings as dictionary, with field name as key and function returning
+    choice as value (function is a workaround to not break original choices
+    ids).
+    """
+    def __new__(meta, classname, bases, classDict):
+        additional_choices = settings.ADDITIONAL_PRICING_OBJECT_TYPES
+        for choice_name, choice_func in additional_choices.items():
+            classDict[choice_name] = choice_func()
+        return super(PricingObjectTypeMeta, meta).__new__(
+            meta,
+            classname,
+            bases,
+            classDict
+        )
+
+
 class PricingObjectType(Choices):
+    __metaclass__ = PricingObjectTypeMeta
     _ = Choices.Choice
     asset = _("Asset")
     virtual = _("Virtual")
     tenant = _("OpenStack Tenant")
     ip_address = _("IP Address")
+    # dummy type to use in service environments where there is no real
+    # pricing object; there should be only one pricing object with dummy type
+    # for each service environment
+    dummy = _('-', id=254)
+    # unknown type to use, when could not determine type of pricing object;
+    # unknown pricing objects type could be modified in admin panel to select
+    # proper type
+    unknown = _('Unknown', id=255)
 
 
 class PricingObject(TimeTrackable, EditorTrackable):

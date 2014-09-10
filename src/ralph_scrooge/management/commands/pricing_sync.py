@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import datetime
 import logging
+import pkg_resources
 import textwrap
 from optparse import make_option
 
@@ -17,6 +18,8 @@ from ralph.util import plugin
 
 
 logger = logging.getLogger(__name__)
+
+PLUGINS_LOADED = False
 
 
 class PluginError(Exception):
@@ -65,8 +68,19 @@ class Command(BaseCommand):
         except Exception as e:
             logger.exception("{0}: {1}".format(name, e))
 
+    def _load_plugins(self):
+        """
+        Loads all collect plugins using scrooge.collect_plugins entry point.
+        """
+        global PLUGINS_LOADED
+        if PLUGINS_LOADED:
+            return
+        for p in pkg_resources.iter_entry_points('scrooge.collect_plugins'):
+            p.load()
+        PLUGINS_LOADED = True
+
     def handle(self, today, run_only, *args, **options):
-        from ralph_scrooge.plugins import collect  # noqa
+        self._load_plugins()
         if today:
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:

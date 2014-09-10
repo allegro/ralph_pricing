@@ -120,6 +120,15 @@ class BusinessLineFactory(DjangoModelFactory):
     ci_uid = Sequence(lambda n: n)
 
 
+class ProfitCenterFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ProfitCenter
+
+    name = Sequence(lambda n: 'Profit Center #%s' % n)
+    description = Sequence(lambda n: 'Profit Center #%s description' % n)
+    ci_uid = Sequence(lambda n: n)
+    business_line = SubFactory(BusinessLineFactory)
+
+
 class TenantInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.TenantInfo
 
