@@ -234,12 +234,8 @@ class ServiceUsageTypes(db.Model):
             MaxValueValidator(100.0),
             MinValueValidator(0.0)
         ],
-<<<<<<< HEAD
         verbose_name=_("percent"),
         default=100,
-=======
-        default=0,
->>>>>>> services
     )
 
     class Meta:
