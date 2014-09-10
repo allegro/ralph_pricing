@@ -50,7 +50,7 @@ class UsageObject(object):
         self.symbol = symbol
         self.value = value
 
-    def to_dict(self):
+    def to_dict(self, exclude_empty=False):
         return {
             'symbol': self.symbol,
             'value': self.value,
@@ -79,13 +79,15 @@ class UsagesObject(object):
         self.pricing_object = pricing_object
         self.usages = usages or []
 
-    def to_dict(self):
-        return {
-            'service': self.service,
-            'environment': self.environment,
-            'pricing_object': self.pricing_object,
-            'usages': [u.to_dict() for u in self.usages],
+    def to_dict(self, exclude_empty=False):
+        data = {
+            'usages': [u.to_dict(exclude_empty) for u in self.usages],
         }
+        for f in ('service', 'environment', 'pricing_object'):
+            v = getattr(self, f)
+            if (exclude_empty and v) or not exclude_empty:
+                data[f] = v
+        return data
 
 
 class PricingServiceUsageObject(object):
@@ -103,12 +105,12 @@ class PricingServiceUsageObject(object):
         self.usages = usages or []
         self.overwrite = 'no'  # default overwrite
 
-    def to_dict(self):
+    def to_dict(self, exclude_empty=False):
         result = {
             'date': self.date,
             'pricing_service': self.pricing_service,
             'overwrite': self.overwrite,
-            'usages': [u.to_dict() for u in self.usages]
+            'usages': [u.to_dict(exclude_empty) for u in self.usages]
         }
         return result
 
@@ -126,7 +128,7 @@ class UsagesResource(Resource):
     service = fields.CharField(attribute='service', null=True)  # symbol
     environment = fields.CharField(attribute='environment', null=True)  # name
     pricing_object = fields.CharField(attribute='pricing_object', null=True)
-    usages = fields.ToManyField(UsageResource, 'usages')
+    usages = fields.ToManyField(UsageResource, 'usages', null=True)
 
     class Meta:
         object_class = UsagesObject
@@ -229,7 +231,7 @@ class PricingServiceUsageResource(Resource):
     usages = fields.ToManyField(
         UsagesResource,
         'usages',
-        full=True
+        full=True,
     )
 
     class Meta:
@@ -238,6 +240,40 @@ class PricingServiceUsageResource(Resource):
         authentication = ApiKeyAuthentication()
         object_class = PricingServiceUsageObject
         include_resource_uri = False
+
+    # =================
+    # POST
+    # =================
+    def obj_create(self, bundle, request=None, **kwargs):
+        """
+        POST API (creates daily usages)
+        """
+        bundle.obj = PricingServiceUsageObject()
+        try:
+            bundle = self.full_hydrate(bundle)
+            self.save_usages(bundle.obj)
+        except Exception:
+            logger.exception(
+                "Exception occured while saving usages (service: {0})".format(
+                    bundle.obj.pricing_service
+                )
+            )
+            raise
+        return bundle
+
+    def detail_uri_kwargs(self, bundle_or_obj):
+        return {}
+
+    def hydrate_usages(self, bundle):
+        """
+        Hydrate usages for PUSH API (data to object)
+        """
+        # need to use hydrate_m2m due to limitations of tastypie in dealing
+        # with fields.ToManyField hydration
+        usages_bundles = self.usages.hydrate_m2m(bundle)
+        # save usages per service / pricing object in bundle object
+        bundle.obj.usages = [vub.obj for vub in usages_bundles]
+        return bundle
 
     @classmethod
     def save_usages(cls, pricing_service_usages):
@@ -361,27 +397,82 @@ class PricingServiceUsageResource(Resource):
         # bulk save all usages
         DailyUsage.objects.bulk_create(daily_usages)
 
-    def obj_create(self, bundle, request=None, **kwargs):
-        bundle.obj = PricingServiceUsageObject()
+    # =================
+    # GET
+    # =================
+    def obj_get(self, pk, request=None, **kwargs):
+        """
+        Usages GET API
+        Requires url (resource) in following format:
+            <pricing_service_symbol>/<date(YYYY-MM-DD)>
+        """
         try:
-            bundle = self.full_hydrate(bundle)
-            self.save_usages(bundle.obj)
+            pricing_service_symbol, date = pk.split('/')
+            usages_date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+            return self._get_pricing_service_usages(
+                pricing_service_symbol,
+                usages_date
+            )
         except Exception:
             logger.exception(
-                "Exception occured while saving usages (service: {0})".format(
-                    bundle.obj.pricing_service
-                )
+                "Exception occured while parsing url ({0})".format(pk)
             )
             raise
-        return bundle
 
-    def detail_uri_kwargs(self, bundle_or_obj):
-        return {}
+    def full_dehydrate(self, bundle, *args, **kwargs):
+        """
+        Dehydration for GET API (object to dict)
+        """
+        data = bundle.obj.to_dict(exclude_empty=True)
+        del data['overwrite']  # remove default overwrite info from result
+        return data
 
-    def hydrate_usages(self, bundle):
-        # need to use hydrate_m2m due to limitations of tastypie in dealing
-        # with fields.ToManyField hydration
-        usages_bundles = self.usages.hydrate_m2m(bundle)
-        # save usages per service / pricing object in bundle object
-        bundle.obj.usages = [vub.obj for vub in usages_bundles]
-        return bundle
+    @classmethod
+    def _get_pricing_service_usages(cls, pricing_service_symbol, date):
+        """
+        Returns usages of pricing service (on date) for GET API
+        """
+        try:
+            pricing_service = PricingService.objects.get(
+                symbol=pricing_service_symbol
+            )
+        except PricingService.DoesNotExist:
+            raise ImmediateHttpResponse(response=http.HttpBadRequest(
+                "Invalid pricing service symbol: {}".format(
+                    pricing_service_symbol
+                )
+            ))
+        else:
+            ps = PricingServiceUsageObject(
+                pricing_service=pricing_service.symbol,
+                date=date,
+                usages=[],
+            )
+            usages_dict = defaultdict(list)
+            # iterate through pricing service usage types
+            for usage_type in pricing_service.usage_types.all():
+                daily_usages = usage_type.dailyusage_set.filter(
+                    date=date
+                ).select_related(
+                    'service_environment',
+                    'service_environment__service',
+                    'service_environment__environment',
+                    'pricing_object'
+                )
+                for daily_usage in daily_usages:
+                    usages_dict[daily_usage.daily_pricing_object].append(
+                        (daily_usage.type.symbol, daily_usage.value)
+                    )
+            # save usages tp UsagesObjects
+            for dpo, u in usages_dict.iteritems():
+                usages = UsagesObject()
+                se = dpo.service_environment
+                usages.service = se.service.name
+                usages.environment = se.environment.name
+                # if pricing object is not dummy pricing object for service
+                # environment use it
+                if se.dummy_pricing_object != dpo.pricing_object:
+                    usages.pricing_object = dpo.pricing_object.name
+                usages.usages = [UsageObject(k, v) for k, v in u]
+                ps.usages.append(usages)
+        return ps

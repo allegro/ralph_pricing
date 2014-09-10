@@ -6,11 +6,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
+import json
 
 from django.contrib.auth.models import User
 from tastypie.test import ResourceTestCase
 
-from ralph_scrooge.models import DailyUsage
+from ralph_scrooge.models import DailyUsage, ServiceUsageTypes
 from ralph_scrooge.api import (
     PricingServiceUsageObject,
     PricingServiceUsageResource,
@@ -28,6 +29,7 @@ from ralph_scrooge.tests.utils.factory import (
 class TestPricingServiceUsagesApi(ResourceTestCase):
     def setUp(self):
         super(TestPricingServiceUsagesApi, self).setUp()
+        self.maxDiff = None
         self.resource = 'pricingserviceusages'
         self.user = User.objects.create_user(
             'ralph',
@@ -48,6 +50,21 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
 
         self.usage_type1 = UsageTypeFactory()
         self.usage_type2 = UsageTypeFactory()
+
+        ServiceUsageTypes.objects.create(
+            usage_type=self.usage_type1,
+            pricing_service=self.pricing_service,
+            start=datetime.date.min,
+            end=datetime.date.max,
+            percent=50,
+        )
+        ServiceUsageTypes.objects.create(
+            usage_type=self.usage_type2,
+            pricing_service=self.pricing_service,
+            start=datetime.date.min,
+            end=datetime.date.max,
+            percent=50,
+        )
 
         self.api_key = self.create_apikey(
             self.user.username,
@@ -418,3 +435,27 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
             (self.service_environment2.id, 321),
             (self.pricing_object2.service_environment.id, 3.3),
         ]))
+
+    def test_get_pricing_service_usages(self):
+        self._basic_call()
+        # data = service_usages.to_dict()
+        resp = self.api_client.get(
+            '/scrooge/api/v0.9/{0}/{1}/{2}/'.format(
+                self.resource,
+                self.pricing_service.symbol,
+                self.date.strftime('%Y-%m-%d'),
+            ),
+            authentication=self.api_key,
+        )
+        self.assertEquals(resp.status_code, 200)
+        # customize usages dict to response
+        compare_to = self._get_sample().to_dict(exclude_empty=True)
+        compare_to['date'] = compare_to['date'].strftime('%Y-%m-%d')
+        del compare_to['overwrite']  # remove overwrite
+        # add service and environment when pricing object is returned
+        po1_se = self.pricing_object1.service_environment
+        compare_to['usages'][2].update({
+            'environment': po1_se.environment.name,
+            'service': po1_se.service.name,
+        })
+        self.assertEquals(compare_to, json.loads(resp.content))
