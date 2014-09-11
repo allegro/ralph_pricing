@@ -18,11 +18,14 @@ logger = logging.getLogger(__name__)
 
 
 @commit_on_success
-def update_profit_center(data, date):
+def update_profit_center(data, date, default_business_line):
     """
     Updates single profit center according to data from ralph
     """
-    business_line = BusinessLine.objects.get(ci_uid=data['business_line'])
+    if data['business_line'] is not None:
+        business_line = BusinessLine.objects.get(ci_uid=data['business_line'])
+    else:
+        business_line = default_business_line
     profit_center, created = ProfitCenter.objects.get_or_create(
         ci_uid=data['ci_uid'],
     )
@@ -39,11 +42,12 @@ def profit_center(today, **kwargs):
     Updates Business Lines from CMDB
     """
     new_bl = total = 0
+    default_business_line = BusinessLine.objects.get(pk=1)
     for data in get_profit_centers():
-        if update_profit_center(data, today):
+        if update_profit_center(data, today, default_business_line):
             new_bl += 1
         total += 1
-    return True, '{} new business line(s), {} updated, {} total'.format(
+    return True, '{} new profit center(s), {} updated, {} total'.format(
         new_bl,
         total - new_bl,
         total,
