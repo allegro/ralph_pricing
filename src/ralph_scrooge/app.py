@@ -29,7 +29,7 @@ class Scrooge(RalphModule):
 
     @property
     def home_url(self):
-        return reverse('scrooge_home')
+        return reverse('services_costs_report')
 
     def __init__(self, **kwargs):
         super(Scrooge, self).__init__(

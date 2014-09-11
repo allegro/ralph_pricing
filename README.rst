@@ -8,12 +8,12 @@
     :alt: Number of PyPI downloads
 
 
-.. image:: https://travis-ci.org/allegro/ralph_pricing.svg?branch=services
+.. image:: https://travis-ci.org/allegro/ralph_pricing.svg?branch=develop
     :target: https://travis-ci.org/allegro/ralph_pricing
 
 
-.. image:: https://coveralls.io/repos/allegro/ralph_pricing/badge.png?branch=services
-  :target: https://coveralls.io/r/allegro/ralph_scrooge?branch=services
+.. image:: https://coveralls.io/repos/allegro/ralph_pricing/badge.png?branch=develop
+  :target: https://coveralls.io/r/allegro/ralph_pricing?branch=develop
 
 
 .. image:: https://pypip.in/license/ralph_scrooge/badge.svg
