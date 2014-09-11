@@ -15,8 +15,8 @@ PRICE_PLACES = 6
 
 
 class DailyCostManager(db.Manager):
-    def get_queryset(self):
-        return super(DailyCostManager, self).get_queryset().filter(depth=0)
+    def get_query_set(self):
+        return super(DailyCostManager, self).get_query_set().filter(depth=0)
 
 
 class DailyCost(MultiPathNode):

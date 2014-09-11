@@ -70,7 +70,6 @@ class BaseReportPlugin(BasePlugin):
             date__lte=end,
             service_environment__in=service_environments,
             type=base_usage,
-            depth=0,
         ).values(
             'service_environment__id'
         ).annotate(
@@ -104,3 +103,9 @@ class BaseReportPlugin(BasePlugin):
                 'divide_by': base_usage.divide_by,
             }
         return schema
+
+    def usages(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def usages_schema(self, *args, **kwargs):
+        raise NotImplementedError()

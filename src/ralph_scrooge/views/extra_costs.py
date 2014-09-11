@@ -5,13 +5,14 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.app import Scrooge
 from ralph_scrooge.forms import ExtraCostFormSet
-from ralph_scrooge.menus import extra_costs_menu
+from ralph_scrooge.sidebar_menus import extra_costs_menu
 from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.views.base import Base
 
@@ -48,10 +49,10 @@ class ExtraCosts(Base):
                             self.extra_cost_type
                         )
                 self.formset.save()
-                messages.success(self.request, "Extra costs updated.")
+                messages.success(self.request, _("Extra costs updated."))
                 return HttpResponseRedirect(self.request.path)
             else:
-                messages.error(self.request, "Please fix the errors.")
+                messages.error(self.request, _("Please fix the errors."))
         return super(ExtraCosts, self).get(*args, **kwargs)
 
     def get(self, *args, **kwargs):
