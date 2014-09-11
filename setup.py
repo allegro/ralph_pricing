@@ -12,7 +12,7 @@ with open(os.path.join(current_dir, 'README.rst')) as readme_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
 sys.path.insert(0, current_dir + os.sep + 'src')
-from ralph_pricing import VERSION
+from ralph_scrooge import VERSION
 release = ".".join(str(num) for num in VERSION)
 
 setup(
@@ -36,11 +36,15 @@ setup(
         'django-mptt==0.5.5',
         'python-ceilometerclient>=1.0.10',
         'python-novaclient==2.17.0',
+        'django-simple-history',
     ],
     entry_points={
         'django.pluggable_app': [
-            'scrooge = ralph_pricing.app:Scrooge',
+            'scrooge = ralph_scrooge.app:Scrooge',
         ],
+        'scrooge.collect_plugins': [
+            'scrooge = ralph_scrooge.plugins.collect',
+        ]
     },
     classifiers=[
         'Development Status :: 4 - Beta',

@@ -1,0 +1,29 @@
+{% extends 'ui/base.html' %}
+{% load bob %}
+{% load icons %}
+
+{% block styles %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/style.css">
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/js/split.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/table_fixed_header.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
+{% endblock %}
+
+{% block contentarea %}
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+    {% if sidebar_items %}
+        {% sidebar_menu sidebar_items sidebar_selected %}
+    {% endif %}
+    {% block sidebar_search %}
+    {% endblock %}
+{% endblock %}

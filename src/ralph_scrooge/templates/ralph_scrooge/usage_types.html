@@ -1,0 +1,66 @@
+{% extends "ralph_scrooge/base.html" %}
+{% load url from future %}
+{% load icons %}
+{% load formats %}
+{% load bob %}
+
+{% block content %}
+{% if formset %}
+<form method="POST" class="form form-split">
+{% csrf_token %}
+{{ formset.management_form }}
+<table class="table table-striped table-bordered details-dns table-condensed usages">
+    <thead>
+        <tr>
+            <!--Yes, i know... so so sorry but it is the simplest way to do this-->
+            <th width="16"></th>
+            {% if by_warehouse %}
+            <th width="20">Warehouse</th>
+            {% endif %}
+
+            {% if not by_cost %}
+            <th width="*">Forecast price</th>
+            <th width="*">Price</th>
+            {% else %}
+            <th width="*">Forecast cost</th>
+            <th width="*">Cost</th>
+            {% endif %}
+
+            <th width="*">Start</th>
+            <th width="*">End</th>
+            <th width="20">Del</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for form in formset %}
+        <tr>
+            <td style="vertical-align:middle" class="">
+                {% icon 'fugue-money-coin' %}
+                {% for f in form.hidden_fields %}{{ f }}{% endfor %}
+            </td>
+            {% for f in form.visible_fields %}
+                {% if by_cost and f.name in hidden.by_cost or not by_cost and f.name in hidden.not_by_cost or not by_warehouse and f.name in hidden.not_by_warehouse %}
+                    <td style="display:none" class=""> {{ f }} </td>
+                {% else %}
+                    <td class="control-group {{ f.css_classes }} {% if f.errors %}error{% endif %}" style="vertical-align:middle;text-align:center">
+                    {{ f }}
+                    {% for e in f.errors %}
+                        <div class="help-block">{{ e }}</div>
+                    {% endfor %}
+                    </td>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="buttons pull-right">
+<!--     <a href="#" class="btn btn-success add_row">+</a> -->
+    {% spaceless %}
+    <button type="submit" value="Save" class="btn btn-primary"
+    >{% icon 'fugue-tick' %}&nbsp;Save</button>
+    {% endspaceless %}
+</div>
+</form>
+{% endif %}
+{% endblock content %}

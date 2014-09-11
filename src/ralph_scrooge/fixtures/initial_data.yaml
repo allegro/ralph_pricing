@@ -1,0 +1,29 @@
+# Warehouse
+
+- model: ralph_scrooge.Warehouse
+  pk: 1
+  fields:
+    name: Default
+    show_in_report: False
+    id_from_assets: -1
+
+# Environment
+- model: ralph_scrooge.Environment
+  pk: 1
+  fields:
+    name: '-'
+    environment_id: -1
+
+# Business Line
+- model: ralph_scrooge.BusinessLine
+  pk: 1
+  fields:
+    name: '-'
+    ci_uid: -1
+
+# Profit Center
+- model: ralph_scrooge.ProfitCenter
+  pk: 1
+  fields:
+    name: '-'
+    ci_uid: -1
