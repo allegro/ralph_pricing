@@ -10,7 +10,7 @@ import logging
 from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.views.reports import Report
+from ralph_scrooge.views.base_report import BaseReport
 from ralph_scrooge.forms import DevicesVenturesChangesForm
 
 
@@ -24,7 +24,7 @@ SQL_DAY_SUB = {
 }
 
 
-class VenturesChanges(Report):
+class VenturesChanges(BaseReport):
     """
     Report with listing of devices ventures changes. Contains basic information
     about change such as device info (sn, barcode, name), change date and

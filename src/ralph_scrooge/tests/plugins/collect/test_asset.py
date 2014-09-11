@@ -60,7 +60,8 @@ class TestAssetPlugin(TestCase):
             'test_name',
             True,
             False,
-            True
+            True,
+            'SU',
         )
         self.assertEqual(usage_type, UsageType.objects.get())
         self.assertEqual(usage_type.symbol, 'test_symbol')
@@ -68,6 +69,7 @@ class TestAssetPlugin(TestCase):
         self.assertEqual(usage_type.by_warehouse, True)
         self.assertEqual(usage_type.by_cost, False)
         self.assertEqual(usage_type.average, True)
+        self.assertEqual(usage_type.usage_type, 'SU')
 
     def test_get_asset_and_pricing_object_when_asset_info_not_exist(self):
         self.assertEqual(

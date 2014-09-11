@@ -9,29 +9,29 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
-from ralph_pricing.app import Scrooge
-from ralph_pricing.forms import TeamDaterangeFormSet
-from ralph_pricing.menus import teams_menu
-from ralph_pricing.models import Team
-from ralph_pricing.views.base import Base
+from ralph_scrooge.app import Scrooge
+from ralph_scrooge.forms import TeamDaterangeFormSet
+from ralph_scrooge.sidebar_menus import teams_menu
+from ralph_scrooge.models import Team
+from ralph_scrooge.views.base import Base
 
 
 class Teams(Base):
-    template_name = 'ralph_pricing/teams.html'
+    template_name = 'ralph_scrooge/teams.html'
     submodule_name = 'teams'
 
     def __init__(self, *args, **kwargs):
         super(Teams, self).__init__(*args, **kwargs)
         self.formset = None
         self.team = None
-        self.team_name = None
+        self.team_id = None
 
     def init_args(self):
-        self.team_name = self.kwargs.get('team')
-        if self.team_name is not None:
+        self.team_id = self.kwargs.get('team_id')
+        if self.team_id is not None:
             self.team = get_object_or_404(
                 Team,
-                name=self.team_name,
+                pk=self.team_id,
             )
 
     def post(self, *args, **kwargs):
@@ -54,7 +54,7 @@ class Teams(Base):
 
     def get(self, *args, **kwargs):
         self.init_args()
-        if self.team_name:
+        if self.team_id:
             self.formset = TeamDaterangeFormSet(
                 queryset=self.team.dateranges.order_by('start'),
             )
@@ -65,9 +65,9 @@ class Teams(Base):
         context.update({
             'sidebar_items': teams_menu(
                 '/{0}/teams'.format(Scrooge.url_prefix),
-                self.team_name
+                self.team_id
             ),
-            'sidebar_selected': self.team_name,
+            'sidebar_selected': self.team_id,
             'formset': self.formset,
         })
         return context

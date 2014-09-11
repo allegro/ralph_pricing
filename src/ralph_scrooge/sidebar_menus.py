@@ -110,7 +110,7 @@ def usages_menu(href='', selected=None):
             name=usage_type.name,
             subitems=[],
             fugue_icon='fugue-beaker',
-            href='{}/{}/'.format(href, usage_type.name),
+            href='{}/{}/'.format(href, usage_type.id),
         ) for usage_type in usage_types
     ]
     return items
@@ -135,7 +135,7 @@ def teams_menu(href, selected=None):
             name=team.name,
             subitems=[],
             fugue_icon='fugue-user-worker',
-            href='{}/{}'.format(href, team.name),
+            href='{}/{}'.format(href, team.id),
             indent=' ',
             collapsed=True,
             collapsible=True,
@@ -149,7 +149,7 @@ def teams_menu(href, selected=None):
                 name=dates['id'],
                 subitems=[],
                 fugue_icon='fugue-clock',
-                href='{}/{}/{}'.format(href, team.name, dates['id']),
+                href='{}/{}/{}'.format(href, team.id, dates['id']),
                 indent=' '
             )
             subitem.parent = item

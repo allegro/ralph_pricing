@@ -11,7 +11,7 @@ from decimal import Decimal as D
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
-from ralph_assets.api_pricing import get_assets
+from ralph_assets.api_scrooge import get_assets
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
@@ -206,7 +206,7 @@ def update_assets(data, date, usages):
     return new_created
 
 
-def get_usage(symbol, name, by_warehouse, by_cost, average):
+def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     """
     Creates power consumption usage type if not created.
 
@@ -218,7 +218,6 @@ def get_usage(symbol, name, by_warehouse, by_cost, average):
     :returns object: Django orm UsageType object
     :rtype object:
     """
-    # TODO: add types (BU, SU)
     usage_type, created = UsageType.objects.get_or_create(
         symbol=symbol,
         defaults=dict(
@@ -228,6 +227,8 @@ def get_usage(symbol, name, by_warehouse, by_cost, average):
             average=average,
         ),
     )
+    usage_type.usage_type = type
+    usage_type.save()
     return usage_type
 
 
@@ -249,6 +250,7 @@ def asset(**kwargs):
         by_warehouse=False,
         by_cost=False,
         average=True,
+        type='BU',
     )
     try:
         usage_price = UsagePrice.objects.get(
@@ -270,13 +272,15 @@ def asset(**kwargs):
             by_warehouse=False,
             by_cost=False,
             average=True,
+            type='SU',
         ),
         'cores_count': get_usage(
             'physical_cpu_cores',
-            'Physical CPU cores',
+            'Physical CPU cores count',
             by_warehouse=False,
             by_cost=False,
             average=True,
+            type='SU',
         ),
         'power_consumption': get_usage(
             'power_consumption',
@@ -284,6 +288,7 @@ def asset(**kwargs):
             by_warehouse=True,
             by_cost=True,
             average=False,
+            type='BU',
         ),
         'collocation': get_usage(
             'collocation',
@@ -291,6 +296,7 @@ def asset(**kwargs):
             by_warehouse=True,
             by_cost=True,
             average=True,
+            type='BU',
         ),
     }
 

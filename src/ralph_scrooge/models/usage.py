@@ -60,7 +60,7 @@ class UsageType(BaseUsage):
         verbose_name=_("Type"),
         max_length=2,
         choices=TYPE_CHOICES,
-        default='RU',
+        default='SU',
     )
     use_universal_plugin = db.BooleanField(
         verbose_name=_("Use universal plugin"),

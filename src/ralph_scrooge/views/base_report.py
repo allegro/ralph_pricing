@@ -66,7 +66,7 @@ def format_csv_header(header):
     return result
 
 
-class Report(Base):
+class BaseReport(Base):
     """
     A base class for the reports. Override ``template_name``, ``Form``,
     ``section``, ``get_header`` and ``get_data`` in the specific reports.
@@ -82,7 +82,7 @@ class Report(Base):
     allow_statement = True
 
     def __init__(self, *args, **kwargs):
-        super(Report, self).__init__(*args, **kwargs)
+        super(BaseReport, self).__init__(*args, **kwargs)
         self.data = []
         self.header = []
         self.form = None
@@ -127,7 +127,7 @@ class Report(Base):
                         _("Please wait for the report "
                           "to finish calculating."),
                     )
-        return super(Report, self).get(*args, **kwargs)
+        return super(BaseReport, self).get(*args, **kwargs)
 
     def _format_statement_header(self):
         """
@@ -179,7 +179,7 @@ class Report(Base):
         return data
 
     def get_context_data(self, **kwargs):
-        context = super(Report, self).get_context_data(**kwargs)
+        context = super(BaseReport, self).get_context_data(**kwargs)
         context.update({
             'progress': self.progress,
             'data': self.data,

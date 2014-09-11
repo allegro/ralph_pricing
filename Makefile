@@ -1,3 +1,6 @@
+install:
+	pip install -e . --use-mirrors --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core --allow-unverified pysphere
+
 quicktest:
 	DJANGO_SETTINGS_DIR=src/ralph_scrooge DJANGO_SETTINGS_PROFILE=test-scrooge ralph test ralph_scrooge
 

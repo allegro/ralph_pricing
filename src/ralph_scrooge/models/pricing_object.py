@@ -96,6 +96,16 @@ class PricingObject(TimeTrackable, EditorTrackable):
     # TODO: AssetInfo / VirtualInfo should be required if PricingObject has
     # asset or virtual type
 
+    def get_daily_pricing_object(self, date):
+        try:
+            return self.daily_pricing_objects.get(date=date)
+        except DailyPricingObject.DoesNotExist:
+            return DailyPricingObject.objects.create(
+                pricing_object=self,
+                date=date,
+                service_environment=self.service_environment,
+            )
+
 
 class DailyPricingObject(db.Model):
     date = db.DateField(

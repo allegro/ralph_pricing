@@ -62,6 +62,7 @@ class PricingObjectFactory(DjangoModelFactory):
 
     type = 1
     service_environment = SubFactory(ServiceEnvironmentFactory)
+    name = Sequence(lambda n: 'Pricing Object #%s' % n)
 
 
 class DailyPricingObjectFactory(DjangoModelFactory):
@@ -210,4 +211,5 @@ class PricingServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.PricingService
 
     name = Sequence(lambda n: 'Pricing Service #%s' % n)
+    symbol = Sequence(lambda n: 'ps%s' % n)
     use_universal_plugin = True
