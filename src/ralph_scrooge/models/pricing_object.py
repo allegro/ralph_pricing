@@ -261,7 +261,7 @@ class DailyTenantInfo(DailyPricingObject):
     tenant_info = db.ForeignKey(
         TenantInfo,
         related_name='daily_tenant',
-        verbose_name=_("tenant defails"),
+        verbose_name=_("tenant details"),
     )
     enabled = db.BooleanField(
         null=False,
