@@ -9,7 +9,7 @@ from django.conf.urls.defaults import include, patterns, url
 from django.contrib.auth.decorators import login_required
 from tastypie.api import Api
 
-from ralph_scrooge.api import ServiceUsageResource
+from ralph_scrooge.api import PricingServiceUsageResource
 from ralph_scrooge.views.devices import Devices
 from ralph_scrooge.views.extra_costs import ExtraCosts
 from ralph_scrooge.views.usage_types import UsageTypes
@@ -20,7 +20,7 @@ from ralph_scrooge.views.report_services_usages import ServicesUsagesReport
 from ralph_scrooge.views.ventures_changes import VenturesChanges
 
 v09_api = Api(api_name='v0.9')
-for r in (ServiceUsageResource, ):
+for r in (PricingServiceUsageResource, ):
     v09_api.register(r())
 
 urlpatterns = patterns(
