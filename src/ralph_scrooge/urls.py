@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource
+from ralph_scrooge.views.collect_plugins import CollectPlugins
 from ralph_scrooge.views.devices import Devices
 from ralph_scrooge.views.extra_costs import ExtraCosts
 from ralph_scrooge.views.usage_types import UsageTypes
@@ -109,5 +110,11 @@ urlpatterns = patterns(
         r'^statement/(?P<statement_id>\d+)/$',
         login_required(Statements.as_view()),
         name='statement',
+    ),
+    # other
+    url(
+        r'^collect-plugins/$',
+        login_required(CollectPlugins.as_view()),
+        name='collect_plugins',
     ),
 )

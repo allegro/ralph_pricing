@@ -58,6 +58,12 @@ class ScroogeMenu(Menu):
                 fugue_icon='fugue-beaker',
                 view_name='usage_types',
             ),
+            MenuItem(
+                _("Collect plugins"),
+                name='collect-plugins',
+                fugue_icon='fugue-money-bag',
+                view_name='collect_plugins',
+            ),
             # MenuItem(
             #     _("Teams"),
             #     name='teams',

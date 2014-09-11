@@ -18,6 +18,9 @@ from ralph_scrooge.models import (
     UsagePrice,
     UsageType,
 )
+from ralph_scrooge.management.commands.pricing_sync import (
+    get_collect_plugins_names,
+)
 from ralph_scrooge.utils import ranges_overlap
 
 
@@ -199,10 +202,6 @@ TeamServiceEnvironmentPercentFormSet = forms.models.modelformset_factory(
 )
 
 
-# =============================================================================
-# REPORTS FORMS
-# =============================================================================
-
 class DateRangeForm(forms.Form):
     '''Form schema. Used to generate venture raports'''
     start = forms.DateField(
@@ -220,7 +219,19 @@ class DateRangeForm(forms.Form):
         initial=datetime.date.today,
     )
 
+collect_plugins_names = get_collect_plugins_names()
 
+
+class CollectPluginsForm(DateRangeForm):
+    plugins = forms.MultipleChoiceField(
+        required=True,
+        choices=zip(collect_plugins_names, collect_plugins_names),
+    )
+
+
+# =============================================================================
+# REPORTS FORMS
+# =============================================================================
 class ServicesCostsReportForm(DateRangeForm):
     forecast = forms.BooleanField(
         required=False,
