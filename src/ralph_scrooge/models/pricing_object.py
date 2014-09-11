@@ -128,7 +128,7 @@ class DailyPricingObject(db.Model):
 
     class Meta:
         app_label = 'ralph_scrooge'
-        unique_together = ('service_environment', 'pricing_object', 'date')
+        unique_together = ('pricing_object', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.pricing_object, self.date)
@@ -174,7 +174,7 @@ class AssetInfo(PricingObject):
 class DailyAssetInfo(DailyPricingObject):
     asset_info = db.ForeignKey(
         AssetInfo,
-        verbose_name=_("asset defails"),
+        verbose_name=_("asset details"),
     )
     depreciation_rate = db.DecimalField(
         verbose_name=_("Depreciation rate"),
@@ -236,7 +236,7 @@ class DailyVirtualInfo(DailyPricingObject):
     virtual_info = db.ForeignKey(
         VirtualInfo,
         related_name='daily_virtuals',
-        verbose_name=_("virtual defails"),
+        verbose_name=_("virtual details"),
     )
 
     class Meta:

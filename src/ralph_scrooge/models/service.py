@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import datetime
+from datetime import date
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
@@ -220,8 +220,8 @@ class ServiceUsageTypes(db.Model):
         PricingService,
         verbose_name=_("Pricing Service"),
     )
-    start = db.DateField(verbose_name=_("start"), default=datetime.min)
-    end = db.DateField(verbose_name=_("end"), default=datetime.max)
+    start = db.DateField(verbose_name=_("start"), default=date.min)
+    end = db.DateField(verbose_name=_("end"), default=date.max)
     percent = db.FloatField(
         validators=[
             MaxValueValidator(100.0),
