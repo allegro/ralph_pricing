@@ -54,7 +54,7 @@ class UsageTypeFactory(DjangoModelFactory):
     FACTORY_FOR = models.UsageType
 
     name = Sequence(lambda n: 'UsageType #%s' % n)
-    symbol = Sequence(lambda n: 'ut%s' % n)
+    symbol = Sequence(lambda n: 'usagetype_%s' % n)
 
 
 class PricingObjectFactory(DjangoModelFactory):
