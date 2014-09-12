@@ -1,6 +1,6 @@
 from ralph_scrooge.models.base import BaseUsage
 
-from ralph_scrooge.models.cost import DailyCost
+from ralph_scrooge.models.cost import CostDateStatus, DailyCost
 
 from ralph_scrooge.models.extra_cost import (
     ExtraCost,
@@ -61,6 +61,7 @@ __all__ = [
     'AssetInfo',
     'BaseUsage',
     'BusinessLine',
+    'CostDateStatus',
     'DailyAssetInfo',
     'DailyCost',
     'DailyPricingObject',

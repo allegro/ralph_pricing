@@ -15,6 +15,7 @@ from django.db.transaction import commit_on_success
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.utils import memoize, AttributeDict
 from ralph_scrooge.models import (
+    CostDateStatus,
     DailyCost,
     ExtraCostType,
     PricingService,
@@ -84,14 +85,40 @@ class Collector(object):
             },
     }
     """
-    def process_period(self, start, end, **kwargs):
+    def process_period(
+        self,
+        start,
+        end,
+        forecast,
+        force_recalculation=False,
+        **kwargs
+    ):
+        # calculate costs only if were not calculated for some date, unless
+        # force_recalculation is True
+        dates = self._get_dates(start, end, forecast, force_recalculation)
         service_environments = self._get_services_environments()
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+        for day in dates:
             self.process(
                 day,
                 service_environments=service_environments,
+                forecast=forecast,
                 **kwargs
             )
+
+    def _get_dates(self, start, end, forecast, force_recalculation):
+        days = [d.date() for d in rrule.rrule(
+            rrule.DAILY,
+            dtstart=start,
+            until=end
+        )]
+        if force_recalculation:
+            return days
+        else:
+            return sorted(set(days) - set(CostDateStatus.objects.filter(
+                date__gte=start,
+                date__lte=end,
+                **{'forecast_calculated' if forecast else 'calculated': True}
+            ).values_list('date', flat=True)))
 
     @commit_on_success
     def process(
@@ -110,28 +137,34 @@ class Collector(object):
         2) collect costs from all plugins
         3) save costs in database in tree format
         """
+        logger.info('Calculating costs (forecast: {}) for date {}'.format(
+            forecast,
+            date
+        ))
         if service_environments is None:
             service_environments = self._get_services_environments()
         self._delete_daily_costs(date, delete_verified)
         costs = self._collect_costs(date, service_environments, forecast)
         self._save_costs(date, costs, forecast)
 
-    def _delete_daily_costs(self, date, delete_verified=False):
+    def _delete_daily_costs(self, date, forecast, delete_verified=False):
         """
         Check if there are any verfifed daily costs for given date.
         If no, delete previously saved costs for given date.
         If yes,
         """
-        if not delete_verified and DailyCost.objects.filter(
+        if not delete_verified and CostDateStatus.objects.filter(
             date=date,
-            verified=True
-        ).count():
+            **{'forecast_accepted' if forecast else 'accepted': True}
+        ):
             raise VerifiedDailyCostsExistsError()
         DailyCost.objects.filter(date=date).delete()
 
     def _save_costs(self, date, costs, forecast):
         """
         For every service environment in costs save tree structure in database
+
+        At the end update status of date costs to calculated.
         """
         for service_environment, se_costs in costs.iteritems():
             DailyCost.build_tree(
@@ -140,6 +173,13 @@ class Collector(object):
                 service_environment_id=service_environment,
                 forecast=forecast,
             )
+        # update status to created
+        status, created = CostDateStatus.objects.get_or_create(date=date)
+        if forecast:
+            status.forecast_calculated = True
+        else:
+            status.calculated = True
+        status.save()
 
     def _collect_costs(self, date, service_environments, forecast):
         """

@@ -22,6 +22,7 @@ from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.plugins import report  # noqa
 from ralph_scrooge.utils import AttributeDict
+from ralph_scrooge.plugins.cost.collector import Collector
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,16 @@ class BasePluginReport(BaseReport):
         Should return list of plugins to call
         """
         return []
+
+    @classmethod
+    def calculate_costs(self, start, end, forecast=False):
+        """
+        Calculate costs between start end end (without forcing - when costs
+        were calculated for single day, they will be not calculated again
+        unless forcing it).
+        """
+        colletor = Collector()
+        colletor.process_period(start, end, forecast)
 
     @classmethod
     def _get_extra_cost_plugins(cls, filter_=None):
