@@ -59,6 +59,13 @@ class TestCollector(TestCase):
         dates = self.collector._get_dates(self.start, self.end, False, False)
         self.assertEquals(dates, self.dates2)
 
+    def test_get_services_environments(self):
+        se = self.collector._get_services_environments()
+        self.assertEquals(list(se), [
+            self.service_environments[0],
+            self.service_environments[1],
+        ])
+
     @mock.patch('ralph_scrooge.plugins.cost.collector.Collector.process')
     @mock.patch('ralph_scrooge.plugins.cost.collector.Collector._get_dates')
     @mock.patch('ralph_scrooge.plugins.cost.collector.Collector._get_services_environments')  # noqa
@@ -66,7 +73,14 @@ class TestCollector(TestCase):
         get_dates_mock.return_value = self.dates1
         process_mock.return_value = None
         get_se_mock.return_value = self.service_environments
-        self.collector.process_period(self.start, self.end, True, False, a=1)
+        for day, success in self.collector.process_period(
+            self.start,
+            self.end,
+            True,
+            False,
+            a=1
+        ):
+            pass
         calls = []
         for day in self.dates1:
             calls.append(mock.call(

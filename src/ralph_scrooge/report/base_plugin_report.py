@@ -11,18 +11,18 @@ from decimal import Decimal as D
 from ralph_scrooge.utils.common import memoize
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.report.base_report import BaseReport
+from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
+    ExtraCostType,
     PricingService,
     ServiceEnvironment,
     Team,
     UsageType,
 )
-from ralph.util import plugin as plugin_runner
-from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.plugins import report  # noqa
-from ralph_scrooge.utils.common import AttributeDict
 from ralph_scrooge.plugins.cost.collector import Collector
+from ralph_scrooge.report.base_report import BaseReport
+from ralph_scrooge.utils.common import AttributeDict
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +40,13 @@ class BasePluginReport(BaseReport):
     @classmethod
     def calculate_costs(self, start, end, forecast=False):
         """
-        Calculate costs between start end end (without forcing - when costs
+        Calculate costs between start and end (without forcing - when costs
         were calculated for single day, they will be not calculated again
         unless forcing it).
         """
         colletor = Collector()
-        colletor.process_period(start, end, forecast)
+        for day, status in colletor.process_period(start, end, forecast):
+            pass
 
     @classmethod
     def _get_extra_cost_plugins(cls, filter_=None):

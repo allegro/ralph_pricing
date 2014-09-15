@@ -87,7 +87,8 @@ class DailyCost(MultiPathNode):
 
 class CostDateStatus(db.Model):
     date = db.DateField(
-        verbose_name=_('date')
+        verbose_name=_('date'),
+        unique=True,
     )
     calculated = db.BooleanField(
         verbose_name=_("calculated"),

@@ -7,11 +7,10 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph_scrooge.utils.common import memoize
 
-from ralph_scrooge.report.base_plugin_report import BasePluginReport
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.utils.common import AttributeDict
+from ralph_scrooge.report.base_plugin_report import BasePluginReport
+from ralph_scrooge.utils.common import memoize, AttributeDict
 
 
 logger = logging.getLogger(__name__)

@@ -229,6 +229,13 @@ class CollectPluginsForm(DateRangeForm):
     )
 
 
+class MonthlyCostsForm(DateRangeForm):
+    forecast = forms.BooleanField(
+        required=False,
+        label=_("Forecast"),
+    )
+
+
 # =============================================================================
 # REPORTS FORMS
 # =============================================================================

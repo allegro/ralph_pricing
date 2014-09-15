@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'CostDateStatus'
         db.create_table(u'ralph_scrooge_costdatestatus', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('date', self.gf('django.db.models.fields.DateField')()),
+            ('date', self.gf('django.db.models.fields.DateField')(unique=True)),
             ('calculated', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('forecast_calculated', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
@@ -111,7 +111,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'CostDateStatus'},
             'accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'calculated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'date': ('django.db.models.fields.DateField', [], {}),
+            'date': ('django.db.models.fields.DateField', [], {'unique': 'True'}),
             'forecast_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'forecast_calculated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})

@@ -110,20 +110,6 @@ class BaseReport(Base):
                     )
         return super(BaseReport, self).get(*args, **kwargs)
 
-    def _convert_fields_to(self, data, unicode_func):
-        """
-        Convert each of fields to another format by using given function
-
-        :param list data: list of dicts or lists. For example headers
-        :param function unicode_func: function to converting each field
-        :returns list: The same list as in beginning with converted fields
-        :rtype list:
-        """
-        for i, row in enumerate(data):
-            for k, field in enumerate(row):
-                data[i][k] = unicode_func(field)
-        return data
-
     def get_context_data(self, **kwargs):
         context = super(BaseReport, self).get_context_data(**kwargs)
         context.update({

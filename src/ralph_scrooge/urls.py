@@ -15,6 +15,7 @@ from ralph_scrooge.views.extra_costs import ExtraCosts
 from ralph_scrooge.views.usage_types import UsageTypes
 from ralph_scrooge.views.statement import Statements
 from ralph_scrooge.views.teams_percent import TeamsPercent
+from ralph_scrooge.views.monthly_costs import MonthlyCosts
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView
 
@@ -40,6 +41,11 @@ urlpatterns = patterns(
         r'^services-usages-report/$',
         login_required(ServicesUsagesReportView.as_view()),
         name='services_usages_report',
+    ),
+    url(
+        r'^monthly-costs/$',
+        login_required(MonthlyCosts.as_view()),
+        name='monthly_costs',
     ),
     # costs forms
     url(

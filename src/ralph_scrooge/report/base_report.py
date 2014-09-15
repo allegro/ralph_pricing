@@ -9,17 +9,10 @@ import logging
 
 from django.conf import settings
 
+from ralph_scrooge.utils.common import get_cache_name, get_queue_name
 from ralph_scrooge.utils.worker_job import WorkerJob
 
 logger = logging.getLogger(__name__)
-
-CACHE_NAME = 'reports_pricing'
-if CACHE_NAME not in settings.CACHES:
-    CACHE_NAME = 'default'
-QUEUE_NAME = 'reports_pricing'
-if QUEUE_NAME not in settings.RQ_QUEUES:
-    QUEUE_NAME = None
-TIMEOUT = getattr(settings, 'PRICING_REPORTS_TIMEOUT', 4 * 3600)  # 4 hours
 
 
 def currency(value):
@@ -36,20 +29,9 @@ class BaseReport(WorkerJob):
     Make sure that ``get_header`` and ``get_data`` are static methods.
     """
     currency = 'PLN'
-
-    def _convert_fields_to(self, data, unicode_func):
-        """
-        Convert each of fields to another format by using given function
-
-        :param list data: list of dicts or lists. For example headers
-        :param function unicode_func: function to converting each field
-        :returns list: The same list as in beginning with converted fields
-        :rtype list:
-        """
-        for i, row in enumerate(data):
-            for k, field in enumerate(row):
-                data[i][k] = unicode_func(field)
-        return data
+    queue_name = get_queue_name('scrooge_report')
+    cache_name = get_cache_name('scrooge_report')
+    cache_section = 'scrooge_report'
 
     def _format_header(self):
         """

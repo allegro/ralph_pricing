@@ -13,7 +13,6 @@ from django.db import connection
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.utils.common import memoize, AttributeDict
 from ralph_scrooge.models import (
     CostDateStatus,
     DailyCost,
@@ -27,6 +26,7 @@ from ralph_scrooge.plugins.cost.base import (
     NoPriceCostError,
     MultiplePriceCostError,
 )
+from ralph_scrooge.utils.common import memoize, AttributeDict
 
 logger = logging.getLogger(__name__)
 
@@ -98,12 +98,17 @@ class Collector(object):
         dates = self._get_dates(start, end, forecast, force_recalculation)
         service_environments = self._get_services_environments()
         for day in dates:
-            self.process(
-                day,
-                service_environments=service_environments,
-                forecast=forecast,
-                **kwargs
-            )
+            try:
+                self.process(
+                    day,
+                    service_environments=service_environments,
+                    forecast=forecast,
+                    **kwargs
+                )
+                yield day, True
+            except Exception as e:
+                logger.exception(e)
+                yield day, False
 
     def _get_dates(self, start, end, forecast, force_recalculation):
         days = [d.date() for d in rrule.rrule(
@@ -139,11 +144,11 @@ class Collector(object):
         """
         logger.info('Calculating costs (forecast: {}) for date {}'.format(
             forecast,
-            date
+            date,
         ))
         if service_environments is None:
             service_environments = self._get_services_environments()
-        self._delete_daily_costs(date, delete_verified)
+        self._delete_daily_costs(date, forecast, delete_verified)
         costs = self._collect_costs(date, service_environments, forecast)
         self._save_costs(date, costs, forecast)
 

@@ -9,9 +9,9 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.views.base_report import BaseReport
-from ralph_scrooge.report.report_services_usages import ServicesUsagesReport
 from ralph_scrooge.forms import ServicesUsagesReportForm
+from ralph_scrooge.report.report_services_usages import ServicesUsagesReport
+from ralph_scrooge.views.base_report import BaseReport
 
 
 logger = logging.getLogger(__name__)

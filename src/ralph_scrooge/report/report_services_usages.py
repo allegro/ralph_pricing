@@ -11,8 +11,8 @@ from decimal import Decimal as D
 
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.report.base_plugin_report import BasePluginReport
 from ralph.util import plugin as plugin_runner
+from ralph_scrooge.report.base_plugin_report import BasePluginReport
 
 
 logger = logging.getLogger(__name__)

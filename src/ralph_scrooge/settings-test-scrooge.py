@@ -13,6 +13,6 @@ DATABASES = {
     }
 }
 
-PLUGGABLE_APPS = ['assets', 'scrooge']
+PLUGGABLE_APPS = ['assets', 'scrooge', 'cmdb']
 
 SOUTH_TESTS_MIGRATE = False
