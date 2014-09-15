@@ -31,11 +31,10 @@ def _load_plugins():
     Loads all collect plugins using scrooge.collect_plugins entry point.
     """
     global PLUGINS_LOADED
-    if PLUGINS_LOADED:
-        return
-    for p in pkg_resources.iter_entry_points('scrooge.collect_plugins'):
-        p.load()
-    PLUGINS_LOADED = True
+    if not PLUGINS_LOADED:
+        for p in pkg_resources.iter_entry_points('scrooge.collect_plugins'):
+            p.load()
+        PLUGINS_LOADED = True
 
 
 def get_collect_plugins_names():

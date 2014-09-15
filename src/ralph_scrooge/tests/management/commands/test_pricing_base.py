@@ -67,3 +67,9 @@ class TestPricingBaseCommand(TestCase):
         # go to beginning of buffer
         f.seek(0)
         self.assertEquals(f.readlines(), encoded)
+
+    def test_help(self):
+        self.assertEquals(Command().help, (
+            "Generate report with assets and devices matching and basic "
+            "information\nabout asset, such as cores count, model name etc."
+        ))
