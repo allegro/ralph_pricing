@@ -22,23 +22,53 @@ class ScroogeMenu(Menu):
 
     def get_submodules(self):
         return [
+            # MenuItem(
+            #     _("Costs report"),
+            #     name='services-costs-report',
+            #     fugue_icon='fugue-store-medium',
+            #     view_name='services_costs_report',
+            # ),
+            # MenuItem(
+            #     _("Service details report"),
+            #     name='devices',
+            #     fugue_icon='fugue-wooden-box',
+            #     # view_name='devices',
+            # ),
+            # MenuItem(
+            #     _("Usages report"),
+            #     name='services-usages-report',
+            #     fugue_icon='fugue-calendar-day',
+            #     view_name='services_usages_report',
+            # ),
+            # MenuItem(
+            #     _("Collect plugins"),
+            #     name='services-usages-report',
+            #     fugue_icon='fugue-calendar-day',
+            #     view_name='services_usages_report',
+            # ),
             MenuItem(
-                _("Costs report"),
-                name='services-costs-report',
-                fugue_icon='fugue-store-medium',
-                view_name='services_costs_report',
+                _("Inventory"),
+                name='inventory',
+                fugue_icon='fugue-monitor',
+                view_name='inventory',
             ),
             MenuItem(
-                _("Service details report"),
-                name='devices',
-                fugue_icon='fugue-wooden-box',
-                # view_name='devices',
+                _("Card costs"),
+                name='card_costs',
+                fugue_icon='fugue-piggy-bank',
+                view_name='card_costs',
             ),
             MenuItem(
-                _("Usages report"),
-                name='services-usages-report',
-                fugue_icon='fugue-calendar-day',
-                view_name='services_usages_report',
+                _("Dependency tree"),
+                name='dependency_tree',
+                fugue_icon='fugue-node',
+                view_name='dependency_tree',
+            ),
+            MenuItem(
+                _("Allocation"),
+                name='allocation',
+                fugue_icon='fugue-pencil',
+                view_name='allocation',
             ),
             # MenuItem(
             #     _("Devices ventures changes"),
@@ -46,18 +76,18 @@ class ScroogeMenu(Menu):
             #     fugue_icon='fugue-arrow-switch',
             #     view_name='ventures_changes',
             # ),
-            MenuItem(
-                _("Extra costs"),
-                name='extra-costs',
-                fugue_icon='fugue-money-coin',
-                view_name='extra_costs',
-            ),
-            MenuItem(
-                _("Usage types"),
-                name='usage-types',
-                fugue_icon='fugue-beaker',
-                view_name='usage_types',
-            ),
+            # MenuItem(
+            #     _("Extra costs"),
+            #     name='extra-costs',
+            #     fugue_icon='fugue-money-coin',
+            #     view_name='extra_costs',
+            # ),
+            # MenuItem(
+            #     _("Usage types"),
+            #     name='usage-types',
+            #     fugue_icon='fugue-beaker',
+            #     view_name='usage_types',
+            # ),
             # MenuItem(
             #     _("Teams"),
             #     name='teams',

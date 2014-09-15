@@ -10,7 +10,7 @@ from bob.menu import MenuItem
 from ralph_scrooge.models import (
     Team,
     TeamBillingType,
-    # Venture,
+    ServiceEnvironment,
     UsageType,
     Statement,
     ExtraCostType,
@@ -65,6 +65,51 @@ def extra_costs_menu(href='', selected=None):
         ) for extra_cost_type in extra_costs_type
     ]
 
+def service_environments(href='', service=None, environment=None):
+    service_environments = ServiceEnvironment.objects.all().select_related(
+        'service',
+        'environment',
+    ).order_by(
+        'service__name',
+    )
+    items = {}
+    for service_environment in service_environments:
+        if service_environment.service.id in items:
+            item = items[service_environment.service.id]
+        else:
+            item = MenuItem(
+                service_environment.service.name,
+                name=service_environment.service,
+                subitems=[],
+                fugue_icon='fugue-user-worker',
+                href='{}/{}'.format(href, service_environment.service.id),
+                indent=' ',
+                collapsed=True,
+                collapsible=True,
+            )
+            items[service_environment.service.id] = item
+
+        if service_environment.service == service:
+            item.kwargs['collapsed'] = False
+
+        subitem = MenuItem(
+            service_environment.environment.name,
+            name="{0}_{1}".format(
+                    service_environment.service,
+                    service_environment.environment
+            ),
+            subitems=[],
+            fugue_icon='fugue-clock',
+            href='{}/{}/{}'.format(
+                href,
+                service_environment.service.id,
+                service_environment.environment.id
+            ),
+            indent=' ',
+        )
+        subitem.parent = item
+        item.subitems.append(subitem)
+    return [item for key, item in items.iteritems()]
 
 def statement_menu(href='', selected=None):
     """

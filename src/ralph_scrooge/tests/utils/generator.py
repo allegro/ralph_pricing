@@ -21,7 +21,10 @@ from ralph_scrooge.utils import AttributeDict
 
 def usages_generator(start, end, self=None):
     if self is None:
-        self = AttributeDict()
+        self = AttributeDict(
+            start=start,
+            end=end,
+        )
 
     # base usages
     self.base_usage_type = UsageTypeFactory(
