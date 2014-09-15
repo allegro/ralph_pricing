@@ -15,6 +15,7 @@ from ralph_scrooge.models.owner import (
 
 from ralph_scrooge.models.pricing_object import (
     AssetInfo,
+    AssetModel,
     DailyAssetInfo,
     DailyPricingObject,
     DailyTenantInfo,
@@ -59,6 +60,7 @@ from ralph_scrooge.models.warehouse import (
 
 __all__ = [
     'AssetInfo',
+    'AssetModel',
     'BaseUsage',
     'BusinessLine',
     'DailyAssetInfo',

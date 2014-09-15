@@ -73,6 +73,15 @@ class DailyPricingObjectFactory(DjangoModelFactory):
     service_environment = SubFactory(ServiceEnvironmentFactory)
 
 
+class AssetModelFactory(DjangoModelFactory):
+    FACTORY_FOR = models.AssetModel
+
+    model_id = Sequence(lambda n: n)
+    name = Sequence(lambda n: 'Asset Model #%s' % n)
+    manufacturer = Sequence(lambda n: 'Manufacturer #%s' % n)
+    category = Sequence(lambda n: 'Category #%s' % n)
+
+
 class AssetInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.AssetInfo
 
@@ -80,8 +89,8 @@ class AssetInfoFactory(PricingObjectFactory):
     sn = Sequence(lambda n: n)
     barcode = Sequence(lambda n: n)
     asset_id = Sequence(lambda n: n)
-    device_id = Sequence(lambda n: n)
     warehouse = SubFactory(WarehouseFactory)
+    model = SubFactory(AssetModelFactory)
 
 
 class VirtualInfoFactory(PricingObjectFactory):

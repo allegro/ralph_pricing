@@ -166,6 +166,38 @@ class AssetInfo(PricingObject):
         'Warehouse',
         verbose_name=_("warehouse"),
     )
+    model = db.ForeignKey(
+        'AssetModel',
+        verbose_name=_('asset model')
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
+class AssetModel(db.Model):
+    model_id = db.IntegerField(
+        verbose_name=_("model id"),
+        unique=True,
+        null=False,
+        blank=False,
+    )
+    name = db.CharField(
+        verbose_name=_("name"),
+        max_length=100,
+    )
+    manufacturer = db.CharField(
+        verbose_name=_("manufacturer"),
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    category = db.CharField(
+        verbose_name=_("category"),
+        max_length=100,
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'

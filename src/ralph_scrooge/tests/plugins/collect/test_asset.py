@@ -20,6 +20,7 @@ from ralph_scrooge.models import (
 from ralph_scrooge.plugins.collect import asset
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
+    AssetModelFactory,
     DailyAssetInfoFactory,
     EnvironmentFactory,
     ServiceEnvironmentFactory,
@@ -36,6 +37,7 @@ class TestAssetPlugin(TestCase):
         self.service_environment = ServiceEnvironmentFactory()
         self.date = datetime.date.today()
         self.warehouse = WarehouseFactory.create()
+        self.model = AssetModelFactory()
         self.value = 100
         self.data = {
             'asset_id': 1,
@@ -52,6 +54,7 @@ class TestAssetPlugin(TestCase):
             'cores_count': 4,
             'power_consumption': 200,
             'collocation': 2,
+            'model_id': self.model.model_id,
         }
 
     def test_get_usage(self):

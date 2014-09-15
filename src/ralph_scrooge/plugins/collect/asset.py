@@ -14,6 +14,7 @@ from ralph.util import plugin
 from ralph_assets.api_scrooge import get_assets
 from ralph_scrooge.models import (
     AssetInfo,
+    AssetModel,
     DailyAssetInfo,
     DailyUsage,
     PricingObjectType,
@@ -60,6 +61,7 @@ def get_asset_info(service_environment, warehouse, data):
             type=PricingObjectType.asset,
         )
         created = True
+    asset_info.model = AssetModel.objects.get(model_id=data['model_id'])
     asset_info.service_environment = service_environment
     asset_info.name = data['asset_name']
     asset_info.warehouse = warehouse
@@ -234,7 +236,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
 
 @plugin.register(
     chain='scrooge',
-    requires=['service', 'environment', 'warehouse']
+    requires=['service', 'environment', 'warehouse', 'asset_model']
 )
 def asset(**kwargs):
     """
