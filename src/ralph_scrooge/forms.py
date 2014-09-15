@@ -21,7 +21,7 @@ from ralph_scrooge.models import (
 from ralph_scrooge.management.commands.pricing_sync import (
     get_collect_plugins_names,
 )
-from ralph_scrooge.utils import ranges_overlap
+from ralph_scrooge.utils.common import ranges_overlap
 
 
 class ExtraCostForm(forms.ModelForm):

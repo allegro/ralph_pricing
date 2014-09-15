@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import itertools
-import json
 import logging
 
 from bob.csvutil import make_csv_response
@@ -14,20 +13,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
-
-from ralph_scrooge.models import Statement
-from ralph_scrooge.views._worker_view import WorkerView
 from ralph_scrooge.views.base import Base
 
 logger = logging.getLogger(__name__)
-
-CACHE_NAME = 'reports_pricing'
-if CACHE_NAME not in settings.CACHES:
-    CACHE_NAME = 'default'
-QUEUE_NAME = 'reports_pricing'
-if QUEUE_NAME not in settings.RQ_QUEUES:
-    QUEUE_NAME = None
-TIMEOUT = getattr(settings, 'PRICING_REPORTS_TIMEOUT', 4 * 3600)  # 4 hours
 
 
 def currency(value):
@@ -59,7 +47,7 @@ def format_csv_header(header):
     return result
 
 
-class BaseReport(WorkerView, Base):
+class BaseReport(Base):
     """
     A base class for the reports. Override ``template_name``, ``Form``,
     ``section``, ``get_header`` and ``get_data`` in the specific reports.
@@ -74,6 +62,7 @@ class BaseReport(WorkerView, Base):
     currency = 'PLN'
     allow_statement = True
     allow_csv_download = True
+    report = None
 
     def __init__(self, *args, **kwargs):
         super(BaseReport, self).__init__(*args, **kwargs)
@@ -113,10 +102,6 @@ class BaseReport(WorkerView, Base):
                             itertools.chain(self.header, self.data),
                             '{}.csv'.format(self.section),
                         )
-                    if (self.allow_statement
-                       and get.get('format', '').lower() == 'statement'):
-                        self._format_statement_header()
-                        self._create_statement()
                 else:
                     messages.warning(
                         self.request,
@@ -124,41 +109,6 @@ class BaseReport(WorkerView, Base):
                           "to finish calculating."),
                     )
         return super(BaseReport, self).get(*args, **kwargs)
-
-    def _format_statement_header(self):
-        """
-        Format statement header rows.
-        """
-        self.header = self._convert_fields_to(
-            self.header,
-            lambda x: (unicode(x[0]), x[1]),
-        )
-        self.data = self._convert_fields_to(self.data, unicode)
-
-    def _create_statement(self):
-        """
-        Create statement from current report. Distinguishes different params.
-        """
-        usage_type, created = Statement.objects.get_or_create(
-            start=self.form.cleaned_data['start'],
-            end=self.form.cleaned_data['end'],
-            forecast=self.form.cleaned_data.get('forecast', False),
-            is_active=self.form.cleaned_data.get('is_active', False),
-            defaults=dict(
-                header=json.dumps(self.header),
-                data=json.dumps(self.data),
-            )
-        )
-        if created:
-            messages.info(
-                self.request,
-                _("Statement has been created!"),
-            )
-        else:
-            messages.error(
-                self.request,
-                _("Statement for this report already exist!"),
-            )
 
     def _convert_fields_to(self, data, unicode_func):
         """
@@ -203,29 +153,8 @@ class BaseReport(WorkerView, Base):
             result.append(output_row)
         self.header = result
 
-    @classmethod
-    def run(cls, **kwargs):
-        header = cls.get_header(**kwargs)
-        for progress, data in cls.get_data(**kwargs):
-            yield progress, (header, data)
-        if progress < 100:
-            yield 100, (header, data)
+    def run_on_worker(self, **kwargs):
+        return self.report.run_on_worker(**kwargs)
 
-    @staticmethod
-    def get_data(**kwargs):
-        """
-        Override this static method to provide data for the report.
-        It gets called with the form's data as arguments.
-        Make sure it's a static method.
-        """
-        return []
-
-    @staticmethod
-    def get_header(**kwargs):
-        """
-        Override this static method to provide header for the report.
-        It gets called with the form's data as arguments.
-        Make sure it's a static method. Result should be list of list, where
-        each (sub)list is row in header.
-        """
-        return []
+    def _clear_cache(self, **kwargs):
+        return self.report._clear_cache(**kwargs)

@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.management.commands.pricing_sync import run_plugins
 from ralph_scrooge.views.base import Base
-from ralph_scrooge.views._worker_view import WorkerView
+from ralph_scrooge.utils.worker_job import WorkerJob
 from ralph_scrooge.forms import CollectPluginsForm
 
 
@@ -30,7 +30,7 @@ if QUEUE_NAME not in settings.RQ_QUEUES:
     QUEUE_NAME = 'default'
 
 
-class CollectPlugins(WorkerView, Base):
+class CollectPlugins(WorkerJob, Base):
     """
     Report with listing of devices ventures changes. Contains basic information
     about change such as device info (sn, barcode, name), change date and

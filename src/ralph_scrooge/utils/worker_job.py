@@ -21,9 +21,9 @@ def _get_cache_key(cache_section, **kwargs):
     return b'{}?{}'.format(cache_section, urllib.urlencode(kwargs))
 
 
-class WorkerView(object):
+class WorkerJob(object):
     """
-    Mixin to Views that are running job on RQ worker.
+    Mixin to jobs that are running on RQ worker.
     """
     cache_section = 'default'
     queue_name = 'default'

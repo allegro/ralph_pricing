@@ -8,10 +8,10 @@ from __future__ import unicode_literals
 import logging
 from decimal import Decimal as D
 
-from ralph_scrooge.utils import memoize
+from ralph_scrooge.utils.common import memoize
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.views.base_report import BaseReport
+from ralph_scrooge.report.base_report import BaseReport
 from ralph_scrooge.models import (
     PricingService,
     ServiceEnvironment,
@@ -21,7 +21,7 @@ from ralph_scrooge.models import (
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.plugins import report  # noqa
-from ralph_scrooge.utils import AttributeDict
+from ralph_scrooge.utils.common import AttributeDict
 from ralph_scrooge.plugins.cost.collector import Collector
 
 logger = logging.getLogger(__name__)

@@ -14,7 +14,7 @@ from ralph_scrooge.forms import DeviceReportForm
 # from ralph_scrooge.models import Device
 from ralph_scrooge.plugins import report  # noqa
 from ralph_scrooge.views.base_plugin_report import BasePluginReport
-from ralph_scrooge.utils import AttributeDict
+from ralph_scrooge.utils.common import AttributeDict
 
 logger = logging.getLogger(__name__)
 

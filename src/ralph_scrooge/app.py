@@ -48,6 +48,9 @@ class Scrooge(RalphModule):
         self.register_logger('ralph_scrooge.plugins', {
             'handlers': ['console'],
         })
+        self.register_logger('ralph_scrooge.report', {
+            'handlers': ['console'],
+        })
         self.register_logger('ralph_scrooge.management', {
             'handlers': ['console'],
         })

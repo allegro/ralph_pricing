@@ -13,7 +13,7 @@ from django.db import connection
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.utils import memoize, AttributeDict
+from ralph_scrooge.utils.common import memoize, AttributeDict
 from ralph_scrooge.models import (
     CostDateStatus,
     DailyCost,

@@ -21,7 +21,7 @@ from ralph_scrooge.tests.utils.factory import (
     UsageTypeFactory,
     VirtualInfoFactory,
 )
-from ralph_scrooge.utils import AttributeDict
+from ralph_scrooge.utils.common import AttributeDict
 
 
 class TestVirtualPlugin(TestCase):
