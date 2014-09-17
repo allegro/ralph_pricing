@@ -115,7 +115,7 @@ class CollectPlugins(WorkerView, Base):
         step = 100.0 / (len(plugins) * days)
         result = defaultdict(dict)
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            for plugin, success in run_plugins(day, plugins):
+            for plugin, success in run_plugins(day, plugins, run_only=True):
                 progress += step
                 result[day][plugin] = success
                 yield progress, result

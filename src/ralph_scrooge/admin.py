@@ -178,8 +178,14 @@ class EnvironmentAdmin(UpdateReadonlyMixin, ModelAdmin):
 
 @register(models.Owner)
 class OwnerAdmin(ModelAdmin):
-    list_display = ('last_name', 'first_name')
-    search_fields = ('last_name', 'first_name')
+    list_display = ('first_name', 'last_name')
+    search_fields = ('first_name', 'last_name')
+
+    def first_name(self, obj):
+        return obj.profile.user.first_name
+
+    def last_name(self, obj):
+        return obj.profile.user.last_name
 
 
 class ServiceOwnershipInline(admin.TabularInline):

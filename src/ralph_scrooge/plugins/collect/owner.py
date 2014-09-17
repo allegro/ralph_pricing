@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 @commit_on_success
 def update_owner(data, date):
     owner, created = Owner.objects.get_or_create(
-        cmdb_id=data['id']
+        cmdb_id=data['id'],
+        defaults=dict(
+            profile_id=data['profile_id'],
+        )
     )
-    owner.first_name = data['first_name']
-    owner.last_name = data['last_name']
-    owner.email = data['email']
-    owner.sAMAccountName = data['sAMAccountName']
+    owner.profile_id = data['profile_id']
     owner.save()
     return created
 
