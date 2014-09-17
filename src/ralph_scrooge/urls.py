@@ -10,14 +10,7 @@ from django.contrib.auth.decorators import login_required
 from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource
-from ralph_scrooge.views.devices import Devices
-from ralph_scrooge.views.extra_costs import ExtraCosts
-from ralph_scrooge.views.usage_types import UsageTypes
-from ralph_scrooge.views.statement import Statements
-from ralph_scrooge.views.teams_percent import TeamsPercent
-from ralph_scrooge.views.report_services_costs import ServicesCostsReport
-from ralph_scrooge.views.report_services_usages import ServicesUsagesReport
-from ralph_scrooge.views.ventures_changes import VenturesChanges
+from ralph_scrooge.views import BootstrapAngular
 
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
@@ -29,9 +22,11 @@ urlpatterns = patterns(
     # reports
     url(
         r'^$',
-        login_required(ServicesCostsReport.as_view()),
+        login_required(BootstrapAngular.as_view()),
         name='services_costs_report',
     ),
+)
+"""
     url(
         r'^services-costs-report/$',
         login_required(ServicesCostsReport.as_view()),
@@ -111,3 +106,4 @@ urlpatterns = patterns(
         name='statement',
     ),
 )
+"""

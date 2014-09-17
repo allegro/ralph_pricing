@@ -1,0 +1,181 @@
+html, body
+{
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'sans-serif';
+}
+a {
+	color: black;
+}
+a:hover {
+	text-decoration: none;
+	background-color: transparent;
+	color: black;
+}
+a:active {
+	text-decoration: none;
+}
+#body {
+	height: 90%;
+}
+.nav.nav-tabs li a, .nav.nav-tabs li a:hover{
+	background-color: transparent;
+	border: 0px;
+}
+.nav.nav-tabs {
+	border: 0px;
+	background-image: url('/static/scrooge/img/navbar_background.png');
+	background-repeat: no-repeat;
+	background-size: 100%;
+	width: 100%;
+	vertical-align: bottom;
+	padding-top: 10px;
+}
+.nav.nav-tabs h1{
+	margin: 0px 10px;
+	height: 40px;
+	padding-bottom: 10px;
+}
+.nav.nav-tabs li.menu{
+	background-color: rgba(255, 200, 0, 1);
+	-webkit-border-radius: 10px 10px 0px 0px;
+	-moz-border-radius: 10px 10px 0px 0px;
+	border-radius: 10px 10px 0px 0px;
+	margin: 0px 3px;
+}
+.nav.nav-tabs li.nav-active{
+	background-color: rgba(255, 225, 130, 1);
+	color: black;
+}
+.nav.nav-tabs h1 a{
+	color: #ffcc00;
+}
+.panel-body {
+	padding: 0px;
+}
+#header {
+	border: 0px;
+	height: 60px;
+}
+.navbar-submenu {
+	background-color: rgba(255, 225, 130, 1);
+	height:30px;
+}
+.navbar-submenu .submenu {
+	display: inline-block;
+	text-align: center;
+	height: 30px;
+	vertical-align: middle;
+}
+.navbar-submenu .submenu a{
+	height: 30px;
+	padding: 5px 20px;
+}
+.left-menu {
+	min-height: 100px;
+	width: 100%;
+	background-color: rgba(255, 200, 0, 0.1);
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	padding: 30px 40px;
+	border: 0px;
+}
+.left-menu-container {
+	background-color: #FEF9E5;
+	min-height: 100%;
+	padding: 30px 40px;
+}
+.content {
+	background-color: rgba(255, 200, 0, 0.2);
+	border-left: 1px solid rgba(255, 200, 0, 0.4);
+	min-height: 100%;
+}
+.body-container {
+	height: 100%;
+	min-height: 100%;
+}
+.left-menu-plus-icon {
+	display: inline-block;
+	float: left;
+	cursor: pointer;
+}
+.left-menu li {
+	display: table;
+}
+.nav-env a {
+	padding: 0px 10px !important;
+}
+.datepicker {
+	background-color: #FEF9E5;
+	width: 100%;
+	margin: 0 auto;
+	padding: 10px 0px;
+	-webkit-border-radius: 0px 0px 10px 10px;
+	-moz-border-radius: 0px 0px 10px 10px;
+	border-radius: 0px 0px 10px 10px;
+	border: 1px solid rgba(255, 200, 0, 0.4);
+	border-top: 0px;
+}
+.panel-datepicker {
+	margin: 10px 30px;
+	text-align: center;
+	border: 0px;
+}
+.panel-datepicker-heading {
+	text-align: center;
+}
+.panel-datepicker-footer {
+	text-align: center;
+	padding: 10px 20px;
+}
+.panel-datepicker-footer .col-md-1 {
+	max-width: 40px;
+}
+.panel {
+	-webkit-box-shadow: 0px 0px 0px;
+	box-shadow: 0px 0px 0px;
+}
+.data-content {
+	background-color: #FEF9E5;
+	width: 95%;
+	margin: 20px auto;
+	border: 0px;
+	padding: 15px;
+}
+.filters-container {
+	padding: 0px 20px;
+	background-color: #efe1ba;
+	border: 1px solid rgba(150, 150, 100, 0.4);
+	border-left: 0px;
+	border-right: 0px;
+}
+.filter-models h4 {
+	color: gray;
+	border-bottom: 1px solid gray;
+}
+.pagination-container {
+	text-align: center;
+}
+#footer {
+	background-color: rgba(255, 200, 0, 0.1);
+	text-align: center;
+	padding-top: 10px;
+}
+#footer p {
+	display: inline-block;
+	text-align: center;
+}
+#footer .version{
+	margin-left: 20px;
+	float: left;
+	color: rgba(200, 200, 200, 1);
+}
+#footer a {
+	color: #ffcc00;
+}
+#generate-to-csv {
+	float: right;
+}

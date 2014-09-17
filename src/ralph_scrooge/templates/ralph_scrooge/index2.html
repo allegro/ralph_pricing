@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="app">
+    <head>
+        <meta charset="utf-8">
+        <title>Ralph Scrooge</title>
+        <link rel="stylesheet" href="/static/scrooge/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/jquery.jqplot.min.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/scrooge.css" />
+        <script src="/static/scrooge/lib/jquery.jqplot/jquery.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/jquery.jqplot.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.enhancedLegendRenderer.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.highlighter.min.js"></script>
+        <script src="/static/scrooge/lib/underscore-min.js"></script>
+        <script src="/static/scrooge/lib/angular/angular.js"></script>
+        <script src="/static/scrooge/lib/angular/angular-resource.js"></script>
+        <script src="/static/scrooge/lib/angular/angular-route.js"></script>
+        <script src="/static/scrooge/lib/angular/angular-cookies.js"></script>
+        <script src="/static/scrooge/lib/ui-bootstrap-tpls-0.10.0.min.js"></script>
+        <script src="/static/scrooge/lib/angular-flash.js"></script>
+        <script src="/static/scrooge/lib/raven.min.js"></script>
+        <script src="/static/scrooge/lib/scrooge.js"></script>
+        <script src="/static/scrooge/app/app.js"></script>
+        <script src="/static/scrooge/app/controllers.js"></script>
+    </head>
+    <body ng-controller="mainCtrl" class="bs-docs-home">
+        <div id="header" class="panel panel-default">
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs">
+                    <li><h1><a href='/'>Scrooge</a></h1></li>
+                    <li class="menu"><a href="#home" data-toggle="tab">CORE</a></li>
+                    <li class="menu"><a href="#profile" data-toggle="tab">CMDB</a></li>
+                    <li class="menu"><a href="#messages" data-toggle="tab">ASSETS</a></li>
+                    <li class="menu nav-active"><a href="#settings" data-toggle="tab">SCROOGE</a></li>
+                </ul>
+                <ul class="nav navbar-submenu">
+                    <li class="submenu"><a href="#home" data-toggle="tab">Components</a></li>
+                    <li class="submenu"><a href="#profile" data-toggle="tab">Card costs</a></li>
+                    <li class="submenu"><a href="#messages" data-toggle="tab">Dependency tree</a></li>
+                    <li class="submenu"><a href="#settings" data-toggle="tab">Allocation</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="body" class="bs-docs-masthead">
+            <ng-view></ng-view>
+        </div>
+        <div id="footer" class="bs-docs-footer">
+            <p class="version">version 3.0.0</p>
+            <p>Powered by
+                <a href="https://wiki.allegrogroup.com/display/PYLABS/Ralph+Scrooge">
+                    Scrooge
+                </a>
+                Brought to you by
+                <a href="https://wiki.office/display/PYLABS/Team">
+                    <img src="/static/scrooge/img/pylabs.png" style="width: 18%"></img>
+                </a>
+            </p>
+        </div>
+    </body>
+</html>
+<!--STATS-->

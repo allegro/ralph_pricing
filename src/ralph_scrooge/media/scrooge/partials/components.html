@@ -1,0 +1,116 @@
+<div ng-controller="components">
+	<div class="body-table">
+		<div class="body-table-row">
+			<div class="body-table-cell cell left-menu-cell" >
+				<div id="left-menu">
+					<ul class="nav">
+                        <li class="active">
+                            <label ng-click="active = 1" class="nav-header"><a href="#">Allegro</a></label>
+                            <i ng-click="active = 1" ng-show="active != 1" class="left-menu-plus-icon fugue-icon fugue-store">+</i>
+                            <p ng-click="active = -1" ng-show="active == 1" class="left-menu-plus-icon">-</p>
+                            <ul class="nav animate-show" ng-show="active == 1">
+                                <li class="nav-env">
+                                	<a href="#">prod</a>
+                                </li>
+                                <li class="nav-env">
+                                	<a href="#">dev</a>
+                                </li>
+                                <li class="nav-env">
+                                	<a href="#">test</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <label ng-click="active = 2" class="nav-header"><a href="#">Agito</a></label>
+                            <p ng-click="active = 2" ng-show="active != 2" class="left-menu-plus-icon">+</p>
+                            <p ng-click="active = -1" ng-show="active == 2" class="left-menu-plus-icon">-</p>
+                            <ul class="nav animate-show" ng-show="active == 2">
+                                <li class="nav-env">
+                                	<a href="#">Prod</a>
+                                </li>
+                                <li class="nav-env">
+                                	<a href="#">Dev</a>
+                                </li>
+                                <li class="nav-env">
+                                	<a href="#">Test</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <label ng-click="active = 3" class="nav-header"><a href="#">PayU</a></label>
+                            <p ng-click="active = 3" ng-show="active != 3" class="left-menu-plus-icon">+</p>
+                            <p ng-click="active = -1" ng-show="active == 3" class="left-menu-plus-icon">-</p>
+                            <ul class="nav animate-show" ng-show="active == 3">
+                                <li class="nav-env">
+                                	<a href="#">prod</a>
+                                </li>
+                                <li class="nav-env">
+                                	<a href="#">dev</a>
+                                </li>
+                                <li class="nav-env">
+                                	<a href="#">test</a>
+                                </li>
+                            </ul>
+                        </li>
+                  </ul>
+				</div>
+			</div>
+			<div class="body-table-cell cell content-cell">
+				<div class="datepicker">
+					<div class="panel panel-default panel-datepicker">
+	                    <div class="panel-heading panel-datepicker-heading row show-grid">
+	                    	<button class="col-md-1">January</button>
+	                		<button class="col-md-1">February</button>
+	                    	<button class="col-md-1">March</button>
+	                    	<button class="col-md-1">April</button>
+	                		<button class="col-md-1">May</button>
+	            			<button class="col-md-1">June</button>
+	                		<button class="col-md-1">July</button>
+	                		<button class="col-md-1">August</button>
+	                		<button class="col-md-1">September</button>
+	                		<button class="col-md-1">October</button>
+	                		<button class="col-md-1">November</button>
+	                		<button class="col-md-1">December</button>
+	                    </div>
+	                    <div class="panel-footer panel-datepicker-footer row show-grid">
+	                		<button class="col-md-1">1</button>
+	                		<button class="col-md-1">2</button>
+	                		<button class="col-md-1">3</button>
+	                		<button class="col-md-1">4</button>
+	                		<button class="col-md-1">5</button>
+	                		<button class="col-md-1">6</button>
+	                		<button class="col-md-1">7</button>
+	                		<button class="col-md-1">8</button>
+	                		<button class="col-md-1">9</button>
+	                		<button class="col-md-1">10</button>
+	                		<button class="col-md-1">11</button>
+	                		<button class="col-md-1">12</button>
+	                		<button class="col-md-1">13</button>
+	                		<button class="col-md-1">14</button>
+	                		<button class="col-md-1">15</button>
+	                		<button class="col-md-1">16</button>
+	                		<button class="col-md-1">17</button>
+	                		<button class="col-md-1">18</button>
+	                		<button class="col-md-1">19</button>
+	                		<button class="col-md-1">20</button>
+	                		<button class="col-md-1">21</button>
+	                		<button class="col-md-1">22</button>
+	                		<button class="col-md-1">23</button>
+	                		<button class="col-md-1">24</button>
+	                		<button class="col-md-1">25</button>
+	                		<button class="col-md-1">26</button>
+	                		<button class="col-md-1">27</button>
+	                		<button class="col-md-1">28</button>
+	                		<button class="col-md-1">29</button>
+	                		<button class="col-md-1">30</button>
+	                		<button class="col-md-1">31</button>
+	                    </div>
+                	</div>
+                </div>
+				<div class="data-content">
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
