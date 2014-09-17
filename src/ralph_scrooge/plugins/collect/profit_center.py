@@ -23,12 +23,16 @@ def update_profit_center(data, date, default_business_line):
     Updates single profit center according to data from ralph
     """
     if data['business_line'] is not None:
-        business_line = BusinessLine.objects.get(ci_uid=data['business_line'])
+        business_line = BusinessLine.objects.get(ci_id=data['business_line'])
     else:
         business_line = default_business_line
     profit_center, created = ProfitCenter.objects.get_or_create(
-        ci_uid=data['ci_uid'],
+        ci_id=data['ci_id'],
+        defaults=dict(
+            ci_uid=data['ci_uid'],
+        )
     )
+    profit_center.ci_uid = data['ci_uid']
     profit_center.name = data['name']
     profit_center.description = data['description']
     profit_center.business_line = business_line

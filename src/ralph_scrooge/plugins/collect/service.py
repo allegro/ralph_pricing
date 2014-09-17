@@ -30,17 +30,18 @@ def update_service(data, date, default_profit_center):
     created = False
     try:
         service = Service.objects.get(
-            ci_uid=data['ci_uid'],
+            ci_id=data['ci_id'],
         )
     except Service.DoesNotExist:
         service = Service(
-            ci_uid=data['ci_uid'],
+            ci_id=data['ci_id'],
         )
         created = True
+    service.ci_uid = data['ci_uid']
     service.name = data['name']
     if data['profit_center'] is not None:
         service.profit_center = ProfitCenter.objects.get(
-            ci_uid=data['profit_center']
+            ci_id=data['profit_center']
         )
     else:
         service.profit_center = default_profit_center
@@ -76,7 +77,7 @@ def update_service(data, date, default_profit_center):
         ])
 
     for environment_id in (data.get('environments') or []):
-        environment = Environment.objects.get(environment_id=environment_id)
+        environment = Environment.objects.get(ci_id=environment_id)
         ServiceEnvironment.objects.get_or_create(
             service=service,
             environment=environment,

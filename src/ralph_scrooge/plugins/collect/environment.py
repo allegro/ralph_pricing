@@ -20,8 +20,12 @@ logger = logging.getLogger(__name__)
 @commit_on_success
 def update_environment(data, date):
     environment, created = Environment.objects.get_or_create(
-        environment_id=data['id']
+        ci_id=data['ci_id'],
+        defaults=dict(
+            ci_uid=data['ci_uid'],
+        )
     )
+    environment.ci_uid = data['ci_uid']
     environment.name = data['name']
     environment.save()
     return created

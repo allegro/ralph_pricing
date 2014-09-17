@@ -27,23 +27,24 @@ class TestBusinessLineCollectPlugin(TestCase):
     def _compare_business_line(self, business_line, sample_data):
         self.assertEquals(business_line.name, sample_data['name'])
         self.assertEquals(business_line.ci_uid, sample_data['ci_uid'])
+        self.assertEquals(business_line.ci_id, sample_data['ci_id'])
 
     def test_add_business_line(self):
         sample_data = SAMPLE_BUSINESS_LINES[0]
         self.assertTrue(update_business_line(sample_data, self.today))
-        business_line = BusinessLine.objects.get(ci_uid=sample_data['ci_uid'])
+        business_line = BusinessLine.objects.get(ci_id=sample_data['ci_id'])
         self._compare_business_line(business_line, sample_data)
 
     def test_update_business_line(self):
         sample_data = SAMPLE_BUSINESS_LINES[0]
         self.assertTrue(update_business_line(sample_data, self.today))
-        business_line = BusinessLine.objects.get(ci_uid=sample_data['ci_uid'])
+        business_line = BusinessLine.objects.get(ci_id=sample_data['ci_id'])
         self._compare_business_line(business_line, sample_data)
 
         sample_data2 = SAMPLE_BUSINESS_LINES[1]
-        sample_data2['ci_uid'] = sample_data['ci_uid']
+        sample_data2['ci_id'] = sample_data['ci_id']
         self.assertFalse(update_business_line(sample_data2, self.today))
-        business_line = BusinessLine.objects.get(ci_uid=sample_data2['ci_uid'])
+        business_line = BusinessLine.objects.get(ci_id=sample_data2['ci_id'])
         self._compare_business_line(business_line, sample_data2)
 
     @mock.patch('ralph_scrooge.plugins.collect.business_line.update_business_line')  # noqa
@@ -53,7 +54,7 @@ class TestBusinessLineCollectPlugin(TestCase):
         update_business_line_mock
     ):
         def sample_update_business_line(data, date):
-            return int(data['ci_uid'].split('-')[-1]) % 2 == 0
+            return data['ci_id'] % 2 == 0
 
         def sample_get_business_lines():
             for business_line in SAMPLE_BUSINESS_LINES:

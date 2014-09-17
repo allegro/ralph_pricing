@@ -148,8 +148,8 @@ def update_assets(data, date, usages):
     """
     try:
         service_environment = ServiceEnvironment.objects.get(
-            service__ci_uid=data['service_ci_uid'],
-            environment__environment_id=data['environment_id'],
+            service__ci_id=data['service_id'],
+            environment__ci_id=data['environment_id'],
         )
     except ServiceEnvironment.DoesNotExist:
         raise ServiceEnvironmentDoesNotExistError()
@@ -314,7 +314,7 @@ def asset(**kwargs):
             logger.error(
                 'Asset {}: Service environment {} - {} does not exist'.format(
                     data['asset_id'],
-                    data['service_ci_uid'],
+                    data['service_id'],
                     data['environment_id'],
                 )
             )

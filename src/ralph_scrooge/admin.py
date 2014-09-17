@@ -164,16 +164,17 @@ class ExtraCostTypeAdmin(ModelAdmin):
 # SERVICE
 # =============================================================================
 @register(models.BusinessLine)
-class BusinessLineAdmin(ModelAdmin):
+class BusinessLineAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+    readonly_when_update = ('ci_id', 'ci_uid')
 
 
 @register(models.Environment)
 class EnvironmentAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    readonly_when_update = ('environment_id', )
+    readonly_when_update = ('ci_id', 'ci_uid')
 
 
 @register(models.Owner)
@@ -197,10 +198,11 @@ class ServiceEnvironmentsInline(admin.TabularInline):
 
 
 @register(models.Service)
-class ServiceAdmin(SimpleHistoryAdmin):
+class ServiceAdmin(UpdateReadonlyMixin, SimpleHistoryAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [ServiceOwnershipInline, ServiceEnvironmentsInline]
+    readonly_when_update = ('ci_id', 'ci_uid')
 
 
 # =============================================================================

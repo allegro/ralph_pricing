@@ -8,9 +8,10 @@ from __future__ import unicode_literals
 import datetime
 import random
 
+import factory
+from django.contrib.auth.models import User
 from factory import (
     fuzzy,
-    lazy_attribute,
     Sequence,
     SubFactory,
 )
@@ -33,6 +34,7 @@ class ServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.Service
 
     name = Sequence(lambda n: 'Service #%s' % n)
+    ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
@@ -40,7 +42,8 @@ class EnvironmentFactory(DjangoModelFactory):
     FACTORY_FOR = models.Environment
 
     name = Sequence(lambda n: 'Environment #%s' % n)
-    environment_id = Sequence(lambda n: n)
+    ci_id = Sequence(lambda n: n)
+    ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
 class ServiceEnvironmentFactory(DjangoModelFactory):
@@ -110,23 +113,34 @@ class DailyAssetInfoFactory(DailyPricingObjectFactory):
     date = fuzzy.FuzzyDate(MIN_FACTORY_DATE, MAX_FACTORY_DATE)
 
 
+class UserFactory(DjangoModelFactory):
+    FACTORY_FOR = User
+    username = Sequence(lambda n: 'user_{0}'.format(n))
+    first_name = Sequence(lambda n: 'John {0}'.format(n))
+    last_name = Sequence(lambda n: 'Snow {0}'.format(n))
+
+
+@factory.sequence
+def get_profile(n):
+    """Due to strange logic in lck.django we can't use subfactories to create
+    profiles."""
+    user = UserFactory()
+    user.save()
+    return user.profile
+
+
 class OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
-    first_name = "Scrooge"
-    last_name = Sequence(lambda n: "McDuck {}".format(n))
-    sAMAccountName = "qwerty"
     cmdb_id = Sequence(lambda n: n)
-
-    @lazy_attribute
-    def email(self):
-        return '{}.{}@example.com'.format(self.first_name, self.last_name)
+    profile = get_profile
 
 
 class BusinessLineFactory(DjangoModelFactory):
     FACTORY_FOR = models.BusinessLine
 
     name = Sequence(lambda n: 'Business Line #%s' % n)
+    ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
 
 
@@ -135,6 +149,7 @@ class ProfitCenterFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Profit Center #%s' % n)
     description = Sequence(lambda n: 'Profit Center #%s description' % n)
+    ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
     business_line = SubFactory(BusinessLineFactory)
 
