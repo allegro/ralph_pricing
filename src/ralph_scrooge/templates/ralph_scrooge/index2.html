@@ -26,37 +26,36 @@
     <body ng-controller="mainCtrl" class="bs-docs-home">
         <div id="header" class="panel panel-default">
             <!-- /.panel-heading -->
-            <div class="panel-body">
+            <div class="panel-heading">
                 <!-- Nav tabs -->
-                <ul class="nav nav-tabs">
-                    <li><h1><a href='/'>Scrooge</a></h1></li>
-                    <li class="menu"><a href="#home" data-toggle="tab">CORE</a></li>
-                    <li class="menu"><a href="#profile" data-toggle="tab">CMDB</a></li>
-                    <li class="menu"><a href="#messages" data-toggle="tab">ASSETS</a></li>
-                    <li class="menu nav-active"><a href="#settings" data-toggle="tab">SCROOGE</a></li>
+                <ul class="nav nav-tabs" role="tablist">
+                    <li><h1><a href='/'><img src="/static/scrooge/img/scrooge-logo.png"></a></h1></li>
+                    <li class="active"><a href="#">CORE</a></li>
+                    <li><a href="">CMDB</a></li>
+                    <li><a href="">ASSETS</a></li>
+                    <li><a href="">SCROOGE</a></li>
                 </ul>
-                <ul class="nav navbar-submenu">
-                    <li class="submenu"><a href="#home" data-toggle="tab">Components</a></li>
-                    <li class="submenu"><a href="#profile" data-toggle="tab">Card costs</a></li>
-                    <li class="submenu"><a href="#messages" data-toggle="tab">Dependency tree</a></li>
-                    <li class="submenu"><a href="#settings" data-toggle="tab">Allocation</a></li>
+                <ul class="nav nav-tabs nav-submenu" role="tablist">
+                    <li><a href="" data-toggle="tab">Components</a></li>
+                    <li><a href="" data-toggle="tab">Card costs</a></li>
+                    <li><a href="" data-toggle="tab">Dependency tree</a></li>
+                    <li class="nav-active"><a href="" data-toggle="tab">Allocation</a></li>
                 </ul>
             </div>
-        </div>
-        <div id="body" class="bs-docs-masthead">
-            <ng-view></ng-view>
-        </div>
-        <div id="footer" class="bs-docs-footer">
-            <p class="version">version 3.0.0</p>
-            <p>Powered by
-                <a href="https://wiki.allegrogroup.com/display/PYLABS/Ralph+Scrooge">
-                    Scrooge
-                </a>
-                Brought to you by
-                <a href="https://wiki.office/display/PYLABS/Team">
-                    <img src="/static/scrooge/img/pylabs.png" style="width: 18%"></img>
-                </a>
-            </p>
+            <!-- /.panel-body -->
+            <div class="panel-body"><ng-view></ng-view></div>
+            <div class="panel-footer">
+                <p class="version">version 3.0.0</p>
+                <p>Powered by
+                    <a href="https://wiki.allegrogroup.com/display/PYLABS/Ralph+Scrooge">
+                        Scrooge
+                    </a>
+                    Brought to you by
+                    <a href="https://wiki.office/display/PYLABS/Team">
+                        <img src="/static/scrooge/img/pylabs.png" style="width: 18%"></img>
+                    </a>
+                </p>
+            </div>
         </div>
     </body>
 </html>

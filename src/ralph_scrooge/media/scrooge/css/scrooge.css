@@ -1,3 +1,78 @@
+@import url(http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css);
+.fa-fw {width: 2em;}
+#body {
+	height: 90%;
+}
+.nav.nav-tabs h1{
+	margin: 0px 10px;
+	height: 40px;
+	padding-bottom: 10px;
+}
+.nav.nav-tabs h1 img {
+	margin-top: -20px;
+}
+.panel-heading {
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	border-bottom: 0px;
+}
+.nav-submenu {
+	background-color: white;
+}
+.dropdown-left-menu {
+	border: 0px;
+	position: relative;
+	margin: 0px;
+	background-color: transparent;
+	float: none;
+	-webkit-box-shadow: 0 0px 0px;
+	-webkit-box-shadow: 0 0px 0px;
+}
+.left-menu {
+	min-height: 100px;
+	width: 100%;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	padding: 30px 40px;
+	border: 0px;
+}
+.btn-day-scrooge {
+	width: 38px;
+	margin: 0px 0px 3px 0px;
+	text-align: center;
+	padding: 0px;
+}
+.btn-month-scrooge {
+	width: 100px;
+	margin-right: 6px;
+	text-align: center;
+}
+.btn-month {
+	padding: 0px 15px 10px 17px;
+}
+.footer {
+	text-align: center;
+	padding-top: 10px;
+}
+.footer p {
+	display: inline-block;
+	text-align: center;
+}
+.footer .version{
+	margin-left: 20px;
+	float: left;
+	color: rgba(200, 200, 200, 1);
+}
+.footer a {
+	color: #ffcc00;
+}
+.panel-datepicker {
+	text-align: center;
+	border: 0px;
+}
+/*
 html, body
 {
     height: 100%;
@@ -26,7 +101,7 @@ a:active {
 }
 .nav.nav-tabs {
 	border: 0px;
-	background-image: url('/static/scrooge/img/navbar_background.png');
+	background-color: #fafafa;
 	background-repeat: no-repeat;
 	background-size: 100%;
 	width: 100%;
@@ -37,6 +112,9 @@ a:active {
 	margin: 0px 10px;
 	height: 40px;
 	padding-bottom: 10px;
+}
+.nav.nav-tabs h1 img {
+	margin-top: -20px;
 }
 .nav.nav-tabs li.menu{
 	background-color: rgba(255, 200, 0, 1);
@@ -60,7 +138,7 @@ a:active {
 	height: 60px;
 }
 .navbar-submenu {
-	background-color: rgba(255, 225, 130, 1);
+	background-color: #FEF9E5;
 	height:30px;
 }
 .navbar-submenu .submenu {
@@ -84,13 +162,13 @@ a:active {
 	border: 0px;
 }
 .left-menu-container {
-	background-color: #FEF9E5;
+	background-color: #ffffff;
 	min-height: 100%;
 	padding: 30px 40px;
 }
 .content {
-	background-color: rgba(255, 200, 0, 0.2);
-	border-left: 1px solid rgba(255, 200, 0, 0.4);
+	background-color: #fafafa;
+	border-left: 1px solid #dfdfdf;
 	min-height: 100%;
 }
 .body-container {
@@ -160,7 +238,7 @@ a:active {
 	text-align: center;
 }
 #footer {
-	background-color: rgba(255, 200, 0, 0.1);
+	background-color: #ffffff;
 	text-align: center;
 	padding-top: 10px;
 }
@@ -179,3 +257,5 @@ a:active {
 #generate-to-csv {
 	float: right;
 }
+
+*/

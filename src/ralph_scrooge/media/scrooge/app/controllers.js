@@ -53,6 +53,7 @@ ang_controllers.controller('components', ['$scope', '$routeParams', function ($s
         });
 
     };
+    $scope.preventClose = function(event) { event.stopPropagation(); };
 }]);
 
 ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', function ($scope, $routeParams) {
