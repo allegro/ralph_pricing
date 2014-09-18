@@ -10,7 +10,7 @@ import logging
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
-from ralph.util.api_pricing import get_business_lines
+from ralph.util.api_scrooge import get_business_lines
 from ralph_scrooge.models import BusinessLine
 
 

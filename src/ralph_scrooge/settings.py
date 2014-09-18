@@ -5,10 +5,10 @@ NFSEN_CLASS_ADDRESS = []
 NFSEN_FILES_PATH = ''
 
 # Virtual Usages plugin default config
-VIRTUAL_VENTURE_NAMES = {}
+VIRTUAL_SERVICES = {}
 
 # Shares plugin default config
-SHARE_SERVICE_CI_UID = {}
+SHARE_SERVICES = {}
 
 # OpenStack
 OPENSTACK_TENANT_SERVICE_FIELD = None
@@ -22,7 +22,6 @@ COLLECT_PLUGINS = set([
     'asset',
     'business_line',
     'environment',
-    'extra_cost',
     'owner',
     'service',
     'warehouse',
