@@ -8,6 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Removing unique constraint on 'ProfitCenter', fields ['ci_uid']
+        db.delete_unique(u'ralph_scrooge_profitcenter', ['ci_uid'])
+
+        # Removing unique constraint on 'BusinessLine', fields ['ci_uid']
+        db.delete_unique(u'ralph_scrooge_businessline', ['ci_uid'])
+
+        # Removing unique constraint on 'Service', fields ['ci_uid']
+        db.delete_unique(u'ralph_scrooge_service', ['ci_uid'])
+
         # Adding model 'AssetModel'
         db.create_table(u'ralph_scrooge_assetmodel', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -18,18 +27,129 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'ralph_scrooge', ['AssetModel'])
 
+        # Adding field 'HistoricalService.ci_id'
+        db.add_column('ralph_scrooge_historicalservice', 'ci_id',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True),
+                      keep_default=False)
+
+        # Removing index on 'HistoricalService', fields ['ci_uid']
+        db.delete_index('ralph_scrooge_historicalservice', ['ci_uid'])
+
+        # Deleting field 'Owner.last_name'
+        db.delete_column(u'ralph_scrooge_owner', 'last_name')
+
+        # Deleting field 'Owner.first_name'
+        db.delete_column(u'ralph_scrooge_owner', 'first_name')
+
+        # Deleting field 'Owner.sAMAccountName'
+        db.delete_column(u'ralph_scrooge_owner', 'sAMAccountName')
+
+        # Deleting field 'Owner.email'
+        db.delete_column(u'ralph_scrooge_owner', 'email')
+
+        # Adding field 'Owner.profile'
+        db.add_column(u'ralph_scrooge_owner', 'profile',
+                      self.gf('django.db.models.fields.related.OneToOneField')(default=0, to=orm['account.Profile'], unique=True),
+                      keep_default=False)
+
         # Adding field 'AssetInfo.model'
         db.add_column(u'ralph_scrooge_assetinfo', 'model',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=2, to=orm['ralph_scrooge.AssetModel']),
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['ralph_scrooge.AssetModel']),
+                      keep_default=False)
+
+        # Deleting field 'Environment.environment_id'
+        db.delete_column(u'ralph_scrooge_environment', 'environment_id')
+
+        # Adding field 'Environment.ci_id'
+        db.add_column(u'ralph_scrooge_environment', 'ci_id',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, unique=True),
+                      keep_default=False)
+
+        # Adding field 'Environment.ci_uid'
+        db.add_column(u'ralph_scrooge_environment', 'ci_uid',
+                      self.gf('django.db.models.fields.CharField')(default=0, max_length=100),
+                      keep_default=False)
+
+        # Adding field 'Service.ci_id'
+        db.add_column(u'ralph_scrooge_service', 'ci_id',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, unique=True),
+                      keep_default=False)
+
+        # Adding field 'BusinessLine.ci_id'
+        db.add_column(u'ralph_scrooge_businessline', 'ci_id',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, unique=True),
+                      keep_default=False)
+
+        # Adding field 'ProfitCenter.ci_id'
+        db.add_column(u'ralph_scrooge_profitcenter', 'ci_id',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, unique=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
+        # Adding index on 'HistoricalService', fields ['ci_uid']
+        db.create_index('ralph_scrooge_historicalservice', ['ci_uid'])
+
         # Deleting model 'AssetModel'
         db.delete_table(u'ralph_scrooge_assetmodel')
 
+        # Deleting field 'HistoricalService.ci_id'
+        db.delete_column('ralph_scrooge_historicalservice', 'ci_id')
+
+        # Adding field 'Owner.last_name'
+        db.add_column(u'ralph_scrooge_owner', 'last_name',
+                      self.gf('django.db.models.fields.CharField')(default=0, max_length=100),
+                      keep_default=False)
+
+        # Adding field 'Owner.first_name'
+        db.add_column(u'ralph_scrooge_owner', 'first_name',
+                      self.gf('django.db.models.fields.CharField')(default=0, max_length=5),
+                      keep_default=False)
+
+        # Adding field 'Owner.sAMAccountName'
+        db.add_column(u'ralph_scrooge_owner', 'sAMAccountName',
+                      self.gf('django.db.models.fields.CharField')(default='', max_length=256, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Owner.email'
+        db.add_column(u'ralph_scrooge_owner', 'email',
+                      self.gf('django.db.models.fields.EmailField')(unique=True, max_length=75, null=True),
+                      keep_default=False)
+
+        # Deleting field 'Owner.profile'
+        db.delete_column(u'ralph_scrooge_owner', 'profile_id')
+
         # Deleting field 'AssetInfo.model'
         db.delete_column(u'ralph_scrooge_assetinfo', 'model_id')
+
+        # Adding field 'Environment.environment_id'
+        db.add_column(u'ralph_scrooge_environment', 'environment_id',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, unique=True),
+                      keep_default=False)
+
+        # Deleting field 'Environment.ci_id'
+        db.delete_column(u'ralph_scrooge_environment', 'ci_id')
+
+        # Deleting field 'Environment.ci_uid'
+        db.delete_column(u'ralph_scrooge_environment', 'ci_uid')
+
+        # Deleting field 'Service.ci_id'
+        db.delete_column(u'ralph_scrooge_service', 'ci_id')
+
+        # Adding unique constraint on 'Service', fields ['ci_uid']
+        db.create_unique(u'ralph_scrooge_service', ['ci_uid'])
+
+        # Deleting field 'BusinessLine.ci_id'
+        db.delete_column(u'ralph_scrooge_businessline', 'ci_id')
+
+        # Adding unique constraint on 'BusinessLine', fields ['ci_uid']
+        db.create_unique(u'ralph_scrooge_businessline', ['ci_uid'])
+
+        # Deleting field 'ProfitCenter.ci_id'
+        db.delete_column(u'ralph_scrooge_profitcenter', 'ci_id')
+
+        # Adding unique constraint on 'ProfitCenter', fields ['ci_uid']
+        db.create_unique(u'ralph_scrooge_profitcenter', ['ci_uid'])
 
 
     models = {
@@ -119,9 +239,19 @@ class Migration(SchemaMigration):
         },
         u'ralph_scrooge.businessline': {
             'Meta': {'object_name': 'BusinessLine'},
-            'ci_uid': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
+        },
+        u'ralph_scrooge.costdatestatus': {
+            'Meta': {'object_name': 'CostDateStatus'},
+            'accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'calculated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'date': ('django.db.models.fields.DateField', [], {'unique': 'True'}),
+            'forecast_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'forecast_calculated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         u'ralph_scrooge.dailyassetinfo': {
             'Meta': {'object_name': 'DailyAssetInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
@@ -179,7 +309,8 @@ class Migration(SchemaMigration):
         },
         u'ralph_scrooge.environment': {
             'Meta': {'ordering': "[u'name']", 'object_name': 'Environment'},
-            'environment_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
         },
@@ -202,7 +333,8 @@ class Migration(SchemaMigration):
             u'active_from': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             u'active_to': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(9999, 12, 31, 0, 0)'}),
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'db_index': 'True'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             u'history_date': ('django.db.models.fields.DateTimeField', [], {}),
@@ -217,16 +349,13 @@ class Migration(SchemaMigration):
             'profit_center': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'related_name': "u'+'", 'to': u"orm['ralph_scrooge.ProfitCenter']"})
         },
         u'ralph_scrooge.owner': {
-            'Meta': {'object_name': 'Owner'},
+            'Meta': {'ordering': "[u'profile__nick']", 'object_name': 'Owner'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'cmdb_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'unique': 'True', 'null': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '5'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'sAMAccountName': ('django.db.models.fields.CharField', [], {'max_length': '256', 'blank': 'True'})
+            'profile': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['account.Profile']", 'unique': 'True'})
         },
         u'ralph_scrooge.pricingobject': {
             'Meta': {'unique_together': "((u'service_environment', u'type', u'name'),)", 'object_name': 'PricingObject'},
@@ -253,7 +382,8 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.profitcenter': {
             'Meta': {'object_name': 'ProfitCenter'},
             'business_line': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'related_name': "u'profit_centers'", 'to': u"orm['ralph_scrooge.BusinessLine']"}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'description': ('django.db.models.fields.TextField', [], {'default': 'None', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
@@ -261,7 +391,8 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.service': {
             'Meta': {'ordering': "[u'name']", 'object_name': 'Service'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'environments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceEnvironment']", 'to': u"orm['ralph_scrooge.Environment']"}),
