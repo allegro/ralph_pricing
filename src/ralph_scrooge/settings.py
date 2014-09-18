@@ -34,6 +34,5 @@ UNKNOWN_SERVICES_ENVIRONMENTS = {
 
 ADDITIONAL_PRICING_OBJECT_TYPES = {}
 
-
 import sys
 TESTING = 'test' in sys.argv

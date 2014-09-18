@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import abc
 import re
 
-from ralph_scrooge.utils import memoize
+from ralph_scrooge.utils.common import memoize
 
 from ralph.util import plugin
 from ralph_scrooge.models import Warehouse

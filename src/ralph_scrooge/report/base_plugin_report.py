@@ -8,20 +8,21 @@ from __future__ import unicode_literals
 import logging
 from decimal import Decimal as D
 
-from ralph_scrooge.utils import memoize
+from ralph_scrooge.utils.common import memoize
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.views.base_report import BaseReport
+from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
+    ExtraCostType,
     PricingService,
     ServiceEnvironment,
     Team,
     UsageType,
 )
-from ralph.util import plugin as plugin_runner
-from ralph_scrooge.models import ExtraCostType
 from ralph_scrooge.plugins import report  # noqa
-from ralph_scrooge.utils import AttributeDict
+from ralph_scrooge.plugins.cost.collector import Collector
+from ralph_scrooge.report.base_report import BaseReport
+from ralph_scrooge.utils.common import AttributeDict
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,17 @@ class BasePluginReport(BaseReport):
         Should return list of plugins to call
         """
         return []
+
+    @classmethod
+    def calculate_costs(self, start, end, forecast=False):
+        """
+        Calculate costs between start and end (without forcing - when costs
+        were calculated for single day, they will be not calculated again
+        unless forcing it).
+        """
+        colletor = Collector()
+        for day, status in colletor.process_period(start, end, forecast):
+            pass
 
     @classmethod
     def _get_extra_cost_plugins(cls, filter_=None):

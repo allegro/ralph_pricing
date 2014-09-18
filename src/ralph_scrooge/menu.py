@@ -64,6 +64,12 @@ class ScroogeMenu(Menu):
                 fugue_icon='fugue-money-bag',
                 view_name='collect_plugins',
             ),
+            MenuItem(
+                _("Monthly costs"),
+                name='monthly-costs',
+                fugue_icon='fugue-money-bag',
+                view_name='monthly_costs',
+            ),
             # MenuItem(
             #     _("Teams"),
             #     name='teams',

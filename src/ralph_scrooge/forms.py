@@ -21,7 +21,7 @@ from ralph_scrooge.models import (
 from ralph_scrooge.management.commands.pricing_sync import (
     get_collect_plugins_names,
 )
-from ralph_scrooge.utils import ranges_overlap
+from ralph_scrooge.utils.common import ranges_overlap
 
 
 class ExtraCostForm(forms.ModelForm):
@@ -226,6 +226,13 @@ class CollectPluginsForm(DateRangeForm):
     plugins = forms.MultipleChoiceField(
         required=True,
         choices=zip(collect_plugins_names, collect_plugins_names),
+    )
+
+
+class MonthlyCostsForm(DateRangeForm):
+    forecast = forms.BooleanField(
+        required=False,
+        label=_("Forecast"),
     )
 
 

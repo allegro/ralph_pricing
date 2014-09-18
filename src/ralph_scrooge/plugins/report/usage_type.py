@@ -49,7 +49,7 @@ class UsageTypePlugin(BaseReportPlugin):
 
         result = defaultdict(dict)
         for u in usages:
-            result[u['date']][u['service_environment__id']] = u['total_value']
+            result[u['date']][u['service_environment__id']] = u['total']
         return result
 
     def usages_schema(self, usage_type, *args, **kwargs):

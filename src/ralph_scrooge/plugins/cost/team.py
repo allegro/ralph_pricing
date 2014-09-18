@@ -54,7 +54,7 @@ from collections import defaultdict
 from decimal import Decimal as D
 
 from django.db.models import Sum, Count
-from ralph_scrooge.utils import memoize
+from ralph_scrooge.utils.common import memoize
 
 from ralph_scrooge.models import (
     DailyUsage,

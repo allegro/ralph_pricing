@@ -10,7 +10,7 @@ import logging
 from decimal import Decimal as D
 
 from django.db.models import Sum
-from ralph_scrooge.utils import memoize
+from ralph_scrooge.utils.common import memoize
 
 from ralph_scrooge.models import DailyUsage
 from ralph_scrooge.plugins.base import BasePlugin
