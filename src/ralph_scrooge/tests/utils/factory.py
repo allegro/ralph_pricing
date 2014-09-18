@@ -213,3 +213,9 @@ class PricingServiceFactory(DjangoModelFactory):
     name = Sequence(lambda n: 'Pricing Service #%s' % n)
     symbol = Sequence(lambda n: 'ps%s' % n)
     use_universal_plugin = True
+
+
+class CostDateStatusFactory(DjangoModelFactory):
+    FACTORY_FOR = models.CostDateStatus
+
+    date = datetime.date.today()

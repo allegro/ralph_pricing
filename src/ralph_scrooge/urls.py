@@ -11,14 +11,13 @@ from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource
 from ralph_scrooge.views.collect_plugins import CollectPlugins
-from ralph_scrooge.views.devices import Devices
 from ralph_scrooge.views.extra_costs import ExtraCosts
 from ralph_scrooge.views.usage_types import UsageTypes
 from ralph_scrooge.views.statement import Statements
 from ralph_scrooge.views.teams_percent import TeamsPercent
-from ralph_scrooge.views.report_services_costs import ServicesCostsReport
-from ralph_scrooge.views.report_services_usages import ServicesUsagesReport
-from ralph_scrooge.views.ventures_changes import VenturesChanges
+from ralph_scrooge.views.monthly_costs import MonthlyCosts
+from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
+from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView
 
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
@@ -30,34 +29,23 @@ urlpatterns = patterns(
     # reports
     url(
         r'^$',
-        login_required(ServicesCostsReport.as_view()),
+        login_required(ServicesCostsReportView.as_view()),
         name='services_costs_report',
     ),
     url(
         r'^services-costs-report/$',
-        login_required(ServicesCostsReport.as_view()),
+        login_required(ServicesCostsReportView.as_view()),
         name='services_costs_report',
     ),
     url(
         r'^services-usages-report/$',
-        login_required(ServicesUsagesReport.as_view()),
+        login_required(ServicesUsagesReportView.as_view()),
         name='services_usages_report',
     ),
-
     url(
-        r'^ventures-changes/$',
-        login_required(VenturesChanges.as_view()),
-        name='ventures_changes',
-    ),
-    url(
-        r'^devices/$',
-        login_required(Devices.as_view()),
-        name='devices',
-    ),
-    url(
-        r'^devices/(?P<venture>\d+)/$',
-        login_required(Devices.as_view()),
-        name='devices',
+        r'^monthly-costs/$',
+        login_required(MonthlyCosts.as_view()),
+        name='monthly_costs',
     ),
     # costs forms
     url(

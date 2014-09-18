@@ -9,28 +9,20 @@ import logging
 from collections import defaultdict
 from dateutil import rrule
 
-from django.conf import settings
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.management.commands.pricing_sync import run_plugins
+from ralph_scrooge.utils.common import get_cache_name, get_queue_name
+from ralph_scrooge.utils.worker_job import WorkerJob
 from ralph_scrooge.views.base import Base
-from ralph_scrooge.views._worker_view import WorkerView
 from ralph_scrooge.forms import CollectPluginsForm
 
 
 logger = logging.getLogger(__name__)
 
 
-CACHE_NAME = 'scrooge_collect'
-if CACHE_NAME not in settings.CACHES:
-    CACHE_NAME = 'default'
-QUEUE_NAME = 'scrooge_collect'
-if QUEUE_NAME not in settings.RQ_QUEUES:
-    QUEUE_NAME = 'default'
-
-
-class CollectPlugins(WorkerView, Base):
+class CollectPlugins(WorkerJob, Base):
     """
     Report with listing of devices ventures changes. Contains basic information
     about change such as device info (sn, barcode, name), change date and
@@ -43,9 +35,9 @@ class CollectPlugins(WorkerView, Base):
     description = _('Run collect plugins in period of time.')
     initial = None
 
-    queue_name = QUEUE_NAME
-    cache_name = CACHE_NAME
-    cache_section = 'collect_plugins'
+    queue_name = get_queue_name('scrooge_collect')
+    cache_name = get_cache_name('scrooge_collect')
+    cache_section = 'scrooge_collect'
     cache_timeout = 60 * 60  # 1 hour (max time for plugin to run)
     cache_final_result_timeout = 60  # 1 minute for final result
 
