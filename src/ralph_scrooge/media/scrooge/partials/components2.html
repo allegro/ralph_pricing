@@ -1,179 +1,209 @@
-<div class="row body-container" ng-controller="components">
-	<div class="col-xs-2 left-menu-container">
-		<div class="well left-menu navmenu navmenu-default navmenu-fixed-left in">
-				<ul class="nav navmenu-nav">
-			        <li class="dropdown">
-			            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Allegro</a>
-			            <ul ng-click="preventClose($event)" class="nav nav-stacked dropdown-menu navmenu-nav dropdown-left-menu">
-			                <li class="active"><a href="#"><i class="fa fa-home fa-fw"></i>Prod</a></li>
-			                <li><a href=""><i class="fa fa-list-alt fa-fw"></i>Test</a></li>
-			                <li><a href=""><i class="fa fa-file-o fa-fw"></i>Dev</a></li>
-			            </ul>
-			        </li>
-			        <li class="dropdown">
-			            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Agito</a>
-			            <ul ng-click="preventClose($event)" class="nav nav-stacked dropdown-menu navmenu-nav dropdown-left-menu">
-			                <li class="active"><a href="#"><i class="fa fa-home fa-fw"></i>Prod</a></li>
-			                <li><a href=""><i class="fa fa-list-alt fa-fw"></i>Test</a></li>
-			                <li><a href=""><i class="fa fa-file-o fa-fw"></i>Dev</a></li>
-			            </ul>
-			        </li>
-			        <li class="dropdown">
-			            <a href="#" class="dropdown-toggle" data-toggle="dropdown">PayU</a>
-			            <ul ng-click="preventClose($event)" class="nav nav-stacked dropdown-menu navmenu-nav dropdown-left-menu">
-			                <li class="active"><a href="#"><i class="fa fa-home fa-fw"></i>Prod</a></li>
-			                <li><a href=""><i class="fa fa-list-alt fa-fw"></i>Test</a></li>
-			                <li><a href=""><i class="fa fa-file-o fa-fw"></i>Dev</a></li>
-			            </ul>
-			        </li>
-			        <li class="dropdown">
-			            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Otomoto</a>
-			            <ul ng-click="preventClose($event)" class="nav nav-stacked dropdown-menu navmenu-nav dropdown-left-menu">
-			                <li class="active"><a href="#"><i class="fa fa-home fa-fw"></i>Prod</a></li>
-			                <li><a href=""><i class="fa fa-list-alt fa-fw"></i>Test</a></li>
-			                <li><a href=""><i class="fa fa-file-o fa-fw"></i>Dev</a></li>
-			            </ul>
-			        </li>
-			    </ul>
-      </div>
+<div class="container-xs-height body-container" ng-controller="components">
+	<div class="col-xs-2 left-menu-container col-xs-height col-bottom">
+		<div class="col-xs-height col-bottom sidebar-well well navmenu navmenu-default navmenu-fixed-left in">
+            <div class="navbar-default sidebar-navbar-default" role="navigation">
+                <div class="sidebar-nav navbar-collapse sidebar-nav-scrooge">
+                    <ul class="nav" id="side-menu">
+                        <li class="sidebar-search">
+                            <div class="input-group custom-search-form">
+                                <input type="text" class="form-control" placeholder="Search...">
+                                <span class="input-group-btn">
+                                <button class="btn btn-default" type="button">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </span>
+                            </div>
+                            <!-- /input-group -->
+                        </li>
+                        <li class="active">
+                            <a href="#"><i class="fa fa-sitemap fa-fw"></i>Stash<span class="fa arrow"></span></a>
+                            <ul class="active nav nav-second-level">
+                                <li>
+                                    <a href="">Prod</a>
+                                </li>
+                                <li>
+                                    <a href="">Test</a>
+                                </li>
+                                <li>
+                                    <a href="">Dev</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-sitemap fa-fw"></i>Agito<span class="fa arrow"></span></a>
+                            <ul class="active nav nav-second-level collapse">
+                                <li>
+                                    <a href="">Test</a>
+                                </li>
+                                <li>
+                                    <a href="">Dev</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li class="active">
+                            <a href="#"><i class="fa fa-sitemap fa-fw"></i>Allegro<span class="fa arrow"></span></a>
+                            <ul class="active nav nav-second-level collapse">
+                                <li>
+                                    <a href="">Prod</a>
+                                </li>
+                                <li>
+                                    <a href="">Test</a>
+                                </li>
+                                <li>
+                                    <a href="">Dev</a>
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+        </div>
 	</div>
 	<div class="col-xs-10 content">
 		<div class="col-xs-12">
 			<div class="datepicker">
 				<div class="panel panel-default panel-datepicker">
-	                <div class="panel-heading panel-datepicker-heading row show-grid">
-	                	<div class="col-xs-13 btn-toolbar btn-month" role="toolbar">
-	                		<button class="btn btn-default btn-group btn-month-scrooge">January</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">February</button>
-			            	<button class="btn btn-default btn-group btn-month-scrooge">March</button>
-			            	<button class="btn btn-default btn-group btn-month-scrooge">April</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">May</button>
-			    			<button class="btn btn-default btn-group btn-month-scrooge">June</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">July</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">August</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">September</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">October</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">November</button>
-			        		<button class="btn btn-default btn-group btn-month-scrooge">December</button>
-	            		</div>
-	                </div>
-	                <div class="panel-footer panel-datepicker-footer row show-grid">
-	                	<div class="btn-toolbar" role="toolbar">
-		            		<button class="btn btn-default btn-group btn-day-scrooge">1</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">2</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">3</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">4</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">5</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">6</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">7</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">8</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">9</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">10</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">11</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">12</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">13</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">14</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">15</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">16</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">17</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">18</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">19</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">20</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">21</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">22</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">23</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">24</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">25</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">26</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">27</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">28</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">29</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">30</button>
-		            		<button class="btn btn-default btn-group btn-day-scrooge">31</button>
-	            		</div>
-	                </div>
+                    <div class="bg-datepicker" ng-controller="ButtonsCtrl">
+                        <div class="panel-heading panel-datepicker-heading row show-grid">
+                            <div class="col-xs-13 btn_group btn-month" role="toolbar">
+                                <button ng-model="btn_months" btn-radio="'january'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">January</button>
+                                <button ng-model="btn_months" btn-radio="'february'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">February</button>
+                                <button ng-model="btn_months" btn-radio="'march'" class="btn-datepicker btn btn-default btn-month-scrooge">March</button>
+                                <button ng-model="btn_months" btn-radio="'april'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">April</button>
+                                <button ng-model="btn_months" btn-radio="'may'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">May</button>
+                                <button ng-model="btn_months" btn-radio="'june'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">June</button>
+                                <button ng-model="btn_months" btn-radio="'july'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">July</button>
+                                <button ng-model="btn_months" btn-radio="'august'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">August</button>
+                                <button ng-model="btn_months" btn-radio="'september'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">September</button>
+                                <button ng-model="btn_months" btn-radio="'october'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">October</button>
+                                <button ng-model="btn_months" btn-radio="'nvember'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">November</button>
+                                <button ng-model="btn_months" btn-radio="'december'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">December</button>
+                            </div>
+                            <div class="col-xs-13 btn_group btn-day" role="toolbar">
+                                <button ng-model="btn_days" btn-radio="'1'" class="btn-datepicker btn btn-default btn-day-scrooge">1</button>
+                                <button ng-model="btn_days" btn-radio="'2'" class="btn-datepicker btn btn-default btn-day-scrooge">2</button>
+                                <button ng-model="btn_days" btn-radio="'3'" class="btn-datepicker btn btn-default btn-day-scrooge">3</button>
+                                <button ng-model="btn_days" btn-radio="'4'" class="btn-datepicker btn btn-default btn-day-scrooge">4</button>
+                                <button ng-model="btn_days" btn-radio="'5'" class="btn-datepicker btn btn-default btn-day-scrooge">5</button>
+                                <button ng-model="btn_days" btn-radio="'6'" class="btn-datepicker btn btn-default btn-day-scrooge">6</button>
+                                <button ng-model="btn_days" btn-radio="'7'" class="btn-datepicker btn btn-default btn-day-scrooge">7</button>
+                                <button ng-model="btn_days" btn-radio="'8'" class="btn-datepicker btn btn-default btn-day-scrooge">8</button>
+                                <button ng-model="btn_days" btn-radio="'9'" class="btn-datepicker btn btn-default btn-day-scrooge">9</button>
+                                <button ng-model="btn_days" btn-radio="'10'" class="btn-datepicker btn btn-default btn-day-scrooge">10</button>
+                                <button ng-model="btn_days" btn-radio="'11'" class="btn-datepicker btn btn-default btn-day-scrooge">11</button>
+                                <button ng-model="btn_days" btn-radio="'12'" class="btn-datepicker btn btn-default btn-day-scrooge">12</button>
+                                <button ng-model="btn_days" btn-radio="'13'" class="btn-datepicker btn btn-default btn-day-scrooge">13</button>
+                                <button ng-model="btn_days" btn-radio="'14'" class="btn-datepicker btn btn-default btn-day-scrooge">14</button>
+                                <button ng-model="btn_days" btn-radio="'15'" class="btn-datepicker btn btn-default btn-day-scrooge">15</button>
+                                <button ng-model="btn_days" btn-radio="'16'" class="btn-datepicker btn btn-default btn-day-scrooge">16</button>
+                                <button ng-model="btn_days" btn-radio="'17'" class="btn-datepicker btn btn-default btn-day-scrooge">17</button>
+                                <button ng-model="btn_days" btn-radio="'18'" class="btn-datepicker btn btn-default btn-day-scrooge">18</button>
+                                <button ng-model="btn_days" btn-radio="'19'" class="btn-datepicker btn btn-default btn-day-scrooge">19</button>
+                                <button ng-model="btn_days" btn-radio="'20'" class="btn-datepicker btn btn-default btn-day-scrooge">20</button>
+                                <button ng-model="btn_days" btn-radio="'21'" class="btn-datepicker btn btn-default btn-day-scrooge">21</button>
+                                <button ng-model="btn_days" btn-radio="'22'" class="btn-datepicker btn btn-default btn-day-scrooge">22</button>
+                                <button ng-model="btn_days" btn-radio="'23'" class="btn-datepicker btn btn-default btn-day-scrooge">23</button>
+                                <button ng-model="btn_days" btn-radio="'24'" class="btn-datepicker btn btn-default btn-day-scrooge">24</button>
+                                <button ng-model="btn_days" btn-radio="'25'" class="btn-datepicker btn btn-default btn-day-scrooge">25</button>
+                                <button ng-model="btn_days" btn-radio="'26'" class="btn-datepicker btn btn-default btn-day-scrooge">26</button>
+                                <button ng-model="btn_days" btn-radio="'27'" class="btn-datepicker btn btn-default btn-day-scrooge">27</button>
+                                <button ng-model="btn_days" btn-radio="'28'" class="btn-datepicker btn btn-default btn-day-scrooge">28</button>
+                                <button ng-model="btn_days" btn-radio="'29'" class="btn-datepicker btn btn-default btn-day-scrooge">29</button>
+                                <button ng-model="btn_days" btn-radio="'30'" class="btn-datepicker btn btn-default btn-day-scrooge">30</button>
+                                <button ng-model="btn_days" btn-radio="'31'" class="btn-datepicker btn btn-default btn-day-scrooge">31</button>
+                            </div>
+                        </div>
+                    </div>
 	        	</div>
 	        </div>
         </div>
 		<div class="col-xs-12">
 			<div class="data-content">
-				<div class="row">
-                <div class="col-lg-3 col-md-6">
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <div class="row">
-                                <div class="col-xs-3">
-                                    <i class="fa fa-comments fa-5x"></i>
-                                </div>
-                                <div class="col-xs-9 text-right">
-                                    <div class="huge">26</div>
-                                    <div>New Comments!</div>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="#">
-                            <div class="panel-footer">
-                                <span class="pull-left">View Details</span>
-                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                <div class="clearfix"></div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
+                <ul class="nav nav-tabs deep-menu" role="tablist">
+                <li class="active">
+                <div>
                     <div class="panel panel-green">
                         <div class="panel-heading">
                             <div class="row">
                                 <div class="col-xs-3">
-                                    <i class="fa fa-tasks fa-5x"></i>
+                                    <i class="glyphicon glyphicon-hdd fa-5x"></i>
                                 </div>
                                 <div class="col-xs-9 text-right">
-                                    <div class="huge">12</div>
-                                    <div>New Tasks!</div>
+                                    <div class="huge">23</div>
                                 </div>
                             </div>
                         </div>
                         <a href="#">
                             <div class="panel-footer">
-                                <span class="pull-left">View Details</span>
+                                <span class="pull-left">Assets</span>
                                 <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                                 <div class="clearfix"></div>
                             </div>
                         </a>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                </li>
+                <li>
+                <div>
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-cloud fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge">12</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="#">
+                            <div class="panel-footer">
+                                <span class="pull-left">Tenants</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                </li>
+                <li>
+                <div>
                     <div class="panel panel-yellow">
                         <div class="panel-heading">
                             <div class="row">
                                 <div class="col-xs-3">
-                                    <i class="fa fa-shopping-cart fa-5x"></i>
+                                    <i class="glyphicon glyphicon-signal fa-5x"></i>
                                 </div>
                                 <div class="col-xs-9 text-right">
-                                    <div class="huge">124</div>
-                                    <div>New Orders!</div>
+                                    <div class="huge">9</div>
                                 </div>
                             </div>
                         </div>
                         <a href="#">
                             <div class="panel-footer">
-                                <span class="pull-left">View Details</span>
+                                <span class="pull-left">IPs</span>
                                 <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                                 <div class="clearfix"></div>
                             </div>
                         </a>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                </li>
+                <li>
+                <div>
                     <div class="panel panel-red">
                         <div class="panel-heading">
                             <div class="row">
                                 <div class="col-xs-3">
-                                    <i class="fa fa-support fa-5x"></i>
+                                    <i class="glyphicon glyphicon-inbox fa-5x"></i>
                                 </div>
                                 <div class="col-xs-9 text-right">
                                     <div class="huge">13</div>
-                                    <div>Support Tickets!</div>
+                                    <div>Virtual devices</div>
                                 </div>
                             </div>
                         </div>
@@ -186,60 +216,120 @@
                         </a>
                     </div>
                 </div>
+                </li>
+                </ul>
             </div>
-	            <div class="row filters-container" ng-show="showFilters">
-	            	<div class="filter-models">
-	            		<div>
-                            <h4>Model
-                            	<button ng-click="checkAll('models', true)">Check All</button>
-                            	<button ng-click="checkAll('models', false)">Uncheck All</button>
-                            </h4>
-                            <div>
-                    	        <li >
-						            <label class="ng-binding" ng-repeat="item in models">
-						            	{{item.Name}}
-						                <input type="checkbox" ng-model="item.Selected" checked="checked"/>
-						            </label>
-						        </li>
-                            </div>
-                            <h4>Datacenter
-                            	<button ng-click="checkAll('datacenters', true)">Check All</button>
-                            	<button ng-click="checkAll('datacenters', false)">Uncheck All</button>
-                            </h4>
-                            <div>
-                    	        <li >
-						            <label  class="ng-binding" ng-repeat="item in datacenters">
-						            	{{item.Name}}
-						                <input type="checkbox" ng-model="item.Selected" selected/>
-						            </label>
-						        </li>
-                            </div>
-                            <h4>Environment
-                            	<button ng-click="checkAll('environments', true)">Check All</button>
-                            	<button ng-click="checkAll('environments', false)">Uncheck All</button>
-                            </h4>
-                            <div>
-                    	        <li >
-						            <label  class="ng-binding" ng-repeat="item in environments">
-						            	{{item.Name}}
-						                <input type="checkbox" ng-model="item.Selected" />
-						            </label>
-						        </li>
-                            </div>
+            <div ng-click="showFilters = !showFilters" class="open-filters-container">
+                <div ng-show="!showFilters" class="open-close-filters-button glyphicon glyphicon-circle-arrow-down"></div>
+                <div ng-show="showFilters" class="open-close-filters-button glyphicon glyphicon-circle-arrow-up"></div>
+                <div class="additional-filter-text"> Additional filters </div>
+                <hr>
+            </div>
+    <div class="panel panel-default filters-container" ng-show="showFilters">
+		<div class="col-xs-12">
+			<div class="datepicker">
+				<div class="panel panel-default panel-datepicker">
+                    <div class="bg-datepicker" ng-controller="ButtonsCtrl">
+                        <div class="panel-heading panel-datepicker-heading row show-grid">
+	            	<table class="table table-striped">
+				      <tr>
+                        <td class="filter-table-first-level">
+                            <table class="table table-striped">
+                              <thead>
+                                <tr>
+                                  <th>Models</th>
+                                  <th>
+                                    <button ng-click="checkAll('models', true)" type="button" class="btn btn-link btn-sm">Check All</button>
+                                    <button ng-click="checkAll('models', false)" type="button" class="btn btn-link btn-sm">Uncheck All</button>
+                                    
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody class="filter-table">
+                                  <tr ng-repeat="item in models">
+                                    <td>{{item.Name}}</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="item.Selected" checked="checked"/>
+                                    </td>
+                                  </tr>
+                              </tbody>
+                            </table>
+                        </td>
+                        <td class="filter-table-first-level">
+                            <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                  <th>Datacenter</th>
+                                  <th>
+                                    <button ng-click="checkAll('datacenters', true)" type="button" class="btn btn-link btn-sm">Check All</button>
+                                    <button ng-click="checkAll('datacenters', false)" type="button" class="btn btn-link btn-sm">Uncheck All</button>
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody class="filter-table">
+                                  <tr ng-repeat="item in datacenters">
+                                    <td>{{item.Name}}</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="item.Selected" checked="checked"/>
+                                    </td>
+                                  </tr>
+                              </tbody>
+                            </table>
+                        </td>
+                        <td class="filter-table-first-level">
+                            <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                  <th>environments</th>
+                                  <th>
+                                    <button ng-click="checkAll('environments', true)" type="button" class="btn btn-link btn-sm">Check All</button>
+                                    <button ng-click="checkAll('environments', false)" type="button" class="btn btn-link btn-sm">Uncheck All</button>
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody class="filter-table">
+                                  <tr ng-repeat="item in environments">
+                                    <td>{{item.Name}}</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="item.Selected" checked="checked"/>
+                                    </td>
+                                  </tr>
+                              </tbody>
+                            </table>
+                        </td>
+                        </tr>
+				      </tbody>
+				    </table>
                         </div>
-	            	</div>
+                    </div>
+	        	</div>
+	        </div>
+        </div>
 	            </div>
-	            <div ng-click="showFilters = !showFilters" style="text-align: center;cursor: pointer">====</div>
-	            <div class="row data-table-container table-responsive">
-					<label>
-	            		<input ng-model="searchText" type="search" class="form-control" placeholder="Search">
-	            	</label>
-					<label id="generate-to-csv">
-						<input ng-model="perPage" type="text" class="form-control" placeholder="50">
-        			</label>
-					<label>
-	            		<input type="button" class="form-control" value="CSV">
-	            	</label>
+	            	<table class="table table-striped">
+				      <thead>
+				        <tr>
+                          <th class="col-md-1">
+                              <div>
+                                <div class="input-group">
+                                  <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" disabled="disabled">Per page</button>
+                                  </span>
+                                  <input type="text" class="form-control per-page" placeholder="20">
+                                </div><!-- /input-group -->
+                              </div><!-- /.col-lg-6 -->
+                          </th>
+                          <th width="34%">
+                              <div>
+                                  <input type="text" ng-model="searchText" class="col-md-2 form-control" placeholder="Search">
+                              </div>
+                          </th>
+                          <th class="col-md-1">
+                              <input type="button" class="generate-to-csv form-control btn btn-primary" value="CSV">
+                          </th>
+				        </tr>
+				      </thead>
+                    <table>
 	            	<table class="table table-striped">
 				      <thead>
 				        <tr>

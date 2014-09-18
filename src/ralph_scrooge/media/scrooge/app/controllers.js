@@ -8,7 +8,16 @@ ang_controllers.controller('components', ['$scope', '$routeParams', function ($s
         Name: "HP ProLiant BL2x220c G5",
         Selected: true,
     }, {
+        Name: "HP ProLiant DL 360 G6",
+        Selected: true,
+    }, {
         Name: "IBM BladeCenter HS21",
+        Selected: true,
+    }, {
+        Name: "HP ProLiant BL2x220c G5",
+        Selected: true,
+    }, {
+        Name: "HP ProLiant BL2x220c G5",
         Selected: true,
     }, {
         Name: "IBM Ethernet SM (32R1866)",
@@ -59,3 +68,7 @@ ang_controllers.controller('components', ['$scope', '$routeParams', function ($s
 ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', function ($scope, $routeParams) {
 
 }]);
+
+var ButtonsCtrl = function ($scope) {
+
+};

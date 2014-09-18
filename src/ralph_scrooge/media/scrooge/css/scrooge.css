@@ -38,19 +38,35 @@
 	padding: 30px 40px;
 	border: 0px;
 }
+.btn-datepicker {
+    float: none !important;
+}
 .btn-day-scrooge {
-	width: 38px;
+	width: 35px;
 	margin: 0px 0px 3px 0px;
 	text-align: center;
 	padding: 0px;
 }
 .btn-month-scrooge {
 	width: 100px;
-	margin-right: 6px;
+	margin: 2px; 5px 2px 0px;;
 	text-align: center;
 }
 .btn-month {
 	padding: 0px 15px 10px 17px;
+    width: 99%;
+    margin: 0px auto;
+	-webkit-border-radius: 10px 10px 0px 0px;
+	-moz-border-radius: 10px 10px 0px 0px;
+	border-radius: 10px 10px 0px 0px;
+}
+.btn-day {
+	padding: 0px 15px 10px 17px;
+    width: 99%;
+    margin: 0px auto;
+	-webkit-border-radius: 0px 0px 10px 10px;
+	-moz-border-radius: 0px 0px 10px 10px;
+	border-radius: 0px 0px 10px 10px;
 }
 .footer {
 	text-align: center;
@@ -70,7 +86,97 @@
 }
 .panel-datepicker {
 	text-align: center;
-	border: 0px;
+    border: 1px solid #e3e3e3;
+    background-color: #f5f5f5;
+	-webkit-border-radius: 10px 10px 0px 0px;
+	-moz-border-radius: 10px 10px 0px 0px;
+	border-radius: 10px 10px 0px 0px;
+    padding-top: 10px;
+}
+.bg-datepicker {
+    background-color: white;
+    width: 98%;
+    height: 1%;
+    border: 1px solid #e3e3e3;
+    margin: 0px auto;
+    margin-bottom: -2px;
+    border-bottom: 0px;
+	-webkit-border-radius: 10px 10px 0px 0px;
+	-moz-border-radius: 10px 10px 0px 0px;
+	border-radius: 10px 10px 0px 0px;
+}
+.sidebar-well {
+    padding-bottom: 20px;
+    padding-top: 0px;
+}
+.sidebar-nav-scrooge {
+    padding: 0px;
+    border: 1px solid black;
+    border-right: none;
+	-webkit-border-radius: 10px 0px 0px 10px;
+	-moz-border-radius: 10px 0px 0px 10px;
+	border-radius: 10px 0px 0px 10px;
+}
+.sidebar-navbar-default {
+    background-color: white;
+    margin-top: -1px;
+    padding-top: 10px;
+    border: 1px solid #e3e3e3;
+    border-top: 0px;
+	-webkit-border-radius: 0px 0px 10px 10px;
+	-moz-border-radius: 0px 0px 10px 10px;
+	border-radius: 0px 0px 10px 10px;
+}
+.nav-second-level li {
+    padding-left: 30px;
+}
+.panel-datepicker-heading {
+    margin-top: 7px !important;
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+.filters-container {
+    border: 0px;
+}
+.filter-table {
+    overflow: scroll;
+    max-height: 200px;;
+    padding: 0px;
+}
+.filter-table-first-level {
+    border: 0px !important;
+}
+.generate-to-csv {
+	float: right;
+    max-width: 60px;
+}
+.per-page {
+    max-width: 42px;
+}
+.results-search {
+    max-width: 300px;
+    text-align: center;
+}
+.open-close-filters-button {
+    font-size: 36px;
+    position: absolute;
+    top: -18px;
+}
+.open-filters-container {
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+}
+.additional-filter-text {
+    float: left;
+    margin-top: -10px;
+}
+.deep-menu > li{
+    width: 24%;
+    margin: 0px 5px 0px 5px;
+}
+.pagination-container {
+	text-align: center;
 }
 /*
 html, body
@@ -141,15 +247,17 @@ a:active {
 	background-color: #FEF9E5;
 	height:30px;
 }
-.navbar-submenu .submenu {
+.scrooge-submenu {
 	display: inline-block;
 	text-align: center;
 	height: 30px;
 	vertical-align: middle;
+    max-width: 100px;
 }
-.navbar-submenu .submenu a{
+.submenu a{
 	height: 30px;
 	padding: 5px 20px;
+    max-width: 100px;
 }
 .left-menu {
 	min-height: 100px;
@@ -237,21 +345,21 @@ a:active {
 .pagination-container {
 	text-align: center;
 }
-#footer {
+.footer {
 	background-color: #ffffff;
 	text-align: center;
 	padding-top: 10px;
 }
-#footer p {
+.footer p {
 	display: inline-block;
 	text-align: center;
 }
-#footer .version{
+.footer .version{
 	margin-left: 20px;
 	float: left;
 	color: rgba(200, 200, 200, 1);
 }
-#footer a {
+.footer a {
 	color: #ffcc00;
 }
 #generate-to-csv {

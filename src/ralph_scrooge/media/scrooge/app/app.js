@@ -17,13 +17,13 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
     function($routeProvider, $httpProvider, $provide) {
 
         // we want Sentry to log our exceptions...
-        $provide.decorator("$exceptionHandler", function($delegate) {
-            Raven.config('http://b4a72068092b475dba6917630417336f@ralph-sentry.office/21', {}).install();
-            return function(exception, cause) {
-                $delegate(exception, cause);
-                Raven.captureException(exception);
-            };
-        });
+        //$provide.decorator("$exceptionHandler", function($delegate) {
+        //    Raven.config('http://b4a72068092b475dba6917630417336f@ralph-sentry.office/21', {}).install();
+        //    return function(exception, cause) {
+        //        $delegate(exception, cause);
+        //        Raven.captureException(exception);
+        //    };
+        //});
 
         $httpProvider.interceptors.push(function ($q) {
             return {
