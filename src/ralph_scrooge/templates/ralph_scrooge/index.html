@@ -4,13 +4,9 @@
         <meta charset="utf-8">
         <title>Ralph Scrooge</title>
         <link rel="stylesheet" href="/static/scrooge/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/static/scrooge/css/jquery.jqplot.min.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/jquery.jqplot.css" />
         <link rel="stylesheet" href="/static/scrooge/css/scrooge.css" />
-        <script src="/static/scrooge/lib/jquery.jqplot/jquery.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/jquery.jqplot.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.enhancedLegendRenderer.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.highlighter.min.js"></script>
+        <link rel="stylesheet" href="/static/scrooge/css/sb-admin-2.css" />
         <script src="/static/scrooge/lib/underscore-min.js"></script>
         <script src="/static/scrooge/lib/angular/angular.js"></script>
         <script src="/static/scrooge/lib/angular/angular-resource.js"></script>
@@ -22,37 +18,46 @@
         <script src="/static/scrooge/lib/scrooge.js"></script>
         <script src="/static/scrooge/app/app.js"></script>
         <script src="/static/scrooge/app/controllers.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/jquery.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/jquery.jqplot.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.enhancedLegendRenderer.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.highlighter.min.js"></script>
+        <script src="/static/scrooge/app/directives.js"></script>
     </head>
     <body ng-controller="mainCtrl" class="bs-docs-home">
-        <div id="navbar" class="navbar navbar-static-top bs-docs-nav">
-            <div id="navbar-menu">
-                <h1><a href='/'>Scrooge</a></h1>
-                <div class="menu-element active"><a href='#'>Core</a></div>
-                <div class="menu-element"><a href='#'>CMDB</a></div>
-                <div class="menu-element"><a href='#'>ASSETS</a></div>
-                <div class="menu-element"><a href='#'>SCROOGE</a></div>
+        <div id="header" class="panel panel-default">
+            <!-- /.panel-heading -->
+            <div class="panel-heading">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li><h1><a href='/'><img src="/static/scrooge/img/scrooge-logo.png"></a></h1></li>
+                    <li class="active"><a href="#">CORE</a></li>
+                    <li><a href="">CMDB</a></li>
+                    <li><a href="">ASSETS</a></li>
+                    <li><a href="">SCROOGE</a></li>
+                </ul>
+                <ul class="nav nav-tabs nav-submenu" role="tablist">
+                    <li><a href="#components" data-toggle="tab">Components</a></li>
+                    <li><a href="#cardcosts" data-toggle="tab">Card costs</a></li>
+                    <li><a href="#dependencytree" data-toggle="tab">Dependency tree</a></li>
+                    <li class="nav-active"><a href="#allocation" data-toggle="tab">Allocation</a></li>
+                </ul>
             </div>
-            <div id="navbar-submenu">
-                <div class="menu-element"><a href='#'>Components</a></div>
-                <div class="menu-element"><a href='#'>Card costs</a></div>
-                <div class="menu-element"><a href='#'>Dependency tree</a></div>
-                <div class="menu-element"><a href='#'>Allocation</a></div>
+            <!-- /.panel-body -->
+            <div class="panel-body"><ng-view></ng-view></div>
+            <div class="panel-footer footer">
+                <p class="version">version 3.0.0</p>
+                <p>Powered by
+                    <a href="https://wiki.allegrogroup.com/display/PYLABS/Ralph+Scrooge">
+                        <img src="/static/scrooge/img/scrooge-logo.png" style="width: 18%"></img>
+                    </a>
+                    Brought to you by
+                    <a href="https://wiki.office/display/PYLABS/Team">
+                        <img src="/static/scrooge/img/pylabs.png" style="width: 18%"></img>
+                    </a>
+                </p>
             </div>
-        </div>
-        <div id="body" class="bs-docs-masthead">
-            <ng-view></ng-view>
-        </div>
-        <div id="footer" class="bs-docs-footer">
-            <p class="version">version 3.0.0</p>
-            <p>Powered by
-                <a href="https://wiki.allegrogroup.com/display/PYLABS/Ralph+Scrooge">
-                    Scrooge
-                </a>
-                Brought to you by
-                <a href="https://wiki.office/display/PYLABS/Team">
-                    <img src="/static/scrooge/img/pylabs.png" style="width: 18%"></img>
-                </a>
-            </p>
         </div>
     </body>
 </html>

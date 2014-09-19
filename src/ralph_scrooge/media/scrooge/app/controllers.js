@@ -60,7 +60,6 @@ ang_controllers.controller('components', ['$scope', '$routeParams', function ($s
         angular.forEach($scope[modelName], function (item) {
             item.Selected = checked;
         });
-
     };
     $scope.preventClose = function(event) { event.stopPropagation(); };
 }]);
@@ -72,3 +71,7 @@ ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', function ($sco
 var ButtonsCtrl = function ($scope) {
 
 };
+
+ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($scope, $routeParams) {
+
+}]);

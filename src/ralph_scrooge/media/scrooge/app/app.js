@@ -11,6 +11,7 @@ var app = angular.module('app', [
     'flash',
 
     'ang_controllers',
+    'ang_directives',
 ]);
 
 app.config(['$routeProvider', '$httpProvider', '$provide',
@@ -45,10 +46,13 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
                 }
             }
         });
-
         $routeProvider.
-            when('/scrooge/components/', {
-                templateUrl: '/static/scrooge/partials/components2.html',
+            when('/components/', {
+                templateUrl: '/static/scrooge/partials/components.html',
+                controller: 'components',
+            }).
+            when('/cardcosts/', {
+                templateUrl: '/static/scrooge/partials/cardcosts.html',
                 controller: 'components',
             }).
             otherwise({redirectto: '/scrooge'});
