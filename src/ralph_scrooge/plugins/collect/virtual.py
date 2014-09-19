@@ -9,7 +9,7 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_pricing
+from ralph.util import plugin, api_scrooge
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
@@ -105,14 +105,14 @@ def update(data, usages, date):
     """
     if data.get('device_id') is None:
         raise DeviceIdCannotBeNoneError()
-    if data.get('service_ci_uid') is None:
+    if data.get('service_id') is None:
         raise ServiceUidCannotBeNoneError()
-    elif data.get('environment') is None:
+    elif data.get('environment_id') is None:
         raise EnvironmentCannotBeNoneError()
     else:
         service_environment = ServiceEnvironment.objects.get(
-            service__ci_uid=data.get('service_ci_uid'),
-            environment__name=data.get('environment'),
+            service__ci_id=data.get('service_id'),
+            environment__ci_id=data.get('environment_id'),
         )
 
     hypervisor = None
@@ -190,10 +190,9 @@ def virtual(**kwargs):
     """Updates the virtual usages from Ralph."""
 
     date = kwargs['today']
-    virtual_venture_names = settings.VIRTUAL_VENTURE_NAMES
     # key in dict is group name (which is propagated to usages names)
-    # value is list of ventures names (in group)
-    for group_name, ventures in virtual_venture_names.items():
+    # value is list of services uids (in group)
+    for group_name, services in settings.VIRTUAL_SERVICES.items():
         usage_names = {
             'virtual_cores': '{0} Virtual CPU cores'.format(group_name),
             'virtual_memory': '{0} Virtual memory MB'.format(group_name),
@@ -201,8 +200,8 @@ def virtual(**kwargs):
         }
         usages = get_or_create_usages(usage_names)
         updated = total = 0
-        for venture_name in ventures:
-            for data in api_pricing.get_virtual_usages(venture_name):
+        for service_uid in services:
+            for data in api_scrooge.get_virtual_usages(service_uid):
                 total += 1
                 try:
                     update(data, usages, date)
@@ -218,7 +217,7 @@ def virtual(**kwargs):
                 except ServiceEnvironment.DoesNotExist:
                     logger.error(
                         'Service {0} does not exist'.format(
-                            data['service_ci_uid'],
+                            data['service_id'],
                         ),
                     )
                 except EnvironmentCannotBeNoneError:
@@ -235,9 +234,9 @@ def virtual(**kwargs):
                     )
                 except DeviceIdCannotBeNoneError:
                     logger.warning('Device id cannot be None')
-            logger.info('Venture {0}done '.format(venture_name))
+            logger.info('`Service {0} done '.format(service_uid))
 
-    return True, '{0} new, {1} updated, {2} total'.format(
+    return True, 'Virtual: {0} new, {1} updated, {2} total'.format(
         None,
         updated,
         total,

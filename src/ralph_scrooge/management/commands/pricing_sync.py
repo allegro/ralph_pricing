@@ -60,24 +60,32 @@ def _run_plugin(name, today):
         logger.info('{0}: Done'.format(message))
 
 
-def run_plugins(today, plugins):
+def run_plugins(today, plugins, run_only=False):
     _load_plugins()
     logger.info('Synchronizing for {0}.'.format(today.isoformat()))
     done = set()
     tried = set()
-    while True:
-        to_run = plugin.next('scrooge', done) - tried
-        if not to_run:
-            break
-        name = plugin.highest_priority('scrooge', to_run)
-        tried.add(name)
-        if name in plugins:
-            try:
-                _run_plugin(name, today)
-                done.add(name)
-                yield name, True
-            except Exception:
-                yield name, False
+    if run_only:
+        name = plugins[0]
+        try:
+            _run_plugin(name, today)
+            yield name, True
+        except Exception:
+            yield name, False
+    else:
+        while True:
+            to_run = plugin.next('scrooge', done) - tried
+            if not to_run:
+                break
+            name = plugin.highest_priority('scrooge', to_run)
+            tried.add(name)
+            if name in plugins:
+                try:
+                    _run_plugin(name, today)
+                    done.add(name)
+                    yield name, True
+                except Exception:
+                    yield name, False
 
 
 class Command(BaseCommand):
@@ -119,5 +127,5 @@ class Command(BaseCommand):
             for r in run_plugins(today, settings.COLLECT_PLUGINS):
                 pass
         else:
-            for r in run_plugins(today, [run_only]):
+            for r in run_plugins(today, [run_only], run_only=True):
                 pass

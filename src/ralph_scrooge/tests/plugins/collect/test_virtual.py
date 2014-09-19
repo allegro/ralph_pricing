@@ -11,7 +11,7 @@ from mock import patch, MagicMock
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ralph.util import api_pricing
+from ralph.util import api_scrooge
 from ralph_scrooge import models
 from ralph_scrooge.plugins.collect import virtual
 from ralph_scrooge.tests.utils.factory import (
@@ -33,6 +33,7 @@ class TestVirtualPlugin(TestCase):
 
     def setUp(self):
         self.today = date(2014, 7, 1)
+        self.service_environment = ServiceEnvironmentFactory()
 
     def test_get_or_create_usages(self):
         virtual.get_or_create_usages(self.usage_names)
@@ -47,11 +48,11 @@ class TestVirtualPlugin(TestCase):
             date=self.today,
         )
 
-    def test_update_when_service_ci_uid_is_none(self):
+    def test_update_when_service_id_is_none(self):
         self.assertRaises(
             virtual.ServiceUidCannotBeNoneError,
             virtual.update,
-            data=AttributeDict(device_id=1, service_ci_uid=None),
+            data=AttributeDict(device_id=1, service_id=None),
             usages={},
             date=self.today,
         )
@@ -62,8 +63,8 @@ class TestVirtualPlugin(TestCase):
             virtual.update,
             data=AttributeDict(
                 device_id=1,
-                service_ci_uid=1,
-                environment=None,
+                service_id=1,
+                environment_id=None,
             ),
             usages={},
             date=self.today,
@@ -76,8 +77,8 @@ class TestVirtualPlugin(TestCase):
         virtual.update(
             AttributeDict(
                 device_id=1,
-                service_ci_uid=service_environment.service.ci_uid,
-                environment=service_environment.environment.name,
+                service_id=service_environment.service.ci_id,
+                environment_id=service_environment.environment.ci_id,
                 hypervisor_id=1,
             ),
             {},
@@ -91,8 +92,8 @@ class TestVirtualPlugin(TestCase):
         virtual.update(
             AttributeDict(
                 device_id=1,
-                service_ci_uid=service_environment.service.ci_uid,
-                environment=service_environment.environment.name,
+                service_id=service_environment.service.ci_id,
+                environment_id=service_environment.environment.ci_id,
             ),
             {'key': 'value'},
             self.today,
@@ -127,82 +128,82 @@ class TestVirtualPlugin(TestCase):
         self.assertEqual(models.VirtualInfo.objects.all().count(), 1)
 
     @override_settings(
-        VIRTUAL_VENTURE_NAMES={'example_group': ['example_venture']},
+        VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_pricing,
+        api_scrooge,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(device_id=None)],
     )
     def test_virtual_when_asset_info_is_none(self):
         self.assertEqual(
             virtual.virtual(today=self.today),
-            (True, 'None new, 0 updated, 1 total'),
+            (True, 'Virtual: None new, 0 updated, 1 total'),
         )
 
     @override_settings(
-        VIRTUAL_VENTURE_NAMES={'example_group': ['example_venture']},
+        VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_pricing,
+        api_scrooge,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
-            service_ci_uid=None
+            service_id=None
         )],
     )
-    def test_virtual_when_service_ci_uid_is_none(self):
+    def test_virtual_when_service_id_is_none(self):
         self.assertEqual(
             virtual.virtual(today=self.today),
-            (True, 'None new, 0 updated, 1 total'),
+            (True, 'Virtual: None new, 0 updated, 1 total'),
         )
 
     @override_settings(
-        VIRTUAL_VENTURE_NAMES={'example_group': ['example_venture']},
+        VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_pricing,
+        api_scrooge,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
-            service_ci_uid=1,
-            environment=None,
+            service_id=1,
+            environment_id=None,
         )],
     )
     def test_virtual_when_environment_is_none(self):
         self.assertEqual(
             virtual.virtual(today=self.today),
-            (True, 'None new, 0 updated, 1 total'),
+            (True, 'Virtual: None new, 0 updated, 1 total'),
         )
 
     @override_settings(
-        VIRTUAL_VENTURE_NAMES={'example_group': ['example_venture']},
+        VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_pricing,
+        api_scrooge,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
-            service_ci_uid=1,
-            environment=1,
+            service_id=1,
+            environment_id=1,
         )],
     )
     def test_virtual_when_service_environment_does_not_exist(self):
         self.assertEqual(
             virtual.virtual(today=self.today),
-            (True, 'None new, 0 updated, 1 total'),
+            (True, 'Virtual: None new, 0 updated, 1 total'),
         )
 
     @override_settings(
-        VIRTUAL_VENTURE_NAMES={'example_group': ['example_venture']},
+        VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_pricing,
+        api_scrooge,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
-            service_ci_uid=1,
-            environment=1,
+            service_id=1,
+            environment_id=1,
             hypervisor_id=1,
         )],
     )
@@ -210,19 +211,19 @@ class TestVirtualPlugin(TestCase):
     def test_virtual_when_asset_info_does_not_exist(self):
         self.assertEqual(
             virtual.virtual(today=self.today),
-            (True, 'None new, 0 updated, 1 total'),
+            (True, 'Virtual: None new, 0 updated, 1 total'),
         )
 
     @override_settings(
-        VIRTUAL_VENTURE_NAMES={'example_group': ['example_venture']},
+        VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_pricing,
+        api_scrooge,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
-            service_ci_uid=1,
-            environment=1,
+            service_id=1,
+            environment_id=1,
             hypervisor_id=1,
         )],
     )
@@ -231,19 +232,19 @@ class TestVirtualPlugin(TestCase):
         AssetInfoFactory.create(device_id=1)
         self.assertEqual(
             virtual.virtual(today=self.today),
-            (True, 'None new, 0 updated, 1 total'),
+            (True, 'Virtual: None new, 0 updated, 1 total'),
         )
 
     @override_settings(
-        VIRTUAL_VENTURE_NAMES={'example_group': ['example_venture']},
+        VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_pricing,
+        api_scrooge,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
-            service_ci_uid=1,
-            environment=1,
+            service_id=1,
+            environment_id=1,
             hypervisor_id=1,
             name='example_name',
             virtual_disk=100,
@@ -261,5 +262,5 @@ class TestVirtualPlugin(TestCase):
         )
         self.assertEqual(
             virtual.virtual(today=self.today),
-            (True, 'None new, 1 updated, 1 total'),
+            (True, 'Virtual: None new, 1 updated, 1 total'),
         )

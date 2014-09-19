@@ -26,12 +26,17 @@ from ralph_scrooge.models.pricing_object import PricingObjectType
 
 
 class BusinessLine(Named):
-    ci_uid = db.CharField(
+    ci_id = db.IntegerField(
         unique=True,
         null=False,
         blank=False,
-        max_length=100,
         verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=False,
+        blank=False,
+        max_length=100,
+        verbose_name=_("uid from cmdb"),
     )
 
     class Meta:
@@ -39,12 +44,17 @@ class BusinessLine(Named):
 
 
 class ProfitCenter(Named):
-    ci_uid = db.CharField(
+    ci_id = db.IntegerField(
         unique=True,
         null=False,
         blank=False,
-        verbose_name='CMDB CI UID',
+        verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=False,
+        blank=False,
         max_length=100,
+        verbose_name=_("uid from cmdb"),
     )
     business_line = db.ForeignKey(
         BusinessLine,
@@ -61,11 +71,17 @@ class ProfitCenter(Named):
 
 
 class Environment(Named):
-    environment_id = db.IntegerField(
-        verbose_name=_("ralph environment id"),
+    ci_id = db.IntegerField(
         unique=True,
         null=False,
         blank=False,
+        verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=False,
+        blank=False,
+        max_length=100,
+        verbose_name=_("uid from cmdb"),
     )
 
     class Meta:
@@ -74,6 +90,18 @@ class Environment(Named):
 
 
 class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
+    ci_id = db.IntegerField(
+        unique=True,
+        null=False,
+        blank=False,
+        verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=False,
+        blank=False,
+        max_length=100,
+        verbose_name=_("uid from cmdb"),
+    )
     name = db.CharField(
         verbose_name=_("name"),
         max_length=256,
@@ -85,13 +113,6 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         default=1,
         related_name='services',
         verbose_name=_('profit center'),
-    )
-    ci_uid = db.CharField(
-        unique=True,
-        null=False,
-        blank=False,
-        verbose_name=_('CMDB CI UID'),
-        max_length=100,
     )
     ownership = db.ManyToManyField(
         'Owner',

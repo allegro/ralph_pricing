@@ -16,6 +16,7 @@ from ralph_scrooge.plugins.collect.owner import (
     update_owner
 )
 from ralph_scrooge.tests.plugins.collect.samples.owner import SAMPLE_OWNERS
+from ralph_scrooge.tests.utils.factory import UserFactory
 
 
 class TestOwnerCollectPlugin(TestCase):
@@ -23,26 +24,29 @@ class TestOwnerCollectPlugin(TestCase):
         self.today = date(2014, 07, 01)
 
     def _compare_owner(self, owner, sample_data):
-        self.assertEquals(owner.first_name, sample_data['first_name'])
-        self.assertEquals(owner.last_name, sample_data['last_name'])
-        self.assertEquals(owner.email, sample_data['email'])
-        self.assertEquals(owner.sAMAccountName, sample_data['sAMAccountName'])
         self.assertEquals(owner.cmdb_id, sample_data['id'])
+        self.assertEquals(owner.profile_id, sample_data['profile_id'])
 
     def test_add_owner(self):
         sample_data = SAMPLE_OWNERS[0]
+        user = UserFactory()
+        sample_data['profile_id'] = user.profile.id
         self.assertTrue(update_owner(sample_data, self.today))
         owner = Owner.objects.get(cmdb_id=sample_data['id'])
         self._compare_owner(owner, sample_data)
 
     def test_update_owner(self):
         sample_data = SAMPLE_OWNERS[0]
+        user = UserFactory()
+        sample_data['profile_id'] = user.profile.id
         self.assertTrue(update_owner(sample_data, self.today))
         owner = Owner.objects.get(cmdb_id=sample_data['id'])
         self._compare_owner(owner, sample_data)
 
         sample_data2 = SAMPLE_OWNERS[1]
         sample_data2['id'] = sample_data['id']
+        user = UserFactory()
+        sample_data2['profile_id'] = user.profile.id
         self.assertFalse(update_owner(sample_data2, self.today))
         owner = Owner.objects.get(cmdb_id=sample_data2['id'])
         self._compare_owner(owner, sample_data2)

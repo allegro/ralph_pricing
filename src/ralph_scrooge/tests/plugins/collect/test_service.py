@@ -32,9 +32,10 @@ class TestServiceCollectPlugin(TestCase):
     def _sample_data(self):
         service = ServiceFactory.build()
         return {
+            'ci_id': service.ci_id,
             'ci_uid': service.ci_uid,
             'name': service.name,
-            'profit_center': self.profit_center.ci_uid,
+            'profit_center': self.profit_center.ci_id,
             'technical_owners': [o.cmdb_id for o in self.owners[:3]],
             'business_owners': [o.cmdb_id for o in self.owners[3:6]],
         }
@@ -46,7 +47,7 @@ class TestServiceCollectPlugin(TestCase):
         date = datetime.date(2014, 07, 01)
         created = update_service(data, date, self.default_profit_center)
 
-        saved_service = Service.objects.get(ci_uid=data['ci_uid'])
+        saved_service = Service.objects.get(ci_id=data['ci_id'])
         self.assertEquals(saved_service.name, data['name'])
 
         # ownership
@@ -143,7 +144,7 @@ class TestServiceCollectPlugin(TestCase):
     @mock.patch('ralph_scrooge.plugins.collect.service.get_services')
     def test_batch_update(self, get_services_mock, update_service_mock):
         def sample_update_service(data, date, default_profit_center):
-            return int(data['ci_uid'].split('-')[-1]) % 2 == 0
+            return data['ci_id'] % 2 == 0
 
         def sample_get_services():
             for owner in SAMPLE_SERVICES:

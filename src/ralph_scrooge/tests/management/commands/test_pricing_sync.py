@@ -127,4 +127,8 @@ class TestPricingSync(TestCase):
         ])
         today = datetime.date.today()
         call_command(COMMAND_NAME, run_only='business_line')
-        run_plugins_mock.assert_called_with(today, ['business_line'])
+        run_plugins_mock.assert_called_with(
+            today,
+            ['business_line'],
+            run_only=True
+        )

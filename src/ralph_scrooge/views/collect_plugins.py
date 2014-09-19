@@ -12,11 +12,11 @@ from dateutil import rrule
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
+from ralph_scrooge.forms import CollectPluginsForm
 from ralph_scrooge.management.commands.pricing_sync import run_plugins
 from ralph_scrooge.utils.common import get_cache_name, get_queue_name
 from ralph_scrooge.utils.worker_job import WorkerJob
 from ralph_scrooge.views.base import Base
-from ralph_scrooge.forms import CollectPluginsForm
 
 
 logger = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ class CollectPlugins(WorkerJob, Base):
         step = 100.0 / (len(plugins) * days)
         result = defaultdict(dict)
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            for plugin, success in run_plugins(day, plugins):
+            for plugin, success in run_plugins(day, plugins, run_only=True):
                 progress += step
                 result[day][plugin] = success
                 yield progress, result
