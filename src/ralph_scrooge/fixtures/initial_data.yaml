@@ -7,13 +7,6 @@
     show_in_report: False
     id_from_assets: -1
 
-# Environment
-- model: ralph_scrooge.Environment
-  pk: 1
-  fields:
-    name: '-'
-    environment_id: -1
-
 # Business Line
 - model: ralph_scrooge.BusinessLine
   pk: 1
