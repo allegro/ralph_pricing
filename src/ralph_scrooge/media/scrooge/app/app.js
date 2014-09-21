@@ -55,6 +55,10 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
                 templateUrl: '/static/scrooge/partials/cardcosts.html',
                 controller: 'components',
             }).
+            when('/dependencytree/', {
+                templateUrl: '/static/scrooge/partials/dependencytree.html',
+                controller: 'dependencytree',
+            }).
             otherwise({redirectto: '/scrooge'});
     }
 ]);
