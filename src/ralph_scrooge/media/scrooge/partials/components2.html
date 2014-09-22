@@ -2,7 +2,7 @@
 	<div class="col-xs-2 left-menu-container col-xs-height col-bottom">
 		<div class="col-xs-height col-bottom sidebar-well well navmenu navmenu-default navmenu-fixed-left in">
             <div class="navbar-default sidebar-navbar-default" role="navigation">
-                <div class="sidebar-nav navbar-collapse sidebar-nav-scrooge">
+                <div class="sidebar-nav navbar-collapse sidebar-nav-scrooge" ng-controller="leftMenuCtrl">
                     <ul class="nav" id="side-menu">
                         <li class="sidebar-search">
                             <div class="input-group custom-search-form">
@@ -15,51 +15,16 @@
                             </div>
                             <!-- /input-group -->
                         </li>
-                        <li class="active">
-                            <a href="#"><i class="fa fa-sitemap fa-fw"></i>Stash<span class="fa arrow"></span></a>
-                            <ul class="active nav nav-second-level">
+                        <li class="active" ng-repeat="(service, envs) in leftMenu">
+                            <a ng-click="displaySubMenu(envs)"><i class="fa fa-sitemap fa-fw"></i>{{service}}<span class="fa arrow"></span></a>
+                            <ul ng-show="envs.show" class="nav nav-second-level" ng-repeat="env in envs.envs">
                                 <li>
-                                    <a href="">Prod</a>
-                                </li>
-                                <li>
-                                    <a href="">Test</a>
-                                </li>
-                                <li>
-                                    <a href="">Dev</a>
+                                    <a href="">{{env}}</a>
                                 </li>
                             </ul>
-                            <!-- /.nav-second-level -->
-                        </li>
-                        <li>
-                            <a href="#"><i class="fa fa-sitemap fa-fw"></i>Agito<span class="fa arrow"></span></a>
-                            <ul class="active nav nav-second-level collapse">
-                                <li>
-                                    <a href="">Test</a>
-                                </li>
-                                <li>
-                                    <a href="">Dev</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
-                        </li>
-                        <li class="active">
-                            <a href="#"><i class="fa fa-sitemap fa-fw"></i>Allegro<span class="fa arrow"></span></a>
-                            <ul class="active nav nav-second-level collapse">
-                                <li>
-                                    <a href="">Prod</a>
-                                </li>
-                                <li>
-                                    <a href="">Test</a>
-                                </li>
-                                <li>
-                                    <a href="">Dev</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
                         </li>
                     </ul>
                 </div>
-                <!-- /.sidebar-collapse -->
             </div>
         </div>
 	</div>
@@ -240,7 +205,7 @@
                                   <th>
                                     <button ng-click="checkAll('models', true)" type="button" class="btn btn-link btn-sm">Check All</button>
                                     <button ng-click="checkAll('models', false)" type="button" class="btn btn-link btn-sm">Uncheck All</button>
-                                    
+
                                   </th>
                                 </tr>
                               </thead>

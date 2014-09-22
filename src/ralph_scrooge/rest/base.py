@@ -7,10 +7,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from ralph.util.views import jsonify
 
 
 @csrf_exempt
 @jsonify
+@require_http_methods(["POST"])
 def left_menu(request, *args, **kwargs):
-    return {'user': request.user.username}
+	print ('!!!!!!')
+	return {'ok': True}

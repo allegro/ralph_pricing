@@ -87,7 +87,7 @@ ang_controllers.controller('leftMenuCtrl', ['$http', '$scope', '$routeParams', f
         })
         menu.show = true;
     }
-    $http({method: 'POST', url: '/menu/services'}).
+    $http({method: 'POST', url: 'http://127.0.0.1:8000/scrooge/menu/services'}).
     success(function(data, status, headers, config) {
         console.log(status)
     }).
