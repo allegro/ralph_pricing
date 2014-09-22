@@ -16,6 +16,7 @@ from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
     CostDateStatus,
     DailyCost,
+    DynamicExtraCostType,
     ExtraCostType,
     PricingService,
     ServiceEnvironment,
@@ -261,14 +262,17 @@ class Collector(object):
         Returns list of plugins to call, with information and extra cost about
         each, such as name and arguments
         """
-        extra_cost_plugins = cls._get_extra_cost_plugins()
+        extra_cost_types_plugins = cls._get_extra_cost_types_plugins()
+        dynamic_extra_cost_types_plugins = (
+            cls._get_dynamic_extra_cost_types_plugins()
+        )
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
         services_plugins = cls._get_pricing_services_plugins()
         teams_plugins = cls._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
                    services_plugins + teams_plugins +
-                   extra_cost_plugins)
+                   extra_cost_types_plugins + dynamic_extra_cost_types_plugins)
         return plugins
 
     @classmethod
@@ -388,18 +392,18 @@ class Collector(object):
         return result
 
     @classmethod
-    def _get_extra_costs(cls):
+    def _get_extra_cost_types(cls):
         """
         Returns all extra costs
         """
         return ExtraCostType.objects.order_by('name')
 
     @classmethod
-    def _get_extra_cost_plugins(cls):
+    def _get_extra_cost_types_plugins(cls):
         """
         Returns information about extra cost plugins for each extra cost
         """
-        extra_costs = cls._get_extra_costs()
+        extra_costs = cls._get_extra_cost_types()
         result = []
         for extra_cost in extra_costs:
             extra_cost_info = AttributeDict(
@@ -410,4 +414,29 @@ class Collector(object):
                 }
             )
             result.append(extra_cost_info)
+        return result
+
+    @classmethod
+    def _get_dynamic_extra_cost_types(cls):
+        """
+        Returns all extra costs
+        """
+        return DynamicExtraCostType.objects.order_by('name')
+
+    @classmethod
+    def _get_dynamic_extra_cost_types_plugins(cls):
+        """
+        Returns information about extra cost plugins for each extra cost
+        """
+        dynamic_extra_costs = cls._get_dynamic_extra_cost_types()
+        result = []
+        for dynamic_extra_cost in dynamic_extra_costs:
+            dynamic_extra_cost_info = AttributeDict(
+                name=dynamic_extra_cost.name,
+                plugin_name='dynamic_extra_cost_plugin',
+                plugin_kwargs={
+                    'dynamic_extra_cost_type': dynamic_extra_cost,
+                }
+            )
+            result.append(dynamic_extra_cost_info)
         return result

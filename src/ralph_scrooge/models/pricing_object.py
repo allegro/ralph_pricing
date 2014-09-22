@@ -201,6 +201,10 @@ class AssetModel(db.Model):
 
     class Meta:
         app_label = 'ralph_scrooge'
+        ordering = ['manufacturer', 'name']
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.manufacturer, self.name)
 
 
 class DailyAssetInfo(DailyPricingObject):
