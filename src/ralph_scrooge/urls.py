@@ -11,13 +11,14 @@ from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource
 from ralph_scrooge.views import BootstrapAngular
-
+from ralph_scrooge.rest import left_menu
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
     v09_api.register(r())
 
 urlpatterns = patterns(
     '',
+    url(r'^menu/(?P<menu_type>\S.+)/$', left_menu),
     url(r'^api/', include(v09_api.urls)),
     # reports
     url(

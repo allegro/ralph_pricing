@@ -68,6 +68,34 @@ ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', function ($sco
 
 }]);
 
+ang_controllers.controller('leftMenuCtrl', ['$http', '$scope', '$routeParams', function ($http, $scope, $routeParams) {
+    $scope.leftMenu = {
+        "Stash": {
+            "envs": ['prod', 'test', 'dev'],
+            "show": true,
+        },
+        "Allegro": {
+            "envs": ['prod', 'test', 'dev'],
+        },
+        "Agito": {
+            "envs": ['prod', 'test', 'dev'],
+        },
+    }
+    $scope.displaySubMenu = function (menu) {
+        Object.keys($scope.leftMenu).forEach(function (service) {
+            $scope.leftMenu[service].show = false;
+        })
+        menu.show = true;
+    }
+    $http({method: 'POST', url: '/menu/services'}).
+    success(function(data, status, headers, config) {
+        console.log(status)
+    }).
+    error(function(data, status, headers, config) {
+        console.log(status)
+    });
+}]);
+
 var ButtonsCtrl = function ($scope) {
 
 };
@@ -95,14 +123,14 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
                 'quarter_3': {
                     'july': 35,
                     'august': 52,
-                    'september': 14 
+                    'september': 14
                  },
                 'quarter_4': {
                     'obctober': 121,
                     'november': 124,
                     'december': 173
                  }
-            }, 
+            },
             '2016': {
                 'quarter_1': {
                     'january': 153,
@@ -167,14 +195,14 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
                 'quarter_3': {
                     'july': 735,
                     'august': 852,
-                    'september': 814 
+                    'september': 814
                  },
                 'quarter_4': {
                     'obctober': 1221,
                     'november': 1424,
                     'december': 1773
                  }
-            }, 
+            },
             '2016': {
                 'quarter_1': {
                     'january': 1563,
@@ -239,14 +267,14 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
                 'quarter_3': {
                     'july': 7325,
                     'august': 8352,
-                    'september': 8214 
+                    'september': 8214
                  },
                 'quarter_4': {
                     'obctober': 12121,
                     'november': 14224,
                     'december': 17873
                  }
-            }, 
+            },
             '2016': {
                 'quarter_1': {
                     'january': 15643,
@@ -311,14 +339,14 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
                 'quarter_3': {
                     'july': 7254,
                     'august': 8454,
-                    'september': 8532 
+                    'september': 8532
                  },
                 'quarter_4': {
                     'obctober': 12643,
                     'november': 14454,
                     'december': 13454
                  }
-            }, 
+            },
             '2016': {
                 'quarter_1': {
                     'january': 15454,
@@ -383,14 +411,14 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
                 'quarter_3': {
                     'july': 1254,
                     'august': 1454,
-                    'september': 1532 
+                    'september': 1532
                  },
                 'quarter_4': {
                     'obctober': 1643,
                     'november': 1454,
                     'december': 1454
                  }
-            }, 
+            },
             '2016': {
                 'quarter_1': {
                     'january': 1454,
@@ -455,14 +483,14 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
                 'quarter_3': {
                     'july': 5454,
                     'august': 6454,
-                    'september': 7532 
+                    'september': 7532
                  },
                 'quarter_4': {
                     'obctober': 6643,
                     'november': 7454,
                     'december': 4454
                  }
-            }, 
+            },
             '2016': {
                 'quarter_1': {
                     'january': 7454,
@@ -535,7 +563,7 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
                     'november': 43454,
                     'december': 54454
                  }
-            }, 
+            },
             '2016': {
                 'quarter_1': {
                     'january': 54454,
@@ -623,8 +651,8 @@ ang_controllers.controller('cardCosts', ['$scope', '$routeParams', function ($sc
             'november': 10,
             'december': 11
         }
-            
-        var endDate = year + '-' 
+
+        var endDate = year + '-'
         endDate += asString[monthDayMap[month]] + '-'
         endDate += daysInMonth(new Date(year, monthDayMap[month]))
         endDate += ' 01:00AM'
@@ -700,7 +728,7 @@ ang_controllers.controller('dependencytree', ['$scope', '$routeParams', function
           {"label": "Name", "pattern": "", "type": "string"},
           {"label": "Manager", "pattern": "", "type": "string"},
           {"label": "ToolTip", "pattern": "", "type": "string"}
-      ], 
+      ],
       "rows" : [
           {"c": [
               {"v": "1", "f": "Stash" },

@@ -363,3 +363,9 @@ div[dir="ltr"] {
 .panel-tree {
     background-color: #ffaaaa
 }
+#side-menu .active {
+	display: block !important;
+}
+#side-menu li {
+	cursor: pointer;
+}
