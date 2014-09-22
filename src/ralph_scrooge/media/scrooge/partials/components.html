@@ -15,11 +15,11 @@
                             </div>
                             <!-- /input-group -->
                         </li>
-                        <li class="active" ng-repeat="(service, envs) in leftMenu">
-                            <a ng-click="displaySubMenu(envs)"><i class="fa fa-sitemap fa-fw"></i>{{service}}<span class="fa arrow"></span></a>
-                            <ul ng-show="envs.show" class="nav nav-second-level" ng-repeat="env in envs.envs">
+                        <li class="env-menu" ng-repeat="(service, value) in menu">
+                            <a ng-click="changeService(service)"><i class="fa fa-sitemap fa-fw"></i>{{service}}<span class="fa arrow"></span></a>
+                            <ul ng-click="changeEnv(env)" ng-show="value.show" class="nav nav-second-level" ng-repeat="env in value.envs">
                                 <li>
-                                    <a href="{{service}}/{{env}}/">{{env}}</a>
+                                    <a class="{{env.show == true ? 'active' : ''}}" ng-click="setCurrentEnv(env)">{{env.env}}</a>
                                 </li>
                             </ul>
                         </li>
@@ -35,7 +35,7 @@
                     <div class="bg-datepicker bg-background" ng-controller="ButtonsCtrl">
                         <div class="panel-heading panel-datepicker-heading row show-grid">
                             <div class="col-xs-13 btn_group btn-month" role="toolbar">
-                                <button ng-model="btn_months" btn-radio="'january'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">January</button>
+                                <button ng-click="changeMont('january')" ng-model="btn_months" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">January</button>
                                 <button ng-model="btn_months" btn-radio="'february'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">February</button>
                                 <button ng-model="btn_months" btn-radio="'march'" class="btn-datepicker btn btn-default btn-month-scrooge">March</button>
                                 <button ng-model="btn_months" btn-radio="'april'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">April</button>

@@ -369,3 +369,6 @@ div[dir="ltr"] {
 #side-menu li {
 	cursor: pointer;
 }
+.env-menu .active {
+    background-color: #aaaaaa !important;
+}
