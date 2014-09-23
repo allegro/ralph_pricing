@@ -49,7 +49,7 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
         });
         $routeProvider.
             when('/components/', {
-                templateUrl: '/static/scrooge/partials/components2.html',
+                templateUrl: '/static/scrooge/partials/components.html',
                 controller: 'components',
             }).
             when('/cardcosts/', {

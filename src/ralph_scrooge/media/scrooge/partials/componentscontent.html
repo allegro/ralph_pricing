@@ -1,0 +1,237 @@
+        <div>
+			<div class="data-content">
+                <ul class="nav nav-tabs deep-menu" role="tablist">
+                <li class="active">
+                <div>
+                    <div class="panel panel-green">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-hdd fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge">23</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="#">
+                            <div class="panel-footer">
+                                <span class="pull-left">Assets</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                </li>
+                <li>
+                <div>
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-cloud fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge">12</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="#">
+                            <div class="panel-footer">
+                                <span class="pull-left">Tenants</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                </li>
+                <li>
+                <div>
+                    <div class="panel panel-yellow">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-signal fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge">9</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="#">
+                            <div class="panel-footer">
+                                <span class="pull-left">IPs</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                </li>
+                <li>
+                <div>
+                    <div class="panel panel-red">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-inbox fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge">13</div>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="#">
+                            <div class="panel-footer">
+                                <span class="pull-left">Virtual devices</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                </li>
+                </ul>
+            </div>
+            <div ng-click="showFilters = !showFilters" class="open-filters-container">
+                <div ng-show="!showFilters" class="open-close-filters-button glyphicon glyphicon-circle-arrow-down"></div>
+                <div ng-show="showFilters" class="open-close-filters-button glyphicon glyphicon-circle-arrow-up"></div>
+                <div class="additional-filter-text"> Additional filters </div>
+                <hr>
+            </div>
+    <div class="panel panel-default filters-container" ng-show="showFilters">
+		<div class="col-xs-12">
+			<div class="datepicker">
+				<div class="panel panel-default panel-background panel-filters">
+                    <div class="bg-filters bg-background" ng-controller="ButtonsCtrl">
+                        <div class="panel-heading panel-datepicker-heading row show-grid">
+	            	<table class="table table-striped">
+				      <tr>
+                        <td class="filter-table-first-level">
+                            <table class="table table-striped">
+                              <thead>
+                                <tr>
+                                  <th>Models</th>
+                                  <th>
+                                    <button ng-click="checkAll('models', true)" type="button" class="btn btn-link btn-sm">Check All</button>
+                                    <button ng-click="checkAll('models', false)" type="button" class="btn btn-link btn-sm">Uncheck All</button>
+
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody class="filter-table">
+                                  <tr ng-repeat="item in models">
+                                    <td>{{item.Name}}</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="item.Selected" checked="checked"/>
+                                    </td>
+                                  </tr>
+                              </tbody>
+                            </table>
+                        </td>
+                        <td class="filter-table-first-level">
+                            <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                  <th>Datacenter</th>
+                                  <th>
+                                    <button ng-click="checkAll('datacenters', true)" type="button" class="btn btn-link btn-sm">Check All</button>
+                                    <button ng-click="checkAll('datacenters', false)" type="button" class="btn btn-link btn-sm">Uncheck All</button>
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody class="filter-table">
+                                  <tr ng-repeat="item in datacenters">
+                                    <td>{{item.Name}}</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="item.Selected" checked="checked"/>
+                                    </td>
+                                  </tr>
+                              </tbody>
+                            </table>
+                        </td>
+                        <td class="filter-table-first-level">
+                            <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                  <th>environments</th>
+                                  <th>
+                                    <button ng-click="checkAll('environments', true)" type="button" class="btn btn-link btn-sm">Check All</button>
+                                    <button ng-click="checkAll('environments', false)" type="button" class="btn btn-link btn-sm">Uncheck All</button>
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody class="filter-table">
+                                  <tr ng-repeat="item in environments">
+                                    <td>{{item.Name}}</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="item.Selected" checked="checked"/>
+                                    </td>
+                                  </tr>
+                              </tbody>
+                            </table>
+                        </td>
+                        </tr>
+				      </tbody>
+				    </table>
+                        </div>
+                    </div>
+	        	</div>
+	        </div>
+        </div>
+	            </div>
+	            	<table class="table table-striped">
+				      <thead>
+				        <tr>
+                          <th class="col-md-1">
+                              <div>
+                                <div class="input-group">
+                                  <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" disabled="disabled">Per page</button>
+                                  </span>
+                                  <input type="text" class="form-control per-page" placeholder="20">
+                                </div><!-- /input-group -->
+                              </div><!-- /.col-lg-6 -->
+                          </th>
+                          <th width="34%">
+                              <div>
+                                  <input type="text" ng-model="searchText" class="col-md-2 form-control" placeholder="Search">
+                              </div>
+                          </th>
+                          <th class="col-md-1">
+                              <input type="button" class="generate-to-csv form-control btn btn-primary" value="CSV">
+                          </th>
+				        </tr>
+				      </thead>
+                    <table>
+	            	<table class="table table-striped">
+				      <thead>
+				        <tr>
+				          <th>Asset id</th>
+				          <th>Name</th>
+				          <th>Serial number</th>
+  				          <th>Barcode</th>
+				        </tr>
+				      </thead>
+				      <tbody>
+				      <tr ng-repeat="result in results | filter:searchText">
+					    <td>{{result.id}}</td>
+					    <td>{{result.name}}</td>
+					    <td>{{result.sn}}</td>
+					    <td>{{result.barcode}}</td>
+				      </tbody>
+				    </table>
+				    <div class="pagination-container">
+				      <ul class="pagination">
+						  <li><a href="">&laquo;</a></li>
+						  <li class="active"><a href="#">1</a></li>
+						  <li><a href="">2</a></li>
+						  <li><a href="">3</a></li>
+						  <li><a href="">4</a></li>
+						  <li><a href="">5</a></li>
+						  <li><a href="">&raquo;</a></li>
+					  </ul>
+					 </div>
+</div>

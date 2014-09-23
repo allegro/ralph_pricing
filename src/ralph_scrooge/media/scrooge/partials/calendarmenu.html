@@ -1,0 +1,14 @@
+			<div class="datepicker" ng-controller="calendarCtrl">
+				<div class="panel panel-default panel-datepicker panel-background">
+                    <div class="bg-datepicker bg-background" ng-controller="ButtonsCtrl">
+                        <div class="panel-heading panel-datepicker-heading row show-grid">
+                            <div class="col-xs-13 btn_group btn-month" role="toolbar">
+                                <button ng-click="menuCalendar.changeMonth(month)" class="{{menuCalendar.checkCurrentMonth(month) ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="month in menuCalendar.getMonths()">{{month.asString}}</button>
+                            </div>
+                            <div class="col-xs-13 btn_group btn-day" role="toolbar">
+                                <button ng-click="menuCalendar.changeDay(day)" class="{{menuCalendar.checkCurrentDay(day) ? 'active' : ''}} btn-datepicker btn btn-default btn-day-scrooge" ng-repeat="day in days">{{day}}</button>
+                            </div>
+                        </div>
+                    </div>
+	        	</div>
+            </div>

@@ -101,13 +101,30 @@ ang_directives.directive('orgchart', function() {
       }
 });
 
-ang_directives.directive('leftmenudirective', function() {
+ang_directives.directive('menuservicedirective', function() {
     return {
         restrict: 'EACM',
         templateUrl: 'http://127.0.0.1:8000/static/scrooge/partials/leftmenu.html',
         replace: true,
         link: function (scope, element, attrs) {
-            console.log('!!!!!!')
+        }
+    }
+});
+ang_directives.directive('menucalendardirective', function() {
+    return {
+        restrict: 'EACM',
+        templateUrl: 'http://127.0.0.1:8000/static/scrooge/partials/calendarmenu.html',
+        replace: true,
+        link: function (scope, element, attrs) {
+        }
+    }
+});
+ang_directives.directive('componentscontentdirective', function() {
+    return {
+        restrict: 'EACM',
+        templateUrl: 'http://127.0.0.1:8000/static/scrooge/partials/componentscontent.html',
+        replace: true,
+        link: function (scope, element, attrs) {
         }
     }
 });

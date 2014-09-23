@@ -3,59 +3,17 @@
 		<div class="col-xs-height col-bottom sidebar-well well navmenu navmenu-default navmenu-fixed-left in">
             <div class="navbar-default sidebar-navbar-default" role="navigation">
                 <div class="sidebar-nav navbar-collapse sidebar-nav-scrooge">
-                    <leftmenudirective></leftmenudirective>
+                    <menuservicedirective></menuservicedirective>
                 </div>
             </div>
         </div>
 	</div>
 	<div class="col-xs-10 content">
-		<div class="col-xs-12">
-			<div class="datepicker">
-				<div class="panel panel-default panel-datepicker panel-background">
-                    <div class="bg-datepicker bg-background" ng-controller="ButtonsCtrl">
-                        <div class="panel-heading panel-datepicker-heading row show-grid">
-                            <div class="col-xs-13 btn_group btn-month" role="toolbar">
-                                <button ng-click="changeMonth(month)" class="{{month.show == true ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="month in preMonths">{{month}}</button>
-                            </div>
-                            <div class="col-xs-13 btn_group btn-day" role="toolbar">
-                                <button ng-model="btn_days" btn-radio="'1'" class="btn-datepicker btn btn-default btn-day-scrooge">1</button>
-                                <button ng-model="btn_days" btn-radio="'2'" class="btn-datepicker btn btn-default btn-day-scrooge">2</button>
-                                <button ng-model="btn_days" btn-radio="'3'" class="btn-datepicker btn btn-default btn-day-scrooge">3</button>
-                                <button ng-model="btn_days" btn-radio="'4'" class="btn-datepicker btn btn-default btn-day-scrooge">4</button>
-                                <button ng-model="btn_days" btn-radio="'5'" class="btn-datepicker btn btn-default btn-day-scrooge">5</button>
-                                <button ng-model="btn_days" btn-radio="'6'" class="btn-datepicker btn btn-default btn-day-scrooge">6</button>
-                                <button ng-model="btn_days" btn-radio="'7'" class="btn-datepicker btn btn-default btn-day-scrooge">7</button>
-                                <button ng-model="btn_days" btn-radio="'8'" class="btn-datepicker btn btn-default btn-day-scrooge">8</button>
-                                <button ng-model="btn_days" btn-radio="'9'" class="btn-datepicker btn btn-default btn-day-scrooge">9</button>
-                                <button ng-model="btn_days" btn-radio="'10'" class="btn-datepicker btn btn-default btn-day-scrooge">10</button>
-                                <button ng-model="btn_days" btn-radio="'11'" class="btn-datepicker btn btn-default btn-day-scrooge">11</button>
-                                <button ng-model="btn_days" btn-radio="'12'" class="btn-datepicker btn btn-default btn-day-scrooge">12</button>
-                                <button ng-model="btn_days" btn-radio="'13'" class="btn-datepicker btn btn-default btn-day-scrooge">13</button>
-                                <button ng-model="btn_days" btn-radio="'14'" class="btn-datepicker btn btn-default btn-day-scrooge">14</button>
-                                <button ng-model="btn_days" btn-radio="'15'" class="btn-datepicker btn btn-default btn-day-scrooge">15</button>
-                                <button ng-model="btn_days" btn-radio="'16'" class="btn-datepicker btn btn-default btn-day-scrooge">16</button>
-                                <button ng-model="btn_days" btn-radio="'17'" class="btn-datepicker btn btn-default btn-day-scrooge">17</button>
-                                <button ng-model="btn_days" btn-radio="'18'" class="btn-datepicker btn btn-default btn-day-scrooge">18</button>
-                                <button ng-model="btn_days" btn-radio="'19'" class="btn-datepicker btn btn-default btn-day-scrooge">19</button>
-                                <button ng-model="btn_days" btn-radio="'20'" class="btn-datepicker btn btn-default btn-day-scrooge">20</button>
-                                <button ng-model="btn_days" btn-radio="'21'" class="btn-datepicker btn btn-default btn-day-scrooge">21</button>
-                                <button ng-model="btn_days" btn-radio="'22'" class="btn-datepicker btn btn-default btn-day-scrooge">22</button>
-                                <button ng-model="btn_days" btn-radio="'23'" class="btn-datepicker btn btn-default btn-day-scrooge">23</button>
-                                <button ng-model="btn_days" btn-radio="'24'" class="btn-datepicker btn btn-default btn-day-scrooge">24</button>
-                                <button ng-model="btn_days" btn-radio="'25'" class="btn-datepicker btn btn-default btn-day-scrooge">25</button>
-                                <button ng-model="btn_days" btn-radio="'26'" class="btn-datepicker btn btn-default btn-day-scrooge">26</button>
-                                <button ng-model="btn_days" btn-radio="'27'" class="btn-datepicker btn btn-default btn-day-scrooge">27</button>
-                                <button ng-model="btn_days" btn-radio="'28'" class="btn-datepicker btn btn-default btn-day-scrooge">28</button>
-                                <button ng-model="btn_days" btn-radio="'29'" class="btn-datepicker btn btn-default btn-day-scrooge">29</button>
-                                <button ng-model="btn_days" btn-radio="'30'" class="btn-datepicker btn btn-default btn-day-scrooge">30</button>
-                                <button ng-model="btn_days" btn-radio="'31'" class="btn-datepicker btn btn-default btn-day-scrooge">31</button>
-                            </div>
-                        </div>
-                    </div>
-	        	</div>
-	        </div>
+		<div class="col-xs-12" ng-controler="calendarCtrl">
+            <menucalendardirective></menucalendardirective>
         </div>
 		<div class="col-xs-12">
+            <componentscontentdirective></componentscontentdirective>
 		</div>
 	</div>
 </div>

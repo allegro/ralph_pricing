@@ -1,7 +1,8 @@
 var ang_controllers = angular.module('ang_controllers', ['googlechart']);
 
-ang_controllers.controller('components', ['$http', '$scope', '$routeParams','menuService',  function ($http, $scope, $routeParams, menuService) {
+ang_controllers.controller('components', ['$http', '$scope', '$routeParams','menuService', 'menuCalendar',  function ($http, $scope, $routeParams, menuService, menuCalendar) {
     $scope.menuService = menuService
+    $scope.menuCalendar = menuCalendar
     $scope.models = [{
         Name: "HP ProLiant DL 360 G6",
         Selected: true,
@@ -67,10 +68,8 @@ ang_controllers.controller('components', ['$http', '$scope', '$routeParams','men
         }
         $http({method: 'POST', url: 'http://127.0.0.1:8000/scrooge/menu/services'}).
         success(function(data, status, headers, config) {
-            console.log(status)
         }).
         error(function(data, status, headers, config) {
-            console.log(status)
         });
         $scope.refreshData = function (stat_type) {
             force = false
@@ -83,7 +82,6 @@ ang_controllers.controller('components', ['$http', '$scope', '$routeParams','men
                     refresh = true
                 }
             })
-            console.log($scope.menuStats)
         }
         $scope.changeEnv = function (env) {
             Object.keys($scope.menu).forEach(function (service) {
@@ -107,6 +105,22 @@ ang_controllers.controller('components', ['$http', '$scope', '$routeParams','men
 
 ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', function ($scope, $routeParams) {
 
+}]);
+
+ang_controllers.controller('calendarCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {
+   stats.getDays()
+   $scope.days = stats.days
+   $scope.$watch(function () {
+        $scope.days = stats.days
+   });
+}]);
+
+ang_controllers.controller('componentsContentCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {
+   stats.getDays()
+   $scope.days = stats.days
+   $scope.$watch(function () {
+        $scope.days = stats.days
+   });
 }]);
 
 var ButtonsCtrl = function ($scope) {

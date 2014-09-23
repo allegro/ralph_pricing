@@ -9,7 +9,7 @@
         </span>
         </div>
     </li>
-    <li class="env-menu" ng-repeat="(service, value) in leftMenuService.getLeftMenu()">
+    <li class="env-menu" ng-repeat="(service, value) in menuService.getLeftMenu()">
         <a class="btn-left-menu {{menuService.checkActiveService(service) == true ? 'active' : ''}}" ng-click="menuService.changeService(service)"><i class="fa fa-sitemap fa-fw"></i>{{service}}<span class="fa arrow"></span></a>
         <ul ng-click="menuService.changeEnv(service, env)" ng-show="menuService.checkActiveService(service)" class="nav nav-second-level" ng-repeat="env in value.envs">
             <li>
