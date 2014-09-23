@@ -154,10 +154,18 @@ class ProfitCenterFactory(DjangoModelFactory):
     business_line = SubFactory(BusinessLineFactory)
 
 
+class TenantGroupFactory(DjangoModelFactory):
+    FACTORY_FOR = models.TenantGroup
+
+    group_id = Sequence(lambda n: n)
+    name = Sequence(lambda n: 'Tenant Group #%s' % n)
+
+
 class TenantInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.TenantInfo
 
     tenant_id = Sequence(lambda n: n)
+    group = SubFactory(TenantGroupFactory)
 
 
 class DailyTenantInfoFactory(DailyPricingObjectFactory):

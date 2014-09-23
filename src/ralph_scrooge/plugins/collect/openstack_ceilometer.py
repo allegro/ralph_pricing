@@ -129,21 +129,20 @@ def clear_ceilometer_stats(date):
 
 
 @plugin.register(chain='scrooge', requires=['service', 'tenant'])
-def ceilometer(today, **kwargs):
+def openstack_ceilometer(today, **kwargs):
     """
-    Pricing plugin for openstack havana- ceilometer.
+    Pricing plugin for openstack ceilometer.
     """
     clear_ceilometer_stats(today)
     new = total = 0
-    for site in settings.OPENSTACK_SITES:
+    for site in settings.SCROOGE_OPENSTACK_CEILOMETER:
         logger.info(
-            "Processing OpenStack site {}".format(site['OS_METERING_URL'])
+            "Processing OpenStack ceilometer {}".format(site['WAREHOUSE'])
         )
         try:
             warehouse = Warehouse.objects.get(name=site['WAREHOUSE'])
         except Warehouse.DoesNotExist:
-            logger.error('Invalid warehouse for site {}: {}'.format(
-                site['OS_METERING_URL'],
+            logger.error('Invalid warehouse: {}'.format(
                 site['WAREHOUSE']
             ))
             continue
@@ -151,10 +150,10 @@ def ceilometer(today, **kwargs):
         site_new, site_total = save_ceilometer_usages(usages, today, warehouse)
 
         logger.info(
-            '{} new, {} total ceilometer usages saved for site {}'.format(
+            '{} new, {} total ceilometer usages saved for {}'.format(
                 site_new,
                 site_total,
-                site['OS_METERING_URL'],
+                site['WAREHOUSE'],
             )
         )
 

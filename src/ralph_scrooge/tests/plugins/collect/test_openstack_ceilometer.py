@@ -12,8 +12,8 @@ import time
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ralph_scrooge.plugins.collect.ceilometer import (
-    ceilometer as ceilometer_plugin,
+from ralph_scrooge.plugins.collect.openstack_ceilometer import (
+    openstack_ceilometer as ceilometer_plugin,
     clear_ceilometer_stats,
     DailyTenantNotFoundError,
     get_daily_tenant,
@@ -26,7 +26,6 @@ from ralph_scrooge.models import DailyUsage
 from ralph_scrooge.tests.plugins.collect.samples.ceilometer import (
     SAMPLE_CEILOMETER,
 )
-from ralph_scrooge.tests.plugins.collect.test_tenant import TEST_SETTINGS_SITES
 from ralph_scrooge.tests.utils.factory import (
     DailyTenantInfoFactory,
     OpenstackDailyUsageTypeFactory,
@@ -34,8 +33,22 @@ from ralph_scrooge.tests.utils.factory import (
     WarehouseFactory,
 )
 
+CEILOMETER_SETTINGS = [
+    {
+        'CEILOMETER_CONNECTION': "mysql://foo:bar@example.com:3306",
+        'WAREHOUSE': 'WH1',
+    },
+    {
+        'CEILOMETER_CONNECTION': "mysql://foo:bar@example.com:3307",
+        'WAREHOUSE': 'WH2',
+    }
+]
+TEST_SETTINGS_SCROOGE_OPENSTACK_CEILOMETER = {
+    'SCROOGE_OPENSTACK_CEILOMETER': CEILOMETER_SETTINGS
+}
 
-class TestCeilometer(TestCase):
+
+class TestOpenStackCeilometer(TestCase):
     def setUp(self):
         self.today = datetime.date(2014, 7, 1)
         self.yesterday = self.today - datetime.timedelta(days=1)
@@ -65,7 +78,7 @@ class TestCeilometer(TestCase):
         with self.assertRaises(TenantNotFoundError):
             get_daily_tenant(tenant.tenant_id, self.today)
 
-    @mock.patch('ralph_scrooge.plugins.collect.ceilometer.create_engine')
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.create_engine')  # noqa
     def test_get_ceilometer_usages(self, create_engine_mock):
         from_ts = time.mktime(self.yesterday.timetuple())
         to_ts = time.mktime(self.today.timetuple())
@@ -133,10 +146,10 @@ class TestCeilometer(TestCase):
         clear_ceilometer_stats(self.today)
         self.assertEquals(DailyUsage.objects.count(), 10)
 
-    @mock.patch('ralph_scrooge.plugins.collect.ceilometer.get_ceilometer_usages')  # noqa
-    @mock.patch('ralph_scrooge.plugins.collect.ceilometer.clear_ceilometer_stats')  # noqa
-    @mock.patch('ralph_scrooge.plugins.collect.ceilometer.save_ceilometer_usages')  # noqa
-    @override_settings(**TEST_SETTINGS_SITES)
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.get_ceilometer_usages')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.clear_ceilometer_stats')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.save_ceilometer_usages')  # noqa
+    @override_settings(**TEST_SETTINGS_SCROOGE_OPENSTACK_CEILOMETER)
     def test_ceilometer_plugin(
         self,
         save_ceilometer_usages_mock,
@@ -155,7 +168,7 @@ class TestCeilometer(TestCase):
         self.assertEquals(get_ceilometer_usages_mock.call_count, 2)
         get_ceilometer_usages_mock.assert_any_call(
             self.today,
-            TEST_SETTINGS_SITES['OPENSTACK_SITES'][0]['CEILOMETER_CONNECTION'],
+            CEILOMETER_SETTINGS[0]['CEILOMETER_CONNECTION'],
         )
         self.assertEquals(get_ceilometer_usages_mock.call_count, 2)
         save_ceilometer_usages_mock.assert_any_call(
