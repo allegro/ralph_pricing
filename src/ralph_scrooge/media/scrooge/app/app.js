@@ -12,6 +12,7 @@ var app = angular.module('app', [
 
     'ang_controllers',
     'ang_directives',
+    'ang_services',
 ]);
 
 app.config(['$routeProvider', '$httpProvider', '$provide',
@@ -48,7 +49,7 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
         });
         $routeProvider.
             when('/components/', {
-                templateUrl: '/static/scrooge/partials/components.html',
+                templateUrl: '/static/scrooge/partials/components2.html',
                 controller: 'components',
             }).
             when('/cardcosts/', {

@@ -15,5 +15,4 @@ from ralph.util.views import jsonify
 @jsonify
 @require_http_methods(["POST"])
 def left_menu(request, *args, **kwargs):
-	print ('!!!!!!')
 	return {'ok': True}

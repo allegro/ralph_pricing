@@ -1,0 +1,20 @@
+<ul class="nav" id="side-menu">
+    <li class="sidebar-search">
+        <div class="input-group custom-search-form">
+            <input type="text" class="form-control" placeholder="Search...">
+            <span class="input-group-btn">
+            <button class="btn btn-default" type="button">
+                <i class="fa fa-search"></i>
+            </button>
+        </span>
+        </div>
+    </li>
+    <li class="env-menu" ng-repeat="(service, value) in leftMenuService.getLeftMenu()">
+        <a class="btn-left-menu {{menuService.checkActiveService(service) == true ? 'active' : ''}}" ng-click="menuService.changeService(service)"><i class="fa fa-sitemap fa-fw"></i>{{service}}<span class="fa arrow"></span></a>
+        <ul ng-click="menuService.changeEnv(service, env)" ng-show="menuService.checkActiveService(service)" class="nav nav-second-level" ng-repeat="env in value.envs">
+            <li>
+                <a class="btn-left-submenu {{menuService.checkActiveEnv(service, env) == true ? 'active' : ''}}" ng-click="setCurrentEnv(env)">{{env.env}}</a>
+            </li>
+        </ul>
+    </li>
+</ul>

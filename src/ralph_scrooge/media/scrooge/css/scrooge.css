@@ -369,6 +369,21 @@ div[dir="ltr"] {
 #side-menu li {
 	cursor: pointer;
 }
-.env-menu .active {
-    background-color: #aaaaaa !important;
+.btn-left-submenu.active {
+    background-color: #f5f5f5 !important;
+}
+.btn-left-submenu {
+	-webkit-border-radius: 10px 0px 0px 10px;
+	-moz-border-radius: 10px 0px 0px 10px;
+	border-radius: 10px 0px 0px 10px;
+}
+.btn-left-menu.active {
+    background-color: #f5f5f5!important;
+}
+.env-menu ul li {
+	padding-left: 50px;
+}
+.env-menu ul li a {
+	height: 20px;
+	padding: 0px 0px 0px 10px;
 }

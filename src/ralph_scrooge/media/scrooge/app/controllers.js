@@ -1,8 +1,7 @@
 var ang_controllers = angular.module('ang_controllers', ['googlechart']);
 
-ang_controllers.controller('components', ['$scope', '$routeParams', function ($scope, $routeParams) {
-    $scope.pre_months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'augus', 'september', 'october', 'november', 'december']
-    $scope.pre_months = [{"name": 'december'}, {"name": 'october'}]
+ang_controllers.controller('components', ['$http', '$scope', '$routeParams','menuService',  function ($http, $scope, $routeParams, menuService) {
+    $scope.menuService = menuService
     $scope.models = [{
         Name: "HP ProLiant DL 360 G6",
         Selected: true,
@@ -58,75 +57,56 @@ ang_controllers.controller('components', ['$scope', '$routeParams', function ($s
     	sn: 'ADW891AD02',
     	barcode: '44213_F'
     }]
+    $scope.changeService = function (service) {
+            Object.keys($scope.menu).forEach(function (service) {
+                $scope.menu[service].show = false;
+            })
+            $scope.menu[service].show = true;
+            $scope.menuStats.service.change = service;
+            $scope.refreshData('service');
+        }
+        $http({method: 'POST', url: 'http://127.0.0.1:8000/scrooge/menu/services'}).
+        success(function(data, status, headers, config) {
+            console.log(status)
+        }).
+        error(function(data, status, headers, config) {
+            console.log(status)
+        });
+        $scope.refreshData = function (stat_type) {
+            force = false
+            refresh = false
+            Object.keys($scope.menuStats).forEach(function (menu) {
+                if ($scope.menuStats[menu]['change'] == false) {
+                    force = true
+                }
+                if ($scope.menuStats[menu]['current'] != $scope.menuStats[menu]['change']) {
+                    refresh = true
+                }
+            })
+            console.log($scope.menuStats)
+        }
+        $scope.changeEnv = function (env) {
+            Object.keys($scope.menu).forEach(function (service) {
+                $scope.menu[service].envs.forEach(function (env) {
+                    env.show = false;
+                });
+            });
+            env.show = true;
+            $scope.menuStats.env.change = env.env;
+            $scope.refreshData('env');
+        }
     $scope.checkAll = function (modelName, checked) {
         angular.forEach($scope[modelName], function (item) {
             item.Selected = checked;
         });
     };
-    $scope.preventClose = function(event) { event.stopPropagation(); };
+    $scope.preMonths = ['january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december']
+    $scope.preventClose = function(event) { event.stopPropagation()};
 }]);
 
 ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', function ($scope, $routeParams) {
 
-}]);
-
-ang_controllers.controller('leftMenuCtrl', ['$http', '$scope', '$routeParams', function ($http, $scope, $routeParams) {
-    $scope.menuStats = {
-        "service": {"current": false, "change": false},
-        "env": {"current": false, "change": false},
-        "month": {"current": false, "change": false},
-        "day": {"current": false, "change": false}
-    }
-    $scope.menu = {
-        "Stash": {
-            "envs": [{"env": "prod", "show": true}, {"env": "dev"},{"env": "test"}],
-           "show": true,
-        },
-        "Allegro": {
-            "envs": [{"env": "prod"},{"env": "dev"},{"env": "test"}],
-        },
-        "Agito": {
-            "envs": [{"env": "dev"}],
-        }
-    }
-    $scope.changeService = function (service) {
-        Object.keys($scope.menu).forEach(function (service) {
-            $scope.menu[service].show = false;
-        })
-        $scope.menu[service].show = true;
-        $scope.menuStats.service.change = service;
-        $scope.refreshData('service');
-    }
-    $http({method: 'POST', url: 'http://127.0.0.1:8000/scrooge/menu/services'}).
-    success(function(data, status, headers, config) {
-        console.log(status)
-    }).
-    error(function(data, status, headers, config) {
-        console.log(status)
-    });
-    $scope.refreshData = function (stat_type) {
-        force = false
-        refresh = false
-        Object.keys($scope.menuStats).forEach(function (menu) {
-            if ($scope.menuStats[menu]['change'] == false) {
-                force = true
-            }
-            if ($scope.menuStats[menu]['current'] != $scope.menuStats[menu]['change']) {
-                refresh = true
-            }
-        })
-        console.log($scope.menuStats)
-    }
-    $scope.changeEnv = function (env) {
-        Object.keys($scope.menu).forEach(function (service) {
-            $scope.menu[service].envs.forEach(function (env) {
-                env.show = false;
-            });
-        });
-        env.show = true;
-        $scope.menuStats.env.change = env.env;
-        $scope.refreshData('env');
-    }
 }]);
 
 var ButtonsCtrl = function ($scope) {

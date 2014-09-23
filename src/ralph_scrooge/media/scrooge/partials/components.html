@@ -2,28 +2,8 @@
 	<div class="col-xs-2 left-menu-container col-xs-height col-bottom">
 		<div class="col-xs-height col-bottom sidebar-well well navmenu navmenu-default navmenu-fixed-left in">
             <div class="navbar-default sidebar-navbar-default" role="navigation">
-                <div class="sidebar-nav navbar-collapse sidebar-nav-scrooge" ng-controller="leftMenuCtrl">
-                    <ul class="nav" id="side-menu">
-                        <li class="sidebar-search">
-                            <div class="input-group custom-search-form">
-                                <input type="text" class="form-control" placeholder="Search...">
-                                <span class="input-group-btn">
-                                <button class="btn btn-default" type="button">
-                                    <i class="fa fa-search"></i>
-                                </button>
-                            </span>
-                            </div>
-                            <!-- /input-group -->
-                        </li>
-                        <li class="env-menu" ng-repeat="(service, value) in menu">
-                            <a ng-click="changeService(service)"><i class="fa fa-sitemap fa-fw"></i>{{service}}<span class="fa arrow"></span></a>
-                            <ul ng-click="changeEnv(env)" ng-show="value.show" class="nav nav-second-level" ng-repeat="env in value.envs">
-                                <li>
-                                    <a class="{{env.show == true ? 'active' : ''}}" ng-click="setCurrentEnv(env)">{{env.env}}</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                <div class="sidebar-nav navbar-collapse sidebar-nav-scrooge">
+                    <leftmenudirective></leftmenudirective>
                 </div>
             </div>
         </div>
@@ -35,18 +15,7 @@
                     <div class="bg-datepicker bg-background" ng-controller="ButtonsCtrl">
                         <div class="panel-heading panel-datepicker-heading row show-grid">
                             <div class="col-xs-13 btn_group btn-month" role="toolbar">
-                                <button ng-click="changeMont('january')" ng-model="btn_months" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">January</button>
-                                <button ng-model="btn_months" btn-radio="'february'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">February</button>
-                                <button ng-model="btn_months" btn-radio="'march'" class="btn-datepicker btn btn-default btn-month-scrooge">March</button>
-                                <button ng-model="btn_months" btn-radio="'april'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">April</button>
-                                <button ng-model="btn_months" btn-radio="'may'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">May</button>
-                                <button ng-model="btn_months" btn-radio="'june'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">June</button>
-                                <button ng-model="btn_months" btn-radio="'july'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">July</button>
-                                <button ng-model="btn_months" btn-radio="'august'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">August</button>
-                                <button ng-model="btn_months" btn-radio="'september'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">September</button>
-                                <button ng-model="btn_months" btn-radio="'october'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">October</button>
-                                <button ng-model="btn_months" btn-radio="'nvember'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">November</button>
-                                <button ng-model="btn_months" btn-radio="'december'" class="btn-datepicker btn btn-default btn-group btn-month-scrooge">December</button>
+                                <button ng-click="changeMonth(month)" class="{{month.show == true ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="month in preMonths">{{month}}</button>
                             </div>
                             <div class="col-xs-13 btn_group btn-day" role="toolbar">
                                 <button ng-model="btn_days" btn-radio="'1'" class="btn-datepicker btn btn-default btn-day-scrooge">1</button>

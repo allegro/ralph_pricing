@@ -41,9 +41,9 @@ ang_directives.directive('costchart', ['_', function (_) {
                         axes:{
                             xaxis:{
                                 label:'Months',
-                                renderer:$.jqplot.DateAxisRenderer, 
+                                renderer:$.jqplot.DateAxisRenderer,
                                 tickOptions:{formatString:'%b %#d, %y'},
-                                min:'January 30, 2015', 
+                                min:'January 30, 2015',
                                 tickInterval:'1 month',
                                 Options:{
                                     formatString:'%b&nbsp;%#d'
@@ -87,6 +87,7 @@ ang_directives.directive('costchart', ['_', function (_) {
         }  // link
     };
 }]);
+
 ang_directives.directive('orgchart', function() {
       return {
         restrict: 'EACM',
@@ -98,4 +99,15 @@ ang_directives.directive('orgchart', function() {
           });
         }
       }
+});
+
+ang_directives.directive('leftmenudirective', function() {
+    return {
+        restrict: 'EACM',
+        templateUrl: 'http://127.0.0.1:8000/static/scrooge/partials/leftmenu.html',
+        replace: true,
+        link: function (scope, element, attrs) {
+            console.log('!!!!!!')
+        }
+    }
 });
