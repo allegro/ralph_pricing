@@ -40,12 +40,12 @@ class ScroogeMenu(Menu):
                 fugue_icon='fugue-calendar-day',
                 view_name='services_usages_report',
             ),
-            # MenuItem(
-            #     _("Devices ventures changes"),
-            #     name='ventures-changes',
-            #     fugue_icon='fugue-arrow-switch',
-            #     view_name='ventures_changes',
-            # ),
+            MenuItem(
+                _("Services changes report"),
+                name='services-changes-report',
+                fugue_icon='fugue-arrow-switch',
+                view_name='services_changes_report',
+            ),
             MenuItem(
                 _("Extra costs"),
                 name='extra-costs',

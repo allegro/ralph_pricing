@@ -71,6 +71,7 @@ class PricingObject(TimeTrackable, EditorTrackable):
     type = db.PositiveIntegerField(
         verbose_name=_("type"),
         choices=PricingObjectType(),
+        default=PricingObjectType.unknown,
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
@@ -201,6 +202,10 @@ class AssetModel(db.Model):
 
     class Meta:
         app_label = 'ralph_scrooge'
+        ordering = ['manufacturer', 'name']
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.manufacturer, self.name)
 
 
 class DailyAssetInfo(DailyPricingObject):

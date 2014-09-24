@@ -203,12 +203,36 @@ class ExtraCostTypeFactory(DjangoModelFactory):
 class ExtraCostFactory(DjangoModelFactory):
     FACTORY_FOR = models.ExtraCost
 
-    type = SubFactory(ExtraCostTypeFactory)
-    monthly_cost = 3100
+    extra_cost_type = SubFactory(ExtraCostTypeFactory)
+    cost = 3100
     service_environment = SubFactory(ServiceEnvironmentFactory)
     pricing_object = SubFactory(PricingObjectFactory)
     start = datetime.date.today()
     end = datetime.date.today()
+
+
+class DynamicExtraCostTypeFactory(DjangoModelFactory):
+    FACTORY_FOR = models.DynamicExtraCostType
+
+    name = Sequence(lambda n: 'Dynamic Extra Cost type %s' % n)
+
+
+class DynamicExtraCostFactory(DjangoModelFactory):
+    FACTORY_FOR = models.DynamicExtraCost
+
+    dynamic_extra_cost_type = SubFactory(DynamicExtraCostTypeFactory)
+    cost = 100
+    forecast_cost = 200
+    start = datetime.date.today()
+    end = datetime.date.today()
+
+
+class DynamicExtraCostDivisionFactory(DjangoModelFactory):
+    FACTORY_FOR = models.DynamicExtraCostDivision
+
+    dynamic_extra_cost_type = SubFactory(DynamicExtraCostTypeFactory)
+    usage_type = SubFactory(UsageTypeFactory)
+    percent = 50
 
 
 class TeamFactory(DjangoModelFactory):

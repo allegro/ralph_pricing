@@ -93,9 +93,10 @@ class BaseReport(Base):
                 )
                 if result:
                     self.header, self.data = result
-
-                if self.progress == 100:
                     self._format_header()
+
+                self.progress = round(self.progress, 0)
+                if self.progress == 100:
                     if get.get('format', '').lower() == 'csv':
                         self.header = format_csv_header(self.header)
                         return make_csv_response(
