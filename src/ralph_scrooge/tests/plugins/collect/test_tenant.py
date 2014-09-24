@@ -18,7 +18,7 @@ from ralph_scrooge.plugins.collect.tenant import (
     save_tenant_info,
     save_daily_tenant_info,
     tenant as tenant_plugin,
-    UnknownServiceEnvironmentNotConfigured,
+    UnknownServiceEnvironmentNotConfiguredError,
 )
 from ralph_scrooge.tests.utils.factory import (
     ServiceEnvironmentFactory,
@@ -135,11 +135,11 @@ class TestServiceCollectPlugin(TestCase):
     @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
     def test_get_tenant_unknown_service_invalid_config(self):
         ServiceEnvironmentFactory()
-        with self.assertRaises(UnknownServiceEnvironmentNotConfigured):
+        with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
             get_tenant_unknown_service_environment()
 
     def test_get_tenant_unknown_service_not_configured(self):
-        with self.assertRaises(UnknownServiceEnvironmentNotConfigured):
+        with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
             get_tenant_unknown_service_environment()
 
     @mock.patch('ralph_scrooge.plugins.collect.tenant.api_scrooge.get_openstack_tenants')  # noqa
@@ -176,7 +176,7 @@ class TestServiceCollectPlugin(TestCase):
         get_tenant_unknown_service_environment_mock
     ):
         get_tenant_unknown_service_environment_mock.side_effect = (
-            UnknownServiceEnvironmentNotConfigured()
+            UnknownServiceEnvironmentNotConfiguredError()
         )
         result = tenant_plugin(self.today)
         self.assertEquals(

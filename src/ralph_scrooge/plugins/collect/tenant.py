@@ -21,7 +21,7 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 
-class UnknownServiceEnvironmentNotConfigured(Exception):
+class UnknownServiceEnvironmentNotConfiguredError(Exception):
     pass
 
 
@@ -113,7 +113,7 @@ def get_tenant_unknown_service_environment():
         except ServiceEnvironment.DoesNotExist:
             pass
     if not unknown_service_environment:
-        raise UnknownServiceEnvironmentNotConfigured()
+        raise UnknownServiceEnvironmentNotConfiguredError()
     return unknown_service_environment
 
 
@@ -121,7 +121,7 @@ def get_tenant_unknown_service_environment():
 def tenant(today, **kwargs):
     try:
         unknown_service_environment = get_tenant_unknown_service_environment()
-    except UnknownServiceEnvironmentNotConfigured:
+    except UnknownServiceEnvironmentNotConfiguredError:
         return (
             False,
             'Unknown service environment not configured for tenant plugin'
