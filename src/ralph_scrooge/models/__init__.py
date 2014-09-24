@@ -3,6 +3,9 @@ from ralph_scrooge.models.base import BaseUsage
 from ralph_scrooge.models.cost import CostDateStatus, DailyCost
 
 from ralph_scrooge.models.extra_cost import (
+    DynamicExtraCost,
+    DynamicExtraCostDivision,
+    DynamicExtraCostType,
     ExtraCost,
     ExtraCostType,
 )
@@ -70,6 +73,9 @@ __all__ = [
     'DailyTenantInfo',
     'DailyUsage',
     'DailyVirtualInfo',
+    'DynamicExtraCost',
+    'DynamicExtraCostDivision',
+    'DynamicExtraCostType',
     'Environment',
     'ExtraCost',
     'ExtraCostType',

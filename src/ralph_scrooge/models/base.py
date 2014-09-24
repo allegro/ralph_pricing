@@ -17,6 +17,7 @@ class BaseUsageType(Choices):
     team = _("Team")
     extra_cost = _("Extra Cost")
     pricing_service = _("Pricing Service")
+    dynamic_extra_cost = _("Dynamic extra cost")
 
 
 class BaseUsage(Named):

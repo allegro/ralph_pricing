@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
+    DynamicExtraCostType,
     ExtraCostType,
     PricingService,
     ServiceEnvironment,
@@ -61,6 +62,21 @@ class BasePluginReport(BaseReport):
                     'base_usage': extra_cost_type,
                 }
             ) for extra_cost_type in ExtraCostType.objects.all()
+        ]
+
+    @classmethod
+    def _get_dynamic_extra_cost_plugins(cls, filter_=None):
+        """
+        Returns plugins for extracost (name and arguments)
+        """
+        return [
+            AttributeDict(
+                name='ExtraCostPlugin',
+                plugin_name='dynamic_extra_cost_plugin',
+                plugin_kwargs={
+                    'base_usage': dynamic_extra_cost_type,
+                }
+            ) for dynamic_extra_cost_type in DynamicExtraCostType.objects.all()
         ]
 
     @classmethod

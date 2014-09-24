@@ -130,7 +130,7 @@ class UsageTypeForm(forms.ModelForm):
     class Meta:
         model = models.UsageType
         widgets = {
-            'excluded_ventures': FilteredSelectMultiple('Ventures', False)
+            'excluded_services': FilteredSelectMultiple('Service', False)
         }
 
 
@@ -158,6 +158,30 @@ class ExtraCostTypeAdmin(ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [ExtraCostInline]
+
+
+class DynamicExtraCostDivisionInline(admin.TabularInline):
+    model = models.DynamicExtraCostDivision
+
+
+class DynamicExtraCostInline(admin.TabularInline):
+    model = models.DynamicExtraCost
+
+
+class DynamicExtraTypeForm(forms.ModelForm):
+    class Meta:
+        model = models.DynamicExtraCostType
+        widgets = {
+            'excluded_services': FilteredSelectMultiple('Service', False)
+        }
+
+
+@register(models.DynamicExtraCostType)
+class DynamicExtraCostTypeAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    inlines = [DynamicExtraCostDivisionInline, DynamicExtraCostInline]
+    form = DynamicExtraTypeForm
 
 
 # =============================================================================
