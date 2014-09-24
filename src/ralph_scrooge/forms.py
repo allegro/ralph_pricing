@@ -284,17 +284,9 @@ class ServicesUsagesReportForm(DateRangeForm):
     )
 
 
-class DevicesVenturesChangesForm(DateRangeForm):
-    """Form schema. Used to generate venture daily usages reports"""
-    # use_subventures = forms.BooleanField(
-    #     required=False,
-    #     initial=True,
-    #     label=_("Use subventures"),
-    # )
-    # venture = TreeNodeChoiceField(
-    #     required=False,
-    #     queryset=Venture.tree.all(),
-    #     level_indicator='|---',
-    #     empty_label="---",
-    # )
-    service = forms.ModelChoiceField(queryset=Service.objects.all())
+class ServicesChangesReportForm(DateRangeForm):
+    """Form schema. Used to generate services changes reports"""
+    service = forms.ModelChoiceField(
+        queryset=Service.objects.all(),
+        required=False,
+    )
