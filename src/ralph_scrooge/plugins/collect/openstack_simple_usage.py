@@ -97,7 +97,7 @@ def openstack_simple_usage(today, **kwargs):
     end = start + timedelta(days=1)
     success = total = 0
     usage_types = get_usage_types()
-    for site in settings.SCROOGE_OPENSTACK_SIMPLE_USAGES:
+    for site in settings.OPENSTACK_SIMPLE_USAGES:
         for region in site['REGIONS']:
             region_success = 0
             logger.info("Processing OpenStack site {} {}".format(

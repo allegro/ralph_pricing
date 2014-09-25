@@ -71,7 +71,7 @@ class PricingObject(TimeTrackable, EditorTrackable):
     type = db.PositiveIntegerField(
         verbose_name=_("type"),
         choices=PricingObjectType(),
-        default=PricingObjectType.unknown,
+        default=PricingObjectType.unknown.id,
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
