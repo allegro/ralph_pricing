@@ -14,6 +14,7 @@ from dj.choices import _ChoicesMeta
 from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
+    Named,
     TimeTrackable,
 )
 
@@ -86,7 +87,6 @@ class PricingObject(TimeTrackable, EditorTrackable):
 
     class Meta:
         app_label = 'ralph_scrooge'
-        unique_together = ('service_environment', 'type', 'name')
 
     def __unicode__(self):
         return '{} ({})'.format(
@@ -280,6 +280,24 @@ class DailyVirtualInfo(DailyPricingObject):
         app_label = 'ralph_scrooge'
 
 
+class TenantGroup(Named):
+    """
+    Tenant group (ex. from different clouds). It's Ralph Model when syncing
+    tenants with Ralph.
+    """
+    group_id = db.IntegerField(
+        null=False,
+        blank=False,
+        verbose_name=_('group id'),
+        help_text=_(
+            'Ralph DeviceModel ID when tenant are synchronized with Ralph'
+        ),
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
 class TenantInfo(PricingObject):
     tenant_id = db.CharField(
         max_length=100,
@@ -288,6 +306,18 @@ class TenantInfo(PricingObject):
         db_index=True,
         verbose_name=_("OpenStack Tenant ID"),
         unique=True,
+    )
+    device_id = db.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_('device id'),
+    )
+    group = db.ForeignKey(
+        TenantGroup,
+        null=False,
+        blank=False,
+        verbose_name=_('tenant group'),
+        related_name='tenants',
     )
 
     class Meta:
