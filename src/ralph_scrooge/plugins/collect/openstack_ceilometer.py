@@ -135,7 +135,7 @@ def openstack_ceilometer(today, **kwargs):
     """
     clear_ceilometer_stats(today)
     new = total = 0
-    for site in settings.SCROOGE_OPENSTACK_CEILOMETER:
+    for site in settings.OPENSTACK_CEILOMETER:
         logger.info(
             "Processing OpenStack ceilometer {}".format(site['WAREHOUSE'])
         )

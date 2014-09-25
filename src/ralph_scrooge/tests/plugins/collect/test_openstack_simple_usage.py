@@ -25,7 +25,7 @@ from ralph_scrooge.tests.utils.factory import (
 
 
 TEST_SETTINGS = dict(
-    SCROOGE_OPENSTACK_SIMPLE_USAGES=[
+    OPENSTACK_SIMPLE_USAGES=[
         {
             'TENANT_NAME': 'testtenant',
             'USERNAME': 'testuser',

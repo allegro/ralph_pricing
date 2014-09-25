@@ -131,7 +131,7 @@ class Migration(SchemaMigration):
             ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
             ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
             ('name', self.gf('django.db.models.fields.CharField')(default=None, max_length=200, null=True, blank=True)),
-            ('type', self.gf('django.db.models.fields.PositiveIntegerField')(default=<Choice: Unknown (id: 255, name: unknown)>)),
+            ('type', self.gf('django.db.models.fields.PositiveIntegerField')(default=255)),
             ('remarks', self.gf('django.db.models.fields.TextField')(default=u'', blank=True)),
             ('service_environment', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'pricing_objects', to=orm['ralph_scrooge.ServiceEnvironment'])),
         ))
@@ -855,7 +855,7 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
             'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'pricing_objects'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
-            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '<Choice: Unknown (id: 255, name: unknown)>'})
+            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '255'})
         },
         u'ralph_scrooge.pricingservice': {
             'Meta': {'object_name': 'PricingService', '_ormbases': [u'ralph_scrooge.BaseUsage']},
