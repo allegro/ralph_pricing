@@ -14,6 +14,7 @@ from ralph.util import plugin
 from ralph_assets.api_scrooge import get_assets
 from ralph_scrooge.models import (
     AssetInfo,
+    AssetModel,
     DailyAssetInfo,
     DailyUsage,
     PricingObjectType,
@@ -60,6 +61,7 @@ def get_asset_info(service_environment, warehouse, data):
             type=PricingObjectType.asset,
         )
         created = True
+    asset_info.model = AssetModel.objects.get(model_id=data['model_id'])
     asset_info.service_environment = service_environment
     asset_info.name = data['asset_name']
     asset_info.warehouse = warehouse
@@ -93,7 +95,7 @@ def get_daily_asset_info(asset_info, date, data):
     daily_asset_info.service_environment = asset_info.service_environment
     daily_asset_info.depreciation_rate = data['depreciation_rate']
     daily_asset_info.is_depreciated = data['is_depreciated']
-    daily_asset_info.price = data['price']
+    daily_asset_info.price = data['price'] or 0
     daily_asset_info.save()
     return daily_asset_info
 
@@ -146,8 +148,8 @@ def update_assets(data, date, usages):
     """
     try:
         service_environment = ServiceEnvironment.objects.get(
-            service__ci_uid=data['service_ci_uid'],
-            environment__environment_id=data['environment_id'],
+            service__ci_id=data['service_id'],
+            environment__ci_id=data['environment_id'],
         )
     except ServiceEnvironment.DoesNotExist:
         raise ServiceEnvironmentDoesNotExistError()
@@ -234,7 +236,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
 
 @plugin.register(
     chain='scrooge',
-    requires=['service', 'environment', 'warehouse']
+    requires=['service', 'environment', 'warehouse', 'asset_model']
 )
 def asset(**kwargs):
     """
@@ -312,7 +314,7 @@ def asset(**kwargs):
             logger.error(
                 'Asset {}: Service environment {} - {} does not exist'.format(
                     data['asset_id'],
-                    data['service_ci_uid'],
+                    data['service_id'],
                     data['environment_id'],
                 )
             )

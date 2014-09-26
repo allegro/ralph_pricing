@@ -10,7 +10,7 @@ from decimal import Decimal as D
 from django.test import TestCase
 
 from ralph_scrooge import models
-from ralph_scrooge.plugins.cost.extracost import ExtraCostPlugin
+from ralph_scrooge.plugins.cost.extra_cost import ExtraCostPlugin
 from ralph_scrooge.tests.utils.factory import (
     ExtraCostTypeFactory,
     ServiceEnvironmentFactory,

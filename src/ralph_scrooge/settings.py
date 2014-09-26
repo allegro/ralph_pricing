@@ -5,14 +5,14 @@ NFSEN_CLASS_ADDRESS = []
 NFSEN_FILES_PATH = ''
 
 # Virtual Usages plugin default config
-VIRTUAL_VENTURE_NAMES = {}
+VIRTUAL_SERVICES = {}
 
 # Shares plugin default config
-SHARE_SERVICE_CI_UID = {}
+SHARE_SERVICES = {}
 
 # OpenStack
-OPENSTACK_TENANT_SERVICE_FIELD = None
-OPENSTACK_TENANT_ENVIRONMENT_FIELD = None
+OPENSTACK_CEILOMETER = []
+OPENSTACK_SIMPLE_USAGES = []
 
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
@@ -22,7 +22,6 @@ COLLECT_PLUGINS = set([
     'asset',
     'business_line',
     'environment',
-    'extra_cost',
     'owner',
     'service',
     'warehouse',
@@ -34,7 +33,6 @@ UNKNOWN_SERVICES_ENVIRONMENTS = {
 }
 
 ADDITIONAL_PRICING_OBJECT_TYPES = {}
-
 
 import sys
 TESTING = 'test' in sys.argv

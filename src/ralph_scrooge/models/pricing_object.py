@@ -14,6 +14,7 @@ from dj.choices import _ChoicesMeta
 from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
+    Named,
     TimeTrackable,
 )
 
@@ -61,13 +62,16 @@ class PricingObjectType(Choices):
 
 class PricingObject(TimeTrackable, EditorTrackable):
     name = db.CharField(
+        verbose_name=_("name"),
         max_length=200,
         null=True,
         blank=True,
         default=None,
     )
     type = db.PositiveIntegerField(
-        verbose_name=_("type"), choices=PricingObjectType(),
+        verbose_name=_("type"),
+        choices=PricingObjectType(),
+        default=PricingObjectType.unknown.id,
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
@@ -77,7 +81,8 @@ class PricingObject(TimeTrackable, EditorTrackable):
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
-        related_name='pricing_objects'
+        verbose_name=_("service environment"),
+        related_name='pricing_objects',
     )
 
     class Meta:
@@ -104,28 +109,47 @@ class PricingObject(TimeTrackable, EditorTrackable):
 
 
 class DailyPricingObject(db.Model):
-    date = db.DateField(null=False, blank=False)
-    pricing_object = db.ForeignKey(
-        PricingObject,
+    date = db.DateField(
+        verbose_name=_("date"),
         null=False,
         blank=False,
+    )
+    pricing_object = db.ForeignKey(
+        PricingObject,
+        verbose_name=_("pricing object"),
         related_name='daily_pricing_objects',
+        null=False,
+        blank=False,
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
-        related_name='daily_pricing_objects'
+        verbose_name=_("service environment"),
+        related_name='daily_pricing_objects',
     )
 
     class Meta:
         app_label = 'ralph_scrooge'
+        unique_together = ('pricing_object', 'date')
 
     def __unicode__(self):
         return '{} ({})'.format(self.pricing_object, self.date)
 
 
 class AssetInfo(PricingObject):
-    sn = db.CharField(max_length=200, null=True, blank=True, unique=True)
-    barcode = db.CharField(max_length=200, null=True, blank=True, unique=True)
+    sn = db.CharField(
+        verbose_name=_("serial number"),
+        max_length=200,
+        null=True,
+        blank=True,
+        unique=True,
+    )
+    barcode = db.CharField(
+        verbose_name=_("barcode"),
+        max_length=200,
+        null=True,
+        blank=True,
+        unique=True,
+    )
     device_id = db.IntegerField(
         verbose_name=_("device id"),
         unique=True,
@@ -139,20 +163,60 @@ class AssetInfo(PricingObject):
         null=False,
         blank=False,
     )
-    warehouse = db.ForeignKey('Warehouse')
+    warehouse = db.ForeignKey(
+        'Warehouse',
+        verbose_name=_("warehouse"),
+    )
+    model = db.ForeignKey(
+        'AssetModel',
+        verbose_name=_('asset model')
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'
 
 
+class AssetModel(db.Model):
+    model_id = db.IntegerField(
+        verbose_name=_("model id"),
+        unique=True,
+        null=False,
+        blank=False,
+    )
+    name = db.CharField(
+        verbose_name=_("name"),
+        max_length=100,
+    )
+    manufacturer = db.CharField(
+        verbose_name=_("manufacturer"),
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    category = db.CharField(
+        verbose_name=_("category"),
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+        ordering = ['manufacturer', 'name']
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.manufacturer, self.name)
+
+
 class DailyAssetInfo(DailyPricingObject):
     asset_info = db.ForeignKey(
         AssetInfo,
+        verbose_name=_("asset details"),
     )
     depreciation_rate = db.DecimalField(
+        verbose_name=_("Depreciation rate"),
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
-        verbose_name=_("Depreciation rate"),
         default=0,
     )
     is_depreciated = db.BooleanField(
@@ -160,6 +224,7 @@ class DailyAssetInfo(DailyPricingObject):
         verbose_name=_("Is depreciated"),
     )
     price = db.DecimalField(
+        verbose_name=_("price"),
         max_digits=PRICE_DIGITS,
         decimal_places=PRICE_PLACES,
         default=0,
@@ -200,6 +265,7 @@ class VirtualInfo(PricingObject):
 class DailyVirtualInfo(DailyPricingObject):
     hypervisor = db.ForeignKey(
         DailyAssetInfo,
+        verbose_name=_("hypervisor"),
         related_name='daily_virtuals',
         null=True,
         blank=True,
@@ -207,6 +273,25 @@ class DailyVirtualInfo(DailyPricingObject):
     virtual_info = db.ForeignKey(
         VirtualInfo,
         related_name='daily_virtuals',
+        verbose_name=_("virtual details"),
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
+class TenantGroup(Named):
+    """
+    Tenant group (ex. from different clouds). It's Ralph Model when syncing
+    tenants with Ralph.
+    """
+    group_id = db.IntegerField(
+        null=False,
+        blank=False,
+        verbose_name=_('group id'),
+        help_text=_(
+            'Ralph DeviceModel ID when tenant are synchronized with Ralph'
+        ),
     )
 
     class Meta:
@@ -220,6 +305,19 @@ class TenantInfo(PricingObject):
         blank=False,
         db_index=True,
         verbose_name=_("OpenStack Tenant ID"),
+        unique=True,
+    )
+    device_id = db.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_('device id'),
+    )
+    group = db.ForeignKey(
+        TenantGroup,
+        null=False,
+        blank=False,
+        verbose_name=_('tenant group'),
+        related_name='tenants',
     )
 
     class Meta:
@@ -230,6 +328,7 @@ class DailyTenantInfo(DailyPricingObject):
     tenant_info = db.ForeignKey(
         TenantInfo,
         related_name='daily_tenant',
+        verbose_name=_("tenant details"),
     )
     enabled = db.BooleanField(
         null=False,

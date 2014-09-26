@@ -26,6 +26,68 @@ class PluginError(Exception):
     pass
 
 
+def _load_plugins():
+    """
+    Loads all collect plugins using scrooge.collect_plugins entry point.
+    """
+    global PLUGINS_LOADED
+    if not PLUGINS_LOADED:
+        for p in pkg_resources.iter_entry_points('scrooge.collect_plugins'):
+            p.load()
+        PLUGINS_LOADED = True
+
+
+def get_collect_plugins_names():
+    _load_plugins()
+    return sorted([name for name in plugin.BY_NAME['scrooge'].keys()
+                   if name in settings.COLLECT_PLUGINS])
+
+
+def _run_plugin(name, today):
+    logger.info('Running {0}...'.format(name))
+    try:
+        success, message = plugin.run(
+            'scrooge',
+            name,
+            today=today,
+        )
+        if not success:
+            raise PluginError(message)
+    except Exception as e:
+        logger.exception("{0}: {1}".format(name, e))
+        raise
+    finally:
+        logger.info('{0}: Done'.format(message))
+
+
+def run_plugins(today, plugins, run_only=False):
+    _load_plugins()
+    logger.info('Synchronizing for {0}.'.format(today.isoformat()))
+    done = set()
+    tried = set()
+    if run_only:
+        name = plugins[0]
+        try:
+            _run_plugin(name, today)
+            yield name, True
+        except Exception:
+            yield name, False
+    else:
+        while True:
+            to_run = plugin.next('scrooge', done) - tried
+            if not to_run:
+                break
+            name = plugin.highest_priority('scrooge', to_run)
+            tried.add(name)
+            if name in plugins:
+                try:
+                    _run_plugin(name, today)
+                    done.add(name)
+                    yield name, True
+                except Exception:
+                    yield name, False
+
+
 class Command(BaseCommand):
     """Retrieve data for pricing for today"""
 
@@ -53,34 +115,7 @@ class Command(BaseCommand):
         ),
     )
 
-    def _run_plugin(self, name, today):
-        logger.info('Running {0}...'.format(name))
-        try:
-            success, message = plugin.run(
-                'scrooge',
-                name,
-                today=today,
-            )
-            if not success:
-                raise PluginError(message)
-            logger.info('{0}: Done'.format(message))
-            return True
-        except Exception as e:
-            logger.exception("{0}: {1}".format(name, e))
-
-    def _load_plugins(self):
-        """
-        Loads all collect plugins using scrooge.collect_plugins entry point.
-        """
-        global PLUGINS_LOADED
-        if PLUGINS_LOADED:
-            return
-        for p in pkg_resources.iter_entry_points('scrooge.collect_plugins'):
-            p.load()
-        PLUGINS_LOADED = True
-
     def handle(self, today, run_only, *args, **options):
-        self._load_plugins()
         if today:
             today = datetime.datetime.strptime(today, '%Y-%m-%d').date()
         else:
@@ -88,19 +123,9 @@ class Command(BaseCommand):
 
         if options.get('yesterday'):
             today -= datetime.timedelta(days=1)
-
-        logger.info('Synchronizing for {0}.'.format(today.isoformat()))
         if not run_only:
-            done = set()
-            tried = set()
-            while True:
-                to_run = plugin.next('scrooge', done) - tried
-                if not to_run:
-                    break
-                name = plugin.highest_priority('scrooge', to_run)
-                tried.add(name)
-                if (name in settings.COLLECT_PLUGINS and
-                        self._run_plugin(name, today)):
-                    done.add(name)
+            for r in run_plugins(today, settings.COLLECT_PLUGINS):
+                pass
         else:
-            self._run_plugin(run_only, today)
+            for r in run_plugins(today, [run_only], run_only=True):
+                pass

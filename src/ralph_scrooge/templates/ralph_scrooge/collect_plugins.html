@@ -1,0 +1,37 @@
+{% extends "ralph_scrooge/report.html" %}
+{% load url from future %}
+
+{% block table %}
+    <table class="table table-striped table-bordered table-condensed fixed-header report">
+        <thead>
+            <tr>
+                {% for column in header %}
+                <th>{{ column }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        {% for row in data %}
+            <tr>
+                {% for value in row %}
+                    <td>
+                        {% if forloop.counter > 1 %}
+                            <i class='fugue-icon {{ value|yesno:"fugue-tick,fugue-cross,fugue-question" }}'></i>
+                        {% else %}
+                            {{ value }}
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+
+
+{% block progress_bar %}
+    <div class="well">
+        <p>Collecting data, please wait...</p>
+        <div class="progress progress-striped active">
+            <div class="bar" style="width: {{ progress }}%;"></div>
+        </div>
+    </div>
+{% endblock %}

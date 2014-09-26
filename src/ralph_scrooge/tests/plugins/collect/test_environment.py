@@ -26,25 +26,25 @@ class TestEnvironmentCollectPlugin(TestCase):
 
     def _compare_environments(self, environment, sample_data):
         self.assertEquals(environment.name, sample_data['name'])
-        self.assertEquals(environment.environment_id, sample_data['id'])
+        self.assertEquals(environment.ci_id, sample_data['ci_id'])
 
     def test_add_environment(self):
         sample_data = SAMPLE_ENVIRONMENTS[0]
         self.assertTrue(update_environment(sample_data, self.today))
-        environment = Environment.objects.get(environment_id=sample_data['id'])
+        environment = Environment.objects.get(ci_id=sample_data['ci_id'])
         self._compare_environments(environment, sample_data)
 
     def test_update_environment(self):
         sample_data = SAMPLE_ENVIRONMENTS[0]
         self.assertTrue(update_environment(sample_data, self.today))
-        environment = Environment.objects.get(environment_id=sample_data['id'])
+        environment = Environment.objects.get(ci_id=sample_data['ci_id'])
         self._compare_environments(environment, sample_data)
 
         sample_data2 = SAMPLE_ENVIRONMENTS[1]
-        sample_data2['id'] = sample_data['id']
+        sample_data2['ci_id'] = sample_data['ci_id']
         self.assertFalse(update_environment(sample_data2, self.today))
         environment = Environment.objects.get(
-            environment_id=sample_data2['id']
+            ci_id=sample_data2['ci_id']
         )
         self._compare_environments(environment, sample_data2)
 
@@ -55,7 +55,7 @@ class TestEnvironmentCollectPlugin(TestCase):
         update_environment_mock
     ):
         def sample_update_environment(data, date):
-            return data['id'] % 2 == 0
+            return data['ci_id'] % 2 == 0
 
         def sample_get_environments():
             for environment in SAMPLE_ENVIRONMENTS:

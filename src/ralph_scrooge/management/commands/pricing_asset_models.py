@@ -17,7 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class Command(PricingBaseCommand):
-    """Generate report with assets, devices and date of end deprecation"""
+    """
+    Generate report with assets and devices matching and basic information
+    about asset, such as cores count, model name etc.
+    """
     HEADERS = [
         'Asset Model Name',
         'Manufacturer',

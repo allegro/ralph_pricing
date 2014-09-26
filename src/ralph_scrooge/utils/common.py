@@ -20,6 +20,18 @@ class AttributeDict(dict):
         self.__dict__ = self
 
 
+def get_cache_name(name):
+    if name in settings.CACHES:
+        return name
+    return 'default'
+
+
+def get_queue_name(name):
+    if name in settings.RQ_QUEUES:
+        return name
+    return 'default'
+
+
 def ranges_overlap(start1, end1, start2, end2):
     """
     Checks if two intervals are overlapping. Function requires intervals to be

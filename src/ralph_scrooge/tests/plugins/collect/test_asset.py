@@ -20,6 +20,7 @@ from ralph_scrooge.models import (
 from ralph_scrooge.plugins.collect import asset
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
+    AssetModelFactory,
     DailyAssetInfoFactory,
     EnvironmentFactory,
     ServiceEnvironmentFactory,
@@ -36,6 +37,7 @@ class TestAssetPlugin(TestCase):
         self.service_environment = ServiceEnvironmentFactory()
         self.date = datetime.date.today()
         self.warehouse = WarehouseFactory.create()
+        self.model = AssetModelFactory()
         self.value = 100
         self.data = {
             'asset_id': 1,
@@ -46,12 +48,13 @@ class TestAssetPlugin(TestCase):
             'depreciation_rate': 25,
             'is_depreciated': True,
             'price': 100,
-            'service_ci_uid': self.service_environment.service.ci_uid,
+            'service_id': self.service_environment.service.ci_id,
             'warehouse_id': self.warehouse.id_from_assets,
-            'environment_id': self.service_environment.environment.environment_id,  # noqa
+            'environment_id': self.service_environment.environment.ci_id,  # noqa
             'cores_count': 4,
             'power_consumption': 200,
             'collocation': 2,
+            'model_id': self.model.model_id,
         }
 
     def test_get_usage(self):
@@ -125,12 +128,14 @@ class TestAssetPlugin(TestCase):
         )
 
     def test_update_assets_when_service_does_not_exist(self):
-        self.data['service_ci_uid'] = ServiceFactory.build().ci_uid
+        self.data['service_id'] = ServiceFactory.build().ci_id
         with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
             asset.update_assets(
                 self.data,
                 self.date,
                 {
+                    'depreciation': UsageTypeFactory.create(),
+                    'assets_count': UsageTypeFactory.create(),
                     'cores_count': UsageTypeFactory.create(),
                     'power_consumption': UsageTypeFactory.create(),
                     'collocation': UsageTypeFactory.create(),
@@ -144,6 +149,8 @@ class TestAssetPlugin(TestCase):
                 self.data,
                 self.date,
                 {
+                    'depreciation': UsageTypeFactory.create(),
+                    'assets_count': UsageTypeFactory.create(),
                     'cores_count': UsageTypeFactory.create(),
                     'power_consumption': UsageTypeFactory.create(),
                     'collocation': UsageTypeFactory.create(),
@@ -151,12 +158,14 @@ class TestAssetPlugin(TestCase):
             )
 
     def test_update_assets_when_environment_does_not_exist(self):
-        self.data['environment_id'] = EnvironmentFactory.build().environment_id
+        self.data['environment_id'] = EnvironmentFactory.build().ci_id
         with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
             asset.update_assets(
                 self.data,
                 self.date,
                 {
+                    'depreciation': UsageTypeFactory.create(),
+                    'assets_count': UsageTypeFactory.create(),
                     'cores_count': UsageTypeFactory.create(),
                     'power_consumption': UsageTypeFactory.create(),
                     'collocation': UsageTypeFactory.create(),
@@ -212,7 +221,7 @@ class TestAssetPlugin(TestCase):
         )
 
     def test_assets_when_no_effect(self):
-        self.data['service_ci_uid'] = ServiceFactory.build().ci_uid
+        self.data['service_id'] = ServiceFactory.build().ci_id
         asset.get_assets = lambda x: [self.data]
         self.assertEqual(
             asset.asset(today=self.date),

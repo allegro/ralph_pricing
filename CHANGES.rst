@@ -1,6 +1,15 @@
 Change Log
 ----------
 
+2.6.0
+~~~~~
+
+* Added regular usages to service
+* Rounding value on report
+* Added yeasterday flag to pricing_sync
+* Added new extracost model
+
+
 2.5.4
 ~~~~~
 

@@ -61,7 +61,6 @@ class PricingBaseCommand(BaseCommand):
 
         :return list results: list of lists, nested list represents single row
         """
-        pass
 
     def get_prepared_data(self, *args, **options):
         """

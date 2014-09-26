@@ -1,10 +1,12 @@
 SAMPLE_ENVIRONMENTS = [
     {
-        'id': 1234,
+        'ci_id': 1234,
+        'ci_uid': 'env-1',
         'name': 'Environment #1',
     },
     {
-        'id': 4321,
+        'ci_id': 4321,
+        'ci_uid': 'env-2',
         'name': 'Environment #2',
     },
 ]

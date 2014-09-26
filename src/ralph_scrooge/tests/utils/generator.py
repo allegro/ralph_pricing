@@ -16,7 +16,7 @@ from ralph_scrooge.tests.utils.factory import (
     TeamFactory,
     UsageTypeFactory,
 )
-from ralph_scrooge.utils import AttributeDict
+from ralph_scrooge.utils.common import AttributeDict
 
 
 def usages_generator(start, end, self=None):

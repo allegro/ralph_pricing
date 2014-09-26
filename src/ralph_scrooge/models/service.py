@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from datetime import date
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
@@ -23,26 +25,36 @@ from ralph_scrooge.models.usage import DailyUsage
 from ralph_scrooge.models.pricing_object import PricingObjectType
 
 
-class BusinessLine(Named):
-    ci_uid = db.CharField(
+class BusinessLine(Named.NonUnique):
+    ci_id = db.IntegerField(
         unique=True,
         null=False,
         blank=False,
-        verbose_name='CMDB CI UID',
+        verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=True,
+        blank=True,
         max_length=100,
+        verbose_name=_("uid from cmdb"),
     )
 
     class Meta:
         app_label = 'ralph_scrooge'
 
 
-class ProfitCenter(Named):
-    ci_uid = db.CharField(
+class ProfitCenter(Named.NonUnique):
+    ci_id = db.IntegerField(
         unique=True,
         null=False,
         blank=False,
-        verbose_name='CMDB CI UID',
+        verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=True,
+        blank=True,
         max_length=100,
+        verbose_name=_("uid from cmdb"),
     )
     business_line = db.ForeignKey(
         BusinessLine,
@@ -58,12 +70,18 @@ class ProfitCenter(Named):
         app_label = 'ralph_scrooge'
 
 
-class Environment(Named):
-    environment_id = db.IntegerField(
-        verbose_name=_("ralph environment id"),
+class Environment(Named.NonUnique):
+    ci_id = db.IntegerField(
         unique=True,
         null=False,
         blank=False,
+        verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=True,
+        blank=True,
+        max_length=100,
+        verbose_name=_("uid from cmdb"),
     )
 
     class Meta:
@@ -72,6 +90,18 @@ class Environment(Named):
 
 
 class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
+    ci_id = db.IntegerField(
+        unique=True,
+        null=False,
+        blank=False,
+        verbose_name=_("id from cmdb"),
+    )
+    ci_uid = db.CharField(
+        null=True,
+        blank=True,
+        max_length=100,
+        verbose_name=_("uid from cmdb"),
+    )
     name = db.CharField(
         verbose_name=_("name"),
         max_length=256,
@@ -84,30 +114,28 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         related_name='services',
         verbose_name=_('profit center'),
     )
-    ci_uid = db.CharField(
-        unique=True,
-        null=False,
-        blank=False,
-        verbose_name=_('CMDB CI UID'),
-        max_length=100,
-    )
     ownership = db.ManyToManyField(
         'Owner',
         through='ServiceOwnership',
-        related_name='services'
+        related_name='services',
+        verbose_name=_("ownership"),
     )
     environments = db.ManyToManyField(
         Environment,
         through='ServiceEnvironment',
         related_name='services',
+        verbose_name=_("environments"),
     )
     pricing_service = db.ForeignKey(
         'PricingService',
         related_name='services',
         null=True,
         blank=True,
+        verbose_name=_("pricing service"),
     )
-    history = IntervalHistoricalRecords()
+    history = IntervalHistoricalRecords(
+        verbose_name=_("history"),
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'
@@ -126,6 +154,7 @@ class PricingService(BaseUsage):
         'UsageType',
         through='ServiceUsageTypes',
         related_name='services',
+        verbose_name=_("usage types"),
     )
     excluded_services = db.ManyToManyField(
         'Service',
@@ -146,6 +175,7 @@ class PricingService(BaseUsage):
         },
         blank=True,
         null=True,
+        verbose_name=_("excluded base usage types"),
     )
     regular_usage_types = db.ManyToManyField(
         'UsageType',
@@ -155,6 +185,7 @@ class PricingService(BaseUsage):
         },
         blank=True,
         null=True,
+        verbose_name=_("regular usage types"),
     )
 
     class Meta:
@@ -210,20 +241,22 @@ class ServiceUsageTypes(db.Model):
         PricingService,
         verbose_name=_("Pricing Service"),
     )
-    start = db.DateField()
-    end = db.DateField()
+    start = db.DateField(verbose_name=_("start"), default=date.min)
+    end = db.DateField(verbose_name=_("end"), default=date.max)
     percent = db.FloatField(
         validators=[
             MaxValueValidator(100.0),
             MinValueValidator(0.0)
         ],
-        default=0,
+        verbose_name=_("percent"),
+        default=100,
     )
 
     class Meta:
         verbose_name = _("service usage type")
         verbose_name_plural = _("service usage types")
         app_label = 'ralph_scrooge'
+        unique_together = ('usage_type', 'pricing_service', 'start', 'end')
 
     def __unicode__(self):
         return '{}/{} ({} - {})'.format(
@@ -238,16 +271,19 @@ class ServiceEnvironment(db.Model):
     service = db.ForeignKey(
         Service,
         related_name="environments_services",
+        verbose_name=_("service"),
     )
     environment = db.ForeignKey(
         Environment,
         related_name='services_environments',
+        verbose_name=_("environment"),
     )
 
     class Meta:
         verbose_name = _("service environment")
         verbose_name_plural = _("service environments")
         app_label = 'ralph_scrooge'
+        unique_together = ('service', 'environment')
 
     def __unicode__(self):
         return '{} - {}'.format(self.service, self.environment)

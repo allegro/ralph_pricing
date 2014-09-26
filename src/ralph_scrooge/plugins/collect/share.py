@@ -9,10 +9,9 @@ import logging
 
 from django.conf import settings
 
-from ralph.util.api_pricing import get_shares
+from ralph.util.api_scrooge import get_shares
 from ralph.util import plugin
 from ralph_scrooge.models import (
-    DailyPricingObject,
     DailyUsage,
     AssetInfo,
     UsageType,
@@ -40,14 +39,12 @@ def update_usage(asset_info, usage_type, data, date):
     """
     Saves single DailyUsage of shares usage type.
     """
+    daily_pricing_object = asset_info.get_daily_pricing_object(date=date)
     usage, created = DailyUsage.objects.get_or_create(
         date=date,
         type=usage_type,
         service_environment=asset_info.service_environment,
-        daily_pricing_object=DailyPricingObject.objects.get(
-            date=date,
-            pricing_object=asset_info,
-        ),
+        daily_pricing_object=daily_pricing_object,
     )
     usage.value += data['size']
     usage.save()
@@ -91,7 +88,7 @@ def share(**kwargs):
     date = kwargs['today']
     updated = total = 0
 
-    for group_name, services in settings.SHARE_SERVICE_CI_UID.iteritems():
+    for group_name, services in settings.SHARE_SERVICES.iteritems():
         usage_type = get_usage(
             'Disk Share {0}'.format(group_name),
         )
@@ -101,9 +98,9 @@ def share(**kwargs):
         # delete all previous records
         DailyUsage.objects.filter(type=usage_type, date=date).delete()
 
-        for service_ci_uid in services:
+        for service_uid in services:
             for data in get_shares(
-                service_ci_uid=service_ci_uid,
+                service_uid=service_uid,
                 include_virtual=False,
             ):
                 total += 1

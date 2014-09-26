@@ -6,6 +6,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.core.urlresolvers import reverse
+
 from ralph.app import RalphModule
 
 
@@ -25,6 +27,10 @@ class Scrooge(RalphModule):
         from ralph.account.models import Perm
         return Perm.has_scrooge_access
 
+    @property
+    def home_url(self):
+        return reverse('services_costs_report')
+
     def __init__(self, **kwargs):
         super(Scrooge, self).__init__(
             'ralph_scrooge',
@@ -40,6 +46,9 @@ class Scrooge(RalphModule):
             'level': 'DEBUG',
         })
         self.register_logger('ralph_scrooge.plugins', {
+            'handlers': ['console'],
+        })
+        self.register_logger('ralph_scrooge.report', {
             'handlers': ['console'],
         })
         self.register_logger('ralph_scrooge.management', {

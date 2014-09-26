@@ -14,7 +14,12 @@ from django.db.models import Sum
 
 from ralph.util import plugin as plugin_runner
 
-from ralph_scrooge.models import ExtraCostType, Team, UsageType
+from ralph_scrooge.models import (
+    DynamicExtraCostType,
+    ExtraCostType,
+    Team,
+    UsageType,
+)
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 
@@ -113,9 +118,12 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 'cost': D(0),
             }
             for usage, total, percent in po_usages:
-                base_usage_result['cost'] += (
-                    D(cost) * (D(usage) / D(total)) * (D(percent) / 100)
-                )
+                if total != 0:
+                    base_usage_result['cost'] += (
+                        D(cost) * (D(usage) / D(total)) * (D(percent) / 100)
+                    )
+                else:
+                    base_usage_result['cost'] = D(0)
             # add value if there is only one usage type defined for pricing
             # service and depth is 0 (whole pricing service level)
             if len(po_usages) == 1 and depth == 0:
@@ -152,7 +160,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 usage_type=service_usage_type.usage_type,
                 date=date,
                 service_environments=service_environments,
-                excluded_services=pricing_service.services.all(),
+                excluded_services=pricing_service.excluded_services.all(),
             ).values_list(
                 'daily_pricing_object__pricing_object',
                 'service_environment',
@@ -164,7 +172,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 usage_type=service_usage_type.usage_type,
                 date=date,
                 service_environments=service_environments,
-                excluded_services=pricing_service.services.all(),
+                excluded_services=pricing_service.excluded_services.all(),
             ))
             percentage.append(service_usage_type.percent)
 
@@ -424,6 +432,43 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 logger.warning(
                     'Invalid call for {0} total cost'.format(
                         extra_cost_type.name
+                    )
+                )
+        return result
+
+    def _get_service_dynamic_extra_cost(
+        self,
+        date,
+        forecast,
+        service_environments,
+    ):
+        """
+        Calculates total cost of dynamic extra costs for given pricing_service.
+
+        :param datatime start: Begin of time interval
+        :param datatime end: End of time interval
+        :param list service_environments: List of service_environments
+        :returns decimal: price
+        :rtype decimal:
+        """
+        result = {}
+        for dynamic_extra_cost_type in DynamicExtraCostType.objects.all():
+            try:
+                dynamic_extra_cost = plugin_runner.run(
+                    'scrooge_costs',
+                    'dynamic_extra_cost_plugin',
+                    type='total_cost',
+                    date=date,
+                    forecast=forecast,
+                    dynamic_extra_cost_type=dynamic_extra_cost_type,
+                    service_environments=service_environments,
+                )
+                if dynamic_extra_cost != 0:
+                    result[dynamic_extra_cost_type.id] = dynamic_extra_cost, {}
+            except (KeyError, AttributeError):
+                logger.warning(
+                    'Invalid call for {0} total cost'.format(
+                        dynamic_extra_cost_type.name
                     )
                 )
         return result

@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import logging
 
 from ralph.util import plugin
-from ralph.util.api_pricing import get_fc_cards
+from ralph.util.api_scrooge import get_fc_cards
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,

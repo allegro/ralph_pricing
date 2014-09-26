@@ -83,3 +83,35 @@ class DailyCost(MultiPathNode):
             self.type,
             self.date,
         )
+
+
+class CostDateStatus(db.Model):
+    date = db.DateField(
+        verbose_name=_('date'),
+        unique=True,
+    )
+    calculated = db.BooleanField(
+        verbose_name=_("calculated"),
+        default=False,
+        editable=False,
+    )
+    forecast_calculated = db.BooleanField(
+        verbose_name=_("forecast calculated"),
+        default=False,
+        editable=False,
+    )
+    accepted = db.BooleanField(
+        verbose_name=_("accepted"),
+        default=False,
+        editable=False,
+    )
+    forecast_accepted = db.BooleanField(
+        verbose_name=_("forecast accepted"),
+        default=False,
+        editable=False,
+    )
+
+    class Meta:
+        verbose_name = _("cost date status")
+        verbose_name_plural = _("costs date status")
+        app_label = 'ralph_scrooge'

@@ -88,31 +88,31 @@ class TestSharesPlugin(TestCase):
             UsageType.objects.all()[1]
         )
 
-    @override_settings(SHARE_SERVICE_CI_UID={'group': ['ci_uid']})
+    @override_settings(SHARE_SERVICES={'group': ['ci_uid']})
     def test_share_when_unknown_mount_device_id_error(self):
-        share.get_shares = lambda service_ci_uid, include_virtual: [self.data]
+        share.get_shares = lambda service_uid, include_virtual: [self.data]
         self.data['mount_device_id'] = None
         self.assertEqual(
             share.share(today=self.date),
             (True, 'None new, 0 updated, 1 total'),
         )
 
-    @override_settings(SHARE_SERVICE_CI_UID={'group': ['ci_uid']})
+    @override_settings(SHARE_SERVICES={'group': ['ci_uid']})
     def test_share_when_asset_info_does_not_exist_error(self):
-        share.get_shares = lambda service_ci_uid, include_virtual: [self.data]
+        share.get_shares = lambda service_uid, include_virtual: [self.data]
         self.data['mount_device_id'] = 2
         self.assertEqual(
             share.share(today=self.date),
             (True, 'None new, 0 updated, 1 total'),
         )
 
-    @override_settings(SHARE_SERVICE_CI_UID={'group': ['ci_uid']})
+    @override_settings(SHARE_SERVICES={'group': ['ci_uid']})
     def test_share(self):
         DailyPricingObjectFactory.create(
             pricing_object=self.asset_info,
             date=self.date,
         )
-        share.get_shares = lambda service_ci_uid, include_virtual: [self.data]
+        share.get_shares = lambda service_uid, include_virtual: [self.data]
         self.assertEqual(
             share.share(today=self.date),
             (True, 'None new, 1 updated, 1 total'),

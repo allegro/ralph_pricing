@@ -17,8 +17,14 @@
     <div class="row-fluid main-body">
         <div class="span12">
             <div class="well well-small">
-                {% if report_name %}<h4>{{ report_name }}</h4>{% endif %}
-                {% block description %}{% endblock %}
+                {% if report_name %}
+                    <h4>{{ report_name }}</h4>
+                {% elif title %}
+                    <h4>{{ title }}</h4>
+                {% endif %}
+                {% block description %}
+                    {% if description %} {{ description }} {% endif %}
+                {% endblock %}
             </div>
             <form class="form form-inline daterange-form">
                 <div class="form-actions">
@@ -46,9 +52,11 @@
                             <button type="submit" class="btn" name="clear">{% spaceless %}
                                 {% icon 'fugue-arrow-circle-double' %}&nbsp;Clear cache
                                 {% endspaceless %}</button>
+                            {% if allow_csv_download %}
                             <button type="submit" class="btn" name="format" value="csv">{% spaceless %}
                                 {% icon 'fugue-document-excel-csv' %}&nbsp;Download CSV
                                 {% endspaceless %}</button>
+                            {% endif %}
                             {% if allow_statement %}
                                 <button type="submit" class="btn" name="format" value="statement">{% spaceless %}
                                     {% icon 'fugue-clock-history' %}&nbsp;Create Statement

@@ -13,9 +13,10 @@ from django.db import connection
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin as plugin_runner
-from ralph_scrooge.utils import memoize, AttributeDict
 from ralph_scrooge.models import (
+    CostDateStatus,
     DailyCost,
+    DynamicExtraCostType,
     ExtraCostType,
     PricingService,
     ServiceEnvironment,
@@ -26,6 +27,7 @@ from ralph_scrooge.plugins.cost.base import (
     NoPriceCostError,
     MultiplePriceCostError,
 )
+from ralph_scrooge.utils.common import memoize, AttributeDict
 
 logger = logging.getLogger(__name__)
 
@@ -84,14 +86,45 @@ class Collector(object):
             },
     }
     """
-    def process_period(self, start, end, **kwargs):
+    def process_period(
+        self,
+        start,
+        end,
+        forecast,
+        force_recalculation=False,
+        **kwargs
+    ):
+        # calculate costs only if were not calculated for some date, unless
+        # force_recalculation is True
+        dates = self._get_dates(start, end, forecast, force_recalculation)
         service_environments = self._get_services_environments()
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self.process(
-                day,
-                service_environments=service_environments,
-                **kwargs
-            )
+        for day in dates:
+            try:
+                self.process(
+                    day,
+                    service_environments=service_environments,
+                    forecast=forecast,
+                    **kwargs
+                )
+                yield day, True
+            except Exception as e:
+                logger.exception(e)
+                yield day, False
+
+    def _get_dates(self, start, end, forecast, force_recalculation):
+        days = [d.date() for d in rrule.rrule(
+            rrule.DAILY,
+            dtstart=start,
+            until=end
+        )]
+        if force_recalculation:
+            return days
+        else:
+            return sorted(set(days) - set(CostDateStatus.objects.filter(
+                date__gte=start,
+                date__lte=end,
+                **{'forecast_calculated' if forecast else 'calculated': True}
+            ).values_list('date', flat=True)))
 
     @commit_on_success
     def process(
@@ -110,28 +143,34 @@ class Collector(object):
         2) collect costs from all plugins
         3) save costs in database in tree format
         """
+        logger.info('Calculating costs (forecast: {}) for date {}'.format(
+            forecast,
+            date,
+        ))
         if service_environments is None:
             service_environments = self._get_services_environments()
-        self._delete_daily_costs(date, delete_verified)
+        self._delete_daily_costs(date, forecast, delete_verified)
         costs = self._collect_costs(date, service_environments, forecast)
         self._save_costs(date, costs, forecast)
 
-    def _delete_daily_costs(self, date, delete_verified=False):
+    def _delete_daily_costs(self, date, forecast, delete_verified=False):
         """
         Check if there are any verfifed daily costs for given date.
         If no, delete previously saved costs for given date.
         If yes,
         """
-        if not delete_verified and DailyCost.objects.filter(
+        if not delete_verified and CostDateStatus.objects.filter(
             date=date,
-            verified=True
-        ).count():
+            **{'forecast_accepted' if forecast else 'accepted': True}
+        ):
             raise VerifiedDailyCostsExistsError()
         DailyCost.objects.filter(date=date).delete()
 
     def _save_costs(self, date, costs, forecast):
         """
         For every service environment in costs save tree structure in database
+
+        At the end update status of date costs to calculated.
         """
         for service_environment, se_costs in costs.iteritems():
             DailyCost.build_tree(
@@ -140,6 +179,13 @@ class Collector(object):
                 service_environment_id=service_environment,
                 forecast=forecast,
             )
+        # update status to created
+        status, created = CostDateStatus.objects.get_or_create(date=date)
+        if forecast:
+            status.forecast_calculated = True
+        else:
+            status.calculated = True
+        status.save()
 
     def _collect_costs(self, date, service_environments, forecast):
         """
@@ -216,14 +262,17 @@ class Collector(object):
         Returns list of plugins to call, with information and extra cost about
         each, such as name and arguments
         """
-        extra_cost_plugins = cls._get_extra_cost_plugins()
+        extra_cost_types_plugins = cls._get_extra_cost_types_plugins()
+        dynamic_extra_cost_types_plugins = (
+            cls._get_dynamic_extra_cost_types_plugins()
+        )
         base_usage_types_plugins = cls._get_base_usage_types_plugins()
         regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
         services_plugins = cls._get_pricing_services_plugins()
         teams_plugins = cls._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
                    services_plugins + teams_plugins +
-                   extra_cost_plugins)
+                   extra_cost_types_plugins + dynamic_extra_cost_types_plugins)
         return plugins
 
     @classmethod
@@ -343,18 +392,18 @@ class Collector(object):
         return result
 
     @classmethod
-    def _get_extra_costs(cls):
+    def _get_extra_cost_types(cls):
         """
         Returns all extra costs
         """
         return ExtraCostType.objects.order_by('name')
 
     @classmethod
-    def _get_extra_cost_plugins(cls):
+    def _get_extra_cost_types_plugins(cls):
         """
         Returns information about extra cost plugins for each extra cost
         """
-        extra_costs = cls._get_extra_costs()
+        extra_costs = cls._get_extra_cost_types()
         result = []
         for extra_cost in extra_costs:
             extra_cost_info = AttributeDict(
@@ -365,4 +414,29 @@ class Collector(object):
                 }
             )
             result.append(extra_cost_info)
+        return result
+
+    @classmethod
+    def _get_dynamic_extra_cost_types(cls):
+        """
+        Returns all extra costs
+        """
+        return DynamicExtraCostType.objects.order_by('name')
+
+    @classmethod
+    def _get_dynamic_extra_cost_types_plugins(cls):
+        """
+        Returns information about extra cost plugins for each extra cost
+        """
+        dynamic_extra_costs = cls._get_dynamic_extra_cost_types()
+        result = []
+        for dynamic_extra_cost in dynamic_extra_costs:
+            dynamic_extra_cost_info = AttributeDict(
+                name=dynamic_extra_cost.name,
+                plugin_name='dynamic_extra_cost_plugin',
+                plugin_kwargs={
+                    'dynamic_extra_cost_type': dynamic_extra_cost,
+                }
+            )
+            result.append(dynamic_extra_cost_info)
         return result

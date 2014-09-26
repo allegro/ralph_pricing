@@ -85,8 +85,8 @@ class TeamCost(db.Model):
         default=0.00,
         verbose_name=_("forecast cost"),
     )
-    start = db.DateField()
-    end = db.DateField()
+    start = db.DateField(verbose_name=_("start"))
+    end = db.DateField(verbose_name=_("end"))
 
     class Meta:
         verbose_name = _("Team cost")
@@ -105,13 +105,14 @@ class TeamServiceEnvironmentPercent(db.Model):
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
+        verbose_name=_("service environment"),
     )
     percent = db.FloatField(
         verbose_name=_("percent"),
         validators=[
             MaxValueValidator(100.0),
             MinValueValidator(0.0)
-        ]
+        ],
     )
 
     class Meta:

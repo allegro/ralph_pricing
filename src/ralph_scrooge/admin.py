@@ -130,7 +130,7 @@ class UsageTypeForm(forms.ModelForm):
     class Meta:
         model = models.UsageType
         widgets = {
-            'excluded_ventures': FilteredSelectMultiple('Ventures', False)
+            'excluded_services': FilteredSelectMultiple('Service', False)
         }
 
 
@@ -160,26 +160,57 @@ class ExtraCostTypeAdmin(ModelAdmin):
     inlines = [ExtraCostInline]
 
 
+class DynamicExtraCostDivisionInline(admin.TabularInline):
+    model = models.DynamicExtraCostDivision
+
+
+class DynamicExtraCostInline(admin.TabularInline):
+    model = models.DynamicExtraCost
+
+
+class DynamicExtraTypeForm(forms.ModelForm):
+    class Meta:
+        model = models.DynamicExtraCostType
+        widgets = {
+            'excluded_services': FilteredSelectMultiple('Service', False)
+        }
+
+
+@register(models.DynamicExtraCostType)
+class DynamicExtraCostTypeAdmin(ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    inlines = [DynamicExtraCostDivisionInline, DynamicExtraCostInline]
+    form = DynamicExtraTypeForm
+
+
 # =============================================================================
 # SERVICE
 # =============================================================================
 @register(models.BusinessLine)
-class BusinessLineAdmin(ModelAdmin):
+class BusinessLineAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+    readonly_when_update = ('ci_id', 'ci_uid')
 
 
 @register(models.Environment)
 class EnvironmentAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    readonly_when_update = ('environment_id', )
+    readonly_when_update = ('ci_id', 'ci_uid')
 
 
 @register(models.Owner)
 class OwnerAdmin(ModelAdmin):
-    list_display = ('last_name', 'first_name')
-    search_fields = ('last_name', 'first_name')
+    list_display = ('first_name', 'last_name')
+    search_fields = ('first_name', 'last_name')
+
+    def first_name(self, obj):
+        return obj.profile.user.first_name
+
+    def last_name(self, obj):
+        return obj.profile.user.last_name
 
 
 class ServiceOwnershipInline(admin.TabularInline):
@@ -191,10 +222,11 @@ class ServiceEnvironmentsInline(admin.TabularInline):
 
 
 @register(models.Service)
-class ServiceAdmin(SimpleHistoryAdmin):
+class ServiceAdmin(UpdateReadonlyMixin, SimpleHistoryAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [ServiceOwnershipInline, ServiceEnvironmentsInline]
+    readonly_when_update = ('ci_id', 'ci_uid')
 
 
 # =============================================================================

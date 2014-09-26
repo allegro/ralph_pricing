@@ -70,36 +70,36 @@ class ScroogeMenu(Menu):
                 fugue_icon='fugue-pencil',
                 view_name='allocation',
             ),
-            # MenuItem(
-            #     _("Devices ventures changes"),
-            #     name='ventures-changes',
-            #     fugue_icon='fugue-arrow-switch',
-            #     view_name='ventures_changes',
-            # ),
-            # MenuItem(
-            #     _("Extra costs"),
-            #     name='extra-costs',
-            #     fugue_icon='fugue-money-coin',
-            #     view_name='extra_costs',
-            # ),
-            # MenuItem(
-            #     _("Usage types"),
-            #     name='usage-types',
-            #     fugue_icon='fugue-beaker',
-            #     view_name='usage_types',
-            # ),
-            # MenuItem(
-            #     _("Teams"),
-            #     name='teams',
-            #     fugue_icon='fugue-users',
-            #     view_name='teams',
-            # ),
-            # MenuItem(
-            #     _("Statements"),
-            #     name='statement',
-            #     fugue_icon='fugue-clock-history',
-            #     view_name='statement',
-            # ),
+            MenuItem(
+                _("Services changes report"),
+                name='services-changes-report',
+                fugue_icon='fugue-arrow-switch',
+                view_name='services_changes_report',
+            ),
+            MenuItem(
+                _("Extra costs"),
+                name='extra-costs',
+                fugue_icon='fugue-money-coin',
+                view_name='extra_costs',
+            ),
+            MenuItem(
+                _("Usage types"),
+                name='usage-types',
+                fugue_icon='fugue-beaker',
+                view_name='usage_types',
+            ),
+            MenuItem(
+                _("Collect plugins"),
+                name='collect-plugins',
+                fugue_icon='fugue-money-bag',
+                view_name='collect_plugins',
+            ),
+            MenuItem(
+                _("Monthly costs"),
+                name='monthly-costs',
+                fugue_icon='fugue-money-bag',
+                view_name='monthly_costs',
+            ),
         ]
 
     def get_sidebar_items(self):

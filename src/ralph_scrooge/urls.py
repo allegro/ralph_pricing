@@ -10,8 +10,21 @@ from django.contrib.auth.decorators import login_required
 from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource
+<<<<<<< HEAD
 from ralph_scrooge.views import BootstrapAngular
 from ralph_scrooge.rest import left_menu, components_content
+=======
+from ralph_scrooge.views.collect_plugins import CollectPlugins
+from ralph_scrooge.views.extra_costs import ExtraCosts
+from ralph_scrooge.views.usage_types import UsageTypes
+from ralph_scrooge.views.statement import Statements
+from ralph_scrooge.views.teams_percent import TeamsPercent
+from ralph_scrooge.views.monthly_costs import MonthlyCosts
+from ralph_scrooge.views.report_services_changes import ServicesChangesReportView  # noqa
+from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
+from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView
+
+
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
     v09_api.register(r())
@@ -31,29 +44,23 @@ urlpatterns = patterns(
 """
     url(
         r'^services-costs-report/$',
-        login_required(ServicesCostsReport.as_view()),
+        login_required(ServicesCostsReportView.as_view()),
         name='services_costs_report',
     ),
     url(
         r'^services-usages-report/$',
-        login_required(ServicesUsagesReport.as_view()),
+        login_required(ServicesUsagesReportView.as_view()),
         name='services_usages_report',
     ),
-
     url(
-        r'^ventures-changes/$',
-        login_required(VenturesChanges.as_view()),
-        name='ventures_changes',
+        r'^services-changes-report/$',
+        login_required(ServicesChangesReportView.as_view()),
+        name='services_changes_report',
     ),
     url(
-        r'^devices/$',
-        login_required(Devices.as_view()),
-        name='devices',
-    ),
-    url(
-        r'^devices/(?P<venture>\d+)/$',
-        login_required(Devices.as_view()),
-        name='devices',
+        r'^monthly-costs/$',
+        login_required(MonthlyCosts.as_view()),
+        name='monthly_costs',
     ),
     # costs forms
     url(
@@ -106,6 +113,12 @@ urlpatterns = patterns(
         r'^statement/(?P<statement_id>\d+)/$',
         login_required(Statements.as_view()),
         name='statement',
+    ),
+    # other
+    url(
+        r'^collect-plugins/$',
+        login_required(CollectPlugins.as_view()),
+        name='collect_plugins',
     ),
 )
 """

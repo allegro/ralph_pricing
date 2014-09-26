@@ -1,0 +1,11 @@
+{% extends "ralph_scrooge/report.html" %}
+{% load url from future %}
+{% load i18n %}
+{% load getitem %}
+
+{% block table %}
+    {% for pricing_object_type, pot_header in header.items %}
+        <p>{{ pricing_object_type }}</p>
+        {% include "ralph_scrooge/report_table.html" with header=pot_header data=data|getitem:pricing_object_type %}
+    {% endfor %}
+{% endblock %}
