@@ -1,19 +1,14 @@
 <ul class="nav" id="side-menu">
     <li class="sidebar-search">
         <div class="input-group custom-search-form">
-            <input type="text" class="form-control" placeholder="Search...">
-            <span class="input-group-btn">
-            <button class="btn btn-default" type="button">
-                <i class="fa fa-search"></i>
-            </button>
-        </span>
+            <input ng-model="searchTextMenu" type="text" class="form-control" placeholder="Search...">
         </div>
     </li>
-    <li class="env-menu" ng-repeat="(service, value) in menuService.getLeftMenu()">
-        <a class="btn-left-menu {{menuService.checkActiveService(service) == true ? 'active' : ''}}" ng-click="menuService.changeService(service)"><i class="fa fa-sitemap fa-fw"></i>{{service}}<span class="fa arrow"></span></a>
-        <ul ng-click="menuService.changeEnv(service, env)" ng-show="menuService.checkActiveService(service)" class="nav nav-second-level" ng-repeat="env in value.envs">
+    <li class="env-menu" ng-repeat="service in stats.components.menu | filter:searchTextMenu">
+        <a class="btn-left-menu {{stats.components.menuStats['service']['current'] == service.service ? 'active' : ''}}" ng-click="menuService.changeService(service.service)"><i class="fa fa-sitemap fa-fw"></i>{{service.service}}<span class="fa arrow"></span></a>
+        <ul ng-click="menuService.changeEnv(service.service, env.env)" ng-show="stats.components.menuStats['service']['current'] == service.service" class="nav nav-second-level" ng-repeat="env in service.value.envs">
             <li>
-                <a class="btn-left-submenu {{menuService.checkActiveEnv(service, env) == true ? 'active' : ''}}" ng-click="setCurrentEnv(env)">{{env.env}}</a>
+                <a class="btn-left-submenu {{stats.components.menuStats['env']['current'] == env.env ? 'active' : ''}}" ng-click="setCurrentEnv(env)">{{env.env}}</a>
             </li>
         </ul>
     </li>

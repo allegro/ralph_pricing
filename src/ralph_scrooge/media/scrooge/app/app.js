@@ -54,7 +54,7 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
             }).
             when('/cardcosts/', {
                 templateUrl: '/static/scrooge/partials/cardcosts.html',
-                controller: 'components',
+                controller: 'cardcosts',
             }).
             when('/dependencytree/', {
                 templateUrl: '/static/scrooge/partials/dependencytree.html',

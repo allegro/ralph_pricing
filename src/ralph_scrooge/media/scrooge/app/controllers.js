@@ -1,98 +1,19 @@
 var ang_controllers = angular.module('ang_controllers', ['googlechart']);
 
-ang_controllers.controller('components', ['$http', '$scope', '$routeParams','menuService', 'menuCalendar',  function ($http, $scope, $routeParams, menuService, menuCalendar) {
+ang_controllers.controller('components', ['$scope', '$routeParams','menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
+    stats.init()
     $scope.menuService = menuService
     $scope.menuCalendar = menuCalendar
-    $scope.models = [{
-        Name: "HP ProLiant DL 360 G6",
-        Selected: true,
-    }, {
-        Name: "HP ProLiant BL2x220c G5",
-        Selected: true,
-    }, {
-        Name: "HP ProLiant DL 360 G6",
-        Selected: true,
-    }, {
-        Name: "IBM BladeCenter HS21",
-        Selected: true,
-    }, {
-        Name: "HP ProLiant BL2x220c G5",
-        Selected: true,
-    }, {
-        Name: "HP ProLiant BL2x220c G5",
-        Selected: true,
-    }, {
-        Name: "IBM Ethernet SM (32R1866)",
-        Selected: true,
-    }];
-    $scope.datacenters = [{
-        Name: "DC2",
-        Selected: true,
-    }, {
-        Name: "DC4",
-        Selected: true,
-    }];
-    $scope.environments = [{
-        Name: "Prod",
-        Selected: true,
-    }, {
-        Name: "Dev",
-        Selected: true,
-    }, {
-        Name: "Test",
-        Selected: true,
-    }];
-    $scope.results = [{
-    	id: 243,
-    	name: 'HP ProLiant DL 360 G6',
-    	sn: 'DA34FD1X0L',
-    	barcode: '1046_CD'
-    }, {
-    	id: 43,
-    	name: 'IBM BladeCenter HS21',
-    	sn: 'AWCK89AD9',
-    	barcode: '74516_A'
-    }, {
-    	id: 134,
-    	name: 'IBM Ethernet SM (32R1866)',
-    	sn: 'ADW891AD02',
-    	barcode: '44213_F'
-    }]
-    $scope.changeService = function (service) {
-            Object.keys($scope.menu).forEach(function (service) {
-                $scope.menu[service].show = false;
-            })
-            $scope.menu[service].show = true;
-            $scope.menuStats.service.change = service;
-            $scope.refreshData('service');
-        }
-        $http({method: 'POST', url: 'http://127.0.0.1:8000/scrooge/menu/services'}).
-        success(function(data, status, headers, config) {
-        }).
-        error(function(data, status, headers, config) {
-        });
-        $scope.refreshData = function (stat_type) {
-            force = false
-            refresh = false
-            Object.keys($scope.menuStats).forEach(function (menu) {
-                if ($scope.menuStats[menu]['change'] == false) {
-                    force = true
-                }
-                if ($scope.menuStats[menu]['current'] != $scope.menuStats[menu]['change']) {
-                    refresh = true
-                }
-            })
-        }
-        $scope.changeEnv = function (env) {
-            Object.keys($scope.menu).forEach(function (service) {
-                $scope.menu[service].envs.forEach(function (env) {
-                    env.show = false;
-                });
-            });
-            env.show = true;
-            $scope.menuStats.env.change = env.env;
-            $scope.refreshData('env');
-        }
+    $scope.stats = stats
+
+    stats.getDays()
+    $scope.days = stats.components.days
+    $scope.$watch(function () {
+        $scope.days = stats.components.days
+        $scope.content = stats.components.content
+        $scope.currentData = stats.components.currentContent
+    });
+
     $scope.checkAll = function (modelName, checked) {
         angular.forEach($scope[modelName], function (item) {
             item.Selected = checked;
@@ -103,24 +24,17 @@ ang_controllers.controller('components', ['$http', '$scope', '$routeParams','men
     $scope.preventClose = function(event) { event.stopPropagation()};
 }]);
 
-ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', function ($scope, $routeParams) {
+ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {
 
 }]);
 
-ang_controllers.controller('calendarCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {
-   stats.getDays()
-   $scope.days = stats.days
-   $scope.$watch(function () {
-        $scope.days = stats.days
-   });
-}]);
-
-ang_controllers.controller('componentsContentCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {
-   stats.getDays()
-   $scope.days = stats.days
-   $scope.$watch(function () {
-        $scope.days = stats.days
-   });
+ang_controllers.controller('componentsContentCtrl', ['$scope', '$routeParams', '$http', 'stats', function ($scope, $routeParams, $http, stats) {
+    $scope.content = stats.components.content
+    $scope.currentData = stats.components.currentContent
+    $scope.$watch(function () {
+        $scope.content = stats.components.content
+        $scope.currentData = stats.components.currentContent
+    });
 }]);
 
 var ButtonsCtrl = function ($scope) {

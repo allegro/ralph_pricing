@@ -387,3 +387,6 @@ div[dir="ltr"] {
 	height: 20px;
 	padding: 0px 0px 0px 10px;
 }
+.components-category {
+	cursor: pointer;
+}
