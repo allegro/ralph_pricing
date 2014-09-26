@@ -95,7 +95,7 @@ def get_daily_asset_info(asset_info, date, data):
     daily_asset_info.service_environment = asset_info.service_environment
     daily_asset_info.depreciation_rate = data['depreciation_rate']
     daily_asset_info.is_depreciated = data['is_depreciated']
-    daily_asset_info.price = data['price']
+    daily_asset_info.price = data['price'] or 0
     daily_asset_info.save()
     return daily_asset_info
 

@@ -185,13 +185,14 @@ def get_or_create_usages(usage_names):
 
 
 # virtual usages requires assets plugin to get proper devices
-@plugin.register(chain='scrooge', requires=['assets'])
+@plugin.register(chain='scrooge', requires=['asset'])
 def virtual(**kwargs):
     """Updates the virtual usages from Ralph."""
 
     date = kwargs['today']
     # key in dict is group name (which is propagated to usages names)
     # value is list of services uids (in group)
+    updated = total = 0
     for group_name, services in settings.VIRTUAL_SERVICES.items():
         usage_names = {
             'virtual_cores': '{0} Virtual CPU cores'.format(group_name),
@@ -199,7 +200,6 @@ def virtual(**kwargs):
             'virtual_disk': '{0} Virtual disk MB'.format(group_name),
         }
         usages = get_or_create_usages(usage_names)
-        updated = total = 0
         for service_uid in services:
             for data in api_scrooge.get_virtual_usages(service_uid):
                 total += 1

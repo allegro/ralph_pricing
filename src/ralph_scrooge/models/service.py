@@ -25,7 +25,7 @@ from ralph_scrooge.models.usage import DailyUsage
 from ralph_scrooge.models.pricing_object import PricingObjectType
 
 
-class BusinessLine(Named):
+class BusinessLine(Named.NonUnique):
     ci_id = db.IntegerField(
         unique=True,
         null=False,
@@ -33,8 +33,8 @@ class BusinessLine(Named):
         verbose_name=_("id from cmdb"),
     )
     ci_uid = db.CharField(
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         max_length=100,
         verbose_name=_("uid from cmdb"),
     )
@@ -43,7 +43,7 @@ class BusinessLine(Named):
         app_label = 'ralph_scrooge'
 
 
-class ProfitCenter(Named):
+class ProfitCenter(Named.NonUnique):
     ci_id = db.IntegerField(
         unique=True,
         null=False,
@@ -51,8 +51,8 @@ class ProfitCenter(Named):
         verbose_name=_("id from cmdb"),
     )
     ci_uid = db.CharField(
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         max_length=100,
         verbose_name=_("uid from cmdb"),
     )
@@ -70,7 +70,7 @@ class ProfitCenter(Named):
         app_label = 'ralph_scrooge'
 
 
-class Environment(Named):
+class Environment(Named.NonUnique):
     ci_id = db.IntegerField(
         unique=True,
         null=False,
@@ -78,8 +78,8 @@ class Environment(Named):
         verbose_name=_("id from cmdb"),
     )
     ci_uid = db.CharField(
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         max_length=100,
         verbose_name=_("uid from cmdb"),
     )
@@ -97,8 +97,8 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         verbose_name=_("id from cmdb"),
     )
     ci_uid = db.CharField(
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         max_length=100,
         verbose_name=_("uid from cmdb"),
     )

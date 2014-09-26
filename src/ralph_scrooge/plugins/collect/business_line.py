@@ -21,9 +21,6 @@ logger = logging.getLogger(__name__)
 def update_business_line(data, date):
     business_line, created = BusinessLine.objects.get_or_create(
         ci_id=data['ci_id'],
-        defaults=dict(
-            ci_uid=data['ci_uid'],
-        )
     )
     business_line.ci_uid = data['ci_uid']
     business_line.name = data['name']

@@ -101,7 +101,7 @@ def get_tenant_unknown_service_environment():
     Returns unknown service environment for OpenStack tenants
     """
     service_uid, environment_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
-        'tenant'
+        'tenant', (None, None)
     )
     unknown_service_environment = None
     if service_uid:

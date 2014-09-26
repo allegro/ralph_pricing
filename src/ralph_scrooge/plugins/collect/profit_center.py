@@ -28,9 +28,6 @@ def update_profit_center(data, date, default_business_line):
         business_line = default_business_line
     profit_center, created = ProfitCenter.objects.get_or_create(
         ci_id=data['ci_id'],
-        defaults=dict(
-            ci_uid=data['ci_uid'],
-        )
     )
     profit_center.ci_uid = data['ci_uid']
     profit_center.name = data['name']
