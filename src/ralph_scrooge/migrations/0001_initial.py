@@ -276,18 +276,18 @@ class Migration(SchemaMigration):
         # Adding model 'BusinessLine'
         db.create_table(u'ralph_scrooge_businessline', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=75)),
             ('ci_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
-            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
         ))
         db.send_create_signal(u'ralph_scrooge', ['BusinessLine'])
 
         # Adding model 'ProfitCenter'
         db.create_table(u'ralph_scrooge_profitcenter', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=75)),
             ('ci_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
-            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('business_line', self.gf('django.db.models.fields.related.ForeignKey')(default=1, related_name=u'profit_centers', to=orm['ralph_scrooge.BusinessLine'])),
             ('description', self.gf('django.db.models.fields.TextField')(default=None, null=True)),
         ))
@@ -296,9 +296,9 @@ class Migration(SchemaMigration):
         # Adding model 'Environment'
         db.create_table(u'ralph_scrooge_environment', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=75, db_index=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=75)),
             ('ci_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
-            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
         ))
         db.send_create_signal(u'ralph_scrooge', ['Environment'])
 
@@ -311,7 +311,7 @@ class Migration(SchemaMigration):
             ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
             ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
             ('ci_id', self.gf('django.db.models.fields.IntegerField')(db_index=True)),
-            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('profit_center', self.gf('django.db.models.fields.related.ForeignKey')(default=1, related_name=u'+', to=orm['ralph_scrooge.ProfitCenter'])),
             ('pricing_service', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name=u'+', null=True, to=orm['ralph_scrooge.PricingService'])),
@@ -333,7 +333,7 @@ class Migration(SchemaMigration):
             ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
             ('modified_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'+', on_delete=models.SET_NULL, default=None, to=orm['account.Profile'], blank=True, null=True)),
             ('ci_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
-            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('ci_uid', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('profit_center', self.gf('django.db.models.fields.related.ForeignKey')(default=1, related_name=u'services', to=orm['ralph_scrooge.ProfitCenter'])),
             ('pricing_service', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name=u'services', null=True, to=orm['ralph_scrooge.PricingService'])),
@@ -706,9 +706,9 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.businessline': {
             'Meta': {'object_name': 'BusinessLine'},
             'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'})
         },
         u'ralph_scrooge.costdatestatus': {
             'Meta': {'object_name': 'CostDateStatus'},
@@ -797,9 +797,9 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.environment': {
             'Meta': {'ordering': "[u'name']", 'object_name': 'Environment'},
             'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'})
         },
         u'ralph_scrooge.extracost': {
             'Meta': {'object_name': 'ExtraCost'},
@@ -821,7 +821,7 @@ class Migration(SchemaMigration):
             u'active_to': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(9999, 12, 31, 0, 0)'}),
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'ci_id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True'}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             u'history_date': ('django.db.models.fields.DateTimeField', [], {}),
@@ -870,16 +870,16 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ProfitCenter'},
             'business_line': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'related_name': "u'profit_centers'", 'to': u"orm['ralph_scrooge.BusinessLine']"}),
             'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'default': 'None', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'})
         },
         u'ralph_scrooge.service': {
             'Meta': {'ordering': "[u'name']", 'object_name': 'Service'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'environments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceEnvironment']", 'to': u"orm['ralph_scrooge.Environment']"}),
