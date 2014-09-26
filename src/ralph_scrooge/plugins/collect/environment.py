@@ -21,9 +21,6 @@ logger = logging.getLogger(__name__)
 def update_environment(data, date):
     environment, created = Environment.objects.get_or_create(
         ci_id=data['ci_id'],
-        defaults=dict(
-            ci_uid=data['ci_uid'],
-        )
     )
     environment.ci_uid = data['ci_uid']
     environment.name = data['name']
