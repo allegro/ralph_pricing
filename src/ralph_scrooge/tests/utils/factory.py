@@ -42,7 +42,6 @@ class EnvironmentFactory(DjangoModelFactory):
     FACTORY_FOR = models.Environment
 
     name = Sequence(lambda n: 'Environment%s' % n)
-    environment_id = Sequence(lambda n: n)
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
