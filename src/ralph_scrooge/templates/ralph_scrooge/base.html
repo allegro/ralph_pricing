@@ -4,15 +4,15 @@
 
 {% block styles %}
     {{ block.super }}
-    <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/style.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/scrooge.css">
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
-    <script type="text/javascript" src="{{ STATIC_URL }}assets/js/split.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/table_fixed_header.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/js/angular.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}assets/lib/split.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/lib/table_fixed_header.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}scrooge/lib/scrooge.js"></script>
+
 {% endblock %}
 
 {% block contentarea %}
