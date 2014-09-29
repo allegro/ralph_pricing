@@ -35,6 +35,7 @@ class TestServiceCollectPlugin(TestCase):
             'ci_id': service.ci_id,
             'ci_uid': service.ci_uid,
             'name': service.name,
+            'symbol': service.symbol,
             'profit_center': self.profit_center.ci_id,
             'technical_owners': [o.cmdb_id for o in self.owners[:3]],
             'business_owners': [o.cmdb_id for o in self.owners[3:6]],
@@ -49,6 +50,7 @@ class TestServiceCollectPlugin(TestCase):
 
         saved_service = Service.objects.get(ci_id=data['ci_id'])
         self.assertEquals(saved_service.name, data['name'])
+        self.assertEquals(saved_service.symbol, data['symbol'])
 
         # ownership
         self.assertEquals(

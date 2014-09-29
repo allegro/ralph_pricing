@@ -106,6 +106,12 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         verbose_name=_("name"),
         max_length=256,
     )
+    symbol = db.CharField(
+        verbose_name=_('symbol'),
+        max_length=256,
+        null=True,
+        blank=True,
+    )
     profit_center = db.ForeignKey(
         ProfitCenter,
         null=False,
