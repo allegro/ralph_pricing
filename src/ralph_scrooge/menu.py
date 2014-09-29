@@ -47,28 +47,11 @@ class ScroogeMenu(Menu):
             #     view_name='services_usages_report',
             # ),
             MenuItem(
-                _("Inventory"),
-                name='inventory',
-                fugue_icon='fugue-monitor',
-                view_name='inventory',
-            ),
-            MenuItem(
-                _("Card costs"),
-                name='card_costs',
-                fugue_icon='fugue-piggy-bank',
-                view_name='card_costs',
-            ),
-            MenuItem(
-                _("Dependency tree"),
-                name='dependency_tree',
-                fugue_icon='fugue-node',
-                view_name='dependency_tree',
-            ),
-            MenuItem(
-                _("Allocation"),
-                name='allocation',
-                fugue_icon='fugue-pencil',
-                view_name='allocation',
+                _("Components"),
+                name='components',
+                fugue_icon='fugue-arrow-switch',
+                view_name='components',
+                href="/scrooge/#/components/"
             ),
             MenuItem(
                 _("Services changes report"),

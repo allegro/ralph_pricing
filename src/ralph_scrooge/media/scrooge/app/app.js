@@ -44,7 +44,7 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
                 templateUrl: '/static/scrooge/partials/components.html',
                 controller: 'components',
             }).
-            otherwise({redirectto: '/scrooge'});
+            otherwise({redirectTo: '/components/'});
     }
 ]);
 
