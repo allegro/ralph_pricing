@@ -17,8 +17,10 @@ SHARES_UNKNOWN_VENTURES = {}  # symbols
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
 
+OPENSTACK_URL = None
+
 # Default collect plugins to run
-COLLECT_PLUGINS = set([
+PRICING_COLLECT_PLUGINS = set([
     'assets',
     'extra_cost',
     'ventures',

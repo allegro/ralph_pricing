@@ -30,6 +30,7 @@ class AllVentures(BasePluginReport):
     Form = VenturesReportForm
     section = 'all-ventures'
     report_name = _('All Ventures Report')
+    submodule_name = 'all-ventures'
 
     @classmethod
     @memoize

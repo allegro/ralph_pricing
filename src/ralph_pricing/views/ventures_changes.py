@@ -35,6 +35,7 @@ class VenturesChanges(Report):
     section = 'ventures-changes'
     report_name = _('Ventures Changes Report')
     allow_statement = False
+    submodule_name = 'ventures-changes'
 
     @classmethod
     def get_data(

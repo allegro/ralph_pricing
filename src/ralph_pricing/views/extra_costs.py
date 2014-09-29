@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
-from ralph_pricing.app import Scrooge
+from ralph_pricing.app import Pricing
 from ralph_pricing.forms import ExtraCostFormSet
 from ralph_pricing.menus import extra_costs_menu
 from ralph_pricing.models import ExtraCostType
@@ -18,6 +18,7 @@ from ralph_pricing.views.base import Base
 
 class ExtraCosts(Base):
     template_name = 'ralph_pricing/extra_costs.html'
+    submodule_name = 'extra-costs'
 
     def __init__(self, *args, **kwargs):
         super(ExtraCosts, self).__init__(*args, **kwargs)
@@ -64,7 +65,7 @@ class ExtraCosts(Base):
         context.update({
             'section': 'extra-costs',
             'sidebar_items': extra_costs_menu(
-                '/{0}/extra-costs'.format(Scrooge.url_prefix),
+                '/{0}/extra-costs'.format(Pricing.url_prefix),
                 self.extra_cost_type_id
             ),
             'sidebar_selected': self.extra_cost_type_id,

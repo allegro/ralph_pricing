@@ -29,6 +29,7 @@ class VenturesDailyUsages(BasePluginReport):
     Form = VenturesDailyUsagesForm
     section = 'ventures-daily-usages'
     report_name = _('Ventures Daily Usages Report')
+    submodule_name = 'ventures-daily-usages'
 
     @property
     def initial(self):

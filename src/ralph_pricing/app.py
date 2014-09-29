@@ -11,14 +11,14 @@ from django.core.urlresolvers import reverse
 from ralph.app import RalphModule
 
 
-class Scrooge(RalphModule):
+class Pricing(RalphModule):
     """Scrooge main application. The 'ralph_pricing' name is retained
     internally for historical reasons, while we try to use 'scrooge' as
     displayed name."""
 
-    url_prefix = 'scrooge'
+    url_prefix = 'pricing'
     module_name = 'ralph_pricing'
-    disp_name = 'Scrooge'
+    disp_name = 'Pricing'
     icon = 'fugue-money-coin'
     default_settings_module = 'ralph_pricing.settings'
 
@@ -29,12 +29,12 @@ class Scrooge(RalphModule):
 
     @property
     def home_url(self):
-        return reverse('scrooge_home')
+        return reverse('pricing_home')
 
     def __init__(self, **kwargs):
-        super(Scrooge, self).__init__(
+        super(Pricing, self).__init__(
             'ralph_pricing',
-            distribution='scrooge',
+            distribution='pricing',
             **kwargs
         )
         self.append_app()

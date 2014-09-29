@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
-from ralph_pricing.app import Scrooge
+from ralph_pricing.app import Pricing
 from ralph_pricing.forms import TeamDaterangeFormSet
 from ralph_pricing.menus import teams_menu
 from ralph_pricing.models import Team
@@ -18,6 +18,7 @@ from ralph_pricing.views.base import Base
 
 class Teams(Base):
     template_name = 'ralph_pricing/teams.html'
+    submodule_name = 'teams'
 
     def __init__(self, *args, **kwargs):
         super(Teams, self).__init__(*args, **kwargs)
@@ -64,7 +65,7 @@ class Teams(Base):
         context.update({
             'section': 'teams',
             'sidebar_items': teams_menu(
-                '/{0}/teams'.format(Scrooge.url_prefix),
+                '/{0}/teams'.format(Pricing.url_prefix),
                 self.team_name
             ),
             'sidebar_selected': self.team_name,
