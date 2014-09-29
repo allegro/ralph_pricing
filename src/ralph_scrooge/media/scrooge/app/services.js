@@ -159,7 +159,7 @@ ang_services.factory('menuCalendar', ['stats', function (stats) {
         },
         changeDay: function(day) {
             stats.components.menuStats['day']['change'] = day
-        	stats.refreshData()
+            stats.refreshData()
         },
         changeMonth: function(month) {
             stats.components.menuStats['month']['change'] = month

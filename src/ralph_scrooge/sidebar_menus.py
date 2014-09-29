@@ -65,6 +65,7 @@ def extra_costs_menu(href='', selected=None):
         ) for extra_cost_type in extra_costs_type
     ]
 
+
 def service_environments(href='', service=None, environment=None):
     service_environments = ServiceEnvironment.objects.all().select_related(
         'service',
@@ -95,8 +96,8 @@ def service_environments(href='', service=None, environment=None):
         subitem = MenuItem(
             service_environment.environment.name,
             name="{0}_{1}".format(
-                    service_environment.service,
-                    service_environment.environment
+                service_environment.service,
+                service_environment.environment
             ),
             subitems=[],
             fugue_icon='fugue-clock',
@@ -109,7 +110,8 @@ def service_environments(href='', service=None, environment=None):
         )
         subitem.parent = item
         item.subitems.append(subitem)
-    return [item for key, item in items.iteritems()]
+    return [v for k, v in items.iteritems()]
+
 
 def statement_menu(href='', selected=None):
     """

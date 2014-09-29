@@ -1,142 +1,142 @@
 @import url(http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css);
 .fa-fw {width: 2em;}
 #body {
-	height: 90%;
+    height: 90%;
 }
 .nav.nav-tabs h1{
-	margin: 0px 10px;
-	height: 40px;
-	padding-bottom: 10px;
+    margin: 0px 10px;
+    height: 40px;
+    padding-bottom: 10px;
 }
 .nav.nav-tabs h1 img {
-	margin-top: -20px;
+    margin-top: -20px;
 }
 .panel-heading {
-	padding-left: 0px;
-	padding-right: 0px;
-	padding-bottom: 0px;
-	border-bottom: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    border-bottom: 0px;
 }
 .nav-submenu {
-	background-color: white;
+    background-color: white;
 }
 .dropdown-left-menu {
-	border: 0px;
-	position: relative;
-	margin: 0px;
-	background-color: transparent;
-	float: none;
-	-webkit-box-shadow: 0 0px 0px;
-	-webkit-box-shadow: 0 0px 0px;
+    border: 0px;
+    position: relative;
+    margin: 0px;
+    background-color: transparent;
+    float: none;
+    -webkit-box-shadow: 0 0px 0px;
+    -webkit-box-shadow: 0 0px 0px;
 }
 .left-menu {
-	min-height: 100px;
-	width: 100%;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	padding: 30px 40px;
-	border: 0px;
+    min-height: 100px;
+    width: 100%;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    padding: 30px 40px;
+    border: 0px;
 }
 .btn-datepicker {
     float: none !important;
 }
 .btn-day-scrooge {
-	width: 35px;
-	margin: 0px 0px 3px 0px;
-	text-align: center;
-	padding: 0px;
+    width: 35px;
+    margin: 0px 0px 3px 0px;
+    text-align: center;
+    padding: 0px;
 }
 .btn-quarter-scrooge {
-	width: 100px;
-	margin: 0px 0px 3px 0px;
-	text-align: center;
-	padding: 0px;
+    width: 100px;
+    margin: 0px 0px 3px 0px;
+    text-align: center;
+    padding: 0px;
 }
 .btn-month-scrooge {
-	width: 90px;
-	margin: 2px 5px 2px 0px;
-	text-align: center;
+    width: 90px;
+    margin: 2px 5px 2px 0px;
+    text-align: center;
 }
 .btn-month {
-	padding: 0px 15px 10px 17px;
+    padding: 0px 15px 10px 17px;
     width: 99%;
     margin: 0px auto;
-	-webkit-border-radius: 0px 0px 0px 0px;
-	-moz-border-radius: 0px 0px 0px 0px;
-	border-radius: 0px 0px 0px 0px;
+    -webkit-border-radius: 0px 0px 0px 0px;
+    -moz-border-radius: 0px 0px 0px 0px;
+    border-radius: 0px 0px 0px 0px;
 }
 .btn-quarter {
-	padding: 0px 15px 10px 17px;
+    padding: 0px 15px 10px 17px;
     width: 99%;
     margin: 0px auto;
-	-webkit-border-radius: 0px 0px 0px 0px;
-	-moz-border-radius: 0px 0px 0px 0px;
-	border-radius: 0px 0px 0px 0px;
+    -webkit-border-radius: 0px 0px 0px 0px;
+    -moz-border-radius: 0px 0px 0px 0px;
+    border-radius: 0px 0px 0px 0px;
 }
 .btn-day {
-	padding: 0px 15px 10px 17px;
+    padding: 0px 15px 10px 17px;
     width: 99%;
     margin: 0px auto;
-	-webkit-border-radius: 0px 0px 10px 10px;
-	-moz-border-radius: 0px 0px 10px 10px;
-	border-radius: 0px 0px 10px 10px;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
 }
 .footer {
-	text-align: center;
-	padding-top: 10px;
+    text-align: center;
+    padding-top: 10px;
 }
 .footer p {
-	display: inline-block;
-	text-align: center;
+    display: inline-block;
+    text-align: center;
 }
 .footer .version{
-	margin-left: 20px;
-	float: left;
-	color: rgba(200, 200, 200, 1);
+    margin-left: 20px;
+    float: left;
+    color: rgba(200, 200, 200, 1);
 }
 .footer a {
-	color: #ffcc00;
+    color: #ffcc00;
 }
 .panel-background {
-	text-align: center;
+    text-align: center;
     border: 1px solid #e3e3e3;
     background-color: #f5f5f5;
-	-webkit-border-radius: 0px 0px 10px 10px;
-	-moz-border-radius: 0px 0px 10px 10px;
-	border-radius: 0px 0px 10px 10px;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
     padding-top: 10px;
 }
 .panel-datepicker {
-	-webkit-border-radius: 0px 0px 10px 10px;
-	-moz-border-radius: 0px 0px 10px 10px;
-	border-radius: 0px 0px 10px 10px;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
     padding-top: 10px;
 }
 .panel-filters {
-	-webkit-border-radius: 10px 10px 0px 0px;
-	-moz-border-radius: 10px 10px 0px 0px;
-	border-radius: 10px 10px 0px 0px;
+    -webkit-border-radius: 10px 10px 0px 0px;
+    -moz-border-radius: 10px 10px 0px 0px;
+    border-radius: 10px 10px 0px 0px;
     padding-top: 10px;
 }
 .panel-chart {
-	-webkit-border-radius: 0px 10px 10px 0px;
-	-moz-border-radius: 0px 10px 10px 0px;
-	border-radius: 0px 10px 10px 0px;
+    -webkit-border-radius: 0px 10px 10px 0px;
+    -moz-border-radius: 0px 10px 10px 0px;
+    border-radius: 0px 10px 10px 0px;
     padding-top: 10px;
 }
 .panel-percent-chart {
-	-webkit-border-radius: 0px 0px 10px 10px;
-	-moz-border-radius: 0px 0px 10px 10px;
-	border-radius: 0px 0px 10px 10px;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
     padding-top: 0px;
     padding-right: 20px;
     padding-left: 8px;
 }
 .panel-legend-tree {
-	-webkit-border-radius: 0px 10px 10px 0px;
-	-moz-border-radius: 0px 10px 10px 0px;
-	border-radius: 0px 10px 10px 0px;
+    -webkit-border-radius: 0px 10px 10px 0px;
+    -moz-border-radius: 0px 10px 10px 0px;
+    border-radius: 0px 10px 10px 0px;
     padding-top: 0px;
     padding-right: 0px;
 }
@@ -151,38 +151,38 @@
     margin-bottom: 15px;
     margin-top: -18px;
     border-top: 0px;
-	-webkit-border-radius: 0px 0px 10px 10px;
-	-moz-border-radius: 0px 0px 10px 10px;
-	border-radius: 0px 0px 10px 10px;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
 }
 .bg-filters {
     margin-bottom: -2px;
     border-bottom: 0px;
-	-webkit-border-radius: 10px 10px 0px 0px;
-	-moz-border-radius: 10px 10px 0px 0px;
-	border-radius: 10px 10px 0px 0px;
+    -webkit-border-radius: 10px 10px 0px 0px;
+    -moz-border-radius: 10px 10px 0px 0px;
+    border-radius: 10px 10px 0px 0px;
 }
 .bg-chart {
     min-height: 400px;
     margin: 10px 0px 20px -2px;
     border-left: 0px;
-	-webkit-border-radius: 0px 10px 10px 0px;
-	-moz-border-radius: 0px 10px 10px 0px;
-	border-radius: 0px 10px 10px 0px;
+    -webkit-border-radius: 0px 10px 10px 0px;
+    -moz-border-radius: 0px 10px 10px 0px;
+    border-radius: 0px 10px 10px 0px;
 }
 .bg-percent-chart {
     margin: -2px 10px 20px 10px;
     border-top: 0px;
-	-webkit-border-radius: 0px 0px 10px 10px;
-	-moz-border-radius: 0px 0px 10px 10px;
-	border-radius: 0px 0px 10px 10px;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
 }
 .bg-legend-tree {
     margin: 10px 10px 10px -2px;
     border-left: 0px;
-	-webkit-border-radius: 0px 10px 10px 0px;
-	-moz-border-radius: 0px 10px 10px 0px;
-	border-radius: 0px 10px 10px 0px;
+    -webkit-border-radius: 0px 10px 10px 0px;
+    -moz-border-radius: 0px 10px 10px 0px;
+    border-radius: 0px 10px 10px 0px;
     padding: 10px 40px 10px 40px;
 }
 .sidebar-well {
@@ -193,9 +193,9 @@
     padding: 0px;
     border: 1px solid black;
     border-right: none;
-	-webkit-border-radius: 10px 0px 0px 10px;
-	-moz-border-radius: 10px 0px 0px 10px;
-	border-radius: 10px 0px 0px 10px;
+    -webkit-border-radius: 10px 0px 0px 10px;
+    -moz-border-radius: 10px 0px 0px 10px;
+    border-radius: 10px 0px 0px 10px;
 }
 .sidebar-navbar-default {
     background-color: white;
@@ -203,9 +203,9 @@
     padding-top: 10px;
     border: 1px solid #e3e3e3;
     border-top: 0px;
-	-webkit-border-radius: 0px 0px 10px 10px;
-	-moz-border-radius: 0px 0px 10px 10px;
-	border-radius: 0px 0px 10px 10px;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
 }
 .nav-second-level li {
     padding-left: 30px;
@@ -228,7 +228,7 @@
     border: 0px !important;
 }
 .generate-to-csv {
-	float: right;
+    float: right;
     max-width: 60px;
 }
 .per-page {
@@ -257,32 +257,32 @@
     margin: 0px 5px 0px 5px;
 }
 .pagination-container {
-	text-align: center;
+    text-align: center;
 }
 .footer {
-	text-align: center;
+    text-align: center;
 }
 .footer p {
-	display: inline-block;
-	text-align: center;
+    display: inline-block;
+    text-align: center;
 }
 .footer .version{
-	margin-left: 20px;
-	float: left;
-	color: rgba(200, 200, 200, 1);
+    margin-left: 20px;
+    float: left;
+    color: rgba(200, 200, 200, 1);
 }
 .cost-type {
-	text-align: center;
-	border-right: 1px solid #cccccc;
+    text-align: center;
+    border-right: 1px solid #cccccc;
 }
 .cost-value {
-	text-align: center;
+    text-align: center;
 }
 .total-card-cost {
-	background-color: #f4f4f4;
+    background-color: #f4f4f4;
 }
 .total-card-cost:hover {
-	background-color: none;
+    background-color: none;
 }
 .charts {
     width: 100%;
@@ -364,29 +364,47 @@ div[dir="ltr"] {
     background-color: #ffaaaa
 }
 #side-menu .active {
-	display: block !important;
+    display: block !important;
 }
 #side-menu li {
-	cursor: pointer;
+    cursor: pointer;
 }
 .btn-left-submenu.active {
     background-color: #f5f5f5 !important;
 }
 .btn-left-submenu {
-	-webkit-border-radius: 10px 0px 0px 10px;
-	-moz-border-radius: 10px 0px 0px 10px;
-	border-radius: 10px 0px 0px 10px;
+    -webkit-border-radius: 10px 0px 0px 10px;
+    -moz-border-radius: 10px 0px 0px 10px;
+    border-radius: 10px 0px 0px 10px;
 }
 .btn-left-menu.active {
     background-color: #f5f5f5!important;
 }
 .env-menu ul li {
-	padding-left: 50px;
+    padding-left: 50px;
 }
 .env-menu ul li a {
-	height: 20px;
-	padding: 0px 0px 0px 10px;
+    height: 20px;
+    padding: 0px 0px 0px 10px;
 }
 .components-category {
-	cursor: pointer;
+    cursor: pointer;
+}
+table.usages input {
+    width: initial;
+}
+thead {
+    background: #FFFFFF;
+}
+.fixed {
+    top:0;
+    position:fixed;
+    width:auto;
+    display:none;
+    border:none;
+}
+.fixed th {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
 }
