@@ -4,27 +4,17 @@
         <meta charset="utf-8">
         <title>Ralph Scrooge</title>
         <link rel="stylesheet" href="/static/scrooge/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/static/scrooge/css/jquery.jqplot.css" />
         <link rel="stylesheet" href="/static/scrooge/css/scrooge.css" />
         <link rel="stylesheet" href="/static/scrooge/css/sb-admin-2.css" />
-        <script src="/static/scrooge/lib/underscore-min.js"></script>
         <script src="/static/scrooge/lib/angular/angular.js"></script>
         <script src="/static/scrooge/lib/angular/angular-resource.js"></script>
         <script src="/static/scrooge/lib/angular/angular-route.js"></script>
         <script src="/static/scrooge/lib/angular/angular-cookies.js"></script>
         <script src="/static/scrooge/lib/ui-bootstrap-tpls-0.10.0.min.js"></script>
-        <script src="/static/scrooge/lib/angular-flash.js"></script>
         <script src="/static/scrooge/lib/raven.min.js"></script>
-        <script src="/static/scrooge/lib/angular-google-chart/ng-google-chart.js"></script>
-        <script src="http://www.google.com/jsapi?ext.js"></script>
         <script src="/static/scrooge/lib/scrooge.js"></script>
         <script src="/static/scrooge/app/app.js"></script>
         <script src="/static/scrooge/app/controllers.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/jquery.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/jquery.jqplot.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.enhancedLegendRenderer.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
-        <script src="/static/scrooge/lib/jquery.jqplot/plugins/jqplot.highlighter.min.js"></script>
         <script src="/static/scrooge/app/directives.js"></script>
         <script src="/static/scrooge/app/services.js"></script>
     </head>
@@ -35,16 +25,14 @@
                 <!-- Nav tabs -->
                 <ul class="nav nav-tabs" role="tablist">
                     <li><h1><a href='/'><img src="/static/scrooge/img/scrooge-logo.png"></a></h1></li>
-                    <li class="active"><a href="#">CORE</a></li>
-                    <li><a href="">CMDB</a></li>
-                    <li><a href="">ASSETS</a></li>
-                    <li><a href="">SCROOGE</a></li>
+                    <li><a href="/ui/ventures/">CORE</a></li>
+                    <li><a href="/assets/dc/search">ASSETS</a></li>
+                    <li class="active"><a href="/scrooge/#/components">SCROOGE</a></li>
+                    <li><a href="/cmdb/changes/timeline">CMDB</a></li>
                 </ul>
                 <ul class="nav nav-tabs nav-submenu" role="tablist">
                     <li><a href="#components" data-toggle="tab">Components</a></li>
-                    <li><a href="#cardcosts" data-toggle="tab">Card costs</a></li>
-                    <li><a href="#dependencytree" data-toggle="tab">Dependency tree</a></li>
-                    <li class="nav-active"><a href="#allocation" data-toggle="tab">Allocation</a></li>
+                    <li><a href="" data-toggle="tab">Components</a></li>
                 </ul>
             </div>
             <!-- /.panel-body -->

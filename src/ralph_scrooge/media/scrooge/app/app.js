@@ -1,14 +1,6 @@
-angular.module('underscore', []).factory('_', ['$window', function ($window) {
-    return $window._;
-}]);
-
 var app = angular.module('app', [
     'ngRoute',
     'ngCookies',
-
-    'ui.bootstrap', // Alternatywa
-    'underscore',
-    'flash',
 
     'ang_controllers',
     'ang_directives',
@@ -51,14 +43,6 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
             when('/components/', {
                 templateUrl: '/static/scrooge/partials/components.html',
                 controller: 'components',
-            }).
-            when('/cardcosts/', {
-                templateUrl: '/static/scrooge/partials/cardcosts.html',
-                controller: 'cardcosts',
-            }).
-            when('/dependencytree/', {
-                templateUrl: '/static/scrooge/partials/dependencytree.html',
-                controller: 'dependencytree',
             }).
             otherwise({redirectto: '/scrooge'});
     }
