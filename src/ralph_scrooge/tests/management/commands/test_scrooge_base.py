@@ -11,8 +11,8 @@ from mock import patch, ANY
 from django.core.management import call_command
 from django.test import TestCase
 
-from ralph_scrooge.management.commands.pricing_asset_models import Command
-from ralph_scrooge.management.commands._pricing_base import (
+from ralph_scrooge.management.commands.scrooge_asset_models import Command
+from ralph_scrooge.management.commands._scrooge_base import (
     DEFAULT_CSV_ENCODING,
     DEFAULT_ENCODING,
 )
@@ -21,7 +21,7 @@ from ralph_scrooge.management.commands._pricing_base import (
 COMMAND_NAME = Command.__module__.split('.')[-1]
 
 
-class TestPricingBaseCommand(TestCase):
+class TestScroogeBaseCommand(TestCase):
     @patch.object(Command, 'get_data', lambda *a, **kw: [['test']])
     def test_get_prepared_data(self):
         self.assertEqual(
@@ -30,7 +30,7 @@ class TestPricingBaseCommand(TestCase):
         )
 
     @patch.object(Command, 'get_data', lambda *a, **kw: [['test']])
-    @patch('ralph_scrooge.management.commands._pricing_base.UnicodeWriter')
+    @patch('ralph_scrooge.management.commands._scrooge_base.UnicodeWriter')
     def test_handle_on_screen(self, writer_mock):
         f = cStringIO.StringIO()
         call_command(COMMAND_NAME, stdout=f)
@@ -41,7 +41,7 @@ class TestPricingBaseCommand(TestCase):
         )
 
     @patch.object(Command, 'get_data', lambda *a, **kw: [['test']])
-    @patch('ralph_scrooge.management.commands._pricing_base.UnicodeWriter')
+    @patch('ralph_scrooge.management.commands._scrooge_base.UnicodeWriter')
     @patch('__builtin__.open')
     def test_handle_to_file(self, open_mock, writer_mock):
         call_command(COMMAND_NAME, file_path='test_file')

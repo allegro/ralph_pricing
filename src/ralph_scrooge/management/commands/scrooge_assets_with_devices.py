@@ -11,13 +11,13 @@ from dateutil.relativedelta import relativedelta
 
 from ralph.discovery.models import Device
 from ralph_assets.models import Asset, AssetType
-from ralph_scrooge.management.commands._pricing_base import PricingBaseCommand
+from ralph_scrooge.management.commands._scrooge_base import ScroogeBaseCommand
 
 
 logger = logging.getLogger(__name__)
 
 
-class Command(PricingBaseCommand):
+class Command(ScroogeBaseCommand):
     """Generate report with assets, devices and date of end deprecation"""
     HEADERS = [
         'Asset ID',

@@ -20,7 +20,7 @@ DEFAULT_ENCODING = 'utf-8'
 DEFAULT_CSV_ENCODING = 'cp1250'
 
 
-class PricingBaseCommand(BaseCommand):
+class ScroogeBaseCommand(BaseCommand):
     """
     Class contains standard options like generate to csv or generate to file.
     """
