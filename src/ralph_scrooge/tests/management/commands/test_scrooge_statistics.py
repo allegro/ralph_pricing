@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from django.test import TestCase
 
 
-class TestPricingStatisticsCommand(TestCase):
+class TestScroogeStatisticsCommand(TestCase):
 
     def test_draw_statistics_when_only_base(self):
         # TODO

@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.forms import CollectPluginsForm
-from ralph_scrooge.management.commands.pricing_sync import run_plugins
+from ralph_scrooge.management.commands.scrooge_sync import run_plugins
 from ralph_scrooge.utils.common import get_cache_name, get_queue_name
 from ralph_scrooge.utils.worker_job import WorkerJob
 from ralph_scrooge.views.base import Base

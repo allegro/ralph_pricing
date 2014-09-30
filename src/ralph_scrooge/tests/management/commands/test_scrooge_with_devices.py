@@ -11,7 +11,7 @@ from mock import patch, Mock
 from dateutil.relativedelta import relativedelta
 from django.test import TestCase
 
-from ralph_scrooge.management.commands.pricing_assets_with_devices import (
+from ralph_scrooge.management.commands.scrooge_assets_with_devices import (
     Command
 )
 from ralph_assets.models import (
@@ -24,7 +24,7 @@ from ralph_assets.models import (
 from ralph.discovery.models import Device as RalphDevice
 
 
-class TestPricingAssetModelsCommand(TestCase):
+class TestScroogeAssetModelsCommand(TestCase):
     def setUp(self):
         self.ralph_device = RalphDevice.objects.create(
             name="Name0",
