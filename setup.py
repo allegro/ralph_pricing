@@ -16,7 +16,7 @@ from ralph_pricing import VERSION
 release = ".".join(str(num) for num in VERSION)
 
 setup(
-    name='ralph_scrooge',
+    name='ralph_pricing',
     version=release,
     author='Grupa Allegro Sp. z o.o. and Contributors',
     author_email='it-ralph-dev@allegro.pl',
@@ -39,7 +39,7 @@ setup(
     ],
     entry_points={
         'django.pluggable_app': [
-            'scrooge = ralph_pricing.app:Scrooge',
+            'pricing = ralph_pricing.app:Pricing',
         ],
     },
     classifiers=[

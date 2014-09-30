@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
-from ralph_pricing.app import Scrooge
+from ralph_pricing.app import Pricing
 from ralph_pricing.forms import TeamVenturePercentFormSet
 from ralph_pricing.menus import teams_menu
 from ralph_pricing.models import Team, TeamDaterange, TeamVenturePercent
@@ -18,6 +18,7 @@ from ralph_pricing.views.base import Base
 
 class TeamsPercent(Base):
     template_name = 'ralph_pricing/teams_percent.html'
+    submodule_name = 'teams'
 
     def __init__(self, *args, **kwargs):
         super(TeamsPercent, self).__init__(*args, **kwargs)
@@ -83,7 +84,7 @@ class TeamsPercent(Base):
         context.update({
             'section': 'teams',
             'sidebar_items': teams_menu(
-                '/{0}/teams'.format(Scrooge.url_prefix),
+                '/{0}/teams'.format(Pricing.url_prefix),
                 self.team_name,
             ),
             'sidebar_selected': self.daterange.id,

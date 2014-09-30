@@ -76,7 +76,7 @@ class TestOpenstack(TestCase):
         # fake setting need to run plugin
         settings.OPENSTACK_URL = '/'
         settings.OPENSTACK_USER = 'test'
-        settings.OPENSTACK_PASSWORD = 'test'
+        settings.OPENSTACK_PASS = 'test'
         with mock.patch(
             'ralph_pricing.plugins.collects.openstack.OpenStack'
         ) as OpenStack:

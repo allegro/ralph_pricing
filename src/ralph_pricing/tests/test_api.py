@@ -155,7 +155,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         service_usages = self._get_sample_service_usages_object()
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -175,7 +175,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         service_symbol = 'invalid_service'
         data['service'] = service_symbol
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -193,7 +193,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         venture_symbol = 'invalid_venture'
         data['venture_usages'][1]['venture'] = venture_symbol
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -211,7 +211,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         usage_type_symbol = 'invalid_usage'
         data['venture_usages'][1]['usages'][1]['symbol'] = usage_type_symbol
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -228,7 +228,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         service_usages.venture_usages[0].venture = self.inactive_venture.symbol
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -246,7 +246,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         service_usages = self._get_sample_service_usages_object()
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -270,7 +270,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         service_usages.venture_usages[0].venture = self.venture3.symbol
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -295,7 +295,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         service_usages.venture_usages[0].venture = self.venture3.symbol
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -319,7 +319,7 @@ class TestServiceUsagesApi(ResourceTestCase):
         service_usages.venture_usages[0].venture = self.venture3.symbol
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/pricing/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data

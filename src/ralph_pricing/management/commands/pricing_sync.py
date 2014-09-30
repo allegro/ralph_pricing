@@ -85,7 +85,7 @@ class Command(BaseCommand):
                     break
                 name = plugin.highest_priority('pricing', to_run)
                 tried.add(name)
-                if (name in settings.COLLECT_PLUGINS and
+                if (name in settings.PRICING_COLLECT_PLUGINS and
                         self._run_plugin(name, today)):
                     done.add(name)
         else:

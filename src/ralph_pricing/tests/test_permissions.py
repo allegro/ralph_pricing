@@ -7,13 +7,9 @@ from __future__ import unicode_literals
 
 import inspect
 
-from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.views.generic import View
-from pluggableapp import PluggableApp
 
-from ralph.account.models import Perm
-from ralph.ui.tests.functional.tests_view import LoginRedirectTest
 from ralph_pricing import urls
 from ralph_pricing.views.base import Base
 
@@ -29,19 +25,3 @@ class TestPermissions(TestCase):
         for i in urls.__dict__.values():
             if inspect.isclass(i) and issubclass(i, View):
                 self.assertTrue(issubclass(i, Base))
-
-
-class LoginRedirectTest(LoginRedirectTest):
-
-    def test_hierarchy(self):
-        """
-        user with scrooge perms -> show scrooge
-        user with core perms -> show core
-        """
-        hierarchy_data = [
-            (Perm.has_scrooge_access,
-             PluggableApp.apps['ralph_pricing'].home_url),
-            (Perm.has_core_access, reverse('search', args=('info', ''))),
-        ]
-
-        self.check_redirection(hierarchy_data)

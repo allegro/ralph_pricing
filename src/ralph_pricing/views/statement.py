@@ -12,7 +12,7 @@ from bob.csvutil import make_csv_response
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_pricing.app import Scrooge
+from ralph_pricing.app import Pricing
 from ralph_pricing.menus import statement_menu
 from ralph_pricing.models import Statement
 from ralph_pricing.views.base import Base
@@ -24,7 +24,8 @@ class Statements(Base):
     Statement view with generate to csv option.
     """
     template_name = 'ralph_pricing/statement.html'
-    section = 'all-ventures-statement'
+    section = 'statement'
+    submodule_name = 'statement'
 
     def __init__(self, *args, **kwargs):
         super(Statements, self).__init__(*args, **kwargs)
@@ -75,7 +76,7 @@ class Statements(Base):
             'header': self.header,
             'section': 'statement',
             'sidebar_items': statement_menu(
-                '/{0}/statement'.format(Scrooge.url_prefix),
+                '/{0}/statement'.format(Pricing.url_prefix),
                 self.statement_id
             ),
             'sidebar_selected': str(self.statement),
