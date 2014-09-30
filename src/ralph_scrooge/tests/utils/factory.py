@@ -34,6 +34,7 @@ class ServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.Service
 
     name = Sequence(lambda n: 'Service #%s' % n)
+    symbol = Sequence(lambda n: 'service_%s' % n)
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 

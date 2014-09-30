@@ -39,6 +39,7 @@ def update_service(data, date, default_profit_center):
         created = True
     service.ci_uid = data['ci_uid']
     service.name = data['name']
+    service.symbol = data['symbol']
     if data['profit_center'] is not None:
         service.profit_center = ProfitCenter.objects.get(
             ci_id=data['profit_center']
