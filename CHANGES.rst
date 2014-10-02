@@ -1,6 +1,12 @@
 Change Log
 ----------
 
+2.7.0
+~~~~~
+
+* Adapted to Ralph 2.1.0 and Ralph Assets 2.3.0
+
+
 2.6.0
 ~~~~~
 
