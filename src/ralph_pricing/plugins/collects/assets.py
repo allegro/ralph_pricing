@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+from decimal import Decimal as D
 
 from django.db.transaction import commit_on_success
 
@@ -103,7 +104,7 @@ def update_assets(data, date, usages):
         logger.warning('Asset {0} has no venture'.format(data['asset_id']))
         return False
 
-    daily_device.price = data['price']
+    daily_device.price = data['price'] or D(0)
     daily_device.deprecation_rate = data['deprecation_rate']
     daily_device.is_deprecated = data['is_deprecated']
     daily_device.save()

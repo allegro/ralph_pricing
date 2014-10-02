@@ -126,14 +126,17 @@ def ceilometer(**kwargs):
     ))
     stats = {}
     for site in settings.OPENSTACK_SITES:
+        if 'CEILOMETER_CONNECTION' not in site:
+            logger.warning('CEILOMETER_CONNECTION not specified')
+            continue
         logger.info("site {}".format(
             site['OS_METERING_URL'],
         ))
         ks = client.Client(
-            username=site['OS_USERNAME'],
-            password=site['OS_PASSWORD'],
-            tenant_name=site['OS_TENANT_NAME'],
-            auth_url=site['OS_AUTH_URL'],
+            username=site['USERNAME'],
+            password=site['PASSWORD'],
+            tenant_name=site['TENANT_NAME'],
+            auth_url=site['AUTH_URL'],
         )
         tenants = ks.tenants.list()
         stats = get_ceilometer_usages(

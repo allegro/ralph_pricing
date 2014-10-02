@@ -17,7 +17,7 @@ def update_venture(data):
     venture.department = data['department']
     venture.symbol = data['symbol']
     venture.business_segment = data['business_segment']
-    venture.profit_center = data['profit_center']
+    venture.profit_center = data['profit_center'] or ''
     venture.is_active = data['show_in_ralph']
     if data.get('parent_id'):
         parent, parent_created = Venture.objects.get_or_create(
