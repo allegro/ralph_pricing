@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 
-from ralph_scrooge.management.commands.pricing_asset_models import (
+from ralph_scrooge.management.commands.scrooge_asset_models import (
     Command
 )
 from ralph_assets.models import (
@@ -20,7 +20,7 @@ from ralph_assets.models import (
 from ralph.discovery.models import Device as RalphDevice
 
 
-class TestPricingBaseCommand(TestCase):
+class TestScroogeBaseCommand(TestCase):
     def setUp(self):
         self.ralph_device = RalphDevice.objects.create(
             name="Name0",

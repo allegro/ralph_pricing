@@ -10,13 +10,13 @@ import logging
 from django.db.models import Count
 
 from ralph_assets.models import AssetModel
-from ralph_scrooge.management.commands._pricing_base import PricingBaseCommand
+from ralph_scrooge.management.commands._scrooge_base import ScroogeBaseCommand
 
 
 logger = logging.getLogger(__name__)
 
 
-class Command(PricingBaseCommand):
+class Command(ScroogeBaseCommand):
     """
     Generate report with assets and devices matching and basic information
     about asset, such as cores count, model name etc.
