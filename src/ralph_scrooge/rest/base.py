@@ -136,8 +136,8 @@ def left_menu(request, *args, **kwargs):
 
     results = {}
 
-    start = date(2013, 01, 01)
-    end = date(2015, 12, 01)
+    start = date(2014, 9, 1)
+    end = date.today() - timedelta(days=1)
     date_generated = [start + timedelta(days=x) for x in range(
         0,
         (end - start).days + 1,
@@ -153,17 +153,6 @@ def left_menu(request, *args, **kwargs):
         dates[year][month].append(one_day_date.day)
 
     menuStats = {
-        "service": {"current": False, "change": "Stock"},
-        "env": {"current": False, "change": "prod"},
-        "year": {"current": False, "change": "2014"},
-        "month": {
-            "current": False,
-            "change": "September",
-        },
-        "day": {"current": False, "change": "25"},
-    }
-    """
-    menuStats = {
         "service": {"current": False, "change": False},
         "env": {"current": False, "change": False},
         "year": {"current": False, "change": date_generated[-1].year},
@@ -173,12 +162,12 @@ def left_menu(request, *args, **kwargs):
         },
         "day": {"current": False, "change": date_generated[-1].day},
     }
-    """
+
     menu = OrderedDict()
     for i, service_environment in enumerate(service_environments):
-        #if i <= 1:
-            # menuStats['service']['change'] = service_environment.service.name
-            # menuStats['env']['change'] = service_environment.environment.name
+        if i <= 1:
+            menuStats['service']['change'] = service_environment.service.name
+            menuStats['env']['change'] = service_environment.environment.name
         if (service_environment.service.name not in menu):
             menu[service_environment.service.name] = {"envs": []}
         menu[service_environment.service.name]["envs"].append(
@@ -190,7 +179,4 @@ def left_menu(request, *args, **kwargs):
         results['menu'].append({"service": row, "value": menu[row]})
     results['menuStats'] = menuStats
     results['dates'] = dates
-    import time
-    time.sleep(3)
-
     return results
