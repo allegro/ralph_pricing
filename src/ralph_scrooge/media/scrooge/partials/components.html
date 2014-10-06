@@ -9,16 +9,9 @@
 
 
     <div class="col-xs-2 left-menu-container col-xs-height col-bottom">
-        <div class="col-xs-height col-bottom sidebar-well well navmenu navmenu-default navmenu-fixed-left in">
-            <div class="navbar-default sidebar-navbar-default" role="navigation">
-                <div class="sidebar-nav navbar-collapse sidebar-nav-scrooge">
-                    <div>
-                        <menuservicedirective ng-if="stats.components.menuReady"></menuservicedirective>
-
-                    </div>
-                </div>
-            </div>
-        </div>
+      <div class="navbar-default sidebar-navbar-default" role="navigation">
+        <menuservicedirective ng-if="stats.components.menuReady"></menuservicedirective>
+      </div>
     </div>
 
 
@@ -26,7 +19,7 @@
     <div class="col-xs-10 content">
         <div class="col-xs-12 calendar" ng-controler="calendarCtrl">
             <menucalendardirective ng-if="stats.components.menuReady"></menucalendardirective>
-    </div>
+        </div>
     <div ng-if="stats.components.contentReady == 0">
         <div class="col-xs-12" ng-controller="componentsContentCtrl">
               <div class="data-content">
@@ -172,7 +165,7 @@
 
 
                   <div ng-if="stats.components.menuStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content">
-                    <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true">
+                    <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" class="table table-hover table-striped">
                         <thead>
                             <tr>
                                 <th data-field="{{val}}" data-sortable="true" ng-repeat="(cell, val) in data.schema">{{val}}</th>

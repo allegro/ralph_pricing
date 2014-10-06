@@ -27,7 +27,7 @@ ang_controllers.controller('components', ['$scope', '$routeParams','menuService'
     };
     $scope.preMonths = ['january', 'february', 'march', 'april', 'may', 'june',
         'july', 'august', 'september', 'october', 'november', 'december']
-    $scope.preventClose = function(event) { event.stopPropagation()};
+    $scope.preventClose = function(event) {event.stopPropagation()};
 }]);
 
 ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {
