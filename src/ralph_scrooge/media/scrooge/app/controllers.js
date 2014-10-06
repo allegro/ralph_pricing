@@ -11,7 +11,13 @@ ang_controllers.controller('components', ['$scope', '$routeParams','menuService'
     $scope.$watch(function () {
         $scope.days = stats.components.days
         $scope.content = stats.components.content
-        $scope.currentData = stats.components.currentContent
+        if (typeof($scope.content) != 'undefined') {
+            $scope.content.forEach(function (element, key) {
+                $('#table_' + key + ' table').bootstrapTable({
+                    data: element.value,
+                });
+            })
+        }
     });
 
     $scope.checkAll = function (modelName, checked) {
@@ -22,14 +28,6 @@ ang_controllers.controller('components', ['$scope', '$routeParams','menuService'
     $scope.preMonths = ['january', 'february', 'march', 'april', 'may', 'june',
         'july', 'august', 'september', 'october', 'november', 'december']
     $scope.preventClose = function(event) { event.stopPropagation()};
-    $scope.changeCategory = function(category_name) {
-        $scope.content.forEach(function (category_type) {
-            if (category_name = category_type.name) {
-                console.log(category_name, category_type.name)
-                $scope.currentData = category_type
-            }
-        })
-    }
 }]);
 
 ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {

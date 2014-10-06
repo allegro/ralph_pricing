@@ -4,13 +4,19 @@
         <meta charset="utf-8">
         <title>Ralph Scrooge</title>
         <link rel="stylesheet" href="/static/scrooge/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/bootstrap-table.css" />
         <link rel="stylesheet" href="/static/scrooge/css/scrooge.css" />
         <link rel="stylesheet" href="/static/scrooge/css/sb-admin-2.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/multiple-select.css" />
+        <script src="/static/scrooge/lib/jquery.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.multiple.select.js"></script>
+        <script src="/static/scrooge/lib/bootstrap.min.js"></script>
         <script src="/static/scrooge/lib/angular/angular.js"></script>
         <script src="/static/scrooge/lib/angular/angular-resource.js"></script>
         <script src="/static/scrooge/lib/angular/angular-route.js"></script>
         <script src="/static/scrooge/lib/angular/angular-cookies.js"></script>
         <script src="/static/scrooge/lib/ui-bootstrap-tpls-0.10.0.min.js"></script>
+        <script src="/static/scrooge/lib/bootstrap-table.js"></script>
         <script src="/static/scrooge/lib/raven.min.js"></script>
         <script src="/static/scrooge/lib/scrooge.js"></script>
         <script src="/static/scrooge/app/app.js"></script>
@@ -40,18 +46,10 @@
                 </ul>
             </div>
             <!-- /.panel-body -->
-            <div class="panel-body"><ng-view></ng-view></div>
+            <div class="panel-body panel-body-main">
+            <ng-view></ng-view>
+            </div>
             <div class="panel-footer footer">
-                <p class="version">version 3.0.0</p>
-                <p>Powered by
-                    <a href="https://wiki.allegrogroup.com/display/PYLABS/Ralph+Scrooge">
-                        <img src="/static/scrooge/img/scrooge-logo.png" style="width: 18%"></img>
-                    </a>
-                    Brought to you by
-                    <a href="https://wiki.office/display/PYLABS/Team">
-                        <img src="/static/scrooge/img/pylabs.png" style="width: 18%"></img>
-                    </a>
-                </p>
             </div>
         </div>
     </body>

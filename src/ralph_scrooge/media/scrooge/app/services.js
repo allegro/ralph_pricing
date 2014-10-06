@@ -4,7 +4,7 @@ ang_services.factory('stats', ['$http', function ($http) {
     return {
         components: {
             menuReady: false,
-            contentReady: false,
+            contentReady: 0,
             "months": [
                 {"asString": "january", "asInt": 1, "intAsString": "01"},
                 {"asString": "february", "asInt": 2, "intAsString": "02"},
@@ -24,7 +24,8 @@ ang_services.factory('stats', ['$http', function ($http) {
                 "env": {"current": false, "change": false},
                 "year": {"current": false, "change": false},
                 "month": {"current": false, "change": false},
-                "day": {"current": false, "change": false}
+                "day": {"current": false, "change": false},
+                "table": false
             },
         },
         init: function() {
@@ -76,6 +77,7 @@ ang_services.factory('stats', ['$http', function ($http) {
                 }
             })
             if (force == false && refresh == true) {
+                self.components.contentReady += 1
                 $http({
                     method: 'GET',
                     url: '/scrooge/components/'
@@ -87,12 +89,10 @@ ang_services.factory('stats', ['$http', function ($http) {
                 }).
                 success(function(data, status, headers, config) {
                     self.components.content = data
-                    self.components.currentContent = data[0]
-                    console.log(self.components.content)
+                    self.components.contentReady -= 1
                 }).
                 error(function(data, status, headers, config) {
-                    // called asynchronously if an error occurs
-                    // or server returns response with an error status.
+                    self.components.contentReady -= 1
                 });
             }
             if (self.components.menuReady == false) {

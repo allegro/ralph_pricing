@@ -1,7 +1,10 @@
 @import url(http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css);
 .fa-fw {width: 2em;}
 #body {
-    height: 90%;
+    height: 100%;
+}
+.panel-body-main {
+    position: relative;
 }
 .nav.nav-tabs h1{
     margin: 0px 10px;
@@ -192,11 +195,12 @@
 .sidebar-nav-scrooge {
     padding: 0px;
     border: 1px solid black;
-    border-right: none;
-    -webkit-border-radius: 10px 0px 0px 10px;
-    -moz-border-radius: 10px 0px 0px 10px;
-    border-radius: 10px 0px 0px 10px;
+    border-top: none;
+    -webkit-border-radius: 0px 0px 10px 10px;
+    -moz-border-radius: 0px 0px 10px 10px;
+    border-radius: 0px 0px 10px 10px;
 }
+
 .sidebar-navbar-default {
     background-color: white;
     margin-top: -2px;
@@ -215,9 +219,6 @@
     margin-bottom: 7px !important;
     padding-bottom: 0px;
     padding-top: 0px;
-}
-.filters-container {
-    border: 0px;
 }
 .filter-table {
     overflow: scroll;
@@ -378,7 +379,7 @@ div[dir="ltr"] {
     border-radius: 10px 0px 0px 10px;
 }
 .btn-left-menu.active {
-    background-color: #f5f5f5!important;
+    background-color: #f5f5f5 !important;
 }
 .env-menu ul li {
     padding-left: 50px;
@@ -389,22 +390,19 @@ div[dir="ltr"] {
 }
 .components-category {
     cursor: pointer;
+    color: #FFFFFF;
+    padding: 0px 10px;
 }
-table.usages input {
-    width: initial;
+.add-filter {
+    display: inline-block;
 }
-thead {
-    background: #FFFFFF;
-}
-.fixed {
-    top:0;
-    position:fixed;
-    width:auto;
-    display:none;
-    border:none;
-}
-.fixed th {
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
+.preloader {
+    background-color: rgba(100, 100, 100, 0.2);
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    top: 0;
+    left: 0;
 }

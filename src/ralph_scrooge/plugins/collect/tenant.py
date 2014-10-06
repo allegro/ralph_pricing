@@ -12,6 +12,7 @@ from ralph.util import plugin, api_scrooge
 from ralph_scrooge.models import (
     DailyTenantInfo,
     PricingObjectType,
+    PricingObjectColor,
     ServiceEnvironment,
     TenantGroup,
     TenantInfo,
@@ -60,6 +61,7 @@ def save_tenant_info(tenant, unknown_service_environment):
         tenant_info = TenantInfo(
             tenant_id=tenant['tenant_id'],
             type=PricingObjectType.tenant,
+            color=PricingObjectColor.tenant,
         )
     tenant_info.group = get_tenant_group(tenant)
     tenant_info.name = tenant['name']
