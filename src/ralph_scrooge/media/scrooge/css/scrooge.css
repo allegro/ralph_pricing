@@ -362,7 +362,7 @@ div[dir="ltr"] {
     margin: 0 auto;
 }
 .panel-tree {
-    background-color: #ffaaaa
+    background-color: #ffaaaa;
 }
 #side-menu .active {
     display: block !important;

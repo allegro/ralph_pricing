@@ -172,7 +172,7 @@
 
 
                   <div ng-if="stats.components.menuStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content">
-                    <table data-toggle="table" data="currentData['value']" data-pagination="true">
+                    <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true">
                         <thead>
                             <tr>
                                 <th data-field="{{val}}" data-sortable="true" ng-repeat="(cell, val) in data.schema">{{val}}</th>
