@@ -18,12 +18,3 @@ ang_directives.directive('menucalendardirective', function() {
         }
     }
 });
-ang_directives.directive('componentscontentdirective', function() {
-    return {
-        restrict: 'EACM',
-        templateUrl: '/static/scrooge/partials/componentscontent.html',
-        replace: true,
-        link: function (scope, element, attrs) {
-        }
-    }
-});

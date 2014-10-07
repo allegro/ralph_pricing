@@ -10,13 +10,17 @@ ang_controllers.controller('components', ['$scope', '$routeParams','menuService'
     $scope.days = stats.components.days
     $scope.$watch(function () {
         $scope.days = stats.components.days
-        $scope.content = stats.components.content
-        if (typeof($scope.content) != 'undefined') {
-            $scope.content.forEach(function (element, key) {
-                $('#table_' + key + ' table').bootstrapTable({
-                    data: element.value,
+        if (typeof(stats.components.content) != 'undefined') {
+            if (stats.components.content != $scope.content) {
+                $scope.content = stats.components.content
+                stats.components.content.forEach(function (element, key) {
+                    $scope.$evalAsync(function() {
+                        $('#table_' + key + ' table').bootstrapTable({
+                            data: element.value,
+                        });
+                    });
                 });
-            })
+            }
         }
     });
 

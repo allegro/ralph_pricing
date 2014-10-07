@@ -25,7 +25,9 @@ ang_services.factory('stats', ['$http', function ($http) {
                 "year": {"current": false, "change": false},
                 "month": {"current": false, "change": false},
                 "day": {"current": false, "change": false},
-                "table": false
+            },
+            "contentStats": {
+                "table": false,
             },
         },
         init: function() {
@@ -90,6 +92,7 @@ ang_services.factory('stats', ['$http', function ($http) {
                 success(function(data, status, headers, config) {
                     self.components.content = data
                     self.components.contentReady -= 1
+                    self.components.contentStats.table = data[0].name
                 }).
                 error(function(data, status, headers, config) {
                     self.components.contentReady -= 1
@@ -117,7 +120,16 @@ ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
             return stats.components.menu
         },
         changeService: function(service) {
-            stats.components.menuStats['service']['change'] = service
+            stats.components.menuStats['service']['change'] = service.service
+            envExist = false
+            service.value.envs.forEach(function(element, key) {
+                if (element.env == stats.components.menuStats['env']['current']) {
+                    envExist = true
+                }
+            })
+            if (envExist == false) {
+                stats.components.menuStats['env']['change'] = service.value.envs[0].env
+            }
             stats.refreshData()
         },
         changeEnv: function(service, env) {

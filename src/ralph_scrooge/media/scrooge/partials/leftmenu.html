@@ -5,7 +5,7 @@
         </div>
     </li>
     <li class="env-menu" ng-repeat="service in stats.components.menu | filter:searchTextMenu">
-        <a class="btn-left-menu {{stats.components.menuStats['service']['current'] == service.service ? 'active' : ''}}" ng-click="menuService.changeService(service.service)">{{service.service}}</a>
+        <a class="btn-left-menu {{stats.components.menuStats['service']['current'] == service.service ? 'active' : ''}}" ng-click="menuService.changeService(service)">{{service.service}}</a>
         <ul ng-click="menuService.changeEnv(service.service, env.env)" ng-show="stats.components.menuStats['service']['current'] == service.service" class="nav nav-second-level" ng-repeat="env in service.value.envs">
             <li>
                 <a class="btn-left-submenu {{stats.components.menuStats['env']['current'] == env.env ? 'active' : ''}}" ng-click="setCurrentEnv(env)">{{env.env}}</a>

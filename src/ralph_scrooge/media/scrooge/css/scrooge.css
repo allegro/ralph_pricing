@@ -12,7 +12,7 @@ a:hover {
 .panel-body-main {
     position: relative;
 }
-.nav.nav-tabs h1{
+.nav.nav-tabs h1 {
     margin: 0px 10px;
     height: 40px;
     padding-bottom: 10px;
@@ -20,10 +20,10 @@ a:hover {
 .nav.nav-tabs h1 img {
     margin-top: -20px;
 }
-.nav-main li > a{
+.nav-main li > a {
     background-color: #cccccc;
 }
-.nav.nav-tabs .active a{
+.nav.nav-tabs .active a {
     background-color: #8f94c5;
 }
 .nav.nav-tabs a {
@@ -40,6 +40,9 @@ a:hover {
 }
 .nav-submenu {
     background-color: #8f94c5;
+}
+.nav-submenu .active a {
+    background-color: #ffffff !important;
 }
 .dropdown-left-menu {
     border: 0px;
@@ -404,6 +407,10 @@ div[dir="ltr"] {
     cursor: pointer;
     color: #FFFFFF;
     padding: 0px 10px;
+}
+.components-category.active {
+    border: 4px solid #aaa;
+    margin-top: -4px;
 }
 .add-filter {
     display: inline-block;
