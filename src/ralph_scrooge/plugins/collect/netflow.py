@@ -14,7 +14,6 @@ from django.conf import settings
 
 from ralph.util import plugin
 from ralph_scrooge.models import (
-    DailyPricingObject,
     DailyUsage,
     PricingObject,
     PricingObjectType,
@@ -285,13 +284,7 @@ def update(
                 service_environment=default_service_environment,
             )
         )
-        daily_pricing_object = DailyPricingObject.objects.get_or_create(
-            date=date,
-            pricing_object=pricing_object,
-            defaults=dict(
-                service_environment=pricing_object.service_environment,
-            )
-        )[0]
+        daily_pricing_object = pricing_object.get_daily_pricing_object(date)
         daily_usage, usage_created = DailyUsage.objects.get_or_create(
             date=date,
             type=usage_type,
@@ -300,7 +293,9 @@ def update(
                 service_environment=daily_pricing_object.service_environment,
             ),
         )
-        daily_usage.service = daily_pricing_object.service_environment
+        daily_usage.service_environment = (
+            daily_pricing_object.service_environment
+        )
         daily_usage.value = value
         daily_usage.save()
         if created:
