@@ -1,13 +1,9 @@
 var ang_controllers = angular.module('ang_controllers', []);
 
-ang_controllers.controller('components', ['$scope', '$routeParams','menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
-    stats.init()
-    $scope.menuService = menuService
-    $scope.menuCalendar = menuCalendar
-    $scope.stats = stats
-
-    stats.getDays()
-    $scope.days = stats.components.days
+ang_controllers.controller('componentsCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
+    stats.refreshCurrentSubpage = function () {
+        stats.getComponentsData()
+    }
     $scope.$watch(function () {
         $scope.days = stats.components.days
         if (typeof(stats.components.content) != 'undefined') {
@@ -34,19 +30,34 @@ ang_controllers.controller('components', ['$scope', '$routeParams','menuService'
     $scope.preventClose = function(event) {event.stopPropagation()};
 }]);
 
-ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'stats', function ($scope, $routeParams, stats) {
+ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats', function ($scope, $routeParams, menuService, menuCalendar, stats) {
+    stats.init()
+    $scope.menuService = menuService
+    $scope.menuCalendar = menuCalendar
+    $scope.stats = stats
 
+    stats.getDays()
+    $scope.days = stats.components.days
+    $scope.getDictLength = function (dict) {
+        return Object.keys(dict).length
+    }
 }]);
 
-ang_controllers.controller('componentsContentCtrl', ['$scope', '$routeParams', '$http', 'stats', function ($scope, $routeParams, $http, stats) {
-    $scope.content = stats.components.content
-    $scope.currentData = stats.components.currentContent
-    $scope.$watch(function () {
-        $scope.content = stats.components.content
-        $scope.currentData = stats.components.currentContent
-    });
-}]);
 
 var ButtonsCtrl = function ($scope) {
 
 };
+
+ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', '$http', 'stats', function ($scope, $routeParams, $http, menuService, menuCalendar, stats) {
+    stats.refreshCurrentSubpage = function () {
+        stats.getAllocationClientData()
+    }
+    $scope.addRow = function (costList) {
+        costList.push(
+            {"service": false, "value": 0}
+        )
+    }
+    $scope.removeRow = function (index, costList) {
+        costList.splice(index, 1);
+    }
+}]);

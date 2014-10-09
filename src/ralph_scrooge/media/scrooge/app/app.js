@@ -42,7 +42,11 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
         $routeProvider.
             when('/components/', {
                 templateUrl: '/static/scrooge/partials/components.html',
-                controller: 'components',
+                controller: 'componentsCtrl',
+            }).
+            when('/allocation/client/', {
+                templateUrl: '/static/scrooge/partials/allocationclient.html',
+                controller: 'allocationClientCtrl',
             }).
             otherwise({redirectTo: '/components/'});
     }

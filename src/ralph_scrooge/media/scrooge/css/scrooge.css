@@ -3,7 +3,7 @@
 #body {
     height: 100%;
 }
-a, a:active, a:link{
+a, a:active, a:link {
     color: #777777;
 }
 a:hover {
@@ -375,7 +375,7 @@ div[dir="ltr"] {
 .panel-tree {
     background-color: #ffaaaa;
 }
-#side-menu .active {
+#side-menu .env-menu .active {
     display: block !important;
 }
 #side-menu li {
@@ -428,6 +428,10 @@ div[dir="ltr"] {
 .custom-search-form {
     width: 100%;
 }
-.table-content-header {
-
+.allocation-tabs li {
+    background-color: #eeeeee;
+    cursor: pointer;
+}
+.allocation-tabs li.active {
+    background-color: #cccccc;
 }
