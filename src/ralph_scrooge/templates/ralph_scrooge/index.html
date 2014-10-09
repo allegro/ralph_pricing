@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="app">
+    <head>
+        <meta charset="utf-8">
+        <title>Ralph Scrooge</title>
+        <link rel="stylesheet" href="/static/scrooge/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/bootstrap-table.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/scrooge.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/sb-admin-2.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/multiple-select.css" />
+        <script src="/static/scrooge/lib/jquery.min.js"></script>
+        <script src="/static/scrooge/lib/jquery.multiple.select.js"></script>
+        <script src="/static/scrooge/lib/angular/angular.js"></script>
+        <script src="/static/scrooge/lib/angular/angular-resource.js"></script>
+        <script src="/static/scrooge/lib/angular/angular-route.js"></script>
+        <script src="/static/scrooge/lib/angular/angular-cookies.js"></script>
+        <script src="/static/scrooge/lib/ui-bootstrap-tpls-0.10.0.min.js"></script>
+        <script src="/static/scrooge/lib/bootstrap-table.js"></script>
+        <script src="/static/scrooge/lib/raven.min.js"></script>
+        <script src="/static/scrooge/lib/scrooge.js"></script>
+        <script src="/static/scrooge/app/app.js"></script>
+        <script src="/static/scrooge/app/controllers.js"></script>
+        <script src="/static/scrooge/app/directives.js"></script>
+        <script src="/static/scrooge/app/services.js"></script>
+    </head>
+    <body ng-controller="mainCtrl" class="bs-docs-home">
+        <div id="header" class="panel panel-default">
+            <!-- /.panel-heading -->
+            <div class="panel-heading">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs nav-main" role="tablist">
+                    <li><h1><a href='/'><img src="/static/scrooge/img/scrooge-logo.png"></a></h1></li>
+                    <li><a href="/ui/ventures/">CORE</a></li>
+                    <li><a href="/assets/dc/search">ASSETS</a></li>
+                    <li class="active"><a href="/scrooge/#/components">SCROOGE</a></li>
+                    <li><a href="/cmdb/changes/timeline">CMDB</a></li>
+                </ul>
+                <ul class="nav nav-tabs nav-submenu" role="tablist">
+                    <li class="" ng-click="submenuActive = 'components'"><a href="#components" data-toggle="tab">Components</a></li>
+                    <li><a href="#allocation/client" data-toggle="tab">Allocation</a></li>
+                    <li><a href="/scrooge/services-changes-report/" data-toggle="tab">Services Changes Report</a></li>
+                    <li><a href="/scrooge/extra-costs/" data-toggle="tab">Extra costs</a></li>
+                    <li><a href="/scrooge/usage-types/" data-toggle="tab">Usage types</a></li>
+                    <li><a href="/scrooge/collect-plugins/" data-toggle="tab">Collect plugins</a></li>
+                    <li><a href="/scrooge/monthly-costs/" data-toggle="tab">Monthly costs</a></li>
+                </ul>
+            </div>
+            <!-- /.panel-body -->
+            <div class="panel-body panel-body-main">
+            <ng-view></ng-view>
+            </div>
+            <div class="panel-footer footer">
+            </div>
+        </div>
+    </body>
+</html>
+<!--STATS-->

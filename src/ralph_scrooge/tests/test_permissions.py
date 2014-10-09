@@ -16,6 +16,7 @@ from ralph.account.models import Perm
 from ralph.ui.tests.functional.tests_view import LoginRedirectTest
 from ralph_scrooge import urls
 from ralph_scrooge.views.base import Base
+from ralph_scrooge.views.bootstrapangular import BootstrapAngular
 
 
 class TestPermissions(TestCase):
@@ -27,7 +28,8 @@ class TestPermissions(TestCase):
         Checks if every view from urls is subclass of Base view
         """
         for i in urls.__dict__.values():
-            if inspect.isclass(i) and issubclass(i, View):
+            if (inspect.isclass(i) and issubclass(i, View)
+                    and not issubclass(i, BootstrapAngular)):
                 self.assertTrue(issubclass(i, Base))
 
 

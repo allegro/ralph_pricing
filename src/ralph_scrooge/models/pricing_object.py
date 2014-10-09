@@ -60,6 +60,16 @@ class PricingObjectType(Choices):
     unknown = _('Unknown', id=255)
 
 
+class PricingObjectColor(Choices):
+    _ = Choices.Choice
+    asset = _("#428bca")
+    virtual = _("#f68c1f")
+    tenant = _("#35468b")
+    ip_address = _("#25963e")
+    dummy = _('#eeeeee', id=254)
+    unknown = _('#cccccc', id=255)
+
+
 class PricingObject(TimeTrackable, EditorTrackable):
     name = db.CharField(
         verbose_name=_("name"),
@@ -72,6 +82,11 @@ class PricingObject(TimeTrackable, EditorTrackable):
         verbose_name=_("type"),
         choices=PricingObjectType(),
         default=PricingObjectType.unknown.id,
+    )
+    color = db.PositiveIntegerField(
+        verbose_name=_("type"),
+        choices=PricingObjectColor(),
+        default=PricingObjectColor.unknown.id,
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
