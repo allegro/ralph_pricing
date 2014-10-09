@@ -37,11 +37,11 @@ ang_services.factory('stats', ['$http', function ($http) {
             contentReady: 0,
             serviceDivision: {
                 total: 0,
-                rows: [{"service": false, "value": 0}]
+                rows: [{"service": false, "env": false, "value": 0}]
             },
             serviceExtraCost: {
                 total: 0,
-                rows: [{"service": false, "value": 0}]
+                rows: [{"service": false, "env": false, "value": 0}]
             },
             teamDivision: {
                 total: 0,
@@ -144,9 +144,12 @@ ang_services.factory('stats', ['$http', function ($http) {
                     + self.menuStats['month']['current'] + '/'
             }).
             success(function(data, status, headers, config) {
-                self.components.content = data
+                if (data) {
+                    data.forEach(function (element) {
+                        self.allocationclient[element.key] = element.value
+                    })
+                }
                 self.components.contentReady -= 1
-                self.components.contentStats.table = data[0].name
             }).
             error(function(data, status, headers, config) {
                 self.components.contentReady -= 1
@@ -157,43 +160,53 @@ ang_services.factory('stats', ['$http', function ($http) {
                 case 'serviceDivision':
                     url = '/scrooge/allocateclient/servicedivision/save/'
                     data = {
-                        'service': self.menuStats['service']['current'],
-                        'data': self.allocationclient.serviceDivision.rows,
+                        "service": self.menuStats['service']['current'],
+                        "rows": self.allocationclient.serviceDivision.rows,
                     }
                     break;
                 case 'serviceExtraCost':
                     url = '/scrooge/allocateclient/servicedivision/save/'
                     data = {
                         'service': self.menuStats['service']['current'],
-                        'data': self.allocationclient.serviceExtraCosts.rows,
+                        'rows': self.allocationclient.serviceExtraCosts.rows,
                     }
                     break;
                 case 'teamDivision':
                     url = '/scrooge/allocateclient/servicedivision/save/'
                     data = {
                         'service': self.menuStats['service']['current'],
-                        'data': self.allocationclient.teamDivision.rows,
+                        'rows': self.allocationclient.teamDivision.rows,
                     }
                     break;
                 default:
                     url = ''
                     data = {}
             }
+            data['month'] = self.menuStats['month']['current']
+            data['year'] = self.menuStats['year']['current']
             $http({
-                method: 'POST',
                 url: url,
-                data: {
-                    'service': self.menuStats['service']['current'],
-                    'data': data,
-                }
+                method: 'POST',
+                data: data,
             }).
             success(function(data, status, headers, config) {
-                console.log(data)
+
             }).
             error(function(data, status, headers, config) {
                 // called asynchronously if an error occurs
                 // or server returns response with an error status.
             });
+        },
+        getEnvs: function (row) {
+            var envs = []
+            if (self.menus) {
+                self.menus['service'].forEach(function (element) {
+                    if (element.service == row.service) {
+                        envs = element.value.envs
+                    }
+                })
+            }
+            return envs
         }
     }
 }]);

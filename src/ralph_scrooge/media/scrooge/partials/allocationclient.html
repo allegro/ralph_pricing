@@ -21,12 +21,18 @@
               <table class="table">
                 <tr>
                   <td></td>
+                  <td></td>
                   <td>{{stats.allocationclient.serviceDivision.total}}%</td>
                 </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
                   <td>
                     <select ng-model="row.service" ng-change="updateTotal('serviceDivision')" class="form-control">
                       <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select ng-model="row.env" ng-change="updateTotal('serviceDivision')" class="form-control">
+                      <option ng-repeat="env in stats.getEnvs(row)">{{env.env}}</option>
                     </select>
                   </td>
                   <td>

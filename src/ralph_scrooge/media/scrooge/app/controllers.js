@@ -67,7 +67,7 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
                 save = true
                 stats.allocationclient.serviceDivision.rows.forEach(function (element) {
                     count += parseInt(element.value)
-                    if (element.service == false) {
+                    if (element.service == false || element.env == false) {
                         save = false
                     }
                 })
