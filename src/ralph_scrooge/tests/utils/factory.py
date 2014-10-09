@@ -33,7 +33,7 @@ class WarehouseFactory(DjangoModelFactory):
 class ServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.Service
 
-    name = Sequence(lambda n: 'Service #%s' % n)
+    name = Sequence(lambda n: 'Service%s' % n)
     symbol = Sequence(lambda n: 'service_%s' % n)
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
@@ -42,7 +42,7 @@ class ServiceFactory(DjangoModelFactory):
 class EnvironmentFactory(DjangoModelFactory):
     FACTORY_FOR = models.Environment
 
-    name = Sequence(lambda n: 'Environment #%s' % n)
+    name = Sequence(lambda n: 'Environment%s' % n)
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
@@ -57,8 +57,8 @@ class ServiceEnvironmentFactory(DjangoModelFactory):
 class UsageTypeFactory(DjangoModelFactory):
     FACTORY_FOR = models.UsageType
 
-    name = Sequence(lambda n: 'UsageType #%s' % n)
-    symbol = Sequence(lambda n: 'usagetype_%s' % n)
+    name = Sequence(lambda n: 'UsageType%s' % n)
+    symbol = Sequence(lambda n: 'ut%s' % n)
 
 
 class PricingObjectFactory(DjangoModelFactory):
@@ -66,7 +66,7 @@ class PricingObjectFactory(DjangoModelFactory):
 
     type = 1
     service_environment = SubFactory(ServiceEnvironmentFactory)
-    name = Sequence(lambda n: 'Pricing Object #%s' % n)
+    name = Sequence(lambda n: 'Pricing Object%s' % n)
 
 
 class DailyPricingObjectFactory(DjangoModelFactory):
@@ -140,7 +140,7 @@ class OwnerFactory(DjangoModelFactory):
 class BusinessLineFactory(DjangoModelFactory):
     FACTORY_FOR = models.BusinessLine
 
-    name = Sequence(lambda n: 'Business Line #%s' % n)
+    name = Sequence(lambda n: 'Business Line%s' % n)
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
 
@@ -148,8 +148,8 @@ class BusinessLineFactory(DjangoModelFactory):
 class ProfitCenterFactory(DjangoModelFactory):
     FACTORY_FOR = models.ProfitCenter
 
-    name = Sequence(lambda n: 'Profit Center #%s' % n)
-    description = Sequence(lambda n: 'Profit Center #%s description' % n)
+    name = Sequence(lambda n: 'Profit Center%s' % n)
+    description = Sequence(lambda n: 'Profit Center%s description' % n)
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
     business_line = SubFactory(BusinessLineFactory)
@@ -239,7 +239,7 @@ class DynamicExtraCostDivisionFactory(DjangoModelFactory):
 class TeamFactory(DjangoModelFactory):
     FACTORY_FOR = models.Team
 
-    name = Sequence(lambda n: 'Team #%s' % n)
+    name = Sequence(lambda n: 'Team %s' % n)
     show_in_report = True
     show_percent_column = False
     billing_type = models.TeamBillingType.time
@@ -267,7 +267,7 @@ class TeamServiceEnvironmentPercentFactory(DjangoModelFactory):
 class PricingServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.PricingService
 
-    name = Sequence(lambda n: 'Pricing Service #%s' % n)
+    name = Sequence(lambda n: 'Pricing Service %s' % n)
     symbol = Sequence(lambda n: 'ps%s' % n)
     use_universal_plugin = True
 

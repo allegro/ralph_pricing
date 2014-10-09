@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource
+from ralph_scrooge.views.bootstrapangular import BootstrapAngular
 from ralph_scrooge.views.collect_plugins import CollectPlugins
 from ralph_scrooge.views.extra_costs import ExtraCosts
 from ralph_scrooge.views.usage_types import UsageTypes
@@ -18,7 +19,13 @@ from ralph_scrooge.views.teams_percent import TeamsPercent
 from ralph_scrooge.views.monthly_costs import MonthlyCosts
 from ralph_scrooge.views.report_services_changes import ServicesChangesReportView  # noqa
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
-from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView
+from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
+from ralph_scrooge.rest import (
+    left_menu,
+    components_content,
+    allocation_save,
+    allocation_content
+)
 
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
@@ -26,11 +33,20 @@ for r in (PricingServiceUsageResource, ):
 
 urlpatterns = patterns(
     '',
+    url(
+        r'^allocateclient/(?P<service>\S.+)/(?P<env>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/$',  # noqa
+        allocation_content,
+    ),
+    url(r'^allocateclient/(?P<allocate_type>\S.+)/save/$', allocation_save),
+    url(
+        r'^components/(?P<service>\S.+)/(?P<env>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/(?P<day>\d+)/$',  # noqa
+        components_content,
+    ),
+    url(r'^leftmenu/(?P<menu_type>\S.+)/$', left_menu),
     url(r'^api/', include(v09_api.urls)),
-    # reports
     url(
         r'^$',
-        login_required(ServicesCostsReportView.as_view()),
+        login_required(BootstrapAngular.as_view()),
         name='services_costs_report',
     ),
     url(

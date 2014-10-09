@@ -22,23 +22,36 @@ class ScroogeMenu(Menu):
 
     def get_submodules(self):
         return [
+            # MenuItem(
+            #     _("Costs report"),
+            #     name='services-costs-report',
+            #     fugue_icon='fugue-store-medium',
+            #     view_name='services_costs_report',
+            # ),
+            # MenuItem(
+            #     _("Service details report"),
+            #     name='devices',
+            #     fugue_icon='fugue-wooden-box',
+            #     # view_name='devices',
+            # ),
+            # MenuItem(
+            #     _("Usages report"),
+            #     name='services-usages-report',
+            #     fugue_icon='fugue-calendar-day',
+            #     view_name='services_usages_report',
+            # ),
+            # MenuItem(
+            #     _("Collect plugins"),
+            #     name='services-usages-report',
+            #     fugue_icon='fugue-calendar-day',
+            #     view_name='services_usages_report',
+            # ),
             MenuItem(
-                _("Costs report"),
-                name='services-costs-report',
-                fugue_icon='fugue-store-medium',
-                view_name='services_costs_report',
-            ),
-            MenuItem(
-                _("Service details report"),
-                name='devices',
-                fugue_icon='fugue-wooden-box',
-                # view_name='devices',
-            ),
-            MenuItem(
-                _("Usages report"),
-                name='services-usages-report',
-                fugue_icon='fugue-calendar-day',
-                view_name='services_usages_report',
+                _("Components"),
+                name='components',
+                fugue_icon='fugue-arrow-switch',
+                view_name='components',
+                href="/scrooge/#/components/"
             ),
             MenuItem(
                 _("Services changes report"),
@@ -70,18 +83,6 @@ class ScroogeMenu(Menu):
                 fugue_icon='fugue-money-bag',
                 view_name='monthly_costs',
             ),
-            # MenuItem(
-            #     _("Teams"),
-            #     name='teams',
-            #     fugue_icon='fugue-users',
-            #     view_name='teams',
-            # ),
-            # MenuItem(
-            #     _("Statements"),
-            #     name='statement',
-            #     fugue_icon='fugue-clock-history',
-            #     view_name='statement',
-            # ),
         ]
 
     def get_sidebar_items(self):
