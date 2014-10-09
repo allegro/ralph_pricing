@@ -60,4 +60,28 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
     $scope.removeRow = function (index, costList) {
         costList.splice(index, 1);
     }
+    $scope.updateTotal = function (tab) {
+        switch(tab) {
+            case 'serviceDivision':
+                count = 0
+                save = true
+                stats.allocationclient.serviceDivision.rows.forEach(function (element) {
+                    count += parseInt(element.value)
+                    if (element.service == false) {
+                        save = false
+                    }
+                })
+                stats.allocationclient.serviceDivision.total = count
+                if (stats.allocationclient.serviceDivision.total == 100 && save) {
+                    stats.saveAllocation(tab)
+                }
+                break;
+            case 'serviceExtraCost':
+                break;
+            case 'teamDivision':
+                break;
+            default:
+
+        }
+    }
 }]);

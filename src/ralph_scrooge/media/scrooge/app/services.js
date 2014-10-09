@@ -36,12 +36,15 @@ ang_services.factory('stats', ['$http', function ($http) {
             allocationActiveTab: 'allocate_costs',
             contentReady: 0,
             serviceDivision: {
+                total: 0,
                 rows: [{"service": false, "value": 0}]
             },
             serviceExtraCost: {
+                total: 0,
                 rows: [{"service": false, "value": 0}]
             },
             teamDivision: {
+                total: 0,
                 rows: [{"service": false, "value": 0}]
             }
         },

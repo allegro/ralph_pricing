@@ -19,14 +19,18 @@
             </ul>
             <div ng-show="stats.allocationclient.allocationActiveTab == 'allocate_costs'" class="allocate-costs-tab">
               <table class="table">
+                <tr>
+                  <td></td>
+                  <td>{{stats.allocationclient.serviceDivision.total}}%</td>
+                </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
                   <td>
-                    <select ng-model="serviceSelect" ng-change="stats.saveAllocation('serviceDivision')" class="form-control">
+                    <select ng-model="row.service" ng-change="updateTotal('serviceDivision')" class="form-control">
                       <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
                     </select>
                   </td>
                   <td>
-                    <input ng-model="allocateCosts" ng-blur="stats.saveAllocation('serviceDivision')" type="text" class="form-control">
+                    <input ng-model="row.value" ng-change="updateTotal('serviceDivision')" type="text" class="form-control" value="{{row.value}}">
                   </td>
                   <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">+</button></td>
                   <td><button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">-</button></td>
@@ -42,7 +46,7 @@
                     </select>
                   </td>
                   <td>
-                    <input ng-model="allocateCosts" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
+                    <input ng-model="row.value" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control" value="{{row.value}}">
                   </td>
                   <td><button ng-click="addRow(stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">+</button></td>
                   <td><button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-success">-</button></td>
