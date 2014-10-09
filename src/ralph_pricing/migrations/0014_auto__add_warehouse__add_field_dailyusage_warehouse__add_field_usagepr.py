@@ -8,11 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'UsagePrice', fields ['type', 'end']
-        db.delete_unique('ralph_pricing_usageprice', ['type_id', 'end'])
+        try:
+            # Removing unique constraint on 'UsagePrice', fields ['type', 'end']
+            db.delete_unique('ralph_pricing_usageprice', ['type_id', 'end'])
 
-        # Removing unique constraint on 'UsagePrice', fields ['start', 'type']
-        db.delete_unique('ralph_pricing_usageprice', ['start', 'type_id'])
+            # Removing unique constraint on 'UsagePrice', fields ['start', 'type']
+            db.delete_unique('ralph_pricing_usageprice', ['start', 'type_id'])
+        except ValueError:
+            # sometimes unique is not created before this migration
+            pass
 
         # Adding model 'Warehouse'
         db.create_table('ralph_pricing_warehouse', (
