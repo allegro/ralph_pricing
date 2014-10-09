@@ -23,9 +23,11 @@ from ralph_scrooge.models import (
 @jsonify
 @require_http_methods(["POST", "GET"])
 def left_menu(request, *args, **kwargs):
-    service_environments = ServiceEnvironment.objects.all().select_related(
+    service_environments = ServiceEnvironment.objects.select_related(
         "service",
         "environment",
+    ).filter(
+        service__serviceownership__owner__profile__user=request.user,
     ).order_by(
         "service__name",
     )
