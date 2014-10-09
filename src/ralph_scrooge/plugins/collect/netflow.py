@@ -282,7 +282,6 @@ def update(
         pricing_object, created = PricingObject.objects.get_or_create(
             name=ip,
             type=PricingObjectType.ip_address,
-            color=PricingObjectColor.ip_address,
             defaults=dict(
                 service_environment=default_service_environment,
             )

@@ -6,8 +6,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from collections import date, OrderedDict
-from datetime import timedelta
+from collections import OrderedDict
+from datetime import date, timedelta
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
