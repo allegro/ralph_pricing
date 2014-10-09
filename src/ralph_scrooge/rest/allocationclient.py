@@ -36,6 +36,7 @@ def allocation_content(request, *args, **kwargs):
 @jsonify
 @require_http_methods(["POST", "GET"])
 def allocation_save(request, *args, **kwargs):
+    service_usage_type = _get_service_usage_type(*args, **kwargs)
     print (request.POST, args, kwargs)
     if kwargs.get('allocate_type') == 'servicedivision':
         return {'status': 'ok'}
