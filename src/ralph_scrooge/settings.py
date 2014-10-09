@@ -36,3 +36,15 @@ ADDITIONAL_PRICING_OBJECT_TYPES = {}
 
 import sys
 TESTING = 'test' in sys.argv
+
+COMPONENTS_TABLE_SCHEMA = {
+    'Asset': ['id', 'name', 'assetinfo.sn', 'assetinfo.barcode'],
+    'Virtual': ['id', 'name', 'virtualinfo.device_id'],
+    'IP Address': ['id', 'name'],
+    'OpenStack Tenant': [
+        'id',
+        'name',
+        'tenantinfo.tenant_id',
+        'tenantinfo.device_id',
+    ],
+}

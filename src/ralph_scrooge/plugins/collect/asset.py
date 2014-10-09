@@ -18,6 +18,7 @@ from ralph_scrooge.models import (
     DailyAssetInfo,
     DailyUsage,
     PricingObjectType,
+    PricingObjectColor,
     ServiceEnvironment,
     UsagePrice,
     UsageType,
@@ -59,6 +60,7 @@ def get_asset_info(service_environment, warehouse, data):
         asset_info = AssetInfo(
             asset_id=data['asset_id'],
             type=PricingObjectType.asset,
+            color=PricingObjectColor.asset,
         )
         created = True
     asset_info.model = AssetModel.objects.get(model_id=data['model_id'])

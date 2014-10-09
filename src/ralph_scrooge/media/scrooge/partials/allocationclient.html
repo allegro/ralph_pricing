@@ -1,0 +1,71 @@
+<div class="preloader" ng-if="stats.menuReady == false">
+  <img src="/static/scrooge/img/preloader.gif">
+</div>
+<div class="container-xs-height body-container">
+    <div class="col-xs-2 left-menu-container col-xs-height col-bottom">
+      <div class="navbar-default sidebar-navbar-default" role="navigation">
+        <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
+      </div>
+    </div>
+    <div class="col-xs-10 content">
+        <div class="col-xs-12 calendar" ng-controler="calendarCtrl">
+          <menucalendardirective ng-if="stats.menuReady"></menucalendardirective>
+        </div>
+        <div ng-if="stats.allocationclient.contentReady == 0">
+          <div ng-show="stats.menuActive == 'service'">
+            <ul class="nav nav-tabs allocation-tabs" role="tablist">
+              <li ng-click="stats.allocationclient.allocationActiveTab = 'allocate_costs'" class="{{stats.allocationclient.allocationActiveTab == 'allocate_costs' ? 'active': ''}}"><a>Allocate Costs</a></li>
+              <li ng-click="stats.allocationclient.allocationActiveTab = 'extra_costs'" class="{{stats.allocationclient.allocationActiveTab == 'extra_costs' ? 'active': ''}}"><a>Extra Costs</a></li>
+            </ul>
+            <div ng-show="stats.allocationclient.allocationActiveTab == 'allocate_costs'" class="allocate-costs-tab">
+              <table class="table">
+                <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
+                  <td>
+                    <select ng-model="serviceSelect" ng-change="stats.saveAllocation('serviceDivision')" class="form-control">
+                      <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input ng-model="allocateCosts" ng-blur="stats.saveAllocation('serviceDivision')" type="text" class="form-control">
+                  </td>
+                  <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">+</button></td>
+                  <td><button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">-</button></td>
+                </tr>
+              </table>
+            </div>
+            <div ng-show="stats.allocationclient.allocationActiveTab == 'extra_costs'" class="extra-costs-tab">
+              <table class="table">
+                <tr ng-repeat="row in stats.allocationclient.serviceExtraCost.rows">
+                  <td>
+                    <select ng-model="serviceSelect" ng-change="stats.saveAllocation('serviceExtraCost')" class="form-control">
+                      <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input ng-model="allocateCosts" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
+                  </td>
+                  <td><button ng-click="addRow(stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">+</button></td>
+                  <td><button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-success">-</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div ng-show="stats.menuActive == 'teams'">
+            <table class="table">
+              <tr ng-repeat="row in stats.allocationclient.teamDivision.rows">
+                <td>
+                  <select ng-model="serviceSelect" ng-change="stats.saveAllocation('serviceDivision')" class="form-control">
+                      <option ng-repeat="service in stats.menus['teams']">{{service.service}}</option>
+                  </select>
+                </td>
+                <td>
+                  <input ng-model="allocateCosts" ng-blur="stats.saveAllocation('serviceDivision')" type="text" class="form-control">
+                </td>
+                <td><button ng-click="addRow(stats.allocationclient.teamDivision.rows)" type="button" class="btn btn-danger">+</button></td>
+                <td><button ng-click="removeRow($index, stats.allocationclient.teamDivision.rows)" type="button" class="btn btn-success">-</button></td>
+              </tr>
+            </table>
+          </div>
+      </div>
+    </div>
+</div>

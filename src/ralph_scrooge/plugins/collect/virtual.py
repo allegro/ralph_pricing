@@ -17,6 +17,7 @@ from ralph_scrooge.models import (
     DailyUsage,
     UsageType,
     PricingObjectType,
+    PricingObjectColor,
     ServiceEnvironment,
     VirtualInfo,
 )
@@ -71,7 +72,8 @@ def update_virtual_usage(
     except VirtualInfo.DoesNotExist:
         virtual_info = VirtualInfo(
             device_id=data['device_id'],
-            type=PricingObjectType.virtual
+            type=PricingObjectType.virtual,
+            color=PricingObjectColor.virtual
         )
     virtual_info.service_environment = service_environment
     virtual_info.name = data['name']

@@ -97,35 +97,42 @@ def usages_generator(start, end, self=None):
     # in pricing service 1 (& use pricing service 2)
     self.se1_dpo = DailyPricingObjectFactory.create_batch(
         2,
-        service_environment=self.service_environments[0]
+        service_environment=self.service_environments[0],
+        date=start,
     )
     self.se2_dpo = DailyPricingObjectFactory.create_batch(
         2,
-        service_environment=self.service_environments[1]
+        service_environment=self.service_environments[1],
+        date=start,
     )
     # in pricing service 2
     self.se3_dpo = DailyPricingObjectFactory.create_batch(
         2,
-        service_environment=self.service_environments[2]
+        service_environment=self.service_environments[2],
+        date=start,
     )
     # use pricing service 1
     self.se4_dpo = DailyPricingObjectFactory.create_batch(
         2,
-        service_environment=self.service_environments[3]
+        service_environment=self.service_environments[3],
+        date=start,
     )
     self.se5_dpo = DailyPricingObjectFactory.create_batch(
         2,
-        service_environment=self.service_environments[4]
+        service_environment=self.service_environments[4],
+        date=start,
     )
     # use pricing service 2 (besides se1_dpo and se2_dpo)
     self.se6_dpo = DailyPricingObjectFactory.create_batch(
         2,
-        service_environment=self.service_environments[5]
+        service_environment=self.service_environments[5],
+        date=start,
     )
     # other
     self.se7_dpo = DailyPricingObjectFactory.create_batch(
         2,
-        service_environment=self.service_environments[5]
+        service_environment=self.service_environments[5],
+        date=start,
     )
 
     # SO FAR SUMMARY:
