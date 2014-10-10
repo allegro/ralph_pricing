@@ -15,6 +15,8 @@ from django.views.decorators.http import require_http_methods
 from ralph_scrooge.rest.common import monthToNum
 from ralph_scrooge.models import (
     DailyUsage,
+    ExtraCost,
+    ExtraCostType,
     PricingObject,
     DailyPricingObject,
     PricingObjectType,
@@ -24,21 +26,27 @@ from ralph_scrooge.models import (
 )
 from ralph.util.views import jsonify
 
+
+def _get_dates(year, month):
+    year = int(year)
+    month = monthToNum(month)
+    days_in_month = calendar.monthrange(year, month)[1]
+    first_day = date(year, month, 1)
+    return (first_day, days_in_month)
+
+
 def _get_service_usage_type(service):
     return ServiceUsageTypes.objects.get(
         pricing_service__services__name=service
     )
 
 
-@csrf_exempt
-@jsonify
-@require_http_methods(["POST", "GET"])
-def allocation_content(request, *args, **kwargs):
+def _get_service_divison(service, year, month):
     total = 0
-    service_usage_type = _get_service_usage_type(kwargs.get('service'))
-    first_day = date(int(kwargs.get('year')), monthToNum(kwargs.get('month')), 1)
+    service_usage_type = _get_service_usage_type(service)
+    first_day = date(int(year), monthToNum(month), 1)
     daily_pricing_object = PricingObject.objects.filter(
-        service_environment__service__name=kwargs.get('service'),
+        service_environment__service__name=service,
         type=PricingObjectType.dummy,
     )[0].get_daily_pricing_object(first_day)
     rows = []
@@ -57,9 +65,60 @@ def allocation_content(request, *args, **kwargs):
             "value": daily_usage.value
         })
         total += daily_usage.value
-    return [
-        {"key": "serviceDivision", "value": {"rows": rows, "total": total}}
-    ]
+    return (rows, total)
+
+
+def _get_service_extra_cost(service, env, start, end):
+    extra_costs = ExtraCost.objects.filter(
+        start=start,
+        end=end,
+        service_environment=ServiceEnvironment.objects.get(
+            service__name=service,
+            environment__name=env,
+        )
+    )
+    rows = []
+    for extra_cost in extra_costs:
+        rows.append({
+            "id": extra_cost.id,
+            "type": extra_cost.extra_cost_type.name,
+            "value": extra_cost.cost,
+            "remarks": extra_cost.remarks,
+        })
+    return rows
+
+@csrf_exempt
+@jsonify
+@require_http_methods(["POST", "GET"])
+def allocation_content(request, *args, **kwargs):
+    first_day, days_in_month = _get_dates(
+        kwargs.get('year'),
+        kwargs.get('month')
+    )
+    service_division = _get_service_divison(
+        kwargs.get('service'),
+        kwargs.get('year'),
+        kwargs.get('month'),
+    )
+    service_extra_cost = _get_service_extra_cost(
+        kwargs.get('service'),
+        kwargs.get('env'),
+        first_day,
+        first_day + timedelta(days=days_in_month),
+    )
+    return [{
+        "key": "serviceDivision",
+        "value": {
+            "rows": service_division[0],
+            "total": service_division[1],
+        },
+    }, {
+        "key": "serviceExtraCost",
+        "extra_cost_types": [ec.name for ec in ExtraCostType.objects.all()],
+        "value": {
+            "rows": service_extra_cost,
+        }
+    }]
 
 
 def _clear_daily_usages(
@@ -86,17 +145,17 @@ def _clear_daily_usages(
 @require_http_methods(["POST"])
 def allocation_save(request, *args, **kwargs):
     post_data = json.loads(request.raw_post_data)
+    first_day, days_in_month = _get_dates(
+        post_data['year'],
+        post_data['month'],
+    )
+
     if kwargs.get('allocate_type') == 'servicedivision':
         service_usage_type = _get_service_usage_type(post_data['service'])
         pricing_objects = PricingObject.objects.filter(
             service_environment__service__name=post_data['service'],
             type=PricingObjectType.dummy,
         )
-        days_in_month = calendar.monthrange(
-            post_data['year'],
-            monthToNum(post_data['month']),
-        )[1]
-        first_day = date(post_data['year'], monthToNum(post_data['month']), 1)
         _clear_daily_usages(
             pricing_objects,
             service_usage_type.usage_type,
@@ -119,4 +178,29 @@ def allocation_save(request, *args, **kwargs):
                         value=row['value'],
                         type=service_usage_type.usage_type,
                     )
+    if kwargs.get('allocate_type') == 'serviceextracost':
+        service_environment = ServiceEnvironment.objects.get(
+            service__name=post_data['service'],
+            environment__name=post_data['env'],
+        )
+        ExtraCost.objects.filter(
+            start=first_day,
+            end=first_day + timedelta(days=days_in_month),
+            service_environment=service_environment,
+        ).delete()
+        for row in post_data['rows']:
+            extra_cost = ExtraCost.objects.get_or_create(
+                id=row.get('id'),
+                start=first_day,
+                end=first_day + timedelta(days=days_in_month),
+                service_environment=service_environment,
+                extra_cost_type=ExtraCostType.objects.get(name=row['type']),
+                defaults=dict(
+                    cost=row['value']
+                )
+            )[0]
+            extra_cost.cost = row['value']
+            extra_cost.remarks = row.get('remarks', None)
+            extra_cost.save()
+
     return {'status': True}

@@ -14,10 +14,10 @@
         <div ng-if="stats.allocationclient.contentReady == 0">
           <div ng-show="stats.menuActive == 'service'">
             <ul class="nav nav-tabs allocation-tabs" role="tablist">
-              <li ng-click="stats.allocationclient.allocationActiveTab = 'allocate_costs'" class="{{stats.allocationclient.allocationActiveTab == 'allocate_costs' ? 'active': ''}}"><a>Allocate Costs</a></li>
-              <li ng-click="stats.allocationclient.allocationActiveTab = 'extra_costs'" class="{{stats.allocationclient.allocationActiveTab == 'extra_costs' ? 'active': ''}}"><a>Extra Costs</a></li>
+              <li ng-click="changeTab('allocate_costs');" class="{{stats.menuStats.tab.current == 'allocate_costs' ? 'active': ''}}"><a>Allocate Costs</a></li>
+              <li ng-click="changeTab('extra_costs')" class="{{stats.menuStats.tab.current == 'extra_costs' ? 'active': ''}}"><a>Extra Costs</a></li>
             </ul>
-            <div ng-show="stats.allocationclient.allocationActiveTab == 'allocate_costs'" class="allocate-costs-tab">
+            <div ng-show="stats.menuStats.tab.current == 'allocate_costs'" class="allocate-costs-tab">
               <table class="table">
                 <tr>
                   <td></td>
@@ -43,16 +43,19 @@
                 </tr>
               </table>
             </div>
-            <div ng-show="stats.allocationclient.allocationActiveTab == 'extra_costs'" class="extra-costs-tab">
+            <div ng-show="stats.menuStats.tab.current == 'extra_costs'" class="extra-costs-tab">
               <table class="table">
                 <tr ng-repeat="row in stats.allocationclient.serviceExtraCost.rows">
                   <td>
-                    <select ng-model="serviceSelect" ng-change="stats.saveAllocation('serviceExtraCost')" class="form-control">
-                      <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
+                    <select ng-model="row.type" ng-change="stats.saveAllocation('serviceExtraCost')" class="form-control">
+                      <option ng-repeat="extraCostType in stats.allocationclient.serviceExtraCostTypes">{{extraCostType}}</option>
                     </select>
                   </td>
                   <td>
-                    <input ng-model="row.value" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control" value="{{row.value}}">
+                    <input ng-model="row.value" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
+                  </td>
+                  <td>
+                    <input ng-model="row.remarks" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
                   </td>
                   <td><button ng-click="addRow(stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">+</button></td>
                   <td><button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-success">-</button></td>

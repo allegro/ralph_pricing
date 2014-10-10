@@ -1,7 +1,7 @@
 <ul class="nav" id="side-menu">
     <div ng-if="getDictLength(stats.menus) > 1">
         <ul class="nav nav-tabs nav-justified" role="tablist">
-          <li ng-click="stats.menuActive = menuName" ng-repeat="(menuName, menu) in stats.menus"><a>{{menuName}}</a></li>
+          <li ng-click="stats.statsMenu.menu.change = menuName" ng-repeat="(menuName, menu) in stats.menus"><a>{{menuName}}</a></li>
         </ul>
     </div>
     <li class="sidebar-search">
@@ -10,7 +10,7 @@
         </div>
     </li>
     <div ng-repeat="(menuName, menu) in stats.menus">
-        <li ng-show="stats.menuActive == menuName" class="env-menu" ng-repeat="service in menu | filter:searchTextMenu">
+        <li ng-show="stats.menuStats.menu.current == menuName" class="env-menu" ng-repeat="service in menu | filter:searchTextMenu">
             <a class="btn-left-menu {{stats.menuStats['service']['current'] == service.service ? 'active' : ''}}" ng-click="menuService.changeService(service)">{{service.service}}</a>
             <ul ng-click="menuService.changeEnv(service.service, env.env)" ng-show="stats.menuStats['service']['current'] == service.service" class="nav nav-second-level" ng-repeat="env in service.value.envs">
                 <li>

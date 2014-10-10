@@ -84,4 +84,8 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
 
         }
     }
+    $scope.changeTab = function (tab) {
+        stats.menuStats.tab.change = tab
+        stats.refreshData()
+    }
 }]);
