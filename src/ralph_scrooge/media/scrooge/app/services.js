@@ -2,12 +2,12 @@ var ang_services = angular.module('ang_services', ['ngResource']);
 
 ang_services.factory('stats', ['$http', function ($http) {
     return {
-        menuActive: false,
+        currentMenu: false,
+        currentTab: false,
         menuReady: false,
         menus: false,
         menuStats: {
-            "tab": {"current": false, "change": false},
-            "menu": {"current": false, "change": false},
+            "team": {"current": false, "change": false},
             "service": {"current": false, "change": false},
             "env": {"current": false, "change": false},
             "year": {"current": false, "change": false},
@@ -42,12 +42,11 @@ ang_services.factory('stats', ['$http', function ($http) {
                 rows: [{"service": false, "env": false, "value": 0}]
             },
             serviceExtraCost: {
-                total: 0,
                 rows: [{"id": false, "type": false, "value": 0, "remarks": false}]
             },
             teamDivision: {
                 total: 0,
-                rows: [{"service": false, "value": 0}]
+                rows: [{"id": false, "service": false, "env": false, "value": 0}]
             }
         },
         init: function() {
@@ -59,9 +58,7 @@ ang_services.factory('stats', ['$http', function ($http) {
                     })
                     self.menus = data["menus"]
                     self.components["dates"] = data["dates"]
-                    self.menuActive = Object.keys(self.menus)[0]
-                    console.log(Object.keys(self.menus)[0])
-                    self.menuStats.menu.change = Object.keys(self.menus)[0]
+                    self.currentMenu = Object.keys(self.menus)[0]
                     self.refreshData()
                 }).
                 error(function(data, status, headers, config) {
@@ -97,9 +94,12 @@ ang_services.factory('stats', ['$http', function ($http) {
                     refresh = true
                     self.menuStats[menu]['current'] = self.menuStats[menu]['change']
                 }
-                if (self.menuStats[menu]['change'] == false) {
-                    force = true
+                if (menu != 'service' && menu != 'env' && menu != 'team') {
+                    if (self.menuStats[menu]['change'] == false) {
+                        force = true
+                    }
                 }
+
             })
             if (force == false && refresh == true) {
                 self.refreshCurrentSubpage()
@@ -144,17 +144,16 @@ ang_services.factory('stats', ['$http', function ($http) {
                 url: '/scrooge/allocateclient/'
                     + self.menuStats['service']['current'] + '/'
                     + self.menuStats['env']['current'] + '/'
-                    + self.menuStats.tab.current + '/'
-                    + self.menuStats.menu.current + '/'
+                    + self.menuStats['team']['current'] + '/'
                     + self.menuStats['year']['current'] + '/'
                     + self.menuStats['month']['current'] + '/'
             }).
             success(function(data, status, headers, config) {
-                if (data && data['rows'] != []) {
+                if (data) {
                     data.forEach(function (element) {
-                        if (element.value.rows) {
-                            console.log(element)
-                            self.allocationclient[element.key] = element.value
+                        self.allocationclient[element.key] = element.value
+                        if (element.value.rows.length <= 1 || element.value.disabled == true) {
+                            element.value.rows = [{}]
                         }
                         if (element.key == 'serviceExtraCost') {
                             self.allocationclient.serviceExtraCostTypes = element.extra_cost_types
@@ -185,9 +184,9 @@ ang_services.factory('stats', ['$http', function ($http) {
                     }
                     break;
                 case 'teamDivision':
-                    url = '/scrooge/allocateclient/servicedivision/save/'
+                    url = '/scrooge/allocateclient/teamdivision/save/'
                     data = {
-                        'service': self.menuStats['service']['current'],
+                        'team': self.menuStats['team']['current'],
                         'rows': self.allocationclient.teamDivision.rows,
                     }
                     break;
@@ -210,16 +209,19 @@ ang_services.factory('stats', ['$http', function ($http) {
                 // or server returns response with an error status.
             });
         },
-        getEnvs: function (row) {
+        getEnvs: function (service) {
             var envs = []
             if (self.menus) {
                 self.menus['service'].forEach(function (element) {
-                    if (element.service == row.service) {
+                    if (element.service == service) {
                         envs = element.value.envs
                     }
                 })
             }
             return envs
+        },
+        changeTab: function (tab) {
+            self.currentTab = tab
         }
     }
 }]);

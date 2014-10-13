@@ -34,7 +34,7 @@ for r in (PricingServiceUsageResource, ):
 urlpatterns = patterns(
     '',
     url(
-        r'^allocateclient/(?P<service>\S.+)/(?P<env>\S.+)/(?P<tab>\S.+)/(?P<menu>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/$',  # noqa
+        r'^allocateclient/(?P<service>\S.+)/(?P<env>\S.+)/(?P<team>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/$',  # noqa
         allocation_content,
     ),
     url(r'^allocateclient/(?P<allocate_type>\S.+)/save/$', allocation_save),

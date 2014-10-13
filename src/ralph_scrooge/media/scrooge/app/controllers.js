@@ -61,31 +61,37 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
         costList.splice(index, 1);
     }
     $scope.updateTotal = function (tab) {
+        var _updateTotal = function (scope) {
+            count = 0
+            save = true
+            scope.rows.forEach(function (element) {
+                count += parseInt(element.value)
+                if (element.service == false || element.env == false) {
+                    save = false
+                }
+            })
+            scope.total = count
+        }
         switch(tab) {
             case 'serviceDivision':
-                count = 0
-                save = true
-                stats.allocationclient.serviceDivision.rows.forEach(function (element) {
-                    count += parseInt(element.value)
-                    if (element.service == false || element.env == false) {
-                        save = false
-                    }
-                })
-                stats.allocationclient.serviceDivision.total = count
-                if (stats.allocationclient.serviceDivision.total == 100 && save) {
-                    stats.saveAllocation(tab)
-                }
+                _updateTotal(stats.allocationclient.serviceDivision)
                 break;
             case 'serviceExtraCost':
                 break;
             case 'teamDivision':
+                _updateTotal(stats.allocationclient.teamDivision)
                 break;
             default:
-
+                break;
         }
     }
     $scope.changeTab = function (tab) {
-        stats.menuStats.tab.change = tab
-        stats.refreshData()
+        stats.currentTab = tab
+    }
+    $scope.changeTeam = function (team) {
+        if (stats.menuStats.team.current != team.team) {
+            stats.menuStats.team.change = team.team
+            stats.refreshData();
+        }
     }
 }]);
