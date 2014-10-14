@@ -69,19 +69,21 @@
 {% block scripts %}
 {{ block.super }}
 <script type="text/javascript">
-    function recalculate(){
-        var total = 0, cssClass = null;
-        $("input[name$='percent']").each(function(i, f){
-            total += parseFloat($(f).val() || 0);
-        });
-        total = +total.toFixed(2);
-        cssClass = (total != 100.0) ? 'text-error' : 'text-success';
-        $("#total_percent").html(total).removeClass().addClass(cssClass);
-    }
+    $(function(){
+        function recalculate(){
+            var total = 0, cssClass = null;
+            $("input[name$='percent']").each(function(i, f){
+                total += parseFloat($(f).val() || 0);
+            });
+            total = +total.toFixed(2);
+            cssClass = (total != 100.0) ? 'text-error' : 'text-success';
+            $("#total_percent").html(total).removeClass().addClass(cssClass);
+        }
 
-    $("input[name$='-percent']").blur(function(){
+        $("input[name$='-percent']").blur(function(){
+            recalculate();
+        });
         recalculate();
     });
-    recalculate();
 </script>
 {% endblock %}
