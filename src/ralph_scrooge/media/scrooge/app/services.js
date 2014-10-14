@@ -2,10 +2,13 @@ var ang_services = angular.module('ang_services', ['ngResource']);
 
 ang_services.factory('stats', ['$http', function ($http) {
     return {
-        menuActive: false,
+        currentMenu: false,
+        currentTab: false,
         menuReady: false,
         menus: false,
         menuStats: {
+            "subpage": {"current": false, "change": false},
+            "team": {"current": false, "change": false},
             "service": {"current": false, "change": false},
             "env": {"current": false, "change": false},
             "year": {"current": false, "change": false},
@@ -33,19 +36,18 @@ ang_services.factory('stats', ['$http', function ($http) {
             },
         },
         allocationclient: {
-            allocationActiveTab: 'allocate_costs',
+            serviceExtraCostTypes: false,
             contentReady: 0,
             serviceDivision: {
                 total: 0,
-                rows: [{"service": false, "value": 0}]
+                rows: [{"service": false, "env": false, "value": 0}]
             },
             serviceExtraCost: {
-                total: 0,
-                rows: [{"service": false, "value": 0}]
+                rows: [{"id": false, "type": false, "value": 0, "remarks": false}]
             },
             teamDivision: {
                 total: 0,
-                rows: [{"service": false, "value": 0}]
+                rows: [{"id": false, "service": false, "env": false, "value": 0}]
             }
         },
         init: function() {
@@ -56,8 +58,8 @@ ang_services.factory('stats', ['$http', function ($http) {
                         self.menuStats[key] = data['menuStats'][key]
                     })
                     self.menus = data["menus"]
-                    self.components["dates"] = data["dates"]
-                    self.menuActive = Object.keys(self.menus)[0]
+                    self.dates = data["dates"]
+                    self.currentMenu = Object.keys(self.menus)[0]
                     self.refreshData()
                 }).
                 error(function(data, status, headers, config) {
@@ -71,20 +73,8 @@ ang_services.factory('stats', ['$http', function ($http) {
         daysInMonth: function (date) {
             return [31, (this.isLeapYear(date.getYear()) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         },
-        getDays: function() {
-            self = this
-            this.components['months'].forEach(function (month) {
-                if (month.asString == self.menuStats.month.current) {
-                    endDay = self.daysInMonth(new Date('2015', month.asInt-1))
-                    var days = []
-                    for (var i=1; i<=endDay[month.asInt-1]; i++) {
-                        days.push(i)
-                    }
-                    self.components.days = days
-                }
-            })
-        },
         refreshData: function() {
+            console.log('refresh Data', self.menuStats)
             self = this
             force = false
             refresh = false
@@ -93,9 +83,12 @@ ang_services.factory('stats', ['$http', function ($http) {
                     refresh = true
                     self.menuStats[menu]['current'] = self.menuStats[menu]['change']
                 }
-                if (self.menuStats[menu]['change'] == false) {
-                    force = true
+                if (menu != 'service' && menu != 'env' && menu != 'team') {
+                    if (self.menuStats[menu]['change'] == false) {
+                        force = true
+                    }
                 }
+
             })
             if (force == false && refresh == true) {
                 self.refreshCurrentSubpage()
@@ -140,13 +133,23 @@ ang_services.factory('stats', ['$http', function ($http) {
                 url: '/scrooge/allocateclient/'
                     + self.menuStats['service']['current'] + '/'
                     + self.menuStats['env']['current'] + '/'
+                    + self.menuStats['team']['current'] + '/'
                     + self.menuStats['year']['current'] + '/'
                     + self.menuStats['month']['current'] + '/'
             }).
             success(function(data, status, headers, config) {
-                self.components.content = data
+                if (data) {
+                    data.forEach(function (element) {
+                        self.allocationclient[element.key] = element.value
+                        if (element.value.rows.length <= 1 || element.value.disabled == true) {
+                            element.value.rows = [{}]
+                        }
+                        if (element.key == 'serviceExtraCost') {
+                            self.allocationclient.serviceExtraCostTypes = element.extra_cost_types
+                        }
+                    })
+                }
                 self.components.contentReady -= 1
-                self.components.contentStats.table = data[0].name
             }).
             error(function(data, status, headers, config) {
                 self.components.contentReady -= 1
@@ -157,43 +160,57 @@ ang_services.factory('stats', ['$http', function ($http) {
                 case 'serviceDivision':
                     url = '/scrooge/allocateclient/servicedivision/save/'
                     data = {
-                        'service': self.menuStats['service']['current'],
-                        'data': self.allocationclient.serviceDivision.rows,
+                        "service": self.menuStats['service']['current'],
+                        "rows": self.allocationclient.serviceDivision.rows,
                     }
                     break;
                 case 'serviceExtraCost':
-                    url = '/scrooge/allocateclient/servicedivision/save/'
+                    url = '/scrooge/allocateclient/serviceextracost/save/'
                     data = {
                         'service': self.menuStats['service']['current'],
-                        'data': self.allocationclient.serviceExtraCosts.rows,
+                        "env": self.menuStats['env']['current'],
+                        'rows': self.allocationclient.serviceExtraCost.rows,
                     }
                     break;
                 case 'teamDivision':
-                    url = '/scrooge/allocateclient/servicedivision/save/'
+                    url = '/scrooge/allocateclient/teamdivision/save/'
                     data = {
-                        'service': self.menuStats['service']['current'],
-                        'data': self.allocationclient.teamDivision.rows,
+                        'team': self.menuStats['team']['current'],
+                        'rows': self.allocationclient.teamDivision.rows,
                     }
                     break;
                 default:
                     url = ''
                     data = {}
             }
+            data['month'] = self.menuStats['month']['current']
+            data['year'] = self.menuStats['year']['current']
             $http({
-                method: 'POST',
                 url: url,
-                data: {
-                    'service': self.menuStats['service']['current'],
-                    'data': data,
-                }
+                method: 'POST',
+                data: data,
             }).
             success(function(data, status, headers, config) {
-                console.log(data)
+
             }).
             error(function(data, status, headers, config) {
                 // called asynchronously if an error occurs
                 // or server returns response with an error status.
             });
+        },
+        getEnvs: function (service) {
+            var envs = []
+            if (self.menus) {
+                self.menus['service'].forEach(function (element) {
+                    if (element.service == service) {
+                        envs = element.value.envs
+                    }
+                })
+            }
+            return envs
+        },
+        changeTab: function (tab) {
+            self.currentTab = tab
         }
     }
 }]);
@@ -225,26 +242,32 @@ ang_services.factory('menuCalendar', ['stats', function (stats) {
     return {
         getYears: function() {
             years = []
-            Object.keys(self.components['dates']).forEach(function (year) {
-                years.push(year)
-            })
+            if (typeof(self.dates) != 'undefined') {
+                Object.keys(self.dates).forEach(function (year) {
+                    years.push(year)
+                })
+            }
             return years
         },
         getMonths: function() {
             months = []
-            var current_year = self.menuStats['year']['current']
-            Object.keys(self.components['dates'][current_year]).forEach(function (month) {
-                months.push(month)
-            })
+            if (typeof(self.dates) != 'undefined') {
+                var current_year = self.menuStats['year']['current']
+                Object.keys(self.dates[current_year]).forEach(function (month) {
+                    months.push(month)
+                })
+            }
             return months
         },
         getDays: function() {
             days = []
-            var current_year = self.menuStats['year']['current']
-            var current_month = self.menuStats['month']['current']
-            self.components['dates'][current_year][current_month].forEach(function (day) {
-                days.push(day)
-            })
+            if (typeof(self.dates) != 'undefined') {
+                var current_year = self.menuStats['year']['current']
+                var current_month = self.menuStats['month']['current']
+                self.dates[current_year][current_month].forEach(function (day) {
+                    days.push(day)
+                })
+            }
             return days
         },
         changeYear: function(year) {
@@ -259,8 +282,8 @@ ang_services.factory('menuCalendar', ['stats', function (stats) {
             stats.menuStats['month']['change'] = month
             var current_year = stats.menuStats['year']['current']
             var current_day = stats.menuStats['day']['current']
-            if (stats.inArray(current_day, self.components['dates'][current_year][month]) == false) {
-                days = self.components['dates'][current_year][month]
+            if (stats.inArray(current_day, self.dates[current_year][month]) == false) {
+                days = self.dates[current_year][month]
                 stats.menuStats['day']['change'] = days[days.length-1]
             }
             stats.refreshData()
