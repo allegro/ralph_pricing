@@ -16,7 +16,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from ralph_scrooge.models import UsageType, DailyUsage, DailyDevice
+from ralph_scrooge.models import UsageType, DailyUsage
 
 
 logger = logging.getLogger(__name__)
@@ -154,20 +154,6 @@ class Command(BaseCommand):
             type=usage,
         ).count()
 
-    def get_deprecation_usages_count(self, date, usage):
-        """
-        Get count of devices for given date and usage type
-
-        :param datetime date: Date for whitch data will be selected
-        :param object usage: Usage tof whitch data will be selected
-        :returns int: Count of total usages
-        :rtype int:
-        """
-        return DailyDevice.objects.filter(
-            date__lt=date + timedelta(days=1),
-            date__gte=date,
-        ).count()
-
     def get_statistics(self, date):
         """
         Get data for given date and progress it to UsageName:Count format
@@ -179,7 +165,7 @@ class Command(BaseCommand):
         """
 
         results = OrderedDict()
-        for usage in UsageType.objects.exclude(by_team=True).order_by('name'):
+        for usage in UsageType.objects.order_by('name'):
             func = getattr(
                 self,
                 "get_{0}_usages_count".format(usage.name),
@@ -220,7 +206,7 @@ class Command(BaseCommand):
                 results[key] = differences_data.get(key, 0)
         return results
 
-    def get_errors(self, base_data, defferences_data):
+    def get_errors(self, base_data, differences_data):
         '''
         Try to find any errors. If data from compare_date are not null but
         data from base_date are then we have error.
@@ -232,8 +218,8 @@ class Command(BaseCommand):
         '''
         results = OrderedDict()
         for key, value in base_data.iteritems():
-            if value == 0 and defferences_data.get(key, 0) != 0:
-                results[key] = math.fabs(defferences_data[key])
+            if value == 0 and differences_data.get(key, 0) != 0:
+                results[key] = differences_data[key]
         return results
 
     def compare_days(self, base_date, compare_date):
