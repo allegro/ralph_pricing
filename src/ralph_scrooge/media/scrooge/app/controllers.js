@@ -1,7 +1,7 @@
 var ang_controllers = angular.module('ang_controllers', []);
 
 ang_controllers.controller('componentsCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
-    stats.refreshCurrentSubpage = function () {
+    $scope.stats.refreshCurrentSubpage = function () {
         stats.getComponentsData()
     }
     $scope.$watch(function () {
@@ -19,7 +19,6 @@ ang_controllers.controller('componentsCtrl', ['$scope', '$routeParams', 'menuSer
             }
         }
     });
-
     $scope.checkAll = function (modelName, checked) {
         angular.forEach($scope[modelName], function (item) {
             item.Selected = checked;
@@ -35,12 +34,12 @@ ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'menuService',
     $scope.menuService = menuService
     $scope.menuCalendar = menuCalendar
     $scope.stats = stats
-
-    stats.getDays()
-    $scope.days = stats.components.days
     $scope.getDictLength = function (dict) {
-        return Object.keys(dict).length
+        if (typeof(dict) == 'dict') {
+            return Object.keys(dict).length
+        }
     }
+    $scope.$watch('stats.menuStats', function() { $scope.stats.refreshData() });
 }]);
 
 
@@ -53,9 +52,7 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
         stats.getAllocationClientData()
     }
     $scope.addRow = function (costList) {
-        costList.push(
-            {"service": false, "value": 0}
-        )
+        costList.push({"service": false, "value": 0})
     }
     $scope.removeRow = function (index, costList) {
         costList.splice(index, 1);

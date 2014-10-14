@@ -7,6 +7,7 @@ ang_services.factory('stats', ['$http', function ($http) {
         menuReady: false,
         menus: false,
         menuStats: {
+            "subpage": {"current": false, "change": false},
             "team": {"current": false, "change": false},
             "service": {"current": false, "change": false},
             "env": {"current": false, "change": false},
@@ -57,7 +58,7 @@ ang_services.factory('stats', ['$http', function ($http) {
                         self.menuStats[key] = data['menuStats'][key]
                     })
                     self.menus = data["menus"]
-                    self.components["dates"] = data["dates"]
+                    self.dates = data["dates"]
                     self.currentMenu = Object.keys(self.menus)[0]
                     self.refreshData()
                 }).
@@ -72,20 +73,8 @@ ang_services.factory('stats', ['$http', function ($http) {
         daysInMonth: function (date) {
             return [31, (this.isLeapYear(date.getYear()) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         },
-        getDays: function() {
-            self = this
-            this.components['months'].forEach(function (month) {
-                if (month.asString == self.menuStats.month.current) {
-                    endDay = self.daysInMonth(new Date('2015', month.asInt-1))
-                    var days = []
-                    for (var i=1; i<=endDay[month.asInt-1]; i++) {
-                        days.push(i)
-                    }
-                    self.components.days = days
-                }
-            })
-        },
         refreshData: function() {
+            console.log('refresh Data', self.menuStats)
             self = this
             force = false
             refresh = false
@@ -253,26 +242,32 @@ ang_services.factory('menuCalendar', ['stats', function (stats) {
     return {
         getYears: function() {
             years = []
-            Object.keys(self.components['dates']).forEach(function (year) {
-                years.push(year)
-            })
+            if (typeof(self.dates) != 'undefined') {
+                Object.keys(self.dates).forEach(function (year) {
+                    years.push(year)
+                })
+            }
             return years
         },
         getMonths: function() {
             months = []
-            var current_year = self.menuStats['year']['current']
-            Object.keys(self.components['dates'][current_year]).forEach(function (month) {
-                months.push(month)
-            })
+            if (typeof(self.dates) != 'undefined') {
+                var current_year = self.menuStats['year']['current']
+                Object.keys(self.dates[current_year]).forEach(function (month) {
+                    months.push(month)
+                })
+            }
             return months
         },
         getDays: function() {
             days = []
-            var current_year = self.menuStats['year']['current']
-            var current_month = self.menuStats['month']['current']
-            self.components['dates'][current_year][current_month].forEach(function (day) {
-                days.push(day)
-            })
+            if (typeof(self.dates) != 'undefined') {
+                var current_year = self.menuStats['year']['current']
+                var current_month = self.menuStats['month']['current']
+                self.dates[current_year][current_month].forEach(function (day) {
+                    days.push(day)
+                })
+            }
             return days
         },
         changeYear: function(year) {
@@ -287,8 +282,8 @@ ang_services.factory('menuCalendar', ['stats', function (stats) {
             stats.menuStats['month']['change'] = month
             var current_year = stats.menuStats['year']['current']
             var current_day = stats.menuStats['day']['current']
-            if (stats.inArray(current_day, self.components['dates'][current_year][month]) == false) {
-                days = self.components['dates'][current_year][month]
+            if (stats.inArray(current_day, self.dates[current_year][month]) == false) {
+                days = self.dates[current_year][month]
                 stats.menuStats['day']['change'] = days[days.length-1]
             }
             stats.refreshData()
