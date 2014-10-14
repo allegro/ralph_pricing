@@ -22,36 +22,43 @@ class ScroogeMenu(Menu):
 
     def get_submodules(self):
         return [
-            # MenuItem(
-            #     _("Costs report"),
-            #     name='services-costs-report',
-            #     fugue_icon='fugue-store-medium',
-            #     view_name='services_costs_report',
-            # ),
-            # MenuItem(
-            #     _("Service details report"),
-            #     name='devices',
-            #     fugue_icon='fugue-wooden-box',
-            #     # view_name='devices',
-            # ),
-            # MenuItem(
-            #     _("Usages report"),
-            #     name='services-usages-report',
-            #     fugue_icon='fugue-calendar-day',
-            #     view_name='services_usages_report',
-            # ),
-            # MenuItem(
-            #     _("Collect plugins"),
-            #     name='services-usages-report',
-            #     fugue_icon='fugue-calendar-day',
-            #     view_name='services_usages_report',
-            # ),
             MenuItem(
                 _("Components"),
                 name='components',
                 fugue_icon='fugue-arrow-switch',
                 view_name='components',
                 href="/scrooge/#/components/"
+            ),
+            MenuItem(
+                _("Allocation"),
+                name='components',
+                fugue_icon='fugue-arrow-switch',
+                view_name='components',
+                href="/scrooge/#/allocationclient/"
+            ),
+            MenuItem(
+                _("Costs report"),
+                name='services-costs-report',
+                fugue_icon='fugue-store-medium',
+                view_name='services_costs_report',
+            ),
+            # MenuItem(
+            #     _("Service details report"),
+            #     name='devices',
+            #     fugue_icon='fugue-wooden-box',
+            #     # view_name='devices',
+            # ),
+            MenuItem(
+                _("Usages report"),
+                name='services-usages-report',
+                fugue_icon='fugue-calendar-day',
+                view_name='services_usages_report',
+            ),
+            MenuItem(
+                _("Collect plugins"),
+                name='collect-plugins',
+                fugue_icon='fugue-calendar-day',
+                view_name='collect_plugins',
             ),
             MenuItem(
                 _("Services changes report"),
@@ -70,12 +77,6 @@ class ScroogeMenu(Menu):
                 name='usage-types',
                 fugue_icon='fugue-beaker',
                 view_name='usage_types',
-            ),
-            MenuItem(
-                _("Collect plugins"),
-                name='collect-plugins',
-                fugue_icon='fugue-money-bag',
-                view_name='collect_plugins',
             ),
             MenuItem(
                 _("Monthly costs"),

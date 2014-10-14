@@ -79,6 +79,7 @@ ang_services.factory('stats', ['$http', function ($http) {
             force = false
             refresh = false
             Object.keys(self.menuStats).forEach(function (menu) {
+                console.log(self.menuStats[menu]['current'], self.menuStats[menu]['change'])
                 if (self.menuStats[menu]['current'] != self.menuStats[menu]['change']) {
                     refresh = true
                     self.menuStats[menu]['current'] = self.menuStats[menu]['change']
@@ -217,7 +218,9 @@ ang_services.factory('stats', ['$http', function ($http) {
 
 ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
     return {
-        test: [{"name": "Service #1"}, {"name": "Service #2"}],
+        showMenus: {
+
+        },
         changeService: function(service) {
             stats.menuStats['service']['change'] = service.service
             envExist = false
