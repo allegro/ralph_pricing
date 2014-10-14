@@ -6,7 +6,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json, calendar
+import json
+import calendar
+
 from datetime import date, timedelta
 
 from django.views.decorators.csrf import csrf_exempt
@@ -26,7 +28,6 @@ from ralph_scrooge.models import (
     Team,
     TeamCost,
     TeamServiceEnvironmentPercent,
-    UsageType
 )
 from ralph.util.views import jsonify
 
@@ -80,6 +81,7 @@ def _get_service_divison(service, year, month):
     }
     return results
 
+
 def _get_team_divison(team, start, end):
     total = 0
     rows = []
@@ -125,13 +127,14 @@ def _get_service_extra_cost(service, env, start, end):
             "value": extra_cost.cost,
             "remarks": extra_cost.remarks,
         })
-    return  {
+    return {
         "key": "serviceExtraCost",
         "extra_cost_types": [ec.name for ec in ExtraCostType.objects.all()],
         "value": {
             "rows": rows,
         }
     }
+
 
 @csrf_exempt
 @jsonify
@@ -165,25 +168,6 @@ def allocation_content(request, *args, **kwargs):
         )
     )
     return results
-    return [{
-        "key": "serviceDivision",
-        "value": {
-            "rows": service_division[0],
-            "total": service_division[1],
-        },
-    }, {
-        "key": "serviceExtraCost",
-        "extra_cost_types": [ec.name for ec in ExtraCostType.objects.all()],
-        "value": {
-            "rows": service_extra_cost,
-        }
-    }, {
-        "key": "teamDivision",
-        "value": {
-            "rows": team_division[0],
-            "total": team_division[1],
-        }
-    }]
 
 
 def _clear_daily_usages(
@@ -197,7 +181,7 @@ def _clear_daily_usages(
         date__gte=first_day,
         date__lte=first_day + timedelta(days=days_in_month),
     )
-    daily_usage = DailyUsage.objects.filter(
+    DailyUsage.objects.filter(
         date__gte=first_day,
         date__lte=first_day + timedelta(days=days_in_month),
         daily_pricing_object__in=daily_pricing_objects,
@@ -236,7 +220,7 @@ def allocation_save(request, *args, **kwargs):
                 iter_date = first_day + timedelta(days=day)
                 for pricing_object in pricing_objects:
                     dpo = pricing_object.get_daily_pricing_object(iter_date)
-                    daily_usage = DailyUsage.objects.get_or_create(
+                    DailyUsage.objects.get_or_create(
                         date=iter_date,
                         service_environment=service_environment,
                         daily_pricing_object=dpo,

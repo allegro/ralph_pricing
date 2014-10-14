@@ -73,6 +73,7 @@ class ExtraCost(db.Model):
         blank=True,
         default="",
     )
+
     class Meta:
         verbose_name = _("Extra cost")
         verbose_name_plural = _("Extra costs")
