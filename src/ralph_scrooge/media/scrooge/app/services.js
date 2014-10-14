@@ -2,6 +2,7 @@ var ang_services = angular.module('ang_services', ['ngResource']);
 
 ang_services.factory('stats', ['$http', function ($http) {
     return {
+        contentReady: 0,
         currentMenu: false,
         currentTab: false,
         menuReady: false,
@@ -16,7 +17,6 @@ ang_services.factory('stats', ['$http', function ($http) {
             "day": {"current": false, "change": false},
         },
         components: {
-            contentReady: 0,
             "months": [
                 {"asString": "january", "asInt": 1, "intAsString": "01"},
                 {"asString": "february", "asInt": 2, "intAsString": "02"},
@@ -37,7 +37,6 @@ ang_services.factory('stats', ['$http', function ($http) {
         },
         allocationclient: {
             serviceExtraCostTypes: false,
-            contentReady: 0,
             serviceDivision: {
                 total: 0,
                 rows: [{"service": false, "env": false, "value": 0}]
@@ -74,12 +73,10 @@ ang_services.factory('stats', ['$http', function ($http) {
             return [31, (this.isLeapYear(date.getYear()) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         },
         refreshData: function() {
-            console.log('refresh Data', self.menuStats)
             self = this
             force = false
             refresh = false
             Object.keys(self.menuStats).forEach(function (menu) {
-                console.log(self.menuStats[menu]['current'], self.menuStats[menu]['change'])
                 if (self.menuStats[menu]['current'] != self.menuStats[menu]['change']) {
                     refresh = true
                     self.menuStats[menu]['current'] = self.menuStats[menu]['change']
@@ -108,7 +105,7 @@ ang_services.factory('stats', ['$http', function ($http) {
             return false
         },
         getComponentsData: function () {
-            self.components.contentReady += 1
+            self.contentReady += 1
             $http({
                 method: 'GET',
                 url: '/scrooge/components/'
@@ -120,15 +117,15 @@ ang_services.factory('stats', ['$http', function ($http) {
             }).
             success(function(data, status, headers, config) {
                 self.components.content = data
-                self.components.contentReady -= 1
+                self.contentReady -= 1
                 self.components.contentStats.table = data[0].name
             }).
             error(function(data, status, headers, config) {
-                self.components.contentReady -= 1
+                self.contentReady -= 1
             });
         },
         getAllocationClientData: function () {
-            self.components.contentReady += 1
+            self.contentReady += 1
             $http({
                 method: 'GET',
                 url: '/scrooge/allocateclient/'
@@ -150,10 +147,10 @@ ang_services.factory('stats', ['$http', function ($http) {
                         }
                     })
                 }
-                self.components.contentReady -= 1
+                self.contentReady -= 1
             }).
             error(function(data, status, headers, config) {
-                self.components.contentReady -= 1
+                self.contentReady -= 1
             });
         },
         saveAllocation: function (tab) {
@@ -218,9 +215,6 @@ ang_services.factory('stats', ['$http', function ($http) {
 
 ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
     return {
-        showMenus: {
-
-        },
         changeService: function(service) {
             stats.menuStats['service']['change'] = service.service
             envExist = false
