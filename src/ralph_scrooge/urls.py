@@ -45,6 +45,8 @@ urlpatterns = patterns(
     url(
         r'^allocateclient/(?P<allocate_type>\S.+)/save/$',
         login_required(allocation_save),
+        r'^allocateclient/(?P<service>\S.+)/(?P<env>\S.+)/(?P<team>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/$',  # noqa
+        service_permission(allocation_content),
     ),
     url(
         r'^components/(?P<service>\S.+)/(?P<env>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/(?P<day>\d+)/$',  # noqa

@@ -67,6 +67,12 @@ class ExtraCost(db.Model):
         blank=True,
         default=None,
     )
+    remarks = db.TextField(
+        verbose_name=_("Remarks"),
+        help_text=_("Additional information."),
+        blank=True,
+        default="",
+    )
 
     class Meta:
         verbose_name = _("Extra cost")

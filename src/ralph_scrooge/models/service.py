@@ -142,6 +142,10 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     history = IntervalHistoricalRecords(
         verbose_name=_("history"),
     )
+    manually_allocate_costs = db.BooleanField(
+        verbose_name=_("Manually Allocate Costs"),
+        default=False,
+    )
 
     class Meta:
         app_label = 'ralph_scrooge'

@@ -80,7 +80,7 @@ def left_menu(request, *args, **kwargs):
         )
     results['menus']['teams'] = []
     for row in Team.objects.all():
-        results['menus']['teams'].append({"service": row.name, "value": {}})
+        results['menus']['teams'].append({"team": row.name, "value": {}})
     results['menuStats'] = menuStats
     results['dates'] = dates
     return results
