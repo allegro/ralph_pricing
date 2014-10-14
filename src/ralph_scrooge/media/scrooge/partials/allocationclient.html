@@ -23,6 +23,7 @@
                   <td></td>
                   <td></td>
                   <td>{{stats.allocationclient.serviceDivision.total}}%</td>
+                  <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">+</button></td>
                 </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
                   <td>
@@ -38,8 +39,7 @@
                   <td>
                     <input ng-model="row.value" ng-change="updateTotal('serviceDivision')" type="text" class="form-control" value="{{row.value}}">
                   </td>
-                  <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">+</button></td>
-                  <td><button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">-</button></td>
+                  <td><button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">-</button></td>
                 </tr>
               </table>
               <div>
@@ -48,6 +48,12 @@
             </div>
             <div ng-show="stats.currentTab == 'extra_costs'" class="extra-costs-tab">
               <table class="table">
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td><button ng-click="addRow(stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-success">+</button></td>
+                </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceExtraCost.rows">
                   <td>
                     <select ng-model="row.type" ng-change="stats.saveAllocation('serviceExtraCost')" class="form-control">
@@ -60,8 +66,7 @@
                   <td>
                     <input ng-model="row.remarks" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
                   </td>
-                  <td><button ng-click="addRow(stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">+</button></td>
-                  <td><button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-success">-</button></td>
+                  <td><button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">-</button></td>
                 </tr>
               </table>
               <button ng-click="stats.saveAllocation('serviceExtraCost')">Save</button>
@@ -73,6 +78,7 @@
                 <td></td>
                 <td></td>
                 <td>{{stats.allocationclient.teamDivision.total}}%</td>
+                <td><button ng-click="addRow(stats.allocationclient.teamDivision.rows)" type="button" class="btn btn-success">+</button></td>
               </tr>
               <tr ng-repeat="row in stats.allocationclient.teamDivision.rows">
                 <td>
@@ -88,8 +94,7 @@
                 <td>
                   <input ng-model="row.value" ng-change="updateTotal('teamDivision')" type="text" class="form-control">
                 </td>
-                <td><button ng-click="addRow(stats.allocationclient.teamDivision.rows)" type="button" class="btn btn-danger">+</button></td>
-                <td><button ng-click="removeRow($index, stats.allocationclient.teamDivision.rows)" type="button" class="btn btn-success">-</button></td>
+                <td><button ng-click="removeRow($index, stats.allocationclient.teamDivision.rows)" type="button" class="btn btn-danger">-</button></td>
               </tr>
             </table>
             <div>
