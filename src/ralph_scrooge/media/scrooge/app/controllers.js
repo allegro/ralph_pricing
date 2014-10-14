@@ -4,6 +4,9 @@ ang_controllers.controller('componentsCtrl', ['$scope', '$routeParams', 'menuSer
     $scope.stats.refreshCurrentSubpage = function () {
         stats.getComponentsData()
     }
+    $scope.stats.menuStats.subpage.change = 'components'
+    $scope.stats.refreshData();
+
     $scope.$watch(function () {
         $scope.days = stats.components.days
         if (typeof(stats.components.content) != 'undefined') {
@@ -35,11 +38,10 @@ ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'menuService',
     $scope.menuCalendar = menuCalendar
     $scope.stats = stats
     $scope.getDictLength = function (dict) {
-        if (typeof(dict) == 'dict') {
+        if (typeof(dict) == 'object') {
             return Object.keys(dict).length
         }
     }
-    $scope.$watch('stats.menuStats', function() { $scope.stats.refreshData() });
 }]);
 
 
@@ -51,6 +53,9 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
     stats.refreshCurrentSubpage = function () {
         stats.getAllocationClientData()
     }
+    $scope.stats.menuStats.subpage.change = 'allocationclient'
+    $scope.stats.refreshData();
+
     $scope.addRow = function (costList) {
         costList.push({"service": false, "value": 0})
     }
