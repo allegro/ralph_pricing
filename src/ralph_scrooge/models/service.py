@@ -224,12 +224,12 @@ class PricingService(BaseUsage):
             return 'pricing_service_plugin'
         return self.symbol or self.name.lower().replace(' ', '_')
 
-    def get_dependent_services(self, date):
+    def get_dependent_services(self, date, exclude=None):
         """
         Returns pricing services, which resources (usage types) are used by
         this service (for given date).
         """
-        return PricingService.objects.filter(
+        ps = PricingService.objects.filter(
             serviceusagetypes__usage_type__id__in=DailyUsage.objects.filter(
                 type__usage_type='SU',
                 service_environment__in=ServiceEnvironment.objects.filter(
@@ -237,7 +237,10 @@ class PricingService(BaseUsage):
                 ),
                 date=date,
             ).values_list('type', flat=True).distinct()
-        ).distinct()
+        )
+        if exclude:
+            ps = ps.exclude(id__in=[p.id for p in exclude])
+        return ps.distinct()
 
 
 class ServiceUsageTypes(db.Model):
