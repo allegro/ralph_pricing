@@ -39,18 +39,18 @@ for r in (PricingServiceUsageResource, ):
 urlpatterns = patterns(
     '',
     url(
-        r'^allocateclient/(?P<service>\S.*)/(?P<env>\S.*)/(?P<team>\S.*)/(?P<year>\d.*)/(?P<month>\d.*)/$',  # noqa
+        r'^allocateclient/(?P<service>\d+|false)/(?P<env>\d+|false)/(?P<team>\d+|false)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
         allocation_content,
     ),
     url(
-        r'^allocateclient/(?P<allocate_type>\S.+)/save/$',
+        r'^allocateclient/(?P<allocate_type>\S+)/save/$',
         login_required(allocation_save),
     ),
     url(
-        r'^components/(?P<service>\S.*)/(?P<env>\S.*)/(?P<year>\d.*)/(?P<month>\d.+)/(?P<day>\d+)/$',  # noqa
+        r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',  # noqa
         components_content,
     ),
-    url(r'^leftmenu/(?P<menu_type>\S.+)/$', login_required(left_menu)),
+    url(r'^leftmenu/(?P<menu_type>\S+)/$', login_required(left_menu)),
     url(r'^api/', include(v09_api.urls)),
     url(
         r'^$',
