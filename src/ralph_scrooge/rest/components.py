@@ -14,7 +14,6 @@ from django.conf import settings
 from django.db.models.fields import FieldDoesNotExist
 
 from ralph.util.views import jsonify
-from ralph_scrooge.rest.common import monthToNum
 from ralph_scrooge.models import (
     DailyPricingObject,
     PricingObjectType,
@@ -33,15 +32,15 @@ def _get_types():
 
 def _get_daily_pricing_objects(*args, **kwargs):
     return DailyPricingObject.objects.filter(
-        service_environment__service__name=kwargs.get(
+        service_environment__service__id=kwargs.get(
             'service',
         ),
-        service_environment__environment__name=kwargs.get(
+        service_environment__environment__id=kwargs.get(
             'env',
         ),
         date=date(
             year=int(kwargs.get('year')),
-            month=monthToNum(kwargs.get('month')),
+            month=int(kwargs.get('month')),
             day=int(kwargs.get('day')),
         )
     ).select_related(

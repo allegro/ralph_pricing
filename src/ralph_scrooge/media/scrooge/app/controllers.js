@@ -59,8 +59,10 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
     $scope.addRow = function (costList) {
         costList.push({"service": false, "value": 0})
     }
-    $scope.removeRow = function (index, costList) {
-        costList.splice(index, 1);
+    $scope.removeRow = function (index, currentList) {
+        if (currentList.length >=2) {
+            currentList.splice(index, 1);
+        }
     }
     $scope.updateTotal = function (tab) {
         var _updateTotal = function (scope) {
@@ -92,7 +94,7 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
     }
     $scope.changeTeam = function (team) {
         if (stats.menuStats.team.current != team.team) {
-            stats.menuStats.team.change = team.team
+            stats.menuStats.team.change = team.id
             stats.refreshData();
         }
     }
