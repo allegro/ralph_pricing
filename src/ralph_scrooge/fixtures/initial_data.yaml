@@ -22,15 +22,3 @@
     ci_id: -1
     ci_uid: -1
     business_line: 1
-
-# ExtraCost
-- model: ralph_scrooge.BaseUsage
-  pk: 1
-  fields:
-    type: 3
-    name: other
-
-- model: ralph_scrooge.ExtraCostType
-  pk: 1
-  fields:
-    baseusage_ptr: 1

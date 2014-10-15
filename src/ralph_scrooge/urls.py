@@ -34,12 +34,12 @@ for r in (PricingServiceUsageResource, ):
 urlpatterns = patterns(
     '',
     url(
-        r'^allocateclient/(?P<service>\S.+)/(?P<env>\S.+)/(?P<team>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/$',  # noqa
+        r'^allocateclient/(?P<service>\S.*)/(?P<env>\S.*)/(?P<team>\S.*)/(?P<year>\d.*)/(?P<month>\d.*)/$',  # noqa
         allocation_content,
     ),
     url(r'^allocateclient/(?P<allocate_type>\S.+)/save/$', allocation_save),
     url(
-        r'^components/(?P<service>\S.+)/(?P<env>\S.+)/(?P<year>\d.+)/(?P<month>\S.+)/(?P<day>\d+)/$',  # noqa
+        r'^components/(?P<service>\S.*)/(?P<env>\S.*)/(?P<year>\d.*)/(?P<month>\d.+)/(?P<day>\d+)/$',  # noqa
         components_content,
     ),
     url(r'^leftmenu/(?P<menu_type>\S.+)/$', left_menu),

@@ -14,7 +14,6 @@ from datetime import date, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ralph_scrooge.rest.common import monthToNum
 from ralph_scrooge.models import (
     DailyUsage,
     ExtraCost,
@@ -34,7 +33,7 @@ from ralph.util.views import jsonify
 
 def _get_dates(year, month):
     year = int(year)
-    month = monthToNum(month)
+    month = int(month)
     days_in_month = calendar.monthrange(year, month)[1]
     first_day = date(year, month, 1)
     return (first_day, days_in_month)
@@ -42,19 +41,19 @@ def _get_dates(year, month):
 
 def _get_service_usage_type(service):
     return ServiceUsageTypes.objects.get(
-        pricing_service__services__name=service
+        pricing_service__services__id=service
     )
 
 
 def _get_service_divison(service, year, month):
-    service_obj = Service.objects.get(name=service)
+    service_obj = Service.objects.get(id=service)
     results = {"key": "serviceDivision", "disabled": False}
     if not service_obj.manually_allocate_costs:
         results['value'] = {"disabled": True, "rows": []}
         return results
     total = 0
     service_usage_type = _get_service_usage_type(service)
-    first_day = date(int(year), monthToNum(month), 1)
+    first_day = date(int(year), int(month), 1)
     daily_pricing_object = PricingObject.objects.filter(
         service_environment__service=service_obj,
         type=PricingObjectType.dummy,
@@ -70,8 +69,8 @@ def _get_service_divison(service, year, month):
         "service_environment__environment",
     ):
         rows.append({
-            "service": daily_usage.service_environment.service.name,
-            "env": daily_usage.service_environment.environment.name,
+            "service": daily_usage.service_environment.service.id,
+            "env": daily_usage.service_environment.environment.id,
             "value": daily_usage.value
         })
         total += daily_usage.value
@@ -86,7 +85,7 @@ def _get_team_divison(team, start, end):
     total = 0
     rows = []
     for tsep in TeamServiceEnvironmentPercent.objects.filter(
-        team_cost__team__name=team,
+        team_cost__team__id=team,
         team_cost__start=start,
         team_cost__end=end,
     ).select_related(
@@ -96,8 +95,8 @@ def _get_team_divison(team, start, end):
     ):
         rows.append({
             "id": tsep.id,
-            "service": tsep.service_environment.service.name,
-            "env": tsep.service_environment.environment.name,
+            "service": tsep.service_environment.service.id,
+            "env": tsep.service_environment.environment.id,
             "value": tsep.percent
         })
         total += tsep.percent
@@ -115,21 +114,27 @@ def _get_service_extra_cost(service, env, start, end):
         start=start,
         end=end,
         service_environment=ServiceEnvironment.objects.get(
-            service__name=service,
-            environment__name=env,
+            service__id=service,
+            environment__id=env,
         )
     )
     rows = []
     for extra_cost in extra_costs:
         rows.append({
             "id": extra_cost.id,
-            "type": extra_cost.extra_cost_type.name,
+            "type": extra_cost.extra_cost_type.id,
             "value": extra_cost.cost,
             "remarks": extra_cost.remarks,
         })
+    extra_cost_types = []
+    for extra_cost_type in ExtraCostType.objects.all():
+        extra_cost_types.append({
+            "name": extra_cost_type.name,
+            "id": extra_cost_type.id
+        })
     return {
         "key": "serviceExtraCost",
-        "extra_cost_types": [ec.name for ec in ExtraCostType.objects.all()],
+        "extra_cost_types": extra_cost_types,
         "value": {
             "rows": rows,
         }
@@ -145,28 +150,30 @@ def allocation_content(request, *args, **kwargs):
         kwargs.get('month')
     )
     results = []
-    results.append(
-        _get_service_divison(
-            kwargs.get('service'),
-            kwargs.get('year'),
-            kwargs.get('month'),
+    if kwargs.get('service') != 'false' and kwargs.get('env') != 'false':
+        results.append(
+            _get_service_divison(
+                kwargs.get('service'),
+                kwargs.get('year'),
+                kwargs.get('month'),
+            )
         )
-    )
-    results.append(
-        _get_team_divison(
-            kwargs.get('team'),
-            first_day,
-            first_day + timedelta(days=days_in_month),
+        results.append(
+            _get_service_extra_cost(
+                kwargs.get('service'),
+                kwargs.get('env'),
+                first_day,
+                first_day + timedelta(days=days_in_month-1),
+            )
         )
-    )
-    results.append(
-        _get_service_extra_cost(
-            kwargs.get('service'),
-            kwargs.get('env'),
-            first_day,
-            first_day + timedelta(days=days_in_month),
+    if kwargs.get('team') != 'false':
+        results.append(
+            _get_team_divison(
+                kwargs.get('team'),
+                first_day,
+                first_day + timedelta(days=days_in_month-1),
+            )
         )
-    )
     return results
 
 
@@ -202,7 +209,7 @@ def allocation_save(request, *args, **kwargs):
     if kwargs.get('allocate_type') == 'servicedivision':
         service_usage_type = _get_service_usage_type(post_data['service'])
         pricing_objects = PricingObject.objects.filter(
-            service_environment__service__name=post_data['service'],
+            service_environment__service__id=post_data['service'],
             type=PricingObjectType.dummy,
         )
         _clear_daily_usages(
@@ -213,8 +220,8 @@ def allocation_save(request, *args, **kwargs):
         )
         for row in post_data['rows']:
             service_environment = ServiceEnvironment.objects.get(
-                service__name=row['service'],
-                environment__name=row['env'],
+                service__id=row['service'],
+                environment__id=row['env'],
             )
             for day in xrange(days_in_month):
                 iter_date = first_day + timedelta(days=day)
@@ -229,21 +236,21 @@ def allocation_save(request, *args, **kwargs):
                     )
     if kwargs.get('allocate_type') == 'serviceextracost':
         service_environment = ServiceEnvironment.objects.get(
-            service__name=post_data['service'],
-            environment__name=post_data['env'],
+            service__id=post_data['service'],
+            environment__id=post_data['env'],
         )
         ExtraCost.objects.filter(
             start=first_day,
-            end=first_day + timedelta(days=days_in_month),
+            end=first_day + timedelta(days=days_in_month -1),
             service_environment=service_environment,
         ).delete()
         for row in post_data['rows']:
             extra_cost = ExtraCost.objects.get_or_create(
                 id=row.get('id'),
                 start=first_day,
-                end=first_day + timedelta(days=days_in_month),
+                end=first_day + timedelta(days=days_in_month -1),
                 service_environment=service_environment,
-                extra_cost_type=ExtraCostType.objects.get(name=row['type']),
+                extra_cost_type=ExtraCostType.objects.get(id=row['type']),
                 defaults=dict(
                     cost=row['value']
                 )
@@ -254,23 +261,23 @@ def allocation_save(request, *args, **kwargs):
 
     if kwargs.get('allocate_type') == 'teamdivision':
         try:
-            team = Team.objects.get(name=post_data.get('team'))
+            team = Team.objects.get(id=post_data.get('team'))
         except Team.DoesNotExist:
             return {'status': False, 'message': 'Team Does Not Exist.'}
         TeamServiceEnvironmentPercent.objects.filter(
-            team_cost__team__name=team,
+            team_cost__team=team,
             team_cost__start=first_day,
-            team_cost__end=first_day + timedelta(days=days_in_month),
+            team_cost__end=first_day + timedelta(days=days_in_month -1),
         ).delete()
         team_cost = TeamCost.objects.get_or_create(
             team=team,
             start=first_day,
-            end=first_day + timedelta(days=days_in_month),
+            end=first_day + timedelta(days=days_in_month -1),
         )[0]
         for row in post_data['rows']:
             service_environment = ServiceEnvironment.objects.get(
-                service__name=row.get('service'),
-                environment__name=row.get('env')
+                service__id=row.get('service'),
+                environment__id=row.get('env')
             )
             tsep = TeamServiceEnvironmentPercent.objects.get_or_create(
                 team_cost=team_cost,
