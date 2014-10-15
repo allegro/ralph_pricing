@@ -13,6 +13,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ralph.util.views import jsonify
+from ralph.account.models import Perm
+
 from ralph_scrooge.models import (
     ServiceEnvironment,
     Team,
@@ -23,12 +25,19 @@ from ralph_scrooge.models import (
 @jsonify
 @require_http_methods(["POST", "GET"])
 def left_menu(request, *args, **kwargs):
-    service_environments = ServiceEnvironment.objects.all().select_related(
+    service_environments = ServiceEnvironment.objects.select_related(
         "service",
         "environment",
     ).order_by(
         "service__name",
     )
+    if not (
+        request.user.is_superuser or
+        request.user.profile.has_perm(Perm.has_scrooge_access)
+    ):
+        service_environments = service_environments.filter(
+            service__serviceownership__owner__profile__user=request.user,
+        )
 
     results = {}
 
