@@ -383,7 +383,7 @@ class Collector(object):
         for team in teams:
             team_info = AttributeDict(
                 name=team.name,
-                plugin_name='team',
+                plugin_name='team_plugin',
                 plugin_kwargs={
                     'team': team
                 }

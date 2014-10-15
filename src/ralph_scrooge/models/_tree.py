@@ -68,7 +68,7 @@ class MultiPathNode(db.Model):
         for child in tree:
             assert isinstance(child, dict)
             params = dict(
-                [(k, v) for k, v in child.items() if not k.startswith('_')]
+                [(k, v) for k, v in child.items() if (not k.startswith('_') and not k in ('percent', ))]
             )
             params.update(global_params)
             if parent is None:
