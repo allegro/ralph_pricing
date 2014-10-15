@@ -8,7 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-	return
         # Adding field 'ExtraCost.remarks'
         db.add_column(u'ralph_scrooge_extracost', 'remarks',
                       self.gf('django.db.models.fields.TextField')(default=u'', blank=True),

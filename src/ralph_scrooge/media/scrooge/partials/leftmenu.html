@@ -11,15 +11,15 @@
     </li>
     <div>
         <li ng-show="stats.currentMenu == 'service'" class="env-menu" ng-repeat="service in stats.menus.service | filter:searchTextMenu">
-            <a class="btn-left-menu {{stats.menuStats['service']['current'] == service.service ? 'active' : ''}}" ng-click="menuService.changeService(service)">{{service.service}}</a>
-            <ul ng-click="menuService.changeEnv(service.service, env.env)" ng-show="stats.menuStats['service']['current'] == service.service" class="nav nav-second-level" ng-repeat="env in service.value.envs">
+            <a class="btn-left-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-click="menuService.changeService(service)">{{service.name}}</a>
+            <ul ng-click="menuService.changeEnv(env.id)" ng-show="stats.menuStats['service']['current'] == service.id" class="nav nav-second-level" ng-repeat="env in service.value.envs">
                 <li>
-                    <a class="btn-left-submenu {{stats.menuStats['env']['current'] == env.env ? 'active' : ''}}" ng-click="setCurrentEnv(env)">{{env.env}}</a>
+                    <a class="btn-left-submenu {{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}" ng-click="setCurrentEnv(id)">{{env.name}}</a>
                 </li>
             </ul>
         </li>
         <li ng-show="stats.currentMenu == 'teams'" class="env-menu" ng-repeat="team in stats.menus.teams | filter:searchTextMenu">
-            <a class="btn-left-menu {{stats.menuStats['team']['current'] == team.team ? 'active' : ''}}" ng-click="changeTeam(team)">{{team.team}}</a>
+            <a class="btn-left-menu {{stats.menuStats['team']['current'] == team.id ? 'active' : ''}}" ng-click="changeTeam(team)">{{team.name}}</a>
         </li>
     </div>
 </ul>

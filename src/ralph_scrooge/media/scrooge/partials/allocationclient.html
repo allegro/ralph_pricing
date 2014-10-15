@@ -1,4 +1,4 @@
-<div class="preloader" ng-if="stats.menuReady == false">
+<div class="preloader" ng-if="stats.menuReady == false || stats.contentReady >= 1">
   <img src="/static/scrooge/img/preloader.gif">
 </div>
 <div class="container-xs-height body-container">
@@ -11,7 +11,7 @@
         <div class="col-xs-12 calendar" ng-controler="calendarCtrl">
           <menucalendardirective ng-if="stats.menuReady"></menucalendardirective>
         </div>
-        <div ng-if="stats.allocationclient.contentReady == 0">
+        <div ng-if="stats.contentReady == 0">
           <div ng-show="stats.currentMenu == 'service'">
             <ul class="nav nav-tabs allocation-tabs" role="tablist">
               <li ng-show="!stats.allocationclient.serviceDivision.disabled" ng-click="stats.changeTab('allocate_costs')" class="{{stats.menuStats.tab.current == 'allocate_costs' ? 'active': ''}}"><a>Allocate Costs</a></li>
@@ -27,13 +27,11 @@
                 </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
                   <td>
-                    <select ng-model="row.service" class="form-control">
-                      <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
+                    <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.menus['service']">
                     </select>
                   </td>
                   <td>
-                    <select ng-model="row.env" class="form-control">
-                      <option ng-repeat="env in stats.getEnvs(row.service)">{{env.env}}</option>
+                    <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
                     </select>
                   </td>
                   <td>
@@ -56,15 +54,14 @@
                 </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceExtraCost.rows">
                   <td>
-                    <select ng-model="row.type" ng-change="stats.saveAllocation('serviceExtraCost')" class="form-control">
-                      <option ng-repeat="extraCostType in stats.allocationclient.serviceExtraCostTypes">{{extraCostType}}</option>
+                    <select ng-model="row.type" class="form-control" ng-options="extraCostType.id as extraCostType.name for extraCostType in stats.allocationclient.serviceExtraCostTypes">
                     </select>
                   </td>
                   <td>
-                    <input ng-model="row.value" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
+                    <input ng-model="row.value" type="text" class="form-control">
                   </td>
                   <td>
-                    <input ng-model="row.remarks" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
+                    <input ng-model="row.remarks" type="text" class="form-control">
                   </td>
                   <td><button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">-</button></td>
                 </tr>
@@ -82,13 +79,11 @@
               </tr>
               <tr ng-repeat="row in stats.allocationclient.teamDivision.rows">
                 <td>
-                  <select ng-model="row.service" class="form-control">
-                      <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
-                  </select>
+                    <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.menus['service']">
+                    </select>
                 </td>
                 <td>
-                    <select ng-model="row.env" class="form-control">
-                      <option ng-repeat="env in stats.getEnvs(row.service)">{{env.env}}</option>
+                    <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
                     </select>
                 </td>
                 <td>

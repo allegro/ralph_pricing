@@ -5,7 +5,7 @@
                             <button type="button" ng-click="menuCalendar.changeYear(year)" class="{{stats.menuStats['year']['current'] == year ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="year in menuCalendar.getYears()">{{year}}</button>
                         </div>
                         <div class="col-xs-13 btn-group btn-month" role="toolbar">
-                            <button ng-click="menuCalendar.changeMonth(month)" class="{{stats.menuStats['month']['current'] == month ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="month in menuCalendar.getMonths()">{{month}}</button>
+                            <button ng-click="menuCalendar.changeMonth(month)" class="{{stats.menuStats['month']['current'] == month ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="month in menuCalendar.getMonths()">{{month | intToMonth}}</button>
                         </div>
                         <div class="col-xs-13 btn-group btn-day" role="toolbar">
                             <button ng-click="menuCalendar.changeDay(day)" class="{{stats.menuStats['day']['current'] == day ? 'active' : ''}} btn-datepicker btn btn-default btn-day-scrooge" ng-repeat="day in menuCalendar.getDays()">{{day}}</button>
