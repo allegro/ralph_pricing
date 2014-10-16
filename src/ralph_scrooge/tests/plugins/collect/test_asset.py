@@ -20,9 +20,9 @@ from ralph_scrooge.models import (
 from ralph_scrooge.plugins.collect import asset
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
-    AssetModelFactory,
     DailyAssetInfoFactory,
     EnvironmentFactory,
+    PricingObjectModelFactory,
     ServiceEnvironmentFactory,
     ServiceFactory,
     UsageTypeFactory,
@@ -37,7 +37,7 @@ class TestAssetPlugin(TestCase):
         self.service_environment = ServiceEnvironmentFactory()
         self.date = datetime.date.today()
         self.warehouse = WarehouseFactory.create()
-        self.model = AssetModelFactory()
+        self.model = PricingObjectModelFactory()
         self.value = 100
         self.data = {
             'asset_id': 1,

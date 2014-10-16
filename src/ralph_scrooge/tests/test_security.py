@@ -17,7 +17,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestRangesOverlap(TestCase):
+class TestSecurity(TestCase):
     def setUp(self):
         self.client = Client()
 
@@ -58,10 +58,10 @@ class TestRangesOverlap(TestCase):
         self.client.login(username=user, password='12345')
 
     def _get_components(self, se):
-        return self.client.get('/{}/components/{}/{}/2014/October/01/'.format(
+        return self.client.get('/{}/components/{}/{}/2014/10/1/'.format(
             Scrooge.url_prefix,
-            se.service.name,
-            se.environment.name,
+            se.service.id,
+            se.environment.id,
         ))
 
     def _get_report(self):

@@ -43,7 +43,7 @@ def _has_permission_to_service(user, service):
     if user.is_superuser or profile.has_perm(Perm.has_scrooge_access):
         return True
     return ServiceOwnership.objects.filter(
-        service__name=service,  # TODO: change to id
+        service__id=service,
         owner__profile__user=user,
     ).exists()
 

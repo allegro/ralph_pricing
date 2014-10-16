@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models import PricingObjectType
+from ralph_scrooge.models import PRICING_OBJECT_TYPES
 from ralph_scrooge.report.report_services_changes import ServicesChangesReport
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
@@ -34,7 +34,7 @@ class TestServicesChangesReport(TestCase):
     def _create_pricing_objects(self):
         self.po1 = PricingObjectFactory(
             service_environment=self.se1,
-            type=PricingObjectType.unknown,
+            type_id=PRICING_OBJECT_TYPES.UNKNOWN,
         )
         self.dpo1 = DailyPricingObjectFactory(
             service_environment=self.se1,
@@ -75,10 +75,10 @@ class TestServicesChangesReport(TestCase):
 
     def test_get_types(self):
         pricing_object_types = ServicesChangesReport._get_types()
-        self.assertNotIn(PricingObjectType.dummy, pricing_object_types)
+        self.assertNotIn(PRICING_OBJECT_TYPES.DUMMY, pricing_object_types)
         self.assertEquals(
             len(pricing_object_types),
-            len(PricingObjectType.__choices__) - 1
+            len(PRICING_OBJECT_TYPES.__choices__) - 1
         )
 
     def test_report_pricing_object(self):
@@ -89,7 +89,7 @@ class TestServicesChangesReport(TestCase):
         ):
             pass
         self.assertEquals(result, self._get_default_result({
-            PricingObjectType.unknown: [(
+            PRICING_OBJECT_TYPES.UNKNOWN: [(
                 self.po1.id,
                 self.po1.name,
                 date(2013, 10, 12),
@@ -108,7 +108,7 @@ class TestServicesChangesReport(TestCase):
         ):
             pass
         self.assertEquals(result, self._get_default_result({
-            PricingObjectType.asset: [(
+            PRICING_OBJECT_TYPES.ASSET: [(
                 self.ai.id,
                 self.ai.name,
                 self.ai.barcode,
@@ -141,9 +141,9 @@ class TestServicesChangesReport(TestCase):
             _('Asset ID'),
         ]
         self.assertEquals(header, {
-            PricingObjectType.asset: [asset_header],
-            PricingObjectType.virtual: [default],
-            PricingObjectType.tenant: [default],
-            PricingObjectType.ip_address: [default],
-            PricingObjectType.unknown: [default],
+            PRICING_OBJECT_TYPES.ASSET: [asset_header],
+            PRICING_OBJECT_TYPES.VIRTUAL: [default],
+            PRICING_OBJECT_TYPES.TENANT: [default],
+            PRICING_OBJECT_TYPES.IP_ADDRESS: [default],
+            PRICING_OBJECT_TYPES.UNKNOWN: [default],
         })

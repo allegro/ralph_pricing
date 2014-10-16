@@ -5,11 +5,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from copy import deepcopy
-
 from django import forms
 from django.contrib import admin
-from django.contrib.admin.filters import ChoicesFieldListFilter
+from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 from lck.django.common.admin import ModelAdmin
@@ -71,31 +69,33 @@ class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     readonly_when_update = ('tenant_id', )
 
 
-class PricingObjectTypeFilter(ChoicesFieldListFilter):
+class PricingObjectTypeFilter(SimpleListFilter):
     """
     Hides dummy pricing object type on filter list
     """
-    def __init__(self, field, request, *args, **kwargs):
-        types = models.PricingObjectType()
-        types.remove((
-            models.PricingObjectType.dummy.id,
-            models.PricingObjectType.dummy.desc
-        ))
-        field = deepcopy(field)
-        field._choices = types
-        return super(PricingObjectTypeFilter, self).__init__(
-            field,
-            request,
-            *args,
-            **kwargs
-        )
+    title = _('type')
+    parameter_name = 'type'
+
+    def lookups(self, request, model_admin):
+        return [
+            (t.id, t.name) for t in models.PricingObjectType.objects.exclude(
+                id__in=[models.PRICING_OBJECT_TYPES.DUMMY]
+            )
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(type_id=self.value())
+        else:
+            return queryset
 
 
 @register(models.PricingObject)
 class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
     list_display = ('name', 'service', 'type', 'remarks',)
     search_fields = ('name', 'service_environment__service__name', 'remarks',)
-    list_filter = (('type', PricingObjectTypeFilter), )
+    list_filter = (PricingObjectTypeFilter,)
+    filter_exclude = ['created_by', 'modified_by']
     inlines = [AssetInfoInline, VirtualInfoInline, TenantInfoInline]
     # TODO: display inlines based on pricing object type
 
@@ -106,7 +106,7 @@ class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
         """
         Allows to change pricing object type when unknown
         """
-        if obj and obj.type == models.PricingObjectType.unknown:
+        if obj and obj.type_id == models.PRICING_OBJECT_TYPES.UNKNOWN:
             self.readonly_when_update = tuple()
         else:
             self.readonly_when_update = ('type', )
@@ -120,7 +120,12 @@ class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
         Do not display dummy pricing objects
         """
         result = super(PricingObjectAdmin, self).queryset(request)
-        return result.exclude(type=models.PricingObjectType.dummy)
+        return result.exclude(
+            type_id=models.PRICING_OBJECT_TYPES.DUMMY
+        ).select_related(
+            'service_environment',
+            'service_environment__service',
+        )
 
 
 # =============================================================================

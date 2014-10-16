@@ -9,7 +9,10 @@ import logging
 
 from ralph.util import plugin
 from ralph_assets.api_scrooge import get_models
-from ralph_scrooge.models import AssetModel
+from ralph_scrooge.models import (
+    PricingObjectModel,
+    PRICING_OBJECT_TYPES,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -23,8 +26,9 @@ def update_asset_model(data):
     :returns boolean: True, if asset model was created
     :rtype boolean:
     """
-    model, created = AssetModel.objects.get_or_create(
-        model_id=data['model_id']
+    model, created = PricingObjectModel.objects.get_or_create(
+        model_id=data['model_id'],
+        type=PRICING_OBJECT_TYPES.ASSET,
     )
     model.name = data['name']
     model.manufacturer = data['manufacturer']

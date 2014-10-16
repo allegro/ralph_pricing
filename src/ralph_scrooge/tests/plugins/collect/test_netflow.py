@@ -14,7 +14,7 @@ from django.test.utils import override_settings
 
 from ralph_scrooge.models import (
     DailyUsage,
-    PricingObjectType,
+    PRICING_OBJECT_TYPES,
     UsageType,
 )
 from ralph_scrooge.plugins.collect import netflow
@@ -231,7 +231,7 @@ class TestNetwork(TestCase):
         service_environment = ServiceEnvironmentFactory()
         pricing_object = PricingObjectFactory.create(
             name='8.8.8.8',
-            type=PricingObjectType.ip_address,
+            type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
             service_environment=service_environment,
         )
         DailyPricingObjectFactory.create(

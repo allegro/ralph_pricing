@@ -19,4 +19,4 @@ class PricingServicePlugin(BaseReportPlugin):
     """
     Pricing Service reports plugin
     """
-    base_usage_cost_symbol = '{0}'
+    base_usage_cost_symbol = 'cost_{0}'

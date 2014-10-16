@@ -14,11 +14,10 @@ from ralph.util import plugin
 from ralph_assets.api_scrooge import get_assets
 from ralph_scrooge.models import (
     AssetInfo,
-    AssetModel,
     DailyAssetInfo,
     DailyUsage,
-    PricingObjectType,
-    PricingObjectColor,
+    PricingObjectModel,
+    PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     UsagePrice,
     UsageType,
@@ -59,11 +58,13 @@ def get_asset_info(service_environment, warehouse, data):
     except AssetInfo.DoesNotExist:
         asset_info = AssetInfo(
             asset_id=data['asset_id'],
-            type=PricingObjectType.asset,
-            color=PricingObjectColor.asset,
+            type_id=PRICING_OBJECT_TYPES.ASSET,
         )
         created = True
-    asset_info.model = AssetModel.objects.get(model_id=data['model_id'])
+    asset_info.model = PricingObjectModel.objects.get(
+        model_id=data['model_id'],
+        type=PRICING_OBJECT_TYPES.ASSET,
+    )
     asset_info.service_environment = service_environment
     asset_info.name = data['asset_name']
     asset_info.warehouse = warehouse

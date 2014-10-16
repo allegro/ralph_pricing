@@ -10,7 +10,7 @@ import logging
 from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models import PricingObjectType
+from ralph_scrooge.models import PRICING_OBJECT_TYPES
 from ralph_scrooge.report.base_report import BaseReport
 
 
@@ -25,7 +25,7 @@ SQL_DAY_SUB = {
 
 ADDITIONAL_DATA = {
     # TODO: add asset model
-    PricingObjectType.asset: {
+    PRICING_OBJECT_TYPES.ASSET: {
         'fields': ['ai.barcode', 'ai.sn', 'ai.asset_id'],
         'joins': [
             'JOIN ralph_scrooge_assetinfo AS ai',
@@ -36,7 +36,7 @@ ADDITIONAL_DATA = {
     }
 }
 ADDITIONAL_HEADERS = {
-    PricingObjectType.asset: [
+    PRICING_OBJECT_TYPES.ASSET: [
         _('Barcode'),
         _('SN'),
         _('Asset ID'),
@@ -53,8 +53,8 @@ class ServicesChangesReport(BaseReport):
     """
     @classmethod
     def _get_types(self):
-        types = PricingObjectType.__choices__[:]
-        types.remove(PricingObjectType.dummy)
+        types = PRICING_OBJECT_TYPES.__choices__[:]
+        types.remove(PRICING_OBJECT_TYPES.DUMMY)
         return types
 
     @classmethod
@@ -143,7 +143,7 @@ class ServicesChangesReport(BaseReport):
                 AND dpo1.date >= '{start}'
                 AND dpo1.date <= '{end}'
                 AND dpo1.service_environment_id != dpo2.service_environment_id
-                AND po.type = {pricing_object_type_id}
+                AND po.type_id = {pricing_object_type_id}
         """
         if service_environments is not None:
             service_environments_set = ','.join(map(str, service_environments))

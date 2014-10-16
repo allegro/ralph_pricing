@@ -20,7 +20,7 @@ from ralph_scrooge.models import (
     ExtraCostType,
     PricingObject,
     DailyPricingObject,
-    PricingObjectType,
+    PRICING_OBJECT_TYPES,
     Service,
     ServiceEnvironment,
     ServiceUsageTypes,
@@ -56,7 +56,7 @@ def _get_service_divison(service, year, month):
     first_day = date(int(year), int(month), 1)
     daily_pricing_object = PricingObject.objects.filter(
         service_environment__service=service_obj,
-        type=PricingObjectType.dummy,
+        type=PRICING_OBJECT_TYPES.DUMMY,
     )[0].get_daily_pricing_object(first_day)
     rows = []
     for daily_usage in DailyUsage.objects.filter(
@@ -210,7 +210,7 @@ def allocation_save(request, *args, **kwargs):
         service_usage_type = _get_service_usage_type(post_data['service'])
         pricing_objects = PricingObject.objects.filter(
             service_environment__service__id=post_data['service'],
-            type=PricingObjectType.dummy,
+            type=PRICING_OBJECT_TYPES.DUMMY,
         )
         _clear_daily_usages(
             pricing_objects,
@@ -241,14 +241,14 @@ def allocation_save(request, *args, **kwargs):
         )
         ExtraCost.objects.filter(
             start=first_day,
-            end=first_day + timedelta(days=days_in_month -1),
+            end=first_day + timedelta(days=days_in_month - 1),
             service_environment=service_environment,
         ).delete()
         for row in post_data['rows']:
             extra_cost = ExtraCost.objects.get_or_create(
                 id=row.get('id'),
                 start=first_day,
-                end=first_day + timedelta(days=days_in_month -1),
+                end=first_day + timedelta(days=days_in_month - 1),
                 service_environment=service_environment,
                 extra_cost_type=ExtraCostType.objects.get(id=row['type']),
                 defaults=dict(
@@ -267,12 +267,12 @@ def allocation_save(request, *args, **kwargs):
         TeamServiceEnvironmentPercent.objects.filter(
             team_cost__team=team,
             team_cost__start=first_day,
-            team_cost__end=first_day + timedelta(days=days_in_month -1),
+            team_cost__end=first_day + timedelta(days=days_in_month - 1),
         ).delete()
         team_cost = TeamCost.objects.get_or_create(
             team=team,
             start=first_day,
-            end=first_day + timedelta(days=days_in_month -1),
+            end=first_day + timedelta(days=days_in_month - 1),
         )[0]
         for row in post_data['rows']:
             service_environment = ServiceEnvironment.objects.get(

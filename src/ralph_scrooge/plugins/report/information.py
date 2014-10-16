@@ -59,7 +59,9 @@ class Information(BaseReportPlugin):
                 'service',
                 flat=True
             ).distinct(),
-        ).select_related('business_line').order_by('history_id')
+        ).select_related('business_line', 'profit_center').order_by(
+            'history_id'
+        )
         services = {}
         profit_centers = defaultdict(list)
         for service_history in services_history:
@@ -73,7 +75,14 @@ class Information(BaseReportPlugin):
                 'service': service_environment.service.name,
                 'environment': service_environment.environment.name,
                 'profit_center': ' / '.join([
-                    pc.name for pc in profit_centers[
+                    ' - '.join(
+                        (pc.name, pc.description or '')
+                    ) for pc in profit_centers[
+                        service_environment.service.id
+                    ]
+                ]),
+                'business_line': ' / '.join([
+                    pc.business_line.name for pc in profit_centers[
                         service_environment.service.id
                     ]
                 ]),
@@ -132,8 +141,11 @@ class Information(BaseReportPlugin):
         schema['environment'] = {
             'name': _("Environment"),
         }
+        schema['profit_center'] = {
+            'name': _("Profit center"),
+        }
         schema['business_line'] = {
-            'name': _("Business line"),
+            'name': _("Business Line"),
         }
         return schema
 
