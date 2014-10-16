@@ -61,10 +61,18 @@ class UsageTypeFactory(DjangoModelFactory):
     symbol = Sequence(lambda n: 'ut%s' % n)
 
 
+class PricingObjectModelFactory(DjangoModelFactory):
+    FACTORY_FOR = models.PricingObjectModel
+
+    type_id = 1
+    model_id = Sequence(lambda n: n)
+    name = Sequence(lambda n: 'Model %s' % n)
+
+
 class PricingObjectFactory(DjangoModelFactory):
     FACTORY_FOR = models.PricingObject
 
-    type = 1
+    type_id = 1
     service_environment = SubFactory(ServiceEnvironmentFactory)
     name = Sequence(lambda n: 'Pricing Object%s' % n)
 
@@ -77,15 +85,6 @@ class DailyPricingObjectFactory(DjangoModelFactory):
     service_environment = SubFactory(ServiceEnvironmentFactory)
 
 
-class AssetModelFactory(DjangoModelFactory):
-    FACTORY_FOR = models.AssetModel
-
-    model_id = Sequence(lambda n: n)
-    name = Sequence(lambda n: 'Asset Model #%s' % n)
-    manufacturer = Sequence(lambda n: 'Manufacturer #%s' % n)
-    category = Sequence(lambda n: 'Category #%s' % n)
-
-
 class AssetInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.AssetInfo
 
@@ -94,7 +93,6 @@ class AssetInfoFactory(PricingObjectFactory):
     barcode = Sequence(lambda n: n)
     asset_id = Sequence(lambda n: n)
     warehouse = SubFactory(WarehouseFactory)
-    model = SubFactory(AssetModelFactory)
 
 
 class VirtualInfoFactory(PricingObjectFactory):
@@ -155,18 +153,10 @@ class ProfitCenterFactory(DjangoModelFactory):
     business_line = SubFactory(BusinessLineFactory)
 
 
-class TenantGroupFactory(DjangoModelFactory):
-    FACTORY_FOR = models.TenantGroup
-
-    group_id = Sequence(lambda n: n)
-    name = Sequence(lambda n: 'Tenant Group #%s' % n)
-
-
 class TenantInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.TenantInfo
 
     tenant_id = Sequence(lambda n: n)
-    group = SubFactory(TenantGroupFactory)
 
 
 class DailyTenantInfoFactory(DailyPricingObjectFactory):

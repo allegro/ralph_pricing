@@ -17,17 +17,13 @@ from ralph.util.views import jsonify
 from ralph_scrooge.models import (
     DailyPricingObject,
     PricingObjectType,
-    PricingObjectColor,
 )
 
 
 def _get_types():
-    types = []
-    for single_type in PricingObjectType():
-        if single_type[1] not in settings.COMPONENTS_TABLE_SCHEMA:
-            continue
-        types.append(single_type)
-    return types
+    return PricingObjectType.objects.filter(
+        name__in=settings.COMPONENTS_TABLE_SCHEMA.keys()
+    )
 
 
 def _get_daily_pricing_objects(*args, **kwargs):
@@ -87,18 +83,18 @@ def components_content(request, *args, **kwargs):
         value = []
         ui_schema = {}
         for daily_pricing_object in daily_pricing_objects.filter(
-            pricing_object__type=single_type[0],
+            pricing_object__type=single_type,
         ):
             fields = _get_fields(
                 daily_pricing_object.pricing_object,
-                settings.COMPONENTS_TABLE_SCHEMA[single_type[1]],
+                settings.COMPONENTS_TABLE_SCHEMA[single_type.name],
             )
             ui_schema.update(fields[1])
             value.append(fields[0])
         results.append({
-            "name": single_type[1],
+            "name": single_type.name,
             "value": value,
             "schema": ui_schema,
-            "color": PricingObjectColor.raw_from_id(single_type[0]),
+            "color": single_type.color,
         })
     return results if results else {}

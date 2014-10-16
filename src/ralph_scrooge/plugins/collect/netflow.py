@@ -17,8 +17,7 @@ from ralph_scrooge.models import (
     DailyPricingObject,
     DailyUsage,
     PricingObject,
-    PricingObjectType,
-    PricingObjectColor,
+    PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     UsageType,
 )
@@ -281,10 +280,9 @@ def update(
         total += 1
         pricing_object, created = PricingObject.objects.get_or_create(
             name=ip,
-            type=PricingObjectType.ip_address,
+            type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
             defaults=dict(
                 service_environment=default_service_environment,
-                color=PricingObjectColor.ip_address,
             )
         )
         daily_pricing_object = DailyPricingObject.objects.get_or_create(

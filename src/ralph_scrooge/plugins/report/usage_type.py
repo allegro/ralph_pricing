@@ -23,8 +23,8 @@ class UsageTypePlugin(BaseReportPlugin):
     """
     Usage Type reports plugin
     """
-    base_usage_cost_symbol = '{0}'
-    base_usage_count_symbol = '{0}'
+    base_usage_cost_symbol = 'cost_{0}'
+    base_usage_count_symbol = 'count_{0}'
 
     def usages(
         self,
