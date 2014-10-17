@@ -68,24 +68,24 @@ class Migration(DataMigration):
         self.set_foreign_key_checks(False)
 
         # asset
-        # for model in orm.AssetModel.objects.all():
-        #     new_model = orm.PricingObjectModel.objects.create(
-        #         model_id=model.model_id,
-        #         name=model.name,
-        #         manufacturer=model.manufacturer,
-        #         category=model.category,
-        #         type_id=1,
-        #     )
-        #     model.assetinfo_set.update(model=new_model)
+        for model in orm.AssetModel.objects.all():
+            new_model = orm.PricingObjectModel.objects.create(
+                model_id=model.model_id,
+                name=model.name,
+                manufacturer=model.manufacturer,
+                category=model.category,
+                type_id=1,
+            )
+            model.assetinfo_set.update(model=new_model)
 
-        # # tenant
-        # for model in orm.TenantGroup.objects.all():
-        #     new_model = orm.PricingObjectModel.objects.create(
-        #         name=model.name,
-        #         model_id=model.group_id,
-        #         type_id=4,
-        #     )
-        #     model.tenants.update(model=new_model)
+        # tenant
+        for model in orm.TenantGroup.objects.all():
+            new_model = orm.PricingObjectModel.objects.create(
+                name=model.name,
+                model_id=model.group_id,
+                type_id=4,
+            )
+            model.tenants.update(model=new_model)
 
         # move base usages over 100
         self.bumped_auto_increment(101 + orm.BaseUsage.objects.count())
