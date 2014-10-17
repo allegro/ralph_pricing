@@ -15,7 +15,7 @@ from ralph_scrooge.models import DailyUsage, UsageType
 from ralph_scrooge.plugins.collect import share
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
-    DailyPricingObjectFactory,
+    DailyAssetInfoFactory,
     UsageTypeFactory,
 )
 
@@ -35,8 +35,9 @@ class TestSharesPlugin(TestCase):
         self.usage_type = UsageTypeFactory.create()
 
     def test_update_usage(self):
-        DailyPricingObjectFactory.create(
+        DailyAssetInfoFactory.create(
             pricing_object=self.asset_info,
+            asset_info=self.asset_info,
             date=self.date,
         )
         share.update_usage(
@@ -108,8 +109,9 @@ class TestSharesPlugin(TestCase):
 
     @override_settings(SHARE_SERVICES={'group': ['ci_uid']})
     def test_share(self):
-        DailyPricingObjectFactory.create(
+        DailyAssetInfoFactory.create(
             pricing_object=self.asset_info,
+            asset_info=self.asset_info,
             date=self.date,
         )
         share.get_shares = lambda service_uid, include_virtual: [self.data]

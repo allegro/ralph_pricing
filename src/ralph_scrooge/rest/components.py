@@ -8,40 +8,36 @@ from __future__ import unicode_literals
 
 from datetime import date
 
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.db.models.fields import FieldDoesNotExist
+from django.template.defaultfilters import slugify
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from ralph.util.views import jsonify
-from ralph_scrooge.rest.common import monthToNum
 from ralph_scrooge.models import (
     DailyPricingObject,
     PricingObjectType,
-    PricingObjectColor,
 )
 
 
 def _get_types():
-    types = []
-    for single_type in PricingObjectType():
-        if single_type[1] not in settings.COMPONENTS_TABLE_SCHEMA:
-            continue
-        types.append(single_type)
-    return types
+    return PricingObjectType.objects.filter(
+        name__in=settings.COMPONENTS_TABLE_SCHEMA.keys()
+    )
 
 
 def _get_daily_pricing_objects(*args, **kwargs):
     return DailyPricingObject.objects.filter(
-        service_environment__service__name=kwargs.get(
+        service_environment__service__id=kwargs.get(
             'service',
         ),
-        service_environment__environment__name=kwargs.get(
+        service_environment__environment__id=kwargs.get(
             'env',
         ),
         date=date(
             year=int(kwargs.get('year')),
-            month=monthToNum(kwargs.get('month')),
+            month=int(kwargs.get('month')),
             day=int(kwargs.get('day')),
         )
     ).select_related(
@@ -88,18 +84,20 @@ def components_content(request, *args, **kwargs):
         value = []
         ui_schema = {}
         for daily_pricing_object in daily_pricing_objects.filter(
-            pricing_object__type=single_type[0],
+            pricing_object__type=single_type,
         ):
             fields = _get_fields(
                 daily_pricing_object.pricing_object,
-                settings.COMPONENTS_TABLE_SCHEMA[single_type[1]],
+                settings.COMPONENTS_TABLE_SCHEMA[single_type.name],
             )
             ui_schema.update(fields[1])
             value.append(fields[0])
         results.append({
-            "name": single_type[1],
+            "name": single_type.name,
+            "icon_class": single_type.icon_class,
+            "slug": slugify(single_type.name),
             "value": value,
             "schema": ui_schema,
-            "color": PricingObjectColor.raw_from_id(single_type[0]),
+            "color": single_type.color,
         })
     return results if results else {}

@@ -7,14 +7,12 @@ from __future__ import unicode_literals
 
 from decimal import Decimal as D
 
-from django.conf import settings
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from dj.choices import _ChoicesMeta
+from django.utils.safestring import mark_safe
 from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
-    Named,
     TimeTrackable,
 )
 
@@ -23,54 +21,95 @@ PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
-class PricingObjectTypeMeta(_ChoicesMeta):
-    """
-    Metaclass which allows to define additional Pricing Object Types, without
-    breaking original ids. Additional pricing object types should be added to
-    settings as dictionary, with field name as key and function returning
-    choice as value (function is a workaround to not break original choices
-    ids).
-    """
-    def __new__(meta, classname, bases, classDict):
-        additional_choices = settings.ADDITIONAL_PRICING_OBJECT_TYPES
-        for choice_name, choice_func in additional_choices.items():
-            classDict[choice_name] = choice_func()
-        return super(PricingObjectTypeMeta, meta).__new__(
-            meta,
-            classname,
-            bases,
-            classDict
-        )
+class PricingObjectType(db.Model):
+    name = db.CharField(
+        verbose_name=_('name'),
+        null=False,
+        blank=False,
+        max_length=50,
+        unique=True,
+    )
+    color = db.CharField(
+        verbose_name=_('color'),
+        null=True,
+        blank=True,
+        max_length=30,
+        unique=True,
+    )
+    icon_class = db.CharField(
+        verbose_name=_('icon class'),
+        default='fa-tasks',
+        max_length=30,
+        help_text=mark_safe('Please visit http://fortawesome.github.io/Font-Awesome/icons/ for more information.')  # noqa
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
 
 
-class PricingObjectType(Choices):
-    __metaclass__ = PricingObjectTypeMeta
+class PRICING_OBJECT_TYPES(Choices):
     _ = Choices.Choice
-    asset = _("Asset")
-    virtual = _("Virtual")
-    tenant = _("OpenStack Tenant")
-    ip_address = _("IP Address")
+
+    ASSET = _("Asset")
+    VIRTUAL = _("Virtual")
+    TENANT = _("OpenStack Tenant")
+    IP_ADDRESS = _("IP Address")
     # dummy type to use in service environments where there is no real
     # pricing object; there should be only one pricing object with dummy type
     # for each service environment
-    dummy = _('-', id=254)
+    DUMMY = _('-', id=254)
     # unknown type to use, when could not determine type of pricing object;
     # unknown pricing objects type could be modified in admin panel to select
     # proper type
-    unknown = _('Unknown', id=255)
+    UNKNOWN = _('Unknown', id=255)
 
 
-class PricingObjectColor(Choices):
-    _ = Choices.Choice
-    asset = _("#ff5722")
-    virtual = _("#259b24")
-    tenant = _("#009688")
-    ip_address = _("#009688")
-    dummy = _('#eeeeee', id=254)
-    unknown = _('#cccccc', id=255)
+class PricingObjectModel(db.Model):
+    model_id = db.IntegerField(
+        verbose_name=_("model id"),
+        unique=True,
+        null=True,
+        blank=True,
+    )
+    name = db.CharField(
+        verbose_name=_("name"),
+        max_length=100,
+    )
+    manufacturer = db.CharField(
+        verbose_name=_("manufacturer"),
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    category = db.CharField(
+        verbose_name=_("category"),
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    type = db.ForeignKey(
+        'PricingObjectType',
+        verbose_name=_("type"),
+        related_name='pricing_object_models',
+        default=PRICING_OBJECT_TYPES.UNKNOWN.id,
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+        ordering = ['manufacturer', 'name']
+
+    def __unicode__(self):
+        return '{} - {}'.format(self.manufacturer, self.name)
 
 
 class PricingObject(TimeTrackable, EditorTrackable):
+    """
+    Pricing object base class. Inherited by specified objects, such as asset,
+    ip address, virtual etc.
+
+    Pricing object type is defined by type attribute or by model type (not
+    every pricing object will have model defined, ex. ip address or unknown).
+    """
     name = db.CharField(
         verbose_name=_("name"),
         max_length=200,
@@ -78,15 +117,18 @@ class PricingObject(TimeTrackable, EditorTrackable):
         blank=True,
         default=None,
     )
-    type = db.PositiveIntegerField(
+    type = db.ForeignKey(
+        'PricingObjectType',
         verbose_name=_("type"),
-        choices=PricingObjectType(),
-        default=PricingObjectType.unknown.id,
+        related_name='pricing_objects',
+        default=PRICING_OBJECT_TYPES.UNKNOWN.id,
     )
-    color = db.PositiveIntegerField(
-        verbose_name=_("type"),
-        choices=PricingObjectColor(),
-        default=PricingObjectColor.unknown.id,
+    model = db.ForeignKey(
+        'PricingObjectModel',
+        verbose_name=_('model'),
+        related_name='pricing_objects',
+        null=True,
+        blank=True,
     )
     remarks = db.TextField(
         verbose_name=_("Remarks"),
@@ -106,7 +148,7 @@ class PricingObject(TimeTrackable, EditorTrackable):
     def __unicode__(self):
         return '{} ({})'.format(
             self.name,
-            PricingObjectType.name_from_id(self.type),
+            self.type.name,
         )
 
     # TODO: AssetInfo / VirtualInfo should be required if PricingObject has
@@ -121,6 +163,10 @@ class PricingObject(TimeTrackable, EditorTrackable):
                 date=date,
                 service_environment=self.service_environment,
             )
+
+    def save(self, *args, **kwargs):
+        # TODO: check if model type is the same as object type
+        return super(PricingObject, self).save(*args, **kwargs)
 
 
 class DailyPricingObject(db.Model):
@@ -182,45 +228,20 @@ class AssetInfo(PricingObject):
         'Warehouse',
         verbose_name=_("warehouse"),
     )
-    model = db.ForeignKey(
-        'AssetModel',
-        verbose_name=_('asset model')
-    )
 
     class Meta:
         app_label = 'ralph_scrooge'
 
-
-class AssetModel(db.Model):
-    model_id = db.IntegerField(
-        verbose_name=_("model id"),
-        unique=True,
-        null=False,
-        blank=False,
-    )
-    name = db.CharField(
-        verbose_name=_("name"),
-        max_length=100,
-    )
-    manufacturer = db.CharField(
-        verbose_name=_("manufacturer"),
-        max_length=100,
-        blank=True,
-        null=True,
-    )
-    category = db.CharField(
-        verbose_name=_("category"),
-        max_length=100,
-        blank=True,
-        null=True,
-    )
-
-    class Meta:
-        app_label = 'ralph_scrooge'
-        ordering = ['manufacturer', 'name']
-
-    def __unicode__(self):
-        return '{} - {}'.format(self.manufacturer, self.name)
+    def get_daily_pricing_object(self, date):
+        try:
+            return self.dailyassetinfo_set.get(date=date)
+        except DailyAssetInfo.DoesNotExist:
+            return DailyAssetInfo.objects.create(
+                pricing_object=self,
+                asset_info=self,
+                date=date,
+                service_environment=self.service_environment,
+            )
 
 
 class DailyAssetInfo(DailyPricingObject):
@@ -251,6 +272,11 @@ class DailyAssetInfo(DailyPricingObject):
         default=0,
     )
 
+    class Meta:
+        verbose_name = _("Daily Asset info")
+        verbose_name_plural = _("Daily Assets info")
+        app_label = 'ralph_scrooge'
+
     def calc_costs(self):
         """
         Calculates daily and monthly depreciation costs
@@ -264,17 +290,23 @@ class DailyAssetInfo(DailyPricingObject):
         self.calc_costs()
         super(DailyAssetInfo, self).save(*args, **kwargs)
 
-    class Meta:
-        verbose_name = _("Daily Asset info")
-        verbose_name_plural = _("Daily Assets info")
-        app_label = 'ralph_scrooge'
-
 
 class VirtualInfo(PricingObject):
     device_id = db.IntegerField(unique=True, verbose_name=_("Ralph device ID"))
 
     class Meta:
         app_label = 'ralph_scrooge'
+
+    def get_daily_pricing_object(self, date):
+        try:
+            return self.daily_virtuals.get(date=date)
+        except DailyVirtualInfo.DoesNotExist:
+            return DailyVirtualInfo.objects.create(
+                pricing_object=self,
+                virtual_info=self,
+                date=date,
+                service_environment=self.service_environment,
+            )
 
 
 class DailyVirtualInfo(DailyPricingObject):
@@ -295,24 +327,6 @@ class DailyVirtualInfo(DailyPricingObject):
         app_label = 'ralph_scrooge'
 
 
-class TenantGroup(Named):
-    """
-    Tenant group (ex. from different clouds). It's Ralph Model when syncing
-    tenants with Ralph.
-    """
-    group_id = db.IntegerField(
-        null=False,
-        blank=False,
-        verbose_name=_('group id'),
-        help_text=_(
-            'Ralph DeviceModel ID when tenant are synchronized with Ralph'
-        ),
-    )
-
-    class Meta:
-        app_label = 'ralph_scrooge'
-
-
 class TenantInfo(PricingObject):
     tenant_id = db.CharField(
         max_length=100,
@@ -327,22 +341,26 @@ class TenantInfo(PricingObject):
         blank=True,
         verbose_name=_('device id'),
     )
-    group = db.ForeignKey(
-        TenantGroup,
-        null=False,
-        blank=False,
-        verbose_name=_('tenant group'),
-        related_name='tenants',
-    )
 
     class Meta:
         app_label = 'ralph_scrooge'
+
+    def get_daily_pricing_object(self, date):
+        try:
+            return self.daily_tenants.get(date=date)
+        except DailyTenantInfo.DoesNotExist:
+            return DailyTenantInfo.objects.create(
+                pricing_object=self,
+                tenant_info=self,
+                date=date,
+                service_environment=self.service_environment,
+            )
 
 
 class DailyTenantInfo(DailyPricingObject):
     tenant_info = db.ForeignKey(
         TenantInfo,
-        related_name='daily_tenant',
+        related_name='daily_tenants',
         verbose_name=_("tenant details"),
     )
     enabled = db.BooleanField(

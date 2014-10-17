@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
+from decimal import Decimal as D
 
 from django.test import TestCase
 
@@ -13,6 +14,8 @@ from ralph_scrooge import models
 from ralph_scrooge.tests.models import History, HistoricalHistory
 from ralph_scrooge.tests.utils.factory import (
     DailyPricingObjectFactory,
+    ExtraCostTypeFactory,
+    PricingObjectFactory,
     PricingServiceFactory,
     ServiceEnvironmentFactory,
     UsageTypeFactory,
@@ -178,3 +181,103 @@ class TestPricingService(TestCase):
             date=datetime.date(2013, 11, 30)
         )
         self.assertEquals(set(result), set())
+
+
+class TestDailyCost(TestCase):
+    def setUp(self):
+        self.se1, self.se2 = ServiceEnvironmentFactory.create_batch(2)
+        self.po1 = PricingObjectFactory(service_environment=self.se1)
+        self.po2 = PricingObjectFactory(service_environment=self.se2)
+
+        self.bu1 = ExtraCostTypeFactory()
+        self.bu2 = UsageTypeFactory()
+        self.bu3 = PricingServiceFactory()
+        self.bu4 = PricingServiceFactory()
+
+        self.wh1 = WarehouseFactory()
+        self.wh2 = WarehouseFactory()
+
+    def _sample_tree(self):
+        return [
+            {
+                'service_environment': self.se1,
+                'value': 10,
+                'cost': D('100'),
+                'type': self.bu1,
+            },
+            {
+                'service_environment': self.se2,
+                'value': 20,
+                'cost': D('200'),
+                'type': self.bu3,
+                '_children': [
+                    {
+                        'service_environment': self.se2,
+                        'value': 10,
+                        'cost': D('100'),
+                        'type': self.bu1,
+                    },
+                    {
+                        'service_environment': self.se2,
+                        'value': 10,
+                        'cost': D('100'),
+                        'type': self.bu4,
+                        '_children': [
+                            {
+                                'service_environment': self.se2,
+                                'value': 10,
+                                'cost': D('100'),
+                                'type': self.bu2,
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+
+    def _sample_global_params(self):
+        return {
+            'date': datetime.date(2014, 10, 11),
+        }
+
+    def _sample_tree_flat(self):
+        tree = self._sample_tree()
+        result = []
+
+        def parse(l, depth, path):
+            if '_children' in l:
+                for ch in l.get('_children', []):
+                    parse(ch, depth + 1, '/'.join((path, str(ch['type'].id))))
+                del l['_children']
+            l['depth'] = depth
+            l['path'] = path
+            l['type'] = l['type'].baseusage_ptr
+            result.append(l)
+        for ch in tree:
+            parse(ch, 0, str(ch['type'].id))
+        return result
+
+    def test_build_tree(self):
+        tree = self._sample_tree()
+        global_params = self._sample_global_params()
+        result = models.DailyCost.build_tree(tree, **global_params)
+        self.assertEquals(len(result), 5)  # all nodes in sample tree
+        self.assertEquals(models.DailyCost.objects.count(), 2)
+        self.assertEquals(models.DailyCost.objects_tree.count(), 5)
+
+        tree_flat = self._sample_tree_flat()
+
+        def daily_cost2dict(d):
+            result = {}
+            for attr in [
+                'service_environment', 'value', 'cost', 'type', 'path', 'depth'
+            ]:
+                result[attr] = getattr(d, attr, None)
+            return result
+
+        daily_costs_dicts = map(
+            daily_cost2dict,
+            models.DailyCost.objects_tree.all()
+        )
+        for t in tree_flat:
+            self.assertIn(t, daily_costs_dicts)

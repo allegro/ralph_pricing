@@ -47,6 +47,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         date,
         service_environments,
         forecast=False,
+        pricing_services_calculates=None,
         **kwargs
     ):
         """
@@ -71,6 +72,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             date,
             pricing_service,
             forecast,
+            pricing_services_calculates=pricing_services_calculates,
             service_environments=pricing_service.service_environments,
         )
         # distribute total cost between every service_environment
@@ -190,6 +192,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         pricing_service,
         forecast,
         service_environments,
+        pricing_services_calculates=None,
     ):
         """
         Calculates total cost of pricing service (in period of time).
@@ -229,6 +232,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             date,
             pricing_service,
             forecast,
+            exclude=pricing_services_calculates,
             service_environments=service_environments,
         )
         teams_costs = self._get_service_teams_cost(
@@ -373,13 +377,19 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         date,
         pricing_service,
         forecast,
-        service_environments
+        service_environments,
+        exclude=None,
     ):
         """
         Calculates cost of dependent services used by pricing_service.
         """
         result = {}
-        dependent_services = pricing_service.get_dependent_services(date)
+        exclude = exclude[:] if exclude else []
+        exclude.append(pricing_service)
+        dependent_services = pricing_service.get_dependent_services(
+            date,
+            exclude,
+        )
         for dependent in dependent_services:
             try:
                 dependent_cost = plugin_runner.run(

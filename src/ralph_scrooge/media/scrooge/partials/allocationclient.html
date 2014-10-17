@@ -50,13 +50,11 @@
                 </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
                   <td>
-                    <select ng-model="row.service" class="form-control">
-                      <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
+                    <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.menus['service']">
                     </select>
                   </td>
                   <td>
-                    <select ng-model="row.env" class="form-control">
-                      <option ng-repeat="env in stats.getEnvs(row.service)">{{env.env}}</option>
+                    <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
                     </select>
                   </td>
                   <td>
@@ -79,15 +77,14 @@
                 </tr>
                 <tr ng-repeat="row in stats.allocationclient.serviceExtraCost.rows">
                   <td>
-                    <select ng-model="row.type" ng-change="stats.saveAllocation('serviceExtraCost')" class="form-control">
-                      <option ng-repeat="extraCostType in stats.allocationclient.serviceExtraCostTypes">{{extraCostType}}</option>
+                    <select ng-model="row.type" class="form-control" ng-options="extraCostType.id as extraCostType.name for extraCostType in stats.allocationclient.serviceExtraCostTypes">
                     </select>
                   </td>
                   <td>
-                    <input ng-model="row.value" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
+                    <input ng-model="row.value" type="text" class="form-control">
                   </td>
                   <td>
-                    <input ng-model="row.remarks" ng-blur="stats.saveAllocation('serviceExtraCost')" type="text" class="form-control">
+                    <input ng-model="row.remarks" type="text" class="form-control">
                   </td>
                   <td><button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">-</button></td>
                 </tr>
@@ -105,13 +102,11 @@
               </tr>
               <tr ng-repeat="row in stats.allocationclient.teamDivision.rows">
                 <td>
-                  <select ng-model="row.service" class="form-control">
-                      <option ng-repeat="service in stats.menus['service']">{{service.service}}</option>
-                  </select>
+                    <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.menus['service']">
+                    </select>
                 </td>
                 <td>
-                    <select ng-model="row.env" class="form-control">
-                      <option ng-repeat="env in stats.getEnvs(row.service)">{{env.env}}</option>
+                    <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
                     </select>
                 </td>
                 <td>

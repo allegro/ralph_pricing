@@ -16,20 +16,6 @@ ang_services.factory('stats', ['$http', function ($http) {
             "day": {"current": false, "change": false},
         },
         components: {
-            "months": [
-                {"asString": "january", "asInt": 1, "intAsString": "01"},
-                {"asString": "february", "asInt": 2, "intAsString": "02"},
-                {"asString": "march", "asInt": 3, "intAsString": "03"},
-                {"asString": "april", "asInt": 4, "intAsString": "04"},
-                {"asString": "may", "asInt": 5, "intAsString": "05"},
-                {"asString": "june", "asInt": 6, "intAsString": "06"},
-                {"asString": "july", "asInt": 7, "intAsString": "07"},
-                {"asString": "august", "asInt": 8, "intAsString": "08"},
-                {"asString": "september", "asInt": 9, "intAsString": "09"},
-                {"asString": "october", "asInt": 10, "intAsString": "10"},
-                {"asString": "november", "asInt": 11, "intAsString": "11"},
-                {"asString": "december", "asInt": 12, "intAsString": "12"}
-            ],
             "contentStats": {
                 "table": false,
             },
@@ -38,14 +24,14 @@ ang_services.factory('stats', ['$http', function ($http) {
             serviceExtraCostTypes: false,
             serviceDivision: {
                 total: 0,
-                rows: [{"service": false, "env": false, "value": 0}]
+                rows: [{"id": false, "name": false, "env": [{"name": false, "id": false}], "value": 0}]
             },
             serviceExtraCost: {
-                rows: [{"id": false, "type": false, "value": 0, "remarks": false}]
+                rows: [{"id": false, "name": false, "value": 0, "remarks": false}]
             },
             teamDivision: {
                 total: 0,
-                rows: [{"id": false, "service": false, "env": false, "value": 0}]
+                rows: [{"id": false, "name": false}]
             }
         },
         init: function() {
@@ -85,7 +71,6 @@ ang_services.factory('stats', ['$http', function ($http) {
                         force = true
                     }
                 }
-
             })
             if (force == false && refresh == true) {
                 self.refreshCurrentSubpage()
@@ -134,7 +119,7 @@ ang_services.factory('stats', ['$http', function ($http) {
                 if (data) {
                     data.forEach(function (element) {
                         self.allocationclient[element.key] = element.value
-                        if (element.value.rows.length <= 1 || element.value.disabled == true) {
+                        if (element.value.rows.length == 0 || element.value.disabled == true) {
                             element.value.rows = [{}]
                         }
                         if (element.key == 'serviceExtraCost') {
@@ -189,11 +174,11 @@ ang_services.factory('stats', ['$http', function ($http) {
                 // or server returns response with an error status.
             });
         },
-        getEnvs: function (service) {
+        getEnvs: function (service_id) {
             var envs = []
             if (self.menus) {
                 self.menus['service'].forEach(function (element) {
-                    if (element.service == service) {
+                    if (element.id == service_id) {
                         envs = element.value.envs
                     }
                 })
@@ -209,7 +194,7 @@ ang_services.factory('stats', ['$http', function ($http) {
 ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
     return {
         changeService: function(service) {
-            stats.menuStats['service']['change'] = service.service
+            stats.menuStats['service']['change'] = service.id
             envExist = false
             service.value.envs.forEach(function(element, key) {
                 if (element.env == stats.menuStats['env']['current']) {
@@ -217,11 +202,12 @@ ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
                 }
             })
             if (envExist == false) {
-                stats.menuStats['env']['change'] = service.value.envs[0].env
+                stats.menuStats['env']['change'] = service.value.envs[0].id
             }
             stats.refreshData()
         },
-        changeEnv: function(service, env) {
+        changeEnv: function(env) {
+            console.log(env)
             stats.menuStats['env']['change'] = env
             stats.refreshData()
         },

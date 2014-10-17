@@ -13,11 +13,9 @@ from ralph.util import plugin, api_scrooge
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
-    DailyVirtualInfo,
     DailyUsage,
     UsageType,
-    PricingObjectType,
-    PricingObjectColor,
+    PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     VirtualInfo,
 )
@@ -72,18 +70,12 @@ def update_virtual_usage(
     except VirtualInfo.DoesNotExist:
         virtual_info = VirtualInfo(
             device_id=data['device_id'],
-            type=PricingObjectType.virtual,
-            color=PricingObjectColor.virtual
+            type_id=PRICING_OBJECT_TYPES.VIRTUAL,
         )
     virtual_info.service_environment = service_environment
     virtual_info.name = data['name']
     virtual_info.save()
-    daily_virtual_info, created = DailyVirtualInfo.objects.get_or_create(
-        service_environment=service_environment,
-        pricing_object=virtual_info,
-        virtual_info=virtual_info,
-        date=date,
-    )
+    daily_virtual_info = virtual_info.get_daily_pricing_object(date)
     daily_virtual_info.hypervisor = hypervisor
     daily_virtual_info.save()
 

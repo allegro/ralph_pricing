@@ -81,3 +81,25 @@ class ServiceOwnership(db.Model):
 
     def __unicode__(self):
         return '{} / {}'.format(self.service, self.owner)
+
+
+class TeamManager(db.Model):
+    team = db.ForeignKey(
+        'Team',
+        verbose_name=_("team"),
+        null=False,
+        blank=False,
+    )
+    manager = db.ForeignKey(
+        Owner,
+        verbose_name=_("manager"),
+        null=False,
+        blank=False,
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+        unique_together = ('manager', 'team')
+
+    def __unicode__(self):
+        return '{} / {}'.format(self.team, self.manager)

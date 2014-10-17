@@ -9,6 +9,7 @@ var app = angular.module('app', [
     'ang_controllers',
     'ang_directives',
     'ang_services',
+    'ang_filters',
 ]);
 
 app.config(['$routeProvider', '$httpProvider', '$provide',

@@ -85,17 +85,48 @@ a {
     border-radius: 0;
     padding-right:3px;
 }
-.sidebar .services {
+.sidebar .items {
     height: 500px;
 }
-.sidebar .services ul,
-.sidebar .services ul li {
+.sidebar .items ul,
+.sidebar .items ul li {
     list-style: none;
     padding: 0;
-    margin: 0
+    margin: 0;
 }
-.sidebar .services ul li {
-
+.sidebar .items ul li a {
+    display: block;
+    position: relative;
+    color: #555;
+}
+.sidebar .items ul li a:hover {
+    text-decoration: none;
+}
+.sidebar .items .services > li > a:after {
+    font-family: 'FontAwesome';
+    content: "\f104";
+    position: absolute;
+    right:0;
+}
+.sidebar .items .services > li.active > a:after {
+    content: "\f107";
+}
+.sidebar .items .services li {
+    padding: 10px 5px;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #fff;
+}
+.sidebar .items .services .envs li {
+    padding: 3px 15px;
+    border-bottom: none;
+}
+.sidebar .items .services .envs .active {
+    background-color: rgba(0,0,0,0.1);
+}
+.sidebar .items ul.services .active {
+    background-color: rgba(255,255,255, 1);
+}
+.sidebar .items ul.envs .active {
 }
 
 .content {
@@ -131,6 +162,11 @@ a {
 }
 .content .categories .category {
     display: table-cell;
+    opacity: 0.7;
+}
+.content .categories .category.active,
+.content .categories .category:hover {
+    opacity: 1;
 }
 .content .categories .category .wrapper{
     margin: 5px;
@@ -151,6 +187,10 @@ a {
     background: rgba(0, 0, 0, 0.1);
     cursor: pointer;
 }
+.content .categories .category .link:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
 .content .categories .category .fa {
     position: absolute;
     font-size: 75px;
@@ -168,8 +208,9 @@ a {
     overflow-x: hidden;
 }
 
-/*ONLY FOR PREVIEW*/
-.fa.asset:before{content: "\f108";}
-.fa.virtual:before{content: "\f1b3";}
-.fa.tenant:before{content: "\f0ee";}
-.fa.ip_address:before{content: "\f108";}
+/*Animations*/
+.opcaity-animation {
+    transition: opacity .25s ease-in-out;
+   -moz-transition: opacity .25s ease-in-out;
+   -webkit-transition: opacity .25s ease-in-out;
+}

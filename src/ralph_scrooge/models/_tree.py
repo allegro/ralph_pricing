@@ -24,17 +24,16 @@ class MultiPathNode(db.Model):
         abstract = True
         app_label = 'ralph_scrooge'
 
-    def save(self, *args, **kwargs):
+    def _create_path(self, *args, **kwargs):
         if not self._path_field:
             raise PathFieldNotConfiguredError()
         if self.parent is not None:
-            self.path = self._create_path(self.parent.path)
+            self.path = self._parse_path(self.parent.path)
             self.depth = self.parent.depth + 1
         else:
-            self.path = self._create_path('')
-        return super(MultiPathNode, self).save(*args, **kwargs)
+            self.path = self._parse_path('')
 
-    def _create_path(self, parent_path):
+    def _parse_path(self, parent_path):
         """
         Returns path as join of parent path with value of current object path
         field value.
@@ -52,11 +51,17 @@ class MultiPathNode(db.Model):
         """
         newobj = self.__class__(**kwargs)
         newobj.parent = self
-        newobj.save()
+        newobj._create_path()
         return newobj
 
     @classmethod
-    def build_tree(cls, tree, parent=None, **global_params):
+    def build_tree(cls, *args, **kwargs):
+        result = cls._build_tree(*args, **kwargs)
+        cls.objects.bulk_create(result)
+        return result
+
+    @classmethod
+    def _build_tree(cls, tree, parent=None, **global_params):
         """
         Build MultiPath tree Nodes according to tree list
 
@@ -65,15 +70,24 @@ class MultiPathNode(db.Model):
             node children.
         """
         assert isinstance(tree, (list, tuple))
+        result = []
         for child in tree:
             assert isinstance(child, dict)
             params = dict(
-                [(k, v) for k, v in child.items() if not k.startswith('_')]
+                [(k, v) for k, v in child.items() if (
+                    not k.startswith('_') and
+                    k not in ('percent', )
+                )]
             )
             params.update(global_params)
             if parent is None:
                 newobj = cls(**params)
-                newobj.save()
+                newobj._create_path()
+                result.append(newobj)
             else:
                 newobj = parent.add_child(**params)
-            cls.build_tree(child.get('_children', []), newobj, **global_params)
+                result.append(newobj)
+            result.extend(cls._build_tree(
+                child.get('_children', []), newobj, **global_params
+            ))
+        return result

@@ -13,11 +13,11 @@
       </div>
       <div class="col-xs-12 col-md-12">
         <div class="categories">
-          <div class="category {{ category.name | lowercase }}" ng-repeat="category in content">
+          <div class="category opcaity-animation {{ category.slug }} {{stats.components.contentStats.table == category.name ? 'active' : ''}}" ng-repeat="category in content">
             <div class="wrapper">
               <div class="name">{{ category.name }}</div>
               <div class="value">{{ category.value.length }}</div>
-              <i class="fa {{ category.name|lowercase }}"></i>
+              <i class="fa {{ category.icon_class }}"></i>
               <div class="link" ng-click="stats.components.contentStats.table = category.name">Show</div>
             </div>
           </div>

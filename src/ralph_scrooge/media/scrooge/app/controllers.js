@@ -94,7 +94,7 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
     }
     $scope.changeTeam = function (team) {
         if (stats.menuStats.team.current != team.team) {
-            stats.menuStats.team.change = team.team
+            stats.menuStats.team.change = team.id
             stats.refreshData();
         }
     }

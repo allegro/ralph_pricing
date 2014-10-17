@@ -23,14 +23,56 @@
     ci_uid: -1
     business_line: 1
 
-# ExtraCost
+# Base Usages
 - model: ralph_scrooge.BaseUsage
   pk: 1
   fields:
-    type: 3
-    name: other
+    name: 'Other'
+    symbol: 'other'
+    type: 3  # extra cost
 
 - model: ralph_scrooge.ExtraCostType
   pk: 1
   fields:
     baseusage_ptr: 1
+
+# Pricing object types
+- model: ralph_scrooge.PricingObjectType
+  pk: 1
+  fields:
+    name: 'Asset'
+    color: '#ff5722'
+    icon_class: 'fa-desktop'
+
+- model: ralph_scrooge.PricingObjectType
+  pk: 2
+  fields:
+    name: 'Virtual'
+    color: '#259b24'
+    icon_class: 'fa-cubes'
+
+- model: ralph_scrooge.PricingObjectType
+  pk: 3
+  fields:
+    name: 'OpenStack Tenant'
+    color: '#009688'
+    icon_class: 'fa-cloud-upload'
+
+- model: ralph_scrooge.PricingObjectType
+  pk: 4
+  fields:
+    name: 'IP Address'
+    color: '#03a9f4'
+    icon_class: 'fa-sitemap'
+
+- model: ralph_scrooge.PricingObjectType
+  pk: 254
+  fields:
+    name: 'Dummy'
+    color: '#9e9e9e'
+
+- model: ralph_scrooge.PricingObjectType
+  pk: 255
+  fields:
+    name: 'Unknown'
+    color: '#795548'

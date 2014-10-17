@@ -14,19 +14,19 @@ from ralph_scrooge.models.owner import (
     OwnershipType,
     Owner,
     ServiceOwnership,
+    TeamManager,
 )
 
 from ralph_scrooge.models.pricing_object import (
     AssetInfo,
-    AssetModel,
     DailyAssetInfo,
     DailyPricingObject,
     DailyTenantInfo,
     DailyVirtualInfo,
+    PricingObjectModel,
     PricingObjectType,
-    PricingObjectColor,
+    PRICING_OBJECT_TYPES,
     PricingObject,
-    TenantGroup,
     TenantInfo,
     VirtualInfo,
 )
@@ -65,7 +65,6 @@ from ralph_scrooge.models.warehouse import (
 
 __all__ = [
     'AssetInfo',
-    'AssetModel',
     'BaseUsage',
     'BusinessLine',
     'CostDateStatus',
@@ -86,8 +85,9 @@ __all__ = [
     'Owner',
     'ProfitCenter',
     'PricingObject',
+    'PricingObjectModel',
     'PricingObjectType',
-    'PricingObjectColor',
+    'PRICING_OBJECT_TYPES',
     'PricingService',
     'Service',
     'ServiceEnvironment',
@@ -98,8 +98,8 @@ __all__ = [
     'TeamBillingType',
     'TeamCost',
     'TeamDaterange',
+    'TeamManager',
     'TeamServiceEnvironmentPercent',
-    'TenantGroup',
     'TenantInfo',
     'UsageType',
     'UsagePrice',

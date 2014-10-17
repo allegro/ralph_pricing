@@ -11,26 +11,30 @@ import mock
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ralph_scrooge.models import PricingObjectType
+from ralph_scrooge.models import PRICING_OBJECT_TYPES
 from ralph_scrooge.plugins.collect.tenant import (
-    get_tenant_group,
-    get_tenant_unknown_service_environment,
+    get_model,
+    get_unknown_service_environment,
     save_tenant_info,
     save_daily_tenant_info,
     tenant as tenant_plugin,
     UnknownServiceEnvironmentNotConfiguredError,
 )
 from ralph_scrooge.tests.utils.factory import (
+    PricingObjectModelFactory,
     ServiceEnvironmentFactory,
-    TenantGroupFactory,
     TenantInfoFactory,
 )
 
+OPENSTACK_TENANTS_MODELS = ['OpenStack M1']
 UNKNOWN_SERVICE_ENVIRONMENT = ('os-1', 'env1')
 TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS = dict(
     UNKNOWN_SERVICES_ENVIRONMENTS={
-        'tenant': UNKNOWN_SERVICE_ENVIRONMENT,
-    }
+        'tenant': {
+            OPENSTACK_TENANTS_MODELS[0]: UNKNOWN_SERVICE_ENVIRONMENT,
+        }
+    },
+    OPENSTACK_TENANTS_MODELS=OPENSTACK_TENANTS_MODELS,
 )
 
 
@@ -42,7 +46,10 @@ class TestServiceCollectPlugin(TestCase):
             environment__name=UNKNOWN_SERVICE_ENVIRONMENT[0],
         )
         self.today = datetime.date(2014, 7, 1)
-        self.tenant_group = TenantGroupFactory()
+        self.model = PricingObjectModelFactory(
+            type_id=PRICING_OBJECT_TYPES.TENANT,
+            name=OPENSTACK_TENANTS_MODELS[0],
+        )
 
     def _get_sample_tenant(self):
         return {
@@ -51,8 +58,8 @@ class TestServiceCollectPlugin(TestCase):
             'service_id': self.service_environment.service.id,
             'environment_id': self.service_environment.environment.id,
             'name': 'sample_tenant',
-            'model_id': self.tenant_group.group_id,
-            'model_name': self.tenant_group.name,
+            'model_id': self.model.model_id,
+            'model_name': OPENSTACK_TENANTS_MODELS[0],
             'remarks': 'qwerty',
         }
 
@@ -61,16 +68,16 @@ class TestServiceCollectPlugin(TestCase):
         self.assertEquals(tenant_info.name, sample_tenant['name'])
         self.assertEquals(tenant_info.remarks, sample_tenant['remarks'])
         self.assertEquals(
-            tenant_info.group.group_id,
+            tenant_info.model.model_id,
             sample_tenant['model_id']
         )
-        self.assertEquals(tenant_info.group.name, sample_tenant['model_name'])
-        self.assertEquals(tenant_info.type, PricingObjectType.tenant)
+        self.assertEquals(tenant_info.model.name, sample_tenant['model_name'])
+        self.assertEquals(tenant_info.type_id, PRICING_OBJECT_TYPES.TENANT)
 
-    def test_get_tenant_group(self):
+    def test_get_tenant_model(self):
         sample_tenant = self._get_sample_tenant()
-        tenant_group = get_tenant_group(sample_tenant)
-        self.assertEquals(tenant_group, self.tenant_group)
+        model = get_model(sample_tenant)
+        self.assertEquals(model, self.model)
 
     def test_save_tenant_info(self):
         sample_tenant = self._get_sample_tenant()
@@ -129,18 +136,18 @@ class TestServiceCollectPlugin(TestCase):
         )
         self.assertEquals(
             service_environment,
-            get_tenant_unknown_service_environment()
+            get_unknown_service_environment(OPENSTACK_TENANTS_MODELS[0])
         )
 
     @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
     def test_get_tenant_unknown_service_invalid_config(self):
         ServiceEnvironmentFactory()
         with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
-            get_tenant_unknown_service_environment()
+            get_unknown_service_environment('OpenStack M2')
 
     def test_get_tenant_unknown_service_not_configured(self):
         with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
-            get_tenant_unknown_service_environment()
+            get_unknown_service_environment('OpenStack M2')
 
     @mock.patch('ralph_scrooge.plugins.collect.tenant.api_scrooge.get_openstack_tenants')  # noqa
     @mock.patch('ralph_scrooge.plugins.collect.tenant.update_tenant')
@@ -169,13 +176,13 @@ class TestServiceCollectPlugin(TestCase):
             unknown_service_environment,
         )
 
-    @mock.patch('ralph_scrooge.plugins.collect.tenant.get_tenant_unknown_service_environment')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.tenant.get_unknown_service_environment')  # noqa
     @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
     def test_tenant_plugin_unknown_service_not_configured(
         self,
-        get_tenant_unknown_service_environment_mock
+        get_unknown_service_environment_mock
     ):
-        get_tenant_unknown_service_environment_mock.side_effect = (
+        get_unknown_service_environment_mock.side_effect = (
             UnknownServiceEnvironmentNotConfiguredError()
         )
         result = tenant_plugin(self.today)
@@ -183,6 +190,8 @@ class TestServiceCollectPlugin(TestCase):
             result,
             (
                 False,
-                'Unknown service environment not configured for tenant plugin'
+                'Unknown service environment not configured for {}'.format(
+                    OPENSTACK_TENANTS_MODELS[0]
+                )
             )
         )
