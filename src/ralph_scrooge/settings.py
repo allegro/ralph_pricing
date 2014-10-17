@@ -13,6 +13,7 @@ SHARE_SERVICES = {}
 # OpenStack
 OPENSTACK_CEILOMETER = []
 OPENSTACK_SIMPLE_USAGES = []
+OPENSTACK_TENANTS_MODELS = []
 
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
@@ -23,12 +24,13 @@ COLLECT_PLUGINS = set([
     'business_line',
     'environment',
     'owner',
+    'profit_center',
     'service',
     'warehouse',
 ])
 
 UNKNOWN_SERVICES_ENVIRONMENTS = {
-    'tenant': (None, None),
+    'tenant': {},
     'netflow': (None, None),
 }
 

@@ -69,7 +69,7 @@ def get_usage_type(flavor_name):
 def get_daily_tenant(tenant_id, date):
     try:
         tenant = TenantInfo.objects.get(tenant_id=tenant_id)
-        return tenant.daily_tenant.get(date=date)
+        return tenant.daily_tenants.get(date=date)
     except TenantInfo.DoesNotExist as e:
         raise TenantNotFoundError(e)
     except DailyTenantInfo.DoesNotExist as e:

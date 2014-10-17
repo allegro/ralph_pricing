@@ -84,12 +84,12 @@ def left_menu(request, *args, **kwargs):
     results['menus']['service'] = []
     for row in menu:
         results['menus']['service'].append(
-            {"id":row.id, "name": row.name, "value": menu[row]}
+            {"id": row.id, "name": row.name, "value": menu[row]}
         )
     results['menus']['teams'] = []
     for row in Team.objects.all():
         results['menus']['teams'].append({
-            "id":row.id,
+            "id": row.id,
             "name": row.name,
             "value": {}
         })

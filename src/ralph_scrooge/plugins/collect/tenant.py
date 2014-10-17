@@ -11,10 +11,9 @@ from django.conf import settings
 from ralph.util import plugin, api_scrooge
 from ralph_scrooge.models import (
     DailyTenantInfo,
-    PricingObjectType,
-    PricingObjectColor,
+    PricingObjectModel,
+    PRICING_OBJECT_TYPES,
     ServiceEnvironment,
-    TenantGroup,
     TenantInfo,
 )
 
@@ -26,16 +25,17 @@ class UnknownServiceEnvironmentNotConfiguredError(Exception):
     pass
 
 
-def get_tenant_group(tenant):
-    tenant_group = TenantGroup.objects.get_or_create(
-        group_id=tenant['model_id'],
+def get_model(tenant):
+    model = PricingObjectModel.objects.get_or_create(
+        model_id=tenant['model_id'],
+        type=PRICING_OBJECT_TYPES.TENANT,
         defaults=dict(
             name=tenant['model_name'],
         )
     )[0]
-    tenant_group.name = tenant['model_name']
-    tenant_group.save()
-    return tenant_group
+    model.name = tenant['model_name']
+    model.save()
+    return model
 
 
 def save_tenant_info(tenant, unknown_service_environment):
@@ -60,10 +60,9 @@ def save_tenant_info(tenant, unknown_service_environment):
         created = True
         tenant_info = TenantInfo(
             tenant_id=tenant['tenant_id'],
-            type=PricingObjectType.tenant,
-            color=PricingObjectColor.tenant,
+            type_id=PRICING_OBJECT_TYPES.TENANT,
         )
-    tenant_info.group = get_tenant_group(tenant)
+    tenant_info.model = get_model(tenant)
     tenant_info.name = tenant['name']
     tenant_info.remarks = tenant['remarks']
     tenant_info.device_id = tenant['device_id']
@@ -98,13 +97,13 @@ def update_tenant(tenant, date, unknown_service_environment):
     return created
 
 
-def get_tenant_unknown_service_environment():
+def get_unknown_service_environment(model_name):
     """
     Returns unknown service environment for OpenStack tenants
     """
     service_uid, environment_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
-        'tenant', (None, None)
-    )
+        'tenant', {}
+    ).get(model_name, (None, None))
     unknown_service_environment = None
     if service_uid:
         try:
@@ -121,23 +120,32 @@ def get_tenant_unknown_service_environment():
 
 @plugin.register(chain='scrooge', requires=['service'])
 def tenant(today, **kwargs):
-    try:
-        unknown_service_environment = get_tenant_unknown_service_environment()
-    except UnknownServiceEnvironmentNotConfiguredError:
-        return (
-            False,
-            'Unknown service environment not configured for tenant plugin'
-        )
-
     new = total = 0
-    for tenant in api_scrooge.get_openstack_tenants():
-        total += 1
-        if update_tenant(
-            tenant,
-            today,
-            unknown_service_environment,
-        ):
-            new += 1
+    # check if all unknown SE are configured
+    for openstack_model in settings.OPENSTACK_TENANTS_MODELS:
+        try:
+            unknown_service_environment = get_unknown_service_environment(
+                openstack_model
+            )
+        except UnknownServiceEnvironmentNotConfiguredError:
+            msg = 'Unknown service environment not configured for {}'.format(
+                openstack_model
+            )
+            logger.error(msg)
+            return (False, msg)
+
+    for openstack_model in settings.OPENSTACK_TENANTS_MODELS:
+        unknown_service_environment = get_unknown_service_environment(
+            openstack_model
+        )
+        for tenant in api_scrooge.get_openstack_tenants(openstack_model):
+            total += 1
+            if update_tenant(
+                tenant,
+                today,
+                unknown_service_environment,
+            ):
+                new += 1
     return True, 'Tenants: {0} new, {1} updated, {2} total'.format(
         new,
         total - new,

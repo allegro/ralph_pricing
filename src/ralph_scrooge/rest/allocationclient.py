@@ -241,14 +241,14 @@ def allocation_save(request, *args, **kwargs):
         )
         ExtraCost.objects.filter(
             start=first_day,
-            end=first_day + timedelta(days=days_in_month -1),
+            end=first_day + timedelta(days=days_in_month - 1),
             service_environment=service_environment,
         ).delete()
         for row in post_data['rows']:
             extra_cost = ExtraCost.objects.get_or_create(
                 id=row.get('id'),
                 start=first_day,
-                end=first_day + timedelta(days=days_in_month -1),
+                end=first_day + timedelta(days=days_in_month - 1),
                 service_environment=service_environment,
                 extra_cost_type=ExtraCostType.objects.get(id=row['type']),
                 defaults=dict(
@@ -267,12 +267,12 @@ def allocation_save(request, *args, **kwargs):
         TeamServiceEnvironmentPercent.objects.filter(
             team_cost__team=team,
             team_cost__start=first_day,
-            team_cost__end=first_day + timedelta(days=days_in_month -1),
+            team_cost__end=first_day + timedelta(days=days_in_month - 1),
         ).delete()
         team_cost = TeamCost.objects.get_or_create(
             team=team,
             start=first_day,
-            end=first_day + timedelta(days=days_in_month -1),
+            end=first_day + timedelta(days=days_in_month - 1),
         )[0]
         for row in post_data['rows']:
             service_environment = ServiceEnvironment.objects.get(

@@ -22,7 +22,7 @@ from ralph_scrooge.models._history import (
 )
 from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 from ralph_scrooge.models.usage import DailyUsage
-from ralph_scrooge.models.pricing_object import PricingObjectType
+from ralph_scrooge.models.pricing_object import PRICING_OBJECT_TYPES
 
 
 class BusinessLine(Named.NonUnique):
@@ -307,7 +307,7 @@ class ServiceEnvironment(db.Model):
         Returns dummy pricing object for service environment
         """
         return self.pricing_objects.get_or_create(
-            type=PricingObjectType.dummy
+            type_id=PRICING_OBJECT_TYPES.DUMMY
         )[0]
 
     def save(self, *args, **kwargs):

@@ -19,21 +19,22 @@ from ralph_scrooge.tests.utils.factory import (
 
 class TestInformationPlugin(TestCase):
     def setUp(self):
-        self.profit_center1 = ProfitCenterFactory()
-        self.profit_center2 = ProfitCenterFactory()
+        self.pc1 = ProfitCenterFactory()
+        self.pc2 = ProfitCenterFactory()
 
         self.report_start = date.today()
         self.report_end = self.report_start + timedelta(days=1)
         self.service_environment1 = ServiceEnvironmentFactory(
-            service__profit_center=self.profit_center1
+            service__profit_center=self.pc1
         )
         self.service_environment2 = ServiceEnvironmentFactory(
-            service__profit_center=self.profit_center2
+            service__profit_center=self.pc2
         )
         self.service_environments = models.ServiceEnvironment.objects.all()
 
-        self.service_environment1.service.profit_center = self.profit_center2
+        self.service_environment1.service.profit_center = self.pc2
         self.service_environment1.service.save()
+        self.maxDiff = None
 
     def test_costs(self):
         result = Information(
@@ -44,15 +45,23 @@ class TestInformationPlugin(TestCase):
         self.assertEquals(result, {
             self.service_environment1.id: {
                 'profit_center': ' / '.join((
-                    self.profit_center1.name,
-                    self.profit_center2.name
+                    ' - '.join((self.pc1.name, self.pc1.description)),
+                    ' - '.join((self.pc2.name, self.pc2.description)),
+                )),
+                'business_line': ' / '.join((
+                    self.pc1.business_line.name,
+                    self.pc2.business_line.name,
                 )),
                 'service_id': self.service_environment1.service.ci_uid,
                 'service': self.service_environment1.service.name,
                 'environment': self.service_environment1.environment.name,
             },
             self.service_environment2.id: {
-                'profit_center': self.profit_center2.name,
+                'profit_center': ' - '.join((
+                    self.pc2.name,
+                    self.pc2.description
+                )),
+                'business_line': self.pc2.business_line.name,
                 'service_id': self.service_environment2.service.ci_uid,
                 'service': self.service_environment2.service.name,
                 'environment': self.service_environment2.environment.name,

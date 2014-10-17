@@ -73,7 +73,14 @@ class Information(BaseReportPlugin):
                 'service': service_environment.service.name,
                 'environment': service_environment.environment.name,
                 'profit_center': ' / '.join([
-                    pc.name for pc in profit_centers[
+                    ' - '.join(
+                        (pc.name, pc.description or '')
+                    ) for pc in profit_centers[
+                        service_environment.service.id
+                    ]
+                ]),
+                'business_line': ' / '.join([
+                    pc.business_line.name for pc in profit_centers[
                         service_environment.service.id
                     ]
                 ]),
@@ -132,8 +139,11 @@ class Information(BaseReportPlugin):
         schema['environment'] = {
             'name': _("Environment"),
         }
+        schema['profit_center'] = {
+            'name': _("Profit center"),
+        }
         schema['business_line'] = {
-            'name': _("Business line"),
+            'name': _("Business Line"),
         }
         return schema
 
