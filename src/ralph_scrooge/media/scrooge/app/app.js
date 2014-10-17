@@ -55,11 +55,3 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
             .otherwise({redirectTo: '/components/'});
     }
 ]);
-
-// app.run(function($http, $cookies, $rootScope) {
-//     $http.defaults.headers.common['x-csrftoken'] = $cookies.csrftoken;
-
-//     $http.get('/api/current_user/').success(function (data) {
-//         $rootScope.$broadcast('event:user-loggedin', data);
-//     });
-// });
