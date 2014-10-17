@@ -8,23 +8,17 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'ExtraCost.remarks'
-        db.add_column(u'ralph_scrooge_extracost', 'remarks',
-                      self.gf('django.db.models.fields.TextField')(default=u'', blank=True),
-                      keep_default=False)
 
-        # Adding field 'PricingObject.color'
-        db.add_column(u'ralph_scrooge_pricingobject', 'color',
-                      self.gf('django.db.models.fields.PositiveIntegerField')(default=255),
+        # Adding field 'PricingObjectType.icon_class'
+        db.add_column(u'ralph_scrooge_pricingobjecttype', 'icon_class',
+                      self.gf('django.db.models.fields.CharField')(default=u'fa-tasks', max_length=30),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'ExtraCost.remarks'
-        db.delete_column(u'ralph_scrooge_extracost', 'remarks')
 
-        # Deleting field 'PricingObject.color'
-        db.delete_column(u'ralph_scrooge_pricingobject', 'color')
+        # Deleting field 'PricingObjectType.icon_class'
+        db.delete_column(u'ralph_scrooge_pricingobjecttype', 'icon_class')
 
 
     models = {
@@ -90,18 +84,9 @@ class Migration(SchemaMigration):
             'asset_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'barcode': ('django.db.models.fields.CharField', [], {'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'device_id': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'model': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.AssetModel']"}),
             'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
             'sn': ('django.db.models.fields.CharField', [], {'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'warehouse': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Warehouse']"})
-        },
-        u'ralph_scrooge.assetmodel': {
-            'Meta': {'ordering': "[u'manufacturer', u'name']", 'object_name': 'AssetModel'},
-            'category': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'manufacturer': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'model_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'ralph_scrooge.baseusage': {
             'Meta': {'object_name': 'BaseUsage'},
@@ -163,7 +148,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'DailyTenantInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
             'dailypricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.DailyPricingObject']", 'unique': 'True', 'primary_key': 'True'}),
             'enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'tenant_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_tenant'", 'to': u"orm['ralph_scrooge.TenantInfo']"})
+            'tenant_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_tenants'", 'to': u"orm['ralph_scrooge.TenantInfo']"})
         },
         u'ralph_scrooge.dailyusage': {
             'Meta': {'object_name': 'DailyUsage'},
@@ -239,6 +224,7 @@ class Migration(SchemaMigration):
             u'history_type': ('django.db.models.fields.CharField', [], {'max_length': '1'}),
             u'history_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True'}),
             'id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True', 'blank': 'True'}),
+            'manually_allocate_costs': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
@@ -258,16 +244,32 @@ class Migration(SchemaMigration):
         u'ralph_scrooge.pricingobject': {
             'Meta': {'object_name': 'PricingObject'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'color': ('django.db.models.fields.PositiveIntegerField', [], {'default': '255'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'model': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'pricing_objects'", 'null': 'True', 'to': u"orm['ralph_scrooge.PricingObjectModel']"}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
             'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'pricing_objects'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
-            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '255'})
+            'type': ('django.db.models.fields.related.ForeignKey', [], {'default': '255', 'related_name': "u'pricing_objects'", 'to': u"orm['ralph_scrooge.PricingObjectType']"})
+        },
+        u'ralph_scrooge.pricingobjectmodel': {
+            'Meta': {'ordering': "[u'manufacturer', u'name']", 'object_name': 'PricingObjectModel'},
+            'category': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'manufacturer': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'model_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'type': ('django.db.models.fields.related.ForeignKey', [], {'default': '255', 'related_name': "u'pricing_object_models'", 'to': u"orm['ralph_scrooge.PricingObjectType']"})
+        },
+        u'ralph_scrooge.pricingobjecttype': {
+            'Meta': {'object_name': 'PricingObjectType'},
+            'color': ('django.db.models.fields.CharField', [], {'max_length': '30', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'icon_class': ('django.db.models.fields.CharField', [], {'default': "u'fa-tasks'", 'max_length': '30'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'})
         },
         u'ralph_scrooge.pricingservice': {
             'Meta': {'object_name': 'PricingService', '_ormbases': [u'ralph_scrooge.BaseUsage']},
@@ -296,6 +298,7 @@ class Migration(SchemaMigration):
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'environments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceEnvironment']", 'to': u"orm['ralph_scrooge.Environment']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'manually_allocate_costs': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
@@ -359,6 +362,12 @@ class Migration(SchemaMigration):
             'start': ('django.db.models.fields.DateField', [], {}),
             'team': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Team']"})
         },
+        u'ralph_scrooge.teammanager': {
+            'Meta': {'unique_together': "((u'manager', u'team'),)", 'object_name': 'TeamManager'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'manager': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Owner']"}),
+            'team': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Team']"})
+        },
         u'ralph_scrooge.teamserviceenvironmentpercent': {
             'Meta': {'unique_together': "((u'team_cost', u'service_environment'),)", 'object_name': 'TeamServiceEnvironmentPercent'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -366,16 +375,9 @@ class Migration(SchemaMigration):
             'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
             'team_cost': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'percentage'", 'to': u"orm['ralph_scrooge.TeamCost']"})
         },
-        u'ralph_scrooge.tenantgroup': {
-            'Meta': {'object_name': 'TenantGroup'},
-            'group_id': ('django.db.models.fields.IntegerField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'})
-        },
         u'ralph_scrooge.tenantinfo': {
             'Meta': {'object_name': 'TenantInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
             'device_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'group': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'tenants'", 'to': u"orm['ralph_scrooge.TenantGroup']"}),
             'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
             'tenant_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100', 'db_index': 'True'})
         },

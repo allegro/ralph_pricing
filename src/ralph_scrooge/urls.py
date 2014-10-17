@@ -50,6 +50,7 @@ urlpatterns = patterns(
         r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',  # noqa
         service_permission(components_content),
     ),
+    url(r'^rest/', include('ralph_scrooge.rest.urls')),
     url(r'^leftmenu/(?P<menu_type>\S+)/$', login_required(left_menu)),
     url(r'^api/', include(v09_api.urls)),
     url(

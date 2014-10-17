@@ -1,3 +1,4 @@
+{% load colors_tags %}
 <!DOCTYPE html>
 <html lang="en" ng-app="app">
     <head>
@@ -6,14 +7,21 @@
         <link rel="stylesheet" href="/static/scrooge/css/bootstrap.min.css" />
         <link rel="stylesheet" href="/static/scrooge/css/bootstrap-table.css" />
         <link rel="stylesheet" href="/static/scrooge/css/scrooge.css" />
-        <link rel="stylesheet" href="/static/scrooge/css/sb-admin-2.css" />
-        <link rel="stylesheet" href="/static/scrooge/css/multiple-select.css" />
+        <!-- <link rel="stylesheet" href="/static/scrooge/css/sb-admin-2.css" /> -->
+        <link rel="stylesheet" href="/static/scrooge/css/loading-bar.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/font-awesome.css" />
+        <link rel="stylesheet" href="/static/scrooge/css/ng-scrollbar.css" />
+        <!-- <link rel="stylesheet" href="/static/scrooge/css/multiple-select.css" /> -->
+        <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+        {% panels_colors %}
         <script src="/static/scrooge/js/jquery.min.js"></script>
         <script src="/static/scrooge/js/jquery.multiple.select.js"></script>
         <script src="/static/scrooge/js/angular/angular.js"></script>
         <script src="/static/scrooge/js/angular/angular-resource.js"></script>
         <script src="/static/scrooge/js/angular/angular-route.js"></script>
         <script src="/static/scrooge/js/angular/angular-cookies.js"></script>
+        <script src="/static/scrooge/js/loading-bar.js"></script>
+        <script src="/static/scrooge/js/ng-scrollbar.js"></script>
         <script src="/static/scrooge/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
         <script src="/static/scrooge/js/bootstrap-table.js"></script>
         <script src="/static/scrooge/js/raven.min.js"></script>
@@ -23,38 +31,44 @@
         <script src="/static/scrooge/app/directives.js"></script>
         <script src="/static/scrooge/app/filters.js"></script>
         <script src="/static/scrooge/app/services.js"></script>
+        <script src="/static/scrooge/app/controllers/menu.js"></script>
+        <script src="/static/scrooge/app/directives/menu.js"></script>
+        <script src="/static/scrooge/app/services/menu.js"></script>
     </head>
     <body ng-controller="mainCtrl" class="bs-docs-home">
-        <div id="header" class="panel panel-default">
-            <!-- /.panel-heading -->
-            <div class="panel-heading">
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs nav-main" role="tablist">
-                    <li><h1><a href='/'><img src="/static/scrooge/img/scrooge-logo.png"></a></h1></li>
-                    <li><a href="/ui/ventures/">CORE</a></li>
-                    <li><a href="/assets/dc/search">ASSETS</a></li>
-                    <li class="active"><a href="/scrooge/#/components">SCROOGE</a></li>
+        <div class="container-fluid">
+            <nav class="row">
+                <ul class="nav nav-tabs nav-main">
+                    <li>
+                        <span class="brand">
+                            Ralph 2
+                        </span>
+                    </li>
+                    <li><a href="/ui/ventures/">Core</a></li>
+                    <li><a href="/assets/dc/search">Assets</a></li>
+                    <li class="active"><a href="/scrooge/#/components">Scrooge</a></li>
                     <li><a href="/cmdb/changes/timeline">CMDB</a></li>
                 </ul>
-                <ul class="nav nav-tabs nav-submenu" role="tablist">
-                    <li><a href="#components" data-toggle="tab">Components</a></li>
-                    <li><a href="#allocation/client" data-toggle="tab">Allocation</a></li>
-                    <li><a href="/scrooge/services-costs-report/" data-toggle="tab">Costs report</a></li>
-                    <li><a href="/scrooge/services-usages-report/" data-toggle="tab">Usages report</a></li>
-                    <li><a href="/scrooge/services-changes-report/" data-toggle="tab">Services Changes Report</a></li>
-                    <li><a href="/scrooge/extra-costs/" data-toggle="tab">Extra costs</a></li>
-                    <li><a href="/scrooge/usage-types/" data-toggle="tab">Usage types</a></li>
-                    <li><a href="/scrooge/collect-plugins/" data-toggle="tab">Collect plugins</a></li>
-                    <li><a href="/scrooge/monthly-costs/" data-toggle="tab">Monthly costs</a></li>
+                <main-menu></main-menu>
+            </nav>
+        </div>
+        <div class="container-fluid">
+            <ng-view></ng-view>
+        </div>
+        <footer class="footer container-fluid">
+            <div class="row">
+                <ul class="col-md-8 list-inline pull-left">
+                    <li>Ralph 2.1.0</li>
+                    <li><a href="http://ralph.allegrogroup.com/doc/changes.html">Changes</a></li>
+                </ul>
+                <ul class="col-md-4 list-inline pull-right">
+                    <li>
+                        <a href="https://github.com/allegro/ralph/issues/new">
+                        <i class="fugue-icon fugue-bug"></i>Report a bug</a>
+                    </li>
                 </ul>
             </div>
-            <!-- /.panel-body -->
-            <div class="panel-body panel-body-main">
-            <ng-view></ng-view>
-            </div>
-            <div class="panel-footer footer">
-            </div>
-        </div>
+        </footer>
     </body>
 </html>
 <!--STATS-->

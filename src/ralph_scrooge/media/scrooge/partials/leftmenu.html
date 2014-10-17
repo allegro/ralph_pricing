@@ -1,25 +1,28 @@
-<ul class="nav" id="side-menu">
+<div class="sidebar col-xs-12 col-md-2">
     <div ng-if="getDictLength(stats.menus) > 1">
-        <ul class="nav nav-tabs nav-justified" role="tablist">
-          <li ng-click="stats.currentMenu = menuName" ng-repeat="(menuName, menu) in stats.menus"><a>{{menuName}}</a></li>
+        <ul class="nav nav-tabs nav-justified teams-menu">
+          <li ng-click="stats.currentMenu = menuName" ng-repeat="(menuName, menu) in stats.menus" class="{{stats.currentMenu == menuName ? 'active' : ''}}"><a>{{ menuName }}</a></li>
         </ul>
     </div>
-    <li class="sidebar-search">
-        <div class="input-group custom-search-form">
-            <input ng-model="searchTextMenu" type="text" class="form-control" placeholder="Search...">
-        </div>
-    </li>
-    <div>
-        <li ng-show="stats.currentMenu == 'service'" class="env-menu" ng-repeat="service in stats.menus.service | filter:searchTextMenu">
-            <a class="btn-left-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-click="menuService.changeService(service)">{{service.name}}</a>
-            <ul ng-click="menuService.changeEnv(env.id)" ng-show="stats.menuStats['service']['current'] == service.id" class="nav nav-second-level" ng-repeat="env in service.value.envs">
-                <li>
-                    <a class="btn-left-submenu {{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}" ng-click="setCurrentEnv(id)">{{env.name}}</a>
-                </li>
-            </ul>
-        </li>
-        <li ng-show="stats.currentMenu == 'teams'" class="env-menu" ng-repeat="team in stats.menus.teams | filter:searchTextMenu">
-            <a class="btn-left-menu {{stats.menuStats['team']['current'] == team.id ? 'active' : ''}}" ng-click="changeTeam(team)">{{team.name}}</a>
-        </li>
+    <div class="search">
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
+        <input type="text" placeholder="Search..." ng-model="searchTextMenu">
+      </div>
     </div>
-</ul>
+    <div class="items scrollbar">
+        <ul class="services">
+            <li ng-show="stats.currentMenu == 'service'" class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.menus.service | filter:searchTextMenu">
+                <a class="btn-left-menu" ng-click="menuService.changeService(service)">{{service.name}}</a>
+                <ul ng-click="menuService.changeEnv(env.id)" ng-show="stats.menuStats['service']['current'] == service.id" class="envs" ng-repeat="env in service.value.envs">
+                    <li class="{{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}">
+                        <a ng-click="setCurrentEnv(id)">{{env.name}}</a>
+                    </li>
+                </ul>
+            </li>
+            <li ng-show="stats.currentMenu == 'teams'" class="env-menu" ng-repeat="team in stats.menus.teams | filter:searchTextMenu">
+                <a class="btn-left-menu {{stats.menuStats['team']['current'] == team.id ? 'active' : ''}}" ng-click="changeTeam(team)">{{team.name}}</a>
+            </li>
+        </ul>
+    </div>
+</div>

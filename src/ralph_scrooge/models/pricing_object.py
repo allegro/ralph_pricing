@@ -9,6 +9,7 @@ from decimal import Decimal as D
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
 from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
@@ -34,6 +35,12 @@ class PricingObjectType(db.Model):
         blank=True,
         max_length=30,
         unique=True,
+    )
+    icon_class = db.CharField(
+        verbose_name=_('icon class'),
+        default='fa-tasks',
+        max_length=30,
+        help_text=mark_safe('Please visit http://fortawesome.github.io/Font-Awesome/icons/ for more information.')  # noqa
     )
 
     class Meta:

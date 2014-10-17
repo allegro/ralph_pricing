@@ -8,10 +8,11 @@ from __future__ import unicode_literals
 
 from datetime import date
 
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.db.models.fields import FieldDoesNotExist
+from django.template.defaultfilters import slugify
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from ralph.util.views import jsonify
 from ralph_scrooge.models import (
@@ -93,6 +94,8 @@ def components_content(request, *args, **kwargs):
             value.append(fields[0])
         results.append({
             "name": single_type.name,
+            "icon_class": single_type.icon_class,
+            "slug": slugify(single_type.name),
             "value": value,
             "schema": ui_schema,
             "color": single_type.color,

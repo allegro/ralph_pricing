@@ -1,0 +1,9 @@
+{% load cache %}
+{% cache 3600 panels_colors %}
+	{% spaceless %}
+		<style>
+		{% for color in colors %}
+			.category.{{ color.category|lower|slugify }} .wrapper{background-color:{{ color.value }};}{% endfor %}
+		</style>
+	{% endspaceless %}
+{% endcache %}

@@ -36,6 +36,7 @@ setup(
         'python-ceilometerclient>=1.0.10',
         'python-novaclient==2.17.0',
         'django-simple-history',
+        'djangorestframework==2.4.3',
     ],
     entry_points={
         'django.pluggable_app': [

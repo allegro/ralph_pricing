@@ -41,34 +41,38 @@
   pk: 1
   fields:
     name: 'Asset'
-    color: '#428bca'
+    color: '#ff5722'
+    icon_class: 'fa-desktop'
 
 - model: ralph_scrooge.PricingObjectType
   pk: 2
   fields:
     name: 'Virtual'
-    color: '#f68c1f'
+    color: '#259b24'
+    icon_class: 'fa-cubes'
 
 - model: ralph_scrooge.PricingObjectType
   pk: 3
   fields:
-    name: 'IP Address'
-    color: '#25963e'
+    name: 'OpenStack Tenant'
+    color: '#009688'
+    icon_class: 'fa-cloud-upload'
 
 - model: ralph_scrooge.PricingObjectType
   pk: 4
   fields:
-    name: 'OpenStack Tenant'
-    color: '#35468b'
+    name: 'IP Address'
+    color: '#03a9f4'
+    icon_class: 'fa-sitemap'
 
 - model: ralph_scrooge.PricingObjectType
   pk: 254
   fields:
     name: 'Dummy'
-    color: '#eeeeee'
+    color: '#9e9e9e'
 
 - model: ralph_scrooge.PricingObjectType
   pk: 255
   fields:
     name: 'Unknown'
-    color: '#cccccc'
+    color: '#795548'
