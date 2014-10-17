@@ -125,7 +125,7 @@ class BaseCostPlugin(BasePlugin):
             daily_usages = daily_usages.exclude(
                 service_environment__service__in=excluded_services
             )
-        return daily_usages
+        return daily_usages.select_related('daily_pricing_object')
 
     @memoize(skip_first=True)
     def _get_total_usage(self, *args, **kwargs):

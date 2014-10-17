@@ -95,6 +95,7 @@ class BaseReportPlugin(BasePlugin):
             schema[self.base_usage_cost_symbol.format(base_usage.id)] = {
                 'name': _("{0} cost".format(base_usage.name)),
                 'currency': True,
+                'total_cost': True,
             }
         if self.base_usage_count_symbol:
             schema[self.base_usage_count_symbol.format(base_usage.id)] = {

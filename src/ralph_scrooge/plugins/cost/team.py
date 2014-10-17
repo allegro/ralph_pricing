@@ -59,7 +59,7 @@ from ralph_scrooge.utils.common import memoize
 from ralph_scrooge.models import (
     DailyUsage,
     DailyPricingObject,
-    PricingObjectType,
+    PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     Team as TeamModel,
     TeamBillingType,
@@ -177,7 +177,7 @@ class TeamPlugin(BaseCostPlugin):
         assets_query = DailyPricingObject.objects.filter(
             date=date,
             service_environment__in=service_environments,
-            pricing_object__type=PricingObjectType.asset,
+            pricing_object__type=PRICING_OBJECT_TYPES.ASSET,
         )
         count = assets_query.values('service_environment').annotate(
             count=Count('id')
@@ -201,7 +201,7 @@ class TeamPlugin(BaseCostPlugin):
         """
         assets_query = DailyPricingObject.objects.filter(
             date=date,
-            pricing_object__type=PricingObjectType.asset,
+            pricing_object__type=PRICING_OBJECT_TYPES.ASSET,
         ).exclude(
             service_environment__isnull=True
         ).exclude(
