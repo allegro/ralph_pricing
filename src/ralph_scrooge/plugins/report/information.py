@@ -59,7 +59,9 @@ class Information(BaseReportPlugin):
                 'service',
                 flat=True
             ).distinct(),
-        ).select_related('business_line').order_by('history_id')
+        ).select_related('business_line', 'profit_center').order_by(
+            'history_id'
+        )
         services = {}
         profit_centers = defaultdict(list)
         for service_history in services_history:
