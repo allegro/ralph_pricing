@@ -1,46 +1,37 @@
-<div class="preloader" ng-if="stats.menuReady == false || stats.contentReady >= 1">
-  <img src="/static/scrooge/img/preloader.gif">
-</div>
-<div class="container-xs-height body-container">
-    <div class="col-xs-2 left-menu-container col-xs-height col-bottom">
-      <div class="navbar-default sidebar-navbar-default" role="navigation">
-        <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
+<div class="row">
+  <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
+  <div class="content col-xs-12 col-md-10">
+    <div class="row">
+      <div class="title col-xs-12 col-md-12">
+        <h1>Components</h1>
+        <h2>Allegro</h2>
       </div>
     </div>
-    <div class="col-xs-10 content">
-        <div class="col-xs-12 calendar" ng-controler="calendarCtrl">
-            <menucalendardirective ng-if="stats.menuReady"></menucalendardirective>
-        </div>
-    <div ng-if="stats.contentReady == 0">
-        <div class="col-xs-12">
-              <div class="data-content">
-                  <ul class="nav nav-tabs deep-menu" role="tablist">
-                      <li ng-repeat="category in content" ng-click="stats.components.contentStats.table = category.name">
-                          <div class="panel components-category {{stats.components.contentStats.table == category.name ? 'active': ''}}" style="background-color: {{category.color}}">
-                              <div class="panel-heading">
-                                  <div class="row">
-                                      <div class="col-xs-3">
-                                          <span class="pull-left">{{category.name}}</span>
-                                      </div>
-                                      <div class="col-xs-9 text-right">
-                                          <div class="huge">{{category.value.length}}</div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                      </li>
-                  </ul>
-              </div>
-              <div ng-show="stats.components.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content">
-                <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-show-toggle="true">
-                    <thead>
-                        <tr>
-                            <th data-field="{{val}}" data-sortable="true" ng-repeat="(cell, val) in data.schema">{{val}}</th>
-                        </tr>
-                    </thead>
-                </table>
-              </div>
+    <div class="row data">
+      <div class="col-xs-12 col-md-12">
+        <menucalendardirective></menucalendardirective>
+      </div>
+      <div class="col-xs-12 col-md-12">
+        <div class="categories">
+          <div class="category {{ category.name | lowercase }}" ng-repeat="category in content">
+            <div class="wrapper">
+              <div class="name">{{ category.name }}</div>
+              <div class="value">{{ category.value.length }}</div>
+              <i class="fa {{ category.name|lowercase }}"></i>
+              <div class="link" ng-click="stats.components.contentStats.table = category.name">Show</div>
             </div>
+          </div>
         </div>
+        <div ng-show="stats.components.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content">
+        <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-show-toggle="true">
+          <thead>
+            <tr>
+              <th data-field="{{val}}" data-sortable="true" ng-repeat="(cell, val) in data.schema">{{val}}</th>
+            </tr>
+          </thead>
+        </table>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

@@ -1,0 +1,7 @@
+<ul class="nav nav-tabs nav-submenu">
+	<li ng-repeat="item in items" ng-class="{active : isActive(item)}">
+		<a href="{{ item.href }}" ng-click="setActive(item)">
+			{{ item.name }}
+		</a>
+	</li>
+</ul>

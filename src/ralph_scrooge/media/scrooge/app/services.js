@@ -2,7 +2,6 @@ var ang_services = angular.module('ang_services', ['ngResource']);
 
 ang_services.factory('stats', ['$http', function ($http) {
     return {
-        contentReady: 0,
         currentMenu: false,
         currentTab: false,
         menuReady: false,
@@ -105,7 +104,6 @@ ang_services.factory('stats', ['$http', function ($http) {
             return false
         },
         getComponentsData: function () {
-            self.contentReady += 1
             $http({
                 method: 'GET',
                 url: '/scrooge/components/'
@@ -117,15 +115,12 @@ ang_services.factory('stats', ['$http', function ($http) {
             }).
             success(function(data, status, headers, config) {
                 self.components.content = data
-                self.contentReady -= 1
                 self.components.contentStats.table = data[0].name
             }).
             error(function(data, status, headers, config) {
-                self.contentReady -= 1
             });
         },
         getAllocationClientData: function () {
-            self.contentReady += 1
             $http({
                 method: 'GET',
                 url: '/scrooge/allocateclient/'
@@ -147,10 +142,8 @@ ang_services.factory('stats', ['$http', function ($http) {
                         }
                     })
                 }
-                self.contentReady -= 1
             }).
             error(function(data, status, headers, config) {
-                self.contentReady -= 1
             });
         },
         saveAllocation: function (tab) {

@@ -43,6 +43,7 @@ urlpatterns = patterns(
         components_content,
     ),
     url(r'^leftmenu/(?P<menu_type>\S.+)/$', left_menu),
+    url(r'^rest/', include('ralph_scrooge.rest.urls')),
     url(r'^api/', include(v09_api.urls)),
     url(
         r'^$',

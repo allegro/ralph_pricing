@@ -62,10 +62,10 @@ class PricingObjectType(Choices):
 
 class PricingObjectColor(Choices):
     _ = Choices.Choice
-    asset = _("#428bca")
-    virtual = _("#f68c1f")
-    tenant = _("#35468b")
-    ip_address = _("#25963e")
+    asset = _("#ff5722")
+    virtual = _("#259b24")
+    tenant = _("#009688")
+    ip_address = _("#009688")
     dummy = _('#eeeeee', id=254)
     unknown = _('#cccccc', id=255)
 

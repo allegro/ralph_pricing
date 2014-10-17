@@ -1,17 +1,40 @@
-<div class="preloader" ng-if="stats.menuReady == false || stats.contentReady >= 1">
-  <img src="/static/scrooge/img/preloader.gif">
+<div class="row">
+  <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
+  <div class="content col-xs-12 col-md-10">
+    <div class="row">
+      <div class="title col-xs-12 col-md-12">
+        <h1>Components</h1>
+        <h2>Allegro</h2>
+      </div>
+    </div>
+    <div class="row data">
+      <div class="row">
+        <menucalendardirective></menucalendardirective>
+      </div>
+      <div class="col-xs-12">
+        <div ng-show="stats.components.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content">
+        <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-show-toggle="true">
+          <thead>
+            <tr>
+              <th data-field="{{val}}" data-sortable="true" ng-repeat="(cell, val) in data.schema">{{val}}</th>
+            </tr>
+          </thead>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="container-xs-height body-container">
+<!-- <div class="container-xs-height body-container">
     <div class="col-xs-2 left-menu-container col-xs-height col-bottom">
       <div class="navbar-default sidebar-navbar-default" role="navigation">
-        <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
       </div>
     </div>
     <div class="col-xs-10 content">
         <div class="col-xs-12 calendar" ng-controler="calendarCtrl">
-          <menucalendardirective ng-if="stats.menuReady"></menucalendardirective>
+          <menucalendardirective></menucalendardirective>
         </div>
-        <div ng-if="stats.contentReady == 0">
+        <div>
           <div ng-show="stats.currentMenu == 'service'">
             <ul class="nav nav-tabs allocation-tabs" role="tablist">
               <li ng-show="!stats.allocationclient.serviceDivision.disabled" ng-click="stats.changeTab('allocate_costs')" class="{{stats.menuStats.tab.current == 'allocate_costs' ? 'active': ''}}"><a>Allocate Costs</a></li>
@@ -46,7 +69,7 @@
                 <button ng-click="stats.saveAllocation('serviceDivision')">Save</button>
               </div>
             </div>
-            <div ng-show="stats.currentTab == 'extra_costs'" class="extra-costs-tab">
+            <div ng-show="stats.currentTab == 'extra_costs'" class="extra-coststab">
               <table class="table">
                 <tr>
                   <td></td>
@@ -104,3 +127,4 @@
       </div>
     </div>
 </div>
+ -->

@@ -1,7 +1,11 @@
 var app = angular.module('app', [
     'ngRoute',
     'ngCookies',
+    'ngScrollbar',
+    'angular-loading-bar',
 
+    'scrooge.directives',
+    'scrooge.controllers',
     'ang_controllers',
     'ang_directives',
     'ang_services',
@@ -9,7 +13,6 @@ var app = angular.module('app', [
 
 app.config(['$routeProvider', '$httpProvider', '$provide',
     function($routeProvider, $httpProvider, $provide) {
-
         // we want Sentry to log our exceptions...
         //$provide.decorator("$exceptionHandler", function($delegate) {
         //    Raven.config('', {}).install();
@@ -39,23 +42,23 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
                 }
             }
         });
-        $routeProvider.
-            when('/components/', {
+        $routeProvider
+            .when('/components/', {
                 templateUrl: '/static/scrooge/partials/components.html',
                 controller: 'componentsCtrl',
-            }).
-            when('/allocation/client/', {
+            })
+            .when('/allocation/client/', {
                 templateUrl: '/static/scrooge/partials/allocationclient.html',
                 controller: 'allocationClientCtrl',
-            }).
-            otherwise({redirectTo: '/components/'});
+            })
+            .otherwise({redirectTo: '/components/'});
     }
 ]);
 
-app.run(function($http, $cookies, $rootScope) {
-    $http.defaults.headers.common['x-csrftoken'] = $cookies.csrftoken;
+// app.run(function($http, $cookies, $rootScope) {
+//     $http.defaults.headers.common['x-csrftoken'] = $cookies.csrftoken;
 
-    $http.get('/api/current_user/').success(function (data) {
-        $rootScope.$broadcast('event:user-loggedin', data);
-    });
-});
+//     $http.get('/api/current_user/').success(function (data) {
+//         $rootScope.$broadcast('event:user-loggedin', data);
+//     });
+// });
