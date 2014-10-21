@@ -81,9 +81,9 @@ def left_menu(request, *args, **kwargs):
         })
 
     results['menus'] = OrderedDict()
-    results['menus']['service'] = []
+    results['menus']['services'] = []
     for row in menu:
-        results['menus']['service'].append(
+        results['menus']['services'].append(
             {"id": row.id, "name": row.name, "value": menu[row]}
         )
     results['menus']['teams'] = []

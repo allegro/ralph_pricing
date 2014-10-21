@@ -1,13 +1,14 @@
 var scrooge = angular.module('scrooge.controllers', ['scrooge.services']);
 
-scrooge.controller('MainMenuCtrl', ['$scope', '$location', 'MainMenu', function ($scope, $location, MainMenu){
-    $scope.items = MainMenu.items.get();
-    $scope.setActive = function(obj){
-        $scope.active_url = obj.href;
-        $scope.url = '#' + $location.url();
-    }
-
-    $scope.isActive = function(obj){
-        return '#' + $location.url() == obj.href;
+scrooge.controller('MainMenuCtrl', ['$scope', '$location', 'MainMenu', function ($scope, $location, MainMenu) {
+    $scope.stats.subMenus = MainMenu.items.get();
+    $scope.stats.subMenus.$promise.then(function (subMenus) {
+        $scope.stats.currentSubMenu = subMenus[0]
+    })
+    $scope.setActive = function(obj) {
+        $scope.stats.currentSubMenu = obj
+        if ($scope.stats.inArray($scope.stats.currentLeftMenu, $scope.stats.currentSubMenu.leftMenu) == false) {
+            $scope.stats.currentLeftMenu = $scope.stats.getFirstExistMenu()
+        }
     }
 }]);
