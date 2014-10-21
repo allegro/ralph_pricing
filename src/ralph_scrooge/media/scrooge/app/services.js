@@ -98,7 +98,7 @@ ang_services.factory('stats', ['$http', function ($http) {
                     + self.menuStats['env']['current'] + '/'
                     + self.menuStats['year']['current'] + '/'
                     + self.menuStats['month']['current'] + '/'
-                    + self.menuStats['day']['current'],
+                    + self.menuStats['day']['current'] + '/',
             }).
             success(function(data, status, headers, config) {
                 self.components.content = data
