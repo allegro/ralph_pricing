@@ -40,13 +40,24 @@ import sys
 TESTING = 'test' in sys.argv
 
 COMPONENTS_TABLE_SCHEMA = {
-    'Asset': ['id', 'name', 'assetinfo.sn', 'assetinfo.barcode'],
-    'Virtual': ['id', 'name', 'virtualinfo.device_id'],
-    'IP Address': ['id', 'name'],
-    'OpenStack Tenant': [
-        'id',
-        'name',
-        'tenantinfo.tenant_id',
-        'tenantinfo.device_id',
-    ],
+    'Asset': {
+        'fields': ['id', 'name', 'assetinfo.sn', 'assetinfo.barcode'],
+        'model': 'ralph_scrooge.models.DailyAssetInfo',
+    },
+    'Virtual': {
+        'fields': ['id', 'name', 'virtualinfo.device_id'],
+        'model': 'ralph_scrooge.models.DailyVirtualInfo',
+    },
+    'IP Address': {
+        'fields': ['id', 'name'],
+    },
+    'OpenStack Tenant': {
+        'fields': [
+            'id',
+            'name',
+            'tenantinfo.tenant_id',
+            'tenantinfo.device_id',
+        ],
+        'model': 'ralph_scrooge.models.DailyTenantInfo',
+    },
 }
