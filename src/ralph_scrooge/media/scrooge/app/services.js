@@ -2,10 +2,12 @@ var ang_services = angular.module('ang_services', ['ngResource']);
 
 ang_services.factory('stats', ['$http', function ($http) {
     return {
-        currentMenu: false,
+        currentSubMenu: false,
+        currentLeftMenu: false,
         currentTab: false,
         menuReady: false,
-        menus: false,
+        leftMenus: {},
+        subMenus: {},
         menuStats: {
             "subpage": {"current": false, "change": false},
             "team": {"current": false, "change": false},
@@ -41,9 +43,9 @@ ang_services.factory('stats', ['$http', function ($http) {
                     Object.keys(data['menuStats']).forEach(function (key){
                         self.menuStats[key] = data['menuStats'][key]
                     })
-                    self.menus = data["menus"]
+                    self.leftMenus = data["menus"]
                     self.dates = data["dates"]
-                    self.currentMenu = Object.keys(self.menus)[0]
+                    self.currentLeftMenu = Object.keys(self.leftMenus)[0]
                     self.refreshData()
                 }).
                 error(function(data, status, headers, config) {
@@ -81,7 +83,7 @@ ang_services.factory('stats', ['$http', function ($http) {
         },
         refreshCurrentSubpage: function () {},
         inArray: function(value, array) {
-            for (i in array) {
+            for (var i in array) {
                 if (array[i] == value) {
                     return true
                 }
@@ -176,8 +178,8 @@ ang_services.factory('stats', ['$http', function ($http) {
         },
         getEnvs: function (service_id) {
             var envs = []
-            if (self.menus) {
-                self.menus['service'].forEach(function (element) {
+            if (self.leftMenus) {
+                self.leftMenus['services'].forEach(function (element) {
                     if (element.id == service_id) {
                         envs = element.value.envs
                     }
@@ -187,6 +189,14 @@ ang_services.factory('stats', ['$http', function ($http) {
         },
         changeTab: function (tab) {
             self.currentTab = tab
+        },
+        getFirstExistMenu: function () {
+            for (var i in self.leftMenus) {
+                if (self.inArray(i, self.currentSubMenu.leftMenu) == true) {
+                    return i
+                }
+            }
+            return false
         }
     }
 }]);
@@ -207,7 +217,6 @@ ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
             stats.refreshData()
         },
         changeEnv: function(env) {
-            console.log(env)
             stats.menuStats['env']['change'] = env
             stats.refreshData()
         },

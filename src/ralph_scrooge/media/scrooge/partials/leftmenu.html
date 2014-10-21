@@ -1,7 +1,7 @@
 <div class="sidebar col-xs-12 col-md-2">
-    <div ng-if="getDictLength(stats.menus) > 1">
+    <div ng-if="stats.currentSubMenu.leftMenu.length > 1">
         <ul class="nav nav-tabs nav-justified teams-menu">
-          <li ng-click="stats.currentMenu = menuName" ng-repeat="(menuName, menu) in stats.menus" class="{{stats.currentMenu == menuName ? 'active' : ''}}"><a>{{ menuName }}</a></li>
+          <li ng-click="stats.currentLeftMenu = menuName" ng-repeat="(menuName, menu) in stats.leftMenus" class="{{stats.currentLeftMenu == menuName ? 'active' : ''}}"><a>{{ menuName }}</a></li>
         </ul>
     </div>
     <div class="search">
@@ -12,7 +12,7 @@
     </div>
     <div class="items scrollbar">
         <ul class="services">
-            <li ng-show="stats.currentMenu == 'service'" class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.menus.service | filter:searchTextMenu">
+            <li ng-show="stats.currentLeftMenu == 'services'" class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.leftMenus.services | filter:searchTextMenu">
                 <a class="btn-left-menu" ng-click="menuService.changeService(service)">{{service.name}}</a>
                 <ul ng-click="menuService.changeEnv(env.id)" ng-show="stats.menuStats['service']['current'] == service.id" class="envs" ng-repeat="env in service.value.envs">
                     <li class="{{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}">
@@ -20,7 +20,7 @@
                     </li>
                 </ul>
             </li>
-            <li ng-show="stats.currentMenu == 'teams'" class="env-menu" ng-repeat="team in stats.menus.teams | filter:searchTextMenu">
+            <li ng-show="stats.currentLeftMenu == 'teams'" class="env-menu" ng-repeat="team in stats.leftMenus.teams | filter:searchTextMenu">
                 <a class="btn-left-menu {{stats.menuStats['team']['current'] == team.id ? 'active' : ''}}" ng-click="changeTeam(team)">{{team.name}}</a>
             </li>
         </ul>

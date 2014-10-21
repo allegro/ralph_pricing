@@ -8,9 +8,11 @@ class Menu(APIView):
             {
                 'name': 'Components',
                 'href': '#/components/',
+                'leftMenu': ['services'],
             },
             {
                 'name': 'Allocations',
                 'href': '#/allocation/client/',
+                'leftMenu': ['services', 'teams'],
             }
         ])
