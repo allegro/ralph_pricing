@@ -13,8 +13,9 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-
 from ralph.util import plugin
+
+from ralph_scrooge.models import SyncStatus
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,8 @@ def get_collect_plugins_names():
 
 def _run_plugin(name, today):
     logger.info('Running {0}...'.format(name))
+    success, message = False, None
+    sync_status = SyncStatus.objects.get_or_create(plugin=name, date=today)[0]
     try:
         success, message = plugin.run(
             'scrooge',
@@ -55,9 +58,12 @@ def _run_plugin(name, today):
             raise PluginError(message)
     except Exception as e:
         logger.exception("{0}: {1}".format(name, e))
-        raise
+        raise PluginError(e)
     finally:
-        logger.info('{0}: Done'.format(message))
+        sync_status.success = success
+        sync_status.remarks = message
+        sync_status.save()
+        logger.info('Done: {0}'.format(message))
 
 
 def run_plugins(today, plugins, run_only=False):
@@ -84,8 +90,18 @@ def run_plugins(today, plugins, run_only=False):
                     _run_plugin(name, today)
                     done.add(name)
                     yield name, True
-                except Exception:
+                except PluginError:
                     yield name, False
+
+        # save not executed plugins
+        for p in set(plugins) - tried:
+            status = SyncStatus.objects.get_or_create(
+                date=today,
+                plugin=p,
+            )[0]
+            status.success = False
+            status.remarks = 'Not executed'
+            status.save()
 
 
 class Command(BaseCommand):

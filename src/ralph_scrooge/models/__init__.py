@@ -46,6 +46,10 @@ from ralph_scrooge.models.statement import (
     Statement,
 )
 
+from ralph_scrooge.models.sync import (
+    SyncStatus,
+)
+
 from ralph_scrooge.models.team import (
     Team,
     TeamBillingType,
@@ -94,6 +98,7 @@ __all__ = [
     'ServiceOwnership',
     'ServiceUsageTypes',
     'Statement',
+    'SyncStatus',
     'Team',
     'TeamBillingType',
     'TeamCost',
