@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.views.generic import View
 from pluggableapp import PluggableApp
+from rest_framework.viewsets import ViewSetMixin
 
 from ralph.account.models import Perm
 from ralph.ui.tests.functional.tests_view import LoginRedirectTest
@@ -28,8 +29,11 @@ class TestPermissions(TestCase):
         Checks if every view from urls is subclass of Base view
         """
         for i in urls.__dict__.values():
-            if (inspect.isclass(i) and issubclass(i, View)
-                    and not issubclass(i, BootstrapAngular)):
+            if (
+                inspect.isclass(i) and
+                issubclass(i, View) and
+                not issubclass(i, (BootstrapAngular, ViewSetMixin))
+            ):
                 self.assertTrue(issubclass(i, Base))
 
 

@@ -28,7 +28,7 @@ def update_asset_model(data):
     """
     model, created = PricingObjectModel.objects.get_or_create(
         model_id=data['model_id'],
-        type=PRICING_OBJECT_TYPES.ASSET,
+        type_id=PRICING_OBJECT_TYPES.ASSET,
     )
     model.name = data['name']
     model.manufacturer = data['manufacturer']

@@ -3,7 +3,7 @@
 ReST API for Scrooge
 ------------------------------------
 
-Done with TastyPie.
+Done with TastyPie and Django Rest Framework.
 
 Scrooge API provide endpoint for services to push usages of their resources
 by services / pricing objects.
@@ -19,6 +19,9 @@ import datetime
 import logging
 from collections import defaultdict
 
+from rest_framework import filters
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.serializers import ModelSerializer
 from tastypie import http, fields
 from tastypie.authentication import ApiKeyAuthentication
 from tastypie.resources import Resource
@@ -29,6 +32,7 @@ from ralph_scrooge.models import (
     PricingObject,
     PricingService,
     ServiceEnvironment,
+    SyncStatus,
     UsageType,
 )
 
@@ -476,3 +480,20 @@ class PricingServiceUsageResource(Resource):
                 usages.usages = [UsageObject(k, v) for k, v in u]
                 ps.usages.append(usages)
         return ps
+
+
+# =============================================================================
+# SYNC STATUS API
+# =============================================================================
+class SyncStatusSerializer(ModelSerializer):
+    class Meta:
+        model = SyncStatus
+        exclude = ('created', 'modified', 'id', 'cache_version')
+
+
+class SyncStatusViewSet(ModelViewSet):
+    queryset = SyncStatus.objects.all()
+    serializer_class = SyncStatusSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = ('date', 'plugin', 'success')
+    resource_name = 'sync_status'
