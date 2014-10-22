@@ -6,7 +6,7 @@
     </div>
     <div class="row">
         <div class="col-md-12 btn-group">
-            <button ng-click="menuCalendar.changeMonth(month)" class="{{stats.menuStats['month']['current'] == month ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="month in menuCalendar.getMonths()">{{month}}</button>
+            <button ng-click="menuCalendar.changeMonth(month)" class="{{stats.menuStats['month']['current'] == month ? 'active' : ''}} btn-datepicker btn btn-default btn-month-scrooge" ng-repeat="month in menuCalendar.getMonths()">{{month | intToMonth}}</button>
         </div>
     </div>
     <div class="row">

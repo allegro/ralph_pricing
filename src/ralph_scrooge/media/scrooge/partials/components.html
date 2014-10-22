@@ -1,12 +1,7 @@
 <div class="row">
   <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
   <div class="content col-xs-12 col-md-10">
-    <div class="row">
-      <div class="title col-xs-12 col-md-12">
-        <h1>Components</h1>
-        <h2>Allegro</h2>
-      </div>
-    </div>
+    <div ng-include="'/static/scrooge/partials/breadcrumbs.html'"></div>
     <div class="row data">
       <div class="col-xs-12 col-md-12">
         <menucalendardirective></menucalendardirective>
