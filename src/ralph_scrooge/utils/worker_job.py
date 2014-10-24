@@ -48,7 +48,7 @@ class WorkerJob(object):
         cached = cache.get(key)
         if cached is not None:
             progress, job_id, data = cached
-            if progress < 100 and job_id is not None and self.queue_name:
+            if progress < 100 and job_id is not None:
                 connection = django_rq.get_connection(self.queue_name)
                 job = Job.fetch(job_id, connection)
                 if job.is_finished:
@@ -69,6 +69,7 @@ class WorkerJob(object):
                 func=self._worker_func,
                 kwargs=kwargs,
                 timeout=self.work_timeout,
+                result_ttl=self.cache_final_result_timeout,
             )
             progress = 0
             data = None
@@ -110,3 +111,7 @@ class WorkerJob(object):
             timeout=cls.cache_final_result_timeout,
         )
         return data
+
+    @classmethod
+    def run(cls, *args, **kwargs):
+        raise NotImplementedError()
