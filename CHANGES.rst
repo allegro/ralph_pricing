@@ -1,6 +1,23 @@
 Change Log
 ----------
 
+
+3.0.0-alpha1
+~~~~~
+
+* Serveral fixes related to fine tune version
+
+
+3.0.0-alpha
+~~~~~
+
+* Servces instead ventures
+* Refactoring archiveture
+* Created 3 types of plugins (collet, cost, report)
+* Cost plugin calculate all cost and write it as pre-generated data to db
+* Report plugin collect pre-generated data and make ready to display
+* Created Pricing object and Pricing service for interal convention policy, this kind of feature is using to make a scrooge more scalable and flexibility.
+
 2.6.0
 ~~~~~
 
