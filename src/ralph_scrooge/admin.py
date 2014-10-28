@@ -290,7 +290,7 @@ class TeamForm(forms.ModelForm):
     class Meta:
         model = models.Team
         widgets = {
-            'excluded_ventures': FilteredSelectMultiple('Ventures', False)
+            'excluded_services': FilteredSelectMultiple('Service', False)
         }
 
 
