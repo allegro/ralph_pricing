@@ -19,6 +19,7 @@ import datetime
 import logging
 from collections import defaultdict
 
+from django.conf.urls.defaults import url
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.serializers import ModelSerializer
@@ -66,6 +67,7 @@ class UsagesObject(object):
     Container for service or pricing object usages
     """
     service = None
+    service_id = None
     environment = None
     pricing_object = None
     usages = []  # list of UsageObject
@@ -73,12 +75,14 @@ class UsagesObject(object):
     def __init__(
         self,
         service=None,
+        service_id=None,
         environment=None,
         pricing_object=None,
         usages=None,
         **kwargs
     ):
         self.service = service
+        self.service_id = service_id
         self.environment = environment
         self.pricing_object = pricing_object
         self.usages = usages or []
@@ -87,7 +91,7 @@ class UsagesObject(object):
         data = {
             'usages': [u.to_dict(exclude_empty) for u in self.usages],
         }
-        for f in ('service', 'environment', 'pricing_object'):
+        for f in ('service', 'service_id', 'environment', 'pricing_object'):
             v = getattr(self, f)
             if (exclude_empty and v) or not exclude_empty:
                 data[f] = v
@@ -99,12 +103,21 @@ class PricingServiceUsageObject(object):
     Container for pricing service resources usages per service
     """
     pricing_service = None
+    pricing_service_id = None
     date = None
     overwrite = None
     usages = []  # list of UsagesObject
 
-    def __init__(self, pricing_service=None, usages=None, date=None, **kwargs):
+    def __init__(
+        self,
+        pricing_service=None,
+        pricing_service_id=None,
+        usages=None,
+        date=None,
+        **kwargs
+    ):
         self.pricing_service = pricing_service
+        self.pricing_service_id = pricing_service_id
         self.date = date
         self.usages = usages or []
         self.overwrite = 'no'  # default overwrite
@@ -113,6 +126,7 @@ class PricingServiceUsageObject(object):
         result = {
             'date': self.date,
             'pricing_service': self.pricing_service,
+            'pricing_service_id': self.pricing_service_id,
             'overwrite': self.overwrite,
             'usages': [u.to_dict(exclude_empty) for u in self.usages]
         }
@@ -129,7 +143,8 @@ class UsageResource(Resource):
 
 
 class UsagesResource(Resource):
-    service = fields.CharField(attribute='service', null=True)  # symbol
+    service = fields.CharField(attribute='service', null=True)  # name
+    service_id = fields.CharField(attribute='service_id', null=True)  # id
     environment = fields.CharField(attribute='environment', null=True)  # name
     pricing_object = fields.CharField(attribute='pricing_object', null=True)
     usages = fields.ToManyField(UsageResource, 'usages', null=True)
@@ -152,12 +167,12 @@ class PricingServiceUsageResource(Resource):
 
     This endpoint supports only POST HTTP method. API format is as follows:
     {
-        "pricing_service": "<service_symbol>",
+        "pricing_service": "<service name or id>",
         "date": "<date>",
         "overwrite: "no|values_only|delete_all_previous",
         "usages": [
             {
-                "service": "<service_symbol>",
+                "service": "<service name or id>",
                 "pricing_object": "<pricing_object_name>",
                 "usages": [
                     {
@@ -171,11 +186,11 @@ class PricingServiceUsageResource(Resource):
         ]
     }
 
-    Service, service and usage symbol are symbols defined in Scrooge models.
+    Usage symbol is symbol defined in Scrooge models.
 
     Example:
     {
-        "pricing_service": "pricing_service_symbol",
+        "pricing_service": "pricing_service1",
         "date": "2013-10-10",
         "usages": [
             {
@@ -206,7 +221,7 @@ class PricingServiceUsageResource(Resource):
                 ]
             },
             {
-                "service": "service2",
+                "service_id": 123,
                 "environment": "env2",
                 "usages": [
                     {
@@ -291,14 +306,18 @@ class PricingServiceUsageResource(Resource):
         daily_usages = []
 
         # check if service exists
+        ps_params = {}
+        if pricing_service_usages.pricing_service_id:
+            ps_params['id'] = pricing_service_usages.pricing_service_id
+        elif pricing_service_usages.pricing_service:
+            ps_params['name'] = pricing_service_usages.pricing_service
         try:
-            PricingService.objects.get(
-                symbol=pricing_service_usages.pricing_service
-            )
+            PricingService.objects.get(**ps_params)
         except PricingService.DoesNotExist:
             raise ImmediateHttpResponse(response=http.HttpBadRequest(
-                "Invalid pricing service symbol: {}".format(
-                    pricing_service_usages.pricing_service
+                "Invalid pricing service name ({}) or id ({})".format(
+                    pricing_service_usages.pricing_service,
+                    pricing_service_usages.pricing_service_id,
                 )
             ))
 
@@ -318,9 +337,15 @@ class PricingServiceUsageResource(Resource):
                     pricing_object = PricingObject.objects.get(
                         name=usages.pricing_object,
                     )
+                elif usages.service_id and usages.environment:
+                    service_environment = ServiceEnvironment.objects.get(
+                        service__id=usages.service_id,
+                        environment__name=usages.environment,
+                    )
+                    pricing_object = service_environment.dummy_pricing_object
                 elif usages.service and usages.environment:
                     service_environment = ServiceEnvironment.objects.get(
-                        service__name=usages.service,  # TODO: change to symbol
+                        service__name=usages.service,
                         environment__name=usages.environment,
                     )
                     pricing_object = service_environment.dummy_pricing_object
@@ -364,7 +389,7 @@ class PricingServiceUsageResource(Resource):
                         )
             except PricingObject.DoesNotExist:
                 raise ImmediateHttpResponse(response=http.HttpBadRequest(
-                    "Invalid pricing object name ({})".format(
+                    "Invalid pricing object name or id ({})".format(
                         usages.pricing_object
                     )
                 ))
@@ -404,24 +429,25 @@ class PricingServiceUsageResource(Resource):
     # =================
     # GET
     # =================
-    def obj_get(self, pk, request=None, **kwargs):
+    def obj_get(self, request=None, **kwargs):
         """
         Usages GET API
         Requires url (resource) in following format:
-            <pricing_service_symbol>/<date(YYYY-MM-DD)>
+            <pricing_service_name>/<date(YYYY-MM-DD)>
         """
-        try:
-            pricing_service_symbol, date = pk.split('/')
-            usages_date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
-            return self._get_pricing_service_usages(
-                pricing_service_symbol,
-                usages_date
-            )
-        except Exception:
-            logger.exception(
-                "Exception occured while parsing url ({0})".format(pk)
-            )
-            raise
+        usages_date = datetime.datetime.strptime(
+            kwargs['date'],
+            '%Y-%m-%d'
+        ).date()
+        return self._get_pricing_service_usages(
+            kwargs['pricing_service_id'],
+            usages_date
+        )
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pricing_service_id>[\w\d\s_.-]+)/(?P<date>[\d-]+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),  # noqa
+        ]
 
     def full_dehydrate(self, bundle, *args, **kwargs):
         """
@@ -432,23 +458,23 @@ class PricingServiceUsageResource(Resource):
         return data
 
     @classmethod
-    def _get_pricing_service_usages(cls, pricing_service_symbol, date):
+    def _get_pricing_service_usages(cls, pricing_service_id, date):
         """
         Returns usages of pricing service (on date) for GET API
         """
         try:
             pricing_service = PricingService.objects.get(
-                symbol=pricing_service_symbol
+                id=pricing_service_id,
             )
         except PricingService.DoesNotExist:
             raise ImmediateHttpResponse(response=http.HttpBadRequest(
-                "Invalid pricing service symbol: {}".format(
-                    pricing_service_symbol
+                "Invalid pricing service id: {}".format(
+                    pricing_service_id,
                 )
             ))
         else:
             ps = PricingServiceUsageObject(
-                pricing_service=pricing_service.symbol,
+                pricing_service=pricing_service.name,
                 date=date,
                 usages=[],
             )
@@ -472,6 +498,7 @@ class PricingServiceUsageResource(Resource):
                 usages = UsagesObject()
                 se = dpo.service_environment
                 usages.service = se.service.name
+                usages.service_id = se.service.id
                 usages.environment = se.environment.name
                 # if pricing object is not dummy pricing object for service
                 # environment use it
