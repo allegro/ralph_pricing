@@ -202,6 +202,7 @@ class PricingService(BaseUsage):
         verbose_name = _("pricing service")
         verbose_name_plural = _("pricing services")
         app_label = 'ralph_scrooge'
+        ordering = ['name']
 
     def save(self, *args, **kwargs):
         self.type = BaseUsageType.pricing_service
@@ -280,7 +281,18 @@ class ServiceUsageTypes(db.Model):
         )
 
 
+class ServiceEnvironmentRelatedManager(db.Manager):
+    def get_query_set(self):
+        return super(
+            ServiceEnvironmentRelatedManager,
+            self
+        ).get_query_set().select_related('service', 'environment')
+
+
 class ServiceEnvironment(db.Model):
+    objects_rel = ServiceEnvironmentRelatedManager()
+    objects = db.Manager()
+
     service = db.ForeignKey(
         Service,
         related_name="environments_services",
@@ -297,6 +309,7 @@ class ServiceEnvironment(db.Model):
         verbose_name_plural = _("service environments")
         app_label = 'ralph_scrooge'
         unique_together = ('service', 'environment')
+        ordering = ['service__name', 'environment__name']
 
     def __unicode__(self):
         return '{} - {}'.format(self.service, self.environment)

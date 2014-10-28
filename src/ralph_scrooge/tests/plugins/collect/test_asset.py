@@ -104,6 +104,27 @@ class TestAssetPlugin(TestCase):
             )
         )
 
+    def test_get_asset_info_integrity_error(self):
+        AssetInfoFactory(
+            asset_id=self.data['asset_id'],
+            warehouse=self.warehouse,
+        )
+        data = [self.data.copy(), self.data.copy()]
+        data[1]['asset_id'] = 2
+        data[1]['barcode'] = 'Barcode2'
+
+        for d in data:
+            asset.get_asset_info(self.service_environment, self.warehouse, d)
+        self.assertEqual(AssetInfo.objects.count(), 2)
+        asset1 = AssetInfo.objects.get(asset_id=1)
+        asset2 = AssetInfo.objects.get(asset_id=2)
+        self.assertEqual(asset1.barcode, data[0]['barcode'])
+        self.assertEqual(asset2.barcode, data[1]['barcode'])
+        self.assertEqual(asset2.sn, data[1]['sn'])
+        self.assertEqual(asset2.device_id, data[1]['device_id'])
+        self.assertIsNone(asset1.sn)
+        self.assertIsNone(asset1.device_id)
+
     def test_get_daily_asset_info(self):
         self.assertEqual(
             asset.get_daily_asset_info(
