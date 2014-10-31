@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from ralph.account.models import Perm
 
 
-class Menu(APIView):
+class SubMenu(APIView):
     def get(self, request, format=None):
         menu = [
             {

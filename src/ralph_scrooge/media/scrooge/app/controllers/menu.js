@@ -1,7 +1,7 @@
 var scrooge = angular.module('scrooge.controllers', ['scrooge.services']);
 
-scrooge.controller('MainMenuCtrl', ['$scope', '$location', 'MainMenu', function ($scope, $location, MainMenu) {
-    $scope.stats.subMenus = MainMenu.items.get();
+scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'SubMenu', function ($scope, $location, SubMenu) {
+    $scope.stats.subMenus = SubMenu.items.get();
     $scope.stats.subMenus.$promise.then(function (subMenus) {
         $scope.stats.currentSubMenu = subMenus[0]
     })
