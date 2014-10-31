@@ -144,13 +144,16 @@ class TestPricingServicePlugin(TestCase):
         # (sut[2] -  100%)
         # there are also another 2 service environments (each has 2 pricing
         # objects)
+        # TOTAL DAILY PRICING OBJECTS: 14
 
         # USAGES
         # base usage type
         models.UsagePrice(
             type=self.base_usage_type,
-            cost=4200,  # daily cost: 1
-            forecast_cost=8400,  # daily cost: 2
+            # cost per unit: 1, daily cost (usages are the same for each date):
+            # 140, cost per daily pricing object: 10
+            cost=4200,
+            forecast_cost=8400,  # cost per unit: 2
             start=self.start,
             end=self.end,
         ).save()
@@ -228,7 +231,7 @@ class TestPricingServicePlugin(TestCase):
                 )
 
         # pricing service 2 service usage types usages
-        for dpo in self.se1_dpo + self.se2_dpo + self.se6_dpo:
+        for dpo in self.se1_dpo + self.se6_dpo:
             days = rrule.rrule(rrule.DAILY, dtstart=self.start, until=self.end)
             for day in days:
                 DailyUsageFactory(
@@ -280,13 +283,16 @@ class TestPricingServicePlugin(TestCase):
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
         )
+        # daily pricing objects which are under pricing service 1 (practically
+        # under se1) are using extacly half of pricing service resources, so
+        # they will be charged with half of total amount
         self.assertEquals(result, {
             self.pricing_service2.id: [
-                D('122'),
+                D('61'),
                 {
-                    self.base_usage_type.id: [D('20'), {}],
-                    self.team.id: [D('2.00'), {}],
-                    self.extra_cost_type.id: [D('100'), {}]
+                    self.base_usage_type.id: [D('10'), {}],
+                    self.team.id: [D('1'), {}],
+                    self.extra_cost_type.id: [D('50'), {}]
                 }
             ]
         })
@@ -300,22 +306,44 @@ class TestPricingServicePlugin(TestCase):
         )
         self.assertEquals(costs, {
             self.pricing_service1.id: (
-                D('566'),
+                D('505'),
                 {
                     self.base_usage_type.id: (D('40'), {}),
                     self.regular_usage_type.id: (D('200'), {}),
                     self.team.id: (D('4'), {}),
                     self.extra_cost_type.id: (D('200'), {}),
                     self.pricing_service2.id: [
-                        D('122'),
+                        D('61'),
                         {
-                            self.base_usage_type.id: [D('20'), {}],
-                            self.team.id: [D('2.00'), {}],
-                            self.extra_cost_type.id: [D('100'), {}]
+                            self.base_usage_type.id: [D('10'), {}],
+                            self.team.id: [D('1'), {}],
+                            self.extra_cost_type.id: [D('50'), {}]
                         }
                     ]
                 }
             )
+        })
+
+    def test_get_pricing_service_costs2(self):
+        # there are 4 daily pricing objects that are using pricing service 2:
+        # 2 are in se1, 2 are in se6
+        # total cost of pricing service 1 (which has 2 daily pricing objects)
+        # for one day (today) is 122:
+        #   base usage: 2 (dpo) * 10 (usage value) * 1 (cost per unit) = 20
+        #   team: 10 (daily cost) * 0.2 (percent) = 2
+        #   extra cost: 100 (daily cost)
+        costs = PricingServicePlugin._get_pricing_service_costs(
+            self.today,
+            self.pricing_service2,
+            forecast=False,
+            service_environments=self.pricing_service2.service_environments,
+        )
+        self.assertEquals(costs, {
+            self.pricing_service2.id: (D('122'), {
+                self.base_usage_type.id: (D('20'), {}),
+                self.team.id: (D('2'), {}),
+                self.extra_cost_type.id: (D('100'), {}),
+            }),
         })
 
     def test_get_total_costs_from_costs(self):
@@ -358,7 +386,7 @@ class TestPricingServicePlugin(TestCase):
         result = {
             self.service_environments[3].id: [
                 {
-                    'cost': D('141.5'),
+                    'cost': D('126.25'),
                     'pricing_object_id': po2,
                     'type_id': self.pricing_service1.id,
                     '_children': [
@@ -383,22 +411,22 @@ class TestPricingServicePlugin(TestCase):
                             'type_id': self.extra_cost_type.id,
                         },
                         {
-                            'cost': D('30.5'),
+                            'cost': D('15.25'),
                             'pricing_object_id': po2,
                             'type_id': self.pricing_service2.id,
                             '_children': [
                                 {
-                                    'cost': D('5'),
+                                    'cost': D('2.5'),
                                     'pricing_object_id': po2,
                                     'type_id': self.base_usage_type.id,
                                 },
                                 {
-                                    'cost': D('0.5'),
+                                    'cost': D('0.25'),
                                     'pricing_object_id': po2,
                                     'type_id': self.team.id,
                                 },
                                 {
-                                    'cost': D('25'),
+                                    'cost': D('12.5'),
                                     'pricing_object_id': po2,
                                     'type_id': self.extra_cost_type.id,
                                 }
@@ -407,7 +435,7 @@ class TestPricingServicePlugin(TestCase):
                     ],
                 },
                 {
-                    'cost': D('141.5'),
+                    'cost': D('126.25'),
                     'pricing_object_id': po1,
                     'type_id': self.pricing_service1.id,
                     '_children': [
@@ -432,22 +460,22 @@ class TestPricingServicePlugin(TestCase):
                             'type_id': self.extra_cost_type.id,
                         },
                         {
-                            'cost': D('30.5'),
+                            'cost': D('15.25'),
                             'pricing_object_id': po1,
                             'type_id': self.pricing_service2.id,
                             '_children': [
                                 {
-                                    'cost': D('5'),
+                                    'cost': D('2.5'),
                                     'pricing_object_id': po1,
                                     'type_id': self.base_usage_type.id,
                                 },
                                 {
-                                    'cost': D('0.5'),
+                                    'cost': D('0.25'),
                                     'pricing_object_id': po1,
                                     'type_id': self.team.id,
                                 },
                                 {
-                                    'cost': D('25'),
+                                    'cost': D('12.5'),
                                     'pricing_object_id': po1,
                                     'type_id': self.extra_cost_type.id,
                                 }
@@ -458,7 +486,7 @@ class TestPricingServicePlugin(TestCase):
             ],
             self.service_environments[4].id: [
                 {
-                    'cost': D('424.5'),
+                    'cost': D('378.75'),
                     'pricing_object_id': po4,
                     'type_id': self.pricing_service1.id,
                     '_children': [
@@ -483,22 +511,22 @@ class TestPricingServicePlugin(TestCase):
                             'type_id': self.extra_cost_type.id,
                         },
                         {
-                            'cost': D('91.5'),
+                            'cost': D('45.75'),
                             'pricing_object_id': po4,
                             'type_id': self.pricing_service2.id,
                             '_children': [
                                 {
-                                    'cost': D('15'),
+                                    'cost': D('7.5'),
                                     'pricing_object_id': po4,
                                     'type_id': self.base_usage_type.id,
                                 },
                                 {
-                                    'cost': D('1.5'),
+                                    'cost': D('0.75'),
                                     'pricing_object_id': po4,
                                     'type_id': self.team.id,
                                 },
                                 {
-                                    'cost': D('75'),
+                                    'cost': D('37.5'),
                                     'pricing_object_id': po4,
                                     'type_id': self.extra_cost_type.id,
                                 }
@@ -507,7 +535,7 @@ class TestPricingServicePlugin(TestCase):
                     ]
                 },
                 {
-                    'cost': D('424.5'),
+                    'cost': D('378.75'),
                     'pricing_object_id': po3,
                     'type_id': self.pricing_service1.id,
                     '_children': [
@@ -532,22 +560,22 @@ class TestPricingServicePlugin(TestCase):
                             'type_id': self.extra_cost_type.id,
                         },
                         {
-                            'cost': D('91.5'),
+                            'cost': D('45.75'),
                             'pricing_object_id': po3,
                             'type_id': self.pricing_service2.id,
                             '_children': [
                                 {
-                                    'cost': D('15'),
+                                    'cost': D('7.5'),
                                     'pricing_object_id': po3,
                                     'type_id': self.base_usage_type.id,
                                 },
                                 {
-                                    'cost': D('1.5'),
+                                    'cost': D('0.75'),
                                     'pricing_object_id': po3,
                                     'type_id': self.team.id,
                                 },
                                 {
-                                    'cost': D('75'),
+                                    'cost': D('37.5'),
                                     'pricing_object_id': po3,
                                     'type_id': self.extra_cost_type.id,
                                 }
@@ -557,4 +585,4 @@ class TestPricingServicePlugin(TestCase):
                 },
             ]
         }
-        self.assertEquals(costs, result)
+        self.assertEquals(dict(costs), dict(result))
