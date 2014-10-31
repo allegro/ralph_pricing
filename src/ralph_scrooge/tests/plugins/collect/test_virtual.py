@@ -17,9 +17,9 @@ from ralph_scrooge.plugins.collect import virtual
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
     DailyAssetInfoFactory,
+    DailyVirtualInfoFactory,
     ServiceEnvironmentFactory,
     UsageTypeFactory,
-    VirtualInfoFactory,
 )
 from ralph_scrooge.utils.common import AttributeDict
 
@@ -43,6 +43,7 @@ class TestVirtualPlugin(TestCase):
         self.assertRaises(
             virtual.DeviceIdCannotBeNoneError,
             virtual.update,
+            group_name='sample',
             data=AttributeDict(device_id=None),
             usages={},
             date=self.today,
@@ -52,6 +53,7 @@ class TestVirtualPlugin(TestCase):
         self.assertRaises(
             virtual.ServiceUidCannotBeNoneError,
             virtual.update,
+            group_name='sample',
             data=AttributeDict(device_id=1, service_id=None),
             usages={},
             date=self.today,
@@ -61,6 +63,7 @@ class TestVirtualPlugin(TestCase):
         self.assertRaises(
             virtual.EnvironmentCannotBeNoneError,
             virtual.update,
+            group_name='sample',
             data=AttributeDict(
                 device_id=1,
                 service_id=1,
@@ -70,62 +73,122 @@ class TestVirtualPlugin(TestCase):
             date=self.today,
         )
 
-    @patch.object(virtual, 'AssetInfo', MagicMock())
-    @patch.object(virtual, 'DailyAssetInfo', MagicMock())
-    def test_update_when_hypervisor_id_is_none(self):
-        service_environment = ServiceEnvironmentFactory.create()
-        virtual.update(
-            AttributeDict(
-                device_id=1,
-                service_id=service_environment.service.ci_id,
-                environment_id=service_environment.environment.ci_id,
-                hypervisor_id=1,
-            ),
-            {},
-            self.today,
-        )
-        virtual.AssetInfo.objects.get.assert_called_once_with(device_id=1)
-
+    @patch.object(virtual, 'update_virtual_info', MagicMock())
     @patch.object(virtual, 'update_virtual_usage', MagicMock())
     def test_update(self):
         service_environment = ServiceEnvironmentFactory.create()
         virtual.update(
+            'virtual_group',
             AttributeDict(
                 device_id=1,
                 service_id=service_environment.service.ci_id,
                 environment_id=service_environment.environment.ci_id,
+                model_id=1,
+                model_name='sample model',
             ),
-            {'key': 'value'},
+            {'key': 'value', 'key2': 'value2'},
             self.today,
         )
-        self.assertEqual(virtual.update_virtual_usage.call_count, 1)
+        self.assertEqual(virtual.update_virtual_usage.call_count, 2)
+        self.assertEqual(virtual.update_virtual_info.call_count, 1)
 
-    def test_update_virtual_usage_when_no_virtual_info(self):
-        virtual.update_virtual_usage(
-            DailyAssetInfoFactory.create(),
-            ServiceEnvironmentFactory.create(),
-            UsageTypeFactory.create(),
-            {'device_id': 1, 'name': 'example_name'},
-            self.today,
-            100,
+    def _compare_daily_virtual_info(
+        self,
+        daily_virtual_info,
+        data,
+        service_environment,
+        group_name,
+    ):
+        virtual_info = daily_virtual_info.virtual_info
+        self.assertEqual(
+            daily_virtual_info.service_environment,
+            service_environment
         )
-        self.assertEqual(models.VirtualInfo.objects.all().count(), 1)
-        self.assertEqual(models.DailyVirtualInfo.objects.all().count(), 1)
-        self.assertEqual(models.DailyUsage.objects.all().count(), 1)
+        self.assertEqual(virtual_info.service_environment, service_environment)
+        self.assertEqual(virtual_info.name, data['name'])
+        self.assertEqual(virtual_info.device_id, data['device_id'])
+        self.assertEqual(
+            virtual_info.type_id,
+            models.PRICING_OBJECT_TYPES.VIRTUAL
+        )
+        self.assertEqual(virtual_info.model.name, data['model_name'])
+        self.assertEqual(virtual_info.model.manufacturer, group_name)
+        self.assertEqual(virtual_info.model.model_id, data['model_id'])
+        self.assertEqual(
+            virtual_info.model.type_id,
+            models.PRICING_OBJECT_TYPES.VIRTUAL
+        )
+
+    def test_update_virtual_virtual_info(self):
+        service_env = ServiceEnvironmentFactory.create()
+        data = AttributeDict(
+            device_id=1,
+            name='sample',
+            service_id=service_env.service.ci_id,
+            environment_id=service_env.environment.ci_id,
+            model_id=1,
+            model_name='sample model',
+        )
+        daily_virtual_info = virtual.update_virtual_info(
+            'virtual_group',
+            data,
+            self.today,
+            service_env,
+        )
+        self._compare_daily_virtual_info(
+            daily_virtual_info,
+            data,
+            service_env,
+            'virtual_group',
+        )
+        self.assertIsNone(daily_virtual_info.hypervisor)
+
+    def test_update_virtual_virtual_info_with_hypervisor(self):
+        service_env = ServiceEnvironmentFactory.create()
+        hypervisor = DailyAssetInfoFactory(date=self.today)
+        data = AttributeDict(
+            device_id=1,
+            name='sample',
+            service_id=service_env.service.ci_id,
+            environment_id=service_env.environment.ci_id,
+            model_id=1,
+            hypervisor_id=hypervisor.asset_info.device_id,
+            model_name='sample model',
+        )
+        daily_virtual_info = virtual.update_virtual_info(
+            'virtual_group',
+            data,
+            self.today,
+            service_env,
+        )
+        self._compare_daily_virtual_info(
+            daily_virtual_info,
+            data,
+            service_env,
+            'virtual_group',
+        )
+        self.assertEqual(
+            hypervisor.asset_info.device_id,
+            daily_virtual_info.hypervisor.asset_info.device_id
+        )
 
     def test_update_virtual_usage(self):
-        virtual.update_virtual_usage(
-            DailyAssetInfoFactory.create(),
-            ServiceEnvironmentFactory.create(),
-            UsageTypeFactory.create(),
-            {
-                'device_id': VirtualInfoFactory.create().device_id,
-                'name': 'example_name',
-            },
+        service_env = ServiceEnvironmentFactory.create()
+        daily_virtual_info = DailyVirtualInfoFactory()
+        usage_type = UsageTypeFactory.create()
+        daily_usage = virtual.update_virtual_usage(
+            daily_virtual_info,
+            service_env,
+            usage_type,
             self.today,
             100,
         )
         self.assertEqual(models.VirtualInfo.objects.all().count(), 1)
+        self.assertEqual(daily_usage.service_environment, service_env)
+        self.assertEqual(daily_usage.type, usage_type)
+        self.assertEqual(daily_usage.date, self.today)
+        self.assertEqual(daily_usage.value, 100)
+        self.assertEqual(daily_usage.daily_pricing_object, daily_virtual_info)
 
     @override_settings(
         VIRTUAL_SERVICES={'example_group': ['example_service']},
@@ -207,7 +270,6 @@ class TestVirtualPlugin(TestCase):
             hypervisor_id=1,
         )],
     )
-    @patch.object(virtual, 'ServiceEnvironment', MagicMock())
     def test_virtual_when_asset_info_does_not_exist(self):
         self.assertEqual(
             virtual.virtual(today=self.today),
@@ -227,7 +289,6 @@ class TestVirtualPlugin(TestCase):
             hypervisor_id=1,
         )],
     )
-    @patch.object(virtual, 'ServiceEnvironment', MagicMock())
     def test_virtual_when_daily_asset_info_does_not_exist(self):
         AssetInfoFactory.create(device_id=1)
         self.assertEqual(
@@ -250,6 +311,8 @@ class TestVirtualPlugin(TestCase):
             virtual_disk=100,
             virtual_memory=100,
             virtual_cores=100,
+            model_id=1,
+            model_name='sample model',
         )],
     )
     @patch.object(virtual, 'ServiceEnvironment', MagicMock())

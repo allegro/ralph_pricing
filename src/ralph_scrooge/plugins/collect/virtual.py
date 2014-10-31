@@ -14,9 +14,10 @@ from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
     DailyUsage,
-    UsageType,
     PRICING_OBJECT_TYPES,
+    PricingObjectModel,
     ServiceEnvironment,
+    UsageType,
     VirtualInfo,
 )
 
@@ -46,23 +47,76 @@ class DeviceIdCannotBeNoneError(Exception):
 
 
 def update_virtual_usage(
-    hypervisor,
+    daily_virtual_info,
     service_environment,
     usage_type,
-    data,
     date,
     value,
 ):
     """
-    Update single virtual device. Create daily usage and virtual info objects
+    Creates daily usage of virtual resources.
 
-    :param object hypervisor: DailyAssetInfo object
-    :param object service_environment: ServiceEnvironment object
-    :param object usage_type: UsageType object
+    :param DailyVirtualInfo daily_virtual_info: daily virtual info
+    :param ServiceEnvironment service_environment: ServiceEnvironment object
+    :param UsageType usage_type: UsageType object
     :param dict data: Dict with data from ralph
-    :param datetime date: Date for which daily objects will create
-    :param float value: count of usage
+    :param float value: resources used
     """
+    usage, usage_created = DailyUsage.objects.get_or_create(
+        date=date,
+        type=usage_type,
+        daily_pricing_object=daily_virtual_info,
+        defaults=dict(
+            service_environment=service_environment,
+        ),
+    )
+    usage.service_environment = service_environment
+    usage.value = value
+    usage.save()
+    return usage
+
+
+def get_or_create_model(group_name, data):
+    """
+    Returns appropriate Pricing Object Model for group_name and Ralph device
+    model.
+    """
+    model = PricingObjectModel.objects.get_or_create(
+        model_id=data['model_id'],
+        type_id=PRICING_OBJECT_TYPES.VIRTUAL,
+        manufacturer=group_name,
+        defaults=dict(
+            name=data['model_name'],
+        )
+    )[0]
+    model.name = data['model_name']
+    model.manufacturer = group_name
+    model.save()
+    return model
+
+
+def update_virtual_info(group_name, data, date, service_environment):
+    """
+    Updates VirtualInfo and creates DailyVirtualInfo object.
+    """
+    hypervisor = None
+    try:
+        if data.get('hypervisor_id') is not None:
+            hypervisor = DailyAssetInfo.objects.get(
+                asset_info__device_id=data.get('hypervisor_id'),
+                date=date,
+            )
+        else:
+            logger.warning(
+                'For device {0} hypervisor is none'.format(
+                    data['device_id'],
+                ),
+            )
+    except (AssetInfo.DoesNotExist, DailyAssetInfo.DoesNotExist):
+        logger.error('Hypervisor with device id {} not found'.format(
+            data['hypervisor_id'])
+        )
+
     try:
         virtual_info = VirtualInfo.objects.get(
             device_id=data['device_id'],
@@ -74,22 +128,15 @@ def update_virtual_usage(
         )
     virtual_info.service_environment = service_environment
     virtual_info.name = data['name']
+    virtual_info.model = get_or_create_model(group_name, data)
     virtual_info.save()
     daily_virtual_info = virtual_info.get_daily_pricing_object(date)
     daily_virtual_info.hypervisor = hypervisor
     daily_virtual_info.save()
-
-    usage, usage_created = DailyUsage.objects.get_or_create(
-        date=date,
-        type=usage_type,
-        daily_pricing_object=daily_virtual_info,
-        service_environment=service_environment,
-    )
-    usage.value = value
-    usage.save()
+    return daily_virtual_info
 
 
-def update(data, usages, date):
+def update(group_name, data, usages, date):
     """
     Check if everything is correct and run update_virtual_usage
 
@@ -109,28 +156,18 @@ def update(data, usages, date):
             environment__ci_id=data.get('environment_id'),
         )
 
-    hypervisor = None
-    if data.get('hypervisor_id') is not None:
-        asset_info = AssetInfo.objects.get(
-            device_id=data.get('hypervisor_id'),
-        )
-        hypervisor = DailyAssetInfo.objects.get(
-            asset_info=asset_info,
-            date=date,
-        )
-    else:
-        logger.warning(
-            'For device {0} hypervisor is none'.format(
-                data['device_id'],
-            ),
-        )
+    daily_virtual_info = update_virtual_info(
+        group_name,
+        data,
+        date,
+        service_environment,
+    )
 
     for key, usage in usages.iteritems():
         update_virtual_usage(
-            hypervisor,
+            daily_virtual_info,
             service_environment,
             usage,
-            data,
             date,
             data.get(key),
         )
@@ -198,16 +235,8 @@ def virtual(**kwargs):
             for data in api_scrooge.get_virtual_usages(service_uid):
                 total += 1
                 try:
-                    update(data, usages, date)
+                    update(group_name, data, usages, date)
                     updated += 1
-                except AssetInfo.DoesNotExist:
-                    logger.error(
-                        'AssetInfo with device id {0} does not exist'.format(
-                            data['hypervisor_id'],
-                        ),
-                    )
-                except DailyAssetInfo.DoesNotExist:
-                    logger.error('DailyAssetInfo does not exist')
                 except ServiceEnvironment.DoesNotExist:
                     logger.error(
                         'Service {0} does not exist'.format(
