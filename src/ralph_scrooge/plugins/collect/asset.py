@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import logging
 from decimal import Decimal as D
 
+from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
@@ -71,7 +72,27 @@ def get_asset_info(service_environment, warehouse, data):
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
     asset_info.device_id = data['device_id']
-    asset_info.save()
+    try:
+        asset_info.save()
+    except IntegrityError:
+        # check for duplicates on SN, barcode and device_id, null them and save
+        # again
+        for field in ['sn', 'barcode', 'device_id']:
+            assets = AssetInfo.objects.filter(**{field: data[field]}).exclude(
+                asset_id=data['asset_id'],
+            )
+            for asset in assets:
+                logger.error('Duplicated {} ({}) on assets {} and {}'.format(
+                    field,
+                    data[field],
+                    data['asset_id'],
+                    asset.asset_id,
+                ))
+                setattr(asset, field, None)
+                asset.save()
+        # save new asset again
+        asset_info.save()
+
     return asset_info, created
 
 

@@ -122,9 +122,6 @@ class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
         result = super(PricingObjectAdmin, self).queryset(request)
         return result.exclude(
             type_id=models.PRICING_OBJECT_TYPES.DUMMY
-        ).select_related(
-            'service_environment',
-            'service_environment__service',
         )
 
 
