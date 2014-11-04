@@ -46,8 +46,8 @@ class Command(ScroogeBaseCommand):
         for asset_model in asset_models:
             results.append([
                 asset_model.name,
-                asset_model.manufacturer,
-                asset_model.category,
+                asset_model.manufacturer.name,
+                asset_model.category.name,
                 asset_model.power_consumption,
                 asset_model.height_of_device,
                 asset_model.cores_count,
