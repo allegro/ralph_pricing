@@ -2,8 +2,6 @@
 /* Make clicks pass-through */
 #loading-bar,
 #loading-bar-spinner {
-  pointer-events: none;
-  -webkit-pointer-events: none;
   -webkit-transition: 350ms linear all;
   -moz-transition: 350ms linear all;
   -o-transition: 350ms linear all;
@@ -32,7 +30,7 @@
 
   background: #29d;
   position: fixed;
-  z-index: 10002;
+  z-index: 10003;
   top: 0;
   left: 0;
   width: 100%;
@@ -62,13 +60,21 @@
   display: block;
   position: fixed;
   z-index: 10002;
-  top:10px;
-  right:10px;
+  top: 0;
+  right:0;
+  z-index: 10003;
+  bottom: 0;
+  left:0;
+  background-color: #fff;
+  opacity: 0.5;
 }
 
 #loading-bar-spinner .spinner-icon {
+  position: absolute;
   width: 14px;
   height: 14px;
+  top: 10px;
+  right: 10px;
 
   border: solid 2px transparent;
   border-top-color:  #29d;
