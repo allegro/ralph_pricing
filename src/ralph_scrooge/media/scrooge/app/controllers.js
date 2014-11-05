@@ -1,10 +1,12 @@
+'use strict';
+
 var ang_controllers = angular.module('ang_controllers', []);
 
 ang_controllers.controller('componentsCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
-    stats.breadcrumbs = ["service", "env"];
-    if ($scope.stats.currentSubMenu == false) {
+    stats.breadcrumbs = ['service', 'env'];
+    if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Components';
-    };
+    }
     $scope.stats.refreshCurrentSubpage = function () {
         stats.getComponentsData();
     };
@@ -23,8 +25,8 @@ ang_controllers.controller('componentsCtrl', ['$scope', '$routeParams', 'menuSer
                         });
                     });
                 });
-            };
-        };
+            }
+        }
     });
     $scope.checkAll = function (modelName, checked) {
         angular.forEach($scope[modelName], function (item) {
@@ -33,7 +35,9 @@ ang_controllers.controller('componentsCtrl', ['$scope', '$routeParams', 'menuSer
     };
     $scope.preMonths = ['january', 'february', 'march', 'april', 'may', 'june',
         'july', 'august', 'september', 'october', 'november', 'december'];
-    $scope.preventClose = function(event) {event.stopPropagation()};
+    $scope.preventClose = function(event) {
+        event.stopPropagation();
+    };
 }]);
 
 ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats', function ($scope, $routeParams, menuService, menuCalendar, stats) {
@@ -44,19 +48,15 @@ ang_controllers.controller('mainCtrl', ['$scope', '$routeParams', 'menuService',
     $scope.getDictLength = function (dict) {
         if (typeof(dict) == 'object') {
             return Object.keys(dict).length;
-        };
+        }
     };
 }]);
 
-var ButtonsCtrl = function ($scope) {
-
-};
-
 ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', '$http', 'stats', function ($scope, $routeParams, $http, menuService, menuCalendar, stats) {
-    stats.breadcrumbs = ["service", "env", "tab"];
-    if ($scope.stats.currentSubMenu == false) {
+    stats.breadcrumbs = ['service', 'env', 'tab'];
+    if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Allocations';
-    };
+    }
     stats.refreshCurrentSubpage = function () {
         stats.getAllocationClientData();
     };
@@ -64,28 +64,30 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
     $scope.stats.refreshData();
 
     $scope.addRow = function (costList) {
-        costList.push({"service": false, "value": 0});
+        costList.push({'service': false, 'value': 0});
     };
     $scope.removeRow = function (index, currentList) {
         if (currentList.length >=2) {
             currentList.splice(index, 1);
-        };
+        }
     };
     $scope.updateTotal = function (tab) {
         var _updateTotal = function (scope) {
-            count = 0;
-            save = true;
+            var count = 0;
+            var save = true;
             scope.rows.forEach(function (element) {
                 count += parseInt(element.value);
-                if (element.service == false || element.env == false) {
+                if (element.service === false || element.env === false) {
                     save = false;
-                };
+                }
             });
             scope.total = count;
-        }
+        };
         switch(tab) {
             case 'serviceDivision':
                 _updateTotal(stats.allocationclient.serviceDivision);
+                break;
+            case 'serviceExtraCost':
                 break;
             case 'teamDivision':
                 _updateTotal(stats.allocationclient.teamDivision);
@@ -101,18 +103,18 @@ ang_controllers.controller('allocationClientCtrl', ['$scope', '$routeParams', 'm
         if (stats.menuStats.team.current != team.team) {
             stats.menuStats.team.change = team.id;
             stats.refreshData();
-        };
+        }
     };
 }]);
 
 ang_controllers.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 'stats', function ($scope, $routeParams, $http, stats) {
-    stats.breadcrumbs = ["tab"];
+    stats.breadcrumbs = ['tab'];
     stats.refreshCurrentSubpage = function () {
         stats.getAllocationAdminData();
     };
-    if ($scope.stats.currentSubMenu == false) {
+    if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Allocations Admin';
-    };
+    }
     $scope.stats.menuStats.subpage.change = 'allocationadmin';
     $scope.stats.refreshData();
 }]);
