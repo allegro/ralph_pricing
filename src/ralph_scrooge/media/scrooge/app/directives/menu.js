@@ -1,3 +1,5 @@
+'use strict';
+
 var scrooge = angular.module('scrooge.directives', []);
 
 scrooge.directive('subMenu', function() {

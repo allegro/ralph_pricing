@@ -1,3 +1,5 @@
+'use strict';
+
 var scrooge = angular.module('scrooge.services', ['ngResource']);
 
 scrooge.factory('SubMenu', ['$resource', function ($resource) {
@@ -9,5 +11,5 @@ scrooge.factory('SubMenu', ['$resource', function ($resource) {
                 isArray: true,
             }
         })
-    }
+    };
 }]);

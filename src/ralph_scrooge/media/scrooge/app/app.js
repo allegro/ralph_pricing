@@ -1,3 +1,5 @@
+'use strict';
+
 var app = angular.module('app', [
     'ngRoute',
     'ngCookies',
@@ -13,16 +15,8 @@ var app = angular.module('app', [
     'ang_filters',
 ]);
 
-app.config(['$routeProvider', '$httpProvider', '$provide',
-    function($routeProvider, $httpProvider, $provide) {
-        // we want Sentry to log our exceptions...
-        //$provide.decorator("$exceptionHandler", function($delegate) {
-        //    Raven.config('', {}).install();
-        //    return function(exception, cause) {
-        //        $delegate(exception, cause);
-        //        Raven.captureException(exception);
-        //    };
-        //});
+app.config(['$routeProvider', '$httpProvider',
+    function($routeProvider, $httpProvider) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.interceptors.push(function ($q) {
             return {
@@ -30,19 +24,10 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
                     // if the backend returns 401/403 it means that we should log in first
                     if (rejection.status === 401 || rejection.status === 403) {
                         window.location.replace('/login/');
-                    } else {
-                        // we want to catch XHR errors as well (XXX doesn't work by now)
-                        // Raven.config('', {}).install();
-                        // Raven.captureException(new Error('HTTP response error'), {
-                        //     extra: {
-                        //         config: rejection.config,
-                        //         status: rejection.status,
-                        //     }
-                        // });
-                    };
+                    }
                     return $q.reject(rejection);
                 }
-            }
+            };
         });
         $routeProvider
             .when('/components/', {
