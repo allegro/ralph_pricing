@@ -19,6 +19,16 @@ class SubMenu(APIView):
                 'href': '#/components/',
                 'leftMenu': ['services'],
             },
+            {
+                'name': 'Allocations',
+                'href': '#/allocation/client/',
+                'leftMenu': ['services', 'teams'],
+            },
+            {
+                'name': 'Allocations Admin',
+                'href': '#/allocation/admin/',
+                'leftMenu': [],
+            }
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
             # ####################################################
