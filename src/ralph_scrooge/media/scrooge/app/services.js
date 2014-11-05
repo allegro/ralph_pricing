@@ -2,6 +2,7 @@ var ang_services = angular.module('ang_services', ['ngResource']);
 
 ang_services.factory('stats', ['$http', function ($http) {
     return {
+        staticUri: '/static/scrooge/partials/',
         currentSubMenu: false,
         currentLeftMenu: false,
         currentTab: false,
@@ -22,6 +23,7 @@ ang_services.factory('stats', ['$http', function ($http) {
                 "table": false,
             },
         },
+        allocationadmin: {},
         allocationclient: {
             serviceExtraCostTypes: false,
             serviceDivision: {
@@ -41,12 +43,12 @@ ang_services.factory('stats', ['$http', function ($http) {
             $http({method: 'GET', url: '/scrooge/leftmenu/components/'}).
                 success(function(data, status, headers, config) {
                     Object.keys(data['menuStats']).forEach(function (key){
-                        self.menuStats[key] = data['menuStats'][key]
+                        self.menuStats[key] = data['menuStats'][key];
                     })
-                    self.leftMenus = data["menus"]
-                    self.dates = data["dates"]
-                    self.currentLeftMenu = Object.keys(self.leftMenus)[0]
-                    self.refreshData()
+                    self.leftMenus = data["menus"];
+                    self.dates = data["dates"];
+                    self.currentLeftMenu = Object.keys(self.leftMenus)[0];
+                    self.refreshData();
                 }).
                 error(function(data, status, headers, config) {
                     // called asynchronously if an error occurs
@@ -60,35 +62,35 @@ ang_services.factory('stats', ['$http', function ($http) {
             return [31, (this.isLeapYear(date.getYear()) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         },
         refreshData: function() {
-            self = this
-            force = false
-            refresh = false
+            self = this;
+            force = false;
+            refresh = false;
             Object.keys(self.menuStats).forEach(function (menu) {
                 if (self.menuStats[menu]['current'] != self.menuStats[menu]['change']) {
-                    refresh = true
-                    self.menuStats[menu]['current'] = self.menuStats[menu]['change']
-                }
+                    refresh = true;
+                    self.menuStats[menu]['current'] = self.menuStats[menu]['change'];
+                };
                 if (menu != 'service' && menu != 'env' && menu != 'team') {
                     if (self.menuStats[menu]['change'] == false) {
-                        force = true
-                    }
-                }
-            })
+                        force = true;
+                    };
+                };
+            });
             if (force == false && refresh == true) {
-                self.refreshCurrentSubpage()
-            }
+                self.refreshCurrentSubpage();
+            };
             if (self.menuReady == false) {
-                self.menuReady = true
-            }
+                self.menuReady = true;
+            };
         },
         refreshCurrentSubpage: function () {},
         inArray: function(value, array) {
             for (var i in array) {
                 if (array[i] == value) {
-                    return true
-                }
-            }
-            return false
+                    return true;
+                };
+            };
+            return false;
         },
         getComponentsData: function () {
             $http({
@@ -101,11 +103,11 @@ ang_services.factory('stats', ['$http', function ($http) {
                     + self.menuStats['day']['current'] + '/',
             }).
             success(function(data, status, headers, config) {
-                self.components.content = data
-                self.components.contentStats.table = data[0].name
+                self.components.content = data;
+                self.components.contentStats.table = data[0].name;
             }).
             error(function(data, status, headers, config) {
-            });
+            })
         },
         getAllocationClientData: function () {
             $http({
@@ -120,15 +122,36 @@ ang_services.factory('stats', ['$http', function ($http) {
             success(function(data, status, headers, config) {
                 if (data) {
                     data.forEach(function (element) {
-                        self.allocationclient[element.key] = element.value
+                        self.allocationclient[element.key] = element.value;
                         if (element.value.rows.length == 0 || element.value.disabled == true) {
-                            element.value.rows = [{}]
-                        }
+                            element.value.rows = [{}];
+                        };
                         if (element.key == 'serviceExtraCost') {
-                            self.allocationclient.serviceExtraCostTypes = element.extra_cost_types
-                        }
-                    })
-                }
+                            self.allocationclient.serviceExtraCostTypes = element.extra_cost_types;
+                        };
+                    });
+                };
+            }).
+            error(function(data, status, headers, config) {
+            });
+        },
+        getAllocationAdminData: function () {
+            $http({
+                method: 'GET',
+                url: '/scrooge/rest/allocateadmin/'
+                    + self.menuStats['year']['current'] + '/'
+                    + self.menuStats['month']['current'] + '/'
+            }).
+            success(function(data, status, headers, config) {
+                if (data) {
+                    Object.keys(data).forEach(function (element) {
+                        self.allocationadmin[element] = data[element];
+                        if (data[element].rows.length == 0 || data[element].disabled == true) {
+                            self.allocationadmin[element].rows = [{}];
+                        };
+                    });
+                    self.currentTab = Object.keys(self.allocationadmin)[0];
+                };
             }).
             error(function(data, status, headers, config) {
             });
@@ -136,33 +159,33 @@ ang_services.factory('stats', ['$http', function ($http) {
         saveAllocation: function (tab) {
             switch(tab) {
                 case 'serviceDivision':
-                    url = '/scrooge/allocateclient/servicedivision/save/'
+                    url = '/scrooge/allocateclient/servicedivision/save/';
                     data = {
                         "service": self.menuStats['service']['current'],
                         "rows": self.allocationclient.serviceDivision.rows,
-                    }
+                    };
                     break;
                 case 'serviceExtraCost':
-                    url = '/scrooge/allocateclient/serviceextracost/save/'
+                    url = '/scrooge/allocateclient/serviceextracost/save/';
                     data = {
                         'service': self.menuStats['service']['current'],
                         "env": self.menuStats['env']['current'],
                         'rows': self.allocationclient.serviceExtraCost.rows,
-                    }
+                    };
                     break;
                 case 'teamDivision':
-                    url = '/scrooge/allocateclient/teamdivision/save/'
+                    url = '/scrooge/allocateclient/teamdivision/save/';
                     data = {
                         'team': self.menuStats['team']['current'],
                         'rows': self.allocationclient.teamDivision.rows,
-                    }
+                    };
                     break;
                 default:
-                    url = ''
-                    data = {}
-            }
-            data['month'] = self.menuStats['month']['current']
-            data['year'] = self.menuStats['year']['current']
+                    url = '';
+                    data = {};
+            };
+            data['month'] = self.menuStats['month']['current'];
+            data['year'] = self.menuStats['year']['current'];
             $http({
                 url: url,
                 method: 'POST',
@@ -178,25 +201,30 @@ ang_services.factory('stats', ['$http', function ($http) {
         },
         getEnvs: function (service_id) {
             var envs = []
-            if (self.leftMenus) {
+            if (Object.keys(self.leftMenus).length > 0) {
                 self.leftMenus['services'].forEach(function (element) {
                     if (element.id == service_id) {
-                        envs = element.value.envs
-                    }
-                })
-            }
-            return envs
+                        envs = element.value.envs;
+                    };
+                });
+            };
+            return envs;
         },
         changeTab: function (tab) {
-            self.currentTab = tab
+            self.currentTab = tab;
         },
         getFirstExistMenu: function () {
             for (var i in self.leftMenus) {
                 if (self.inArray(i, self.currentSubMenu.leftMenu) == true) {
-                    return i
-                }
-            }
-            return false
+                    return i;
+                };
+            };
+            return false;
+        },
+        getCurrentTab: function() {
+            if (Object.keys(self.allocationadmin).length > 0) {
+                return self.staticUri + self.allocationadmin[self.currentTab].template;
+            };
         }
     }
 }]);
@@ -204,21 +232,21 @@ ang_services.factory('stats', ['$http', function ($http) {
 ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
     return {
         changeService: function(service) {
-            stats.menuStats['service']['change'] = service.id
-            envExist = false
+            stats.menuStats['service']['change'] = service.id;
+            envExist = false;
             service.value.envs.forEach(function(element, key) {
                 if (element.env == stats.menuStats['env']['current']) {
-                    envExist = true
-                }
-            })
+                    envExist = true;
+                };
+            });
             if (envExist == false) {
-                stats.menuStats['env']['change'] = service.value.envs[0].id
-            }
-            stats.refreshData()
+                stats.menuStats['env']['change'] = service.value.envs[0].id;
+            };
+            stats.refreshData();
         },
         changeEnv: function(env) {
-            stats.menuStats['env']['change'] = env
-            stats.refreshData()
+            stats.menuStats['env']['change'] = env;
+            stats.refreshData();
         },
     }
 }]);
@@ -226,52 +254,52 @@ ang_services.factory('menuService', ['stats', '$http', function (stats, $http) {
 ang_services.factory('menuCalendar', ['stats', function (stats) {
     return {
         getYears: function() {
-            years = []
+            years = [];
             if (typeof(self.dates) != 'undefined') {
                 Object.keys(self.dates).forEach(function (year) {
-                    years.push(year)
-                })
-            }
-            return years
+                    years.push(year);
+                });
+            };
+            return years;
         },
         getMonths: function() {
-            months = []
+            months = [];
             if (typeof(self.dates) != 'undefined') {
-                var current_year = self.menuStats['year']['current']
+                var current_year = self.menuStats['year']['current'];
                 Object.keys(self.dates[current_year]).forEach(function (month) {
-                    months.push(month)
-                })
-            }
-            return months
+                    months.push(month);
+                });
+            };
+            return months;
         },
         getDays: function() {
-            days = []
+            days = [];
             if (typeof(self.dates) != 'undefined') {
-                var current_year = self.menuStats['year']['current']
-                var current_month = self.menuStats['month']['current']
+                var current_year = self.menuStats['year']['current'];
+                var current_month = self.menuStats['month']['current'];
                 self.dates[current_year][current_month].forEach(function (day) {
-                    days.push(day)
-                })
-            }
-            return days
+                    days.push(day);
+                });
+            };
+            return days;
         },
         changeYear: function(year) {
-            stats.menuStats['year']['change'] = year
-            stats.refreshData()
+            stats.menuStats['year']['change'] = year;
+            stats.refreshData();
         },
         changeDay: function(day) {
-            stats.menuStats['day']['change'] = day
-            stats.refreshData()
+            stats.menuStats['day']['change'] = day;
+            stats.refreshData();
         },
         changeMonth: function(month) {
-            stats.menuStats['month']['change'] = month
-            var current_year = stats.menuStats['year']['current']
-            var current_day = stats.menuStats['day']['current']
+            stats.menuStats['month']['change'] = month;
+            var current_year = stats.menuStats['year']['current'];
+            var current_day = stats.menuStats['day']['current'];
             if (stats.inArray(current_day, self.dates[current_year][month]) == false) {
-                days = self.dates[current_year][month]
-                stats.menuStats['day']['change'] = days[days.length-1]
-            }
-            stats.refreshData()
+                days = self.dates[current_year][month];
+                stats.menuStats['day']['change'] = days[days.length-1];
+            };
+            stats.refreshData();
         },
     }
 }]);

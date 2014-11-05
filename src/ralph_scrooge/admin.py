@@ -37,7 +37,7 @@ class UpdateReadonlyMixin(object):
 # =============================================================================
 @register(models.Warehouse)
 class WarehouseAdmin(ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'show_in_report')
     search_fields = ('name',)
 
 

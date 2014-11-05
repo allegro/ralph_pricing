@@ -1,0 +1,25 @@
+<table class="table">
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">+</button></td>
+    </tr>
+    <tr ng-repeat="row in stats.allocationadmin.baseusages.rows">
+      <td>
+        {{row.type.name}}
+      </td>
+      <td>
+        {{row.warehouse.name || "---"}}
+      </td>
+      <td>
+        <input ng-model="row.value" ng-change="updateTotal('serviceDivision')" type="text" class="form-control" value="{{row.value}}">
+      </td>
+      <td>
+        <button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">-</button>
+      </td>
+    </tr>
+</table>
+<div>
+  <button ng-click="stats.saveAllocation('teamDivision')">Save</button>
+</div>

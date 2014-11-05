@@ -19,42 +19,51 @@ class SubMenu(APIView):
                 'href': '#/components/',
                 'leftMenu': ['services'],
             },
-            {
-                'name': 'Allocations',
-                'href': '#/allocation/client/',
-                'leftMenu': ['services', 'teams'],
-            }
+            ####################################################
+            # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
+            # ####################################################
+            # {
+            #     'name': 'Allocations',
+            #     'href': '#/allocation/client/',
+            #     'leftMenu': ['services', 'teams'],
+            # },
+            # {
+            #     'name': 'Allocations Admin',
+            #     'href': '#/allocation/admin/',
+            #     'leftMenu': [],
+            # }
+            ####################################################
         ]
         profile = request.user.get_profile()
         if profile.has_perm(Perm.has_scrooge_access) or profile.is_superuser:
             menu.extend([
                 {
                     'name': 'Costs report',
-                    'href': 'services-costs-report',
+                    'href': '/scrooge/services-costs-report',
                 },
                 {
                     'name': 'Usages report',
-                    'href': 'services-usages-report',
+                    'href': '/scrooge/services-usages-report',
                 },
                 {
                     'name': 'Services changes report',
-                    'href': 'services-changes-report',
+                    'href': '/scrooge/services-changes-report',
                 },
                 {
                     'name': 'Usage types',
-                    'href': 'usage-types',
+                    'href': '/scrooge/usage-types',
                 },
                 {
                     'name': 'Extra Costs',
-                    'href': 'extra-costs',
+                    'href': '/scrooge/extra-costs',
                 },
                 {
                     'name': 'Collect plugins',
-                    'href': 'collect-plugins',
+                    'href': '/scrooge/collect-plugins',
                 },
                 {
                     'name': 'Monthly costs',
-                    'href': 'monthly-costs',
+                    'href': '/scrooge/monthly-costs',
                 },
             ])
         return Response(menu)

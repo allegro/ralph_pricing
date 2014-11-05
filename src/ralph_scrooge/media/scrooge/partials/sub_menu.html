@@ -1,6 +1,6 @@
 <ul class="nav nav-tabs nav-submenu">
 	<li ng-repeat="subMenu in stats.subMenus" class="{{ stats.currentSubMenu == subMenu ? 'active': '' }}">
-		<a href="{{ subMenu.href }}" ng-click="setActive(subMenu)">
+		<a ng-click="setActive(subMenu)">
 			{{ subMenu.name }}
 		</a>
 	</li>

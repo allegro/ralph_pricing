@@ -16,7 +16,7 @@
                 <a class="btn-left-menu" ng-click="menuService.changeService(service)">{{service.name}}</a>
                 <ul ng-click="menuService.changeEnv(env.id)" ng-show="stats.menuStats['service']['current'] == service.id" class="envs" ng-repeat="env in service.value.envs">
                     <li class="{{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}">
-                        <a ng-click="setCurrentEnv(id)">{{env.name}}</a>
+                        <a>{{env.name}}</a>
                     </li>
                 </ul>
             </li>
