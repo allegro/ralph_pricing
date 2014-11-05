@@ -112,6 +112,13 @@ class DailyAssetInfoFactory(DailyPricingObjectFactory):
     date = fuzzy.FuzzyDate(MIN_FACTORY_DATE, MAX_FACTORY_DATE)
 
 
+class DailyVirtualInfoFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyVirtualInfo
+
+    virtual_info = SubFactory(VirtualInfoFactory)
+    hypervisor = SubFactory(DailyAssetInfoFactory)
+
+
 class UserFactory(DjangoModelFactory):
     FACTORY_FOR = User
     username = Sequence(lambda n: 'user_{0}'.format(n))

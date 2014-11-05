@@ -46,6 +46,9 @@ class PricingObjectType(db.Model):
     class Meta:
         app_label = 'ralph_scrooge'
 
+    def __unicode__(self):
+        return self.name
+
 
 class PRICING_OBJECT_TYPES(Choices):
     _ = Choices.Choice

@@ -98,7 +98,7 @@ def _get_headers(model, fields, prefix=''):
             ui_schema.append(field.verbose_name.title())
         else:
             ui_schema.append(field_path)
-    return dict(enumerate(ui_schema))
+    return dict(map(lambda x: (str(x[0]), x[1]), enumerate(ui_schema)))
 
 
 def process_single_type(single_type, daily_pricing_objects):
@@ -132,7 +132,7 @@ def process_single_type(single_type, daily_pricing_objects):
     for dpo in daily_pricing_objects.filter(
         pricing_object__type=single_type,
     ).values_list(*django_fields):
-        value.append(dict(enumerate(dpo)))
+        value.append(dict(map(lambda x: (str(x[0]), x[1]), enumerate(dpo))))
     return {
         "name": single_type.name,
         "icon_class": single_type.icon_class,

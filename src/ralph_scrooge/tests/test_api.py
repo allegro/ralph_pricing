@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import datetime
 import json
+import urllib
 
 from django.contrib.auth.models import User
 from tastypie.test import ResourceTestCase
@@ -74,7 +75,7 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
     def _get_sample(self, overwrite=None):
         pricing_service_usages = PricingServiceUsageObject(
             date=self.date,
-            pricing_service=self.pricing_service.symbol,
+            pricing_service=self.pricing_service.name,
             usages=[
                 UsagesObject(
                     service=self.service_environment1.service.name,
@@ -85,7 +86,7 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
                     ]
                 ),
                 UsagesObject(
-                    service=self.service_environment2.service.name,
+                    service_id=self.service_environment2.service.id,
                     environment=self.service_environment2.environment.name,
                     usages=[
                         UsageObject(symbol=self.usage_type1.symbol, value=321),
@@ -134,12 +135,14 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
     def test_to_dict(self):
         service_usages = self._get_sample()
         self.assertEquals(service_usages.to_dict(), {
-            'pricing_service': self.pricing_service.symbol,
+            'pricing_service': self.pricing_service.name,
+            'pricing_service_id': None,
             'date': self.date,
             'overwrite': 'no',
             'usages': [
                 {
                     'service': self.service_environment1.service.name,
+                    'service_id': None,
                     'environment': self.service_environment1.environment.name,
                     'pricing_object': None,
                     'usages': [
@@ -154,7 +157,8 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
                     ]
                 },
                 {
-                    'service': self.service_environment2.service.name,
+                    'service': None,
+                    'service_id': self.service_environment2.service.id,
                     'environment': self.service_environment2.environment.name,
                     'pricing_object': None,
                     'usages': [
@@ -170,6 +174,7 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
                 },
                 {
                     'service': None,
+                    'service_id': None,
                     'environment': None,
                     'pricing_object': self.pricing_object1.name,
                     'usages': [
@@ -198,11 +203,25 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
         self.assertEquals(resp.status_code, 201)
         self._compare_sample_usages()
 
+    def test_api_pricing_service_id(self):
+        service_usages = self._get_sample()
+        data = service_usages.to_dict()
+        del data['pricing_service']
+        data['pricing_service_id'] = self.pricing_service.id
+        resp = self.api_client.post(
+            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            format='json',
+            authentication=self.api_key,
+            data=data
+        )
+        self.assertEquals(resp.status_code, 201)
+        self._compare_sample_usages()
+
     def test_api_invalid_pricing_service(self):
         service_usages = self._get_sample()
         data = service_usages.to_dict()
-        pricing_service_symbol = 'invalid_service'
-        data['pricing_service'] = pricing_service_symbol
+        ps_name = 'invalid_service'
+        data['pricing_service'] = ps_name
         resp = self.api_client.post(
             '/scrooge/api/v0.9/{0}/'.format(self.resource),
             format='json',
@@ -212,7 +231,7 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(
             resp.content,
-            'Invalid pricing service symbol: {}'.format(pricing_service_symbol)
+            'Invalid pricing service name ({}) or id (None)'.format(ps_name)
         )
         self.assertEquals(DailyUsage.objects.count(), 0)
 
@@ -220,6 +239,7 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
         service_usages = self._get_sample()
         data = service_usages.to_dict()
         service = 'invalid_service'
+        del data['usages'][1]['service_id']
         data['usages'][1]['service'] = service
         resp = self.api_client.post(
             '/scrooge/api/v0.9/{0}/'.format(self.resource),
@@ -261,6 +281,7 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
     def test_missing_service(self):
         service_usages = self._get_sample()
         data = service_usages.to_dict()
+        del data['usages'][1]['service_id']
         del data['usages'][1]['service']
         resp = self.api_client.post(
             '/scrooge/api/v0.9/{0}/'.format(self.resource),
@@ -438,13 +459,12 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
 
     def test_get_pricing_service_usages(self):
         self._basic_call()
-        # data = service_usages.to_dict()
         resp = self.api_client.get(
-            '/scrooge/api/v0.9/{0}/{1}/{2}/'.format(
+            urllib.quote('/scrooge/api/v0.9/{0}/{1}/{2}/'.format(
                 self.resource,
-                self.pricing_service.symbol,
+                self.pricing_service.id,
                 self.date.strftime('%Y-%m-%d'),
-            ),
+            )),
             authentication=self.api_key,
         )
         self.assertEquals(resp.status_code, 200)
@@ -457,5 +477,9 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
         compare_to['usages'][2].update({
             'environment': po1_se.environment.name,
             'service': po1_se.service.name,
+            'service_id': po1_se.service.id,
         })
+        compare_to['usages'][1]['service'] = self.service_environment2.service.name  # noqa
+        # add service_id
+        compare_to['usages'][0]['service_id'] = self.service_environment1.service.id  # noqa
         self.assertEquals(compare_to, json.loads(resp.content))

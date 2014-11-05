@@ -105,9 +105,9 @@ class TestComponents(TestCase):
         fields = ['id', 'asset_info.sn', 'asset_info.barcode']
         headers = components._get_headers(models.DailyAssetInfo, fields)
         self.assertEquals(headers, {
-            0: 'Id',
-            1: 'Serial Number',
-            2: 'Barcode',
+            '0': 'Id',
+            '1': 'Serial Number',
+            '2': 'Barcode',
         })
 
     def test_get_headers_with_prefix(self):
@@ -118,10 +118,10 @@ class TestComponents(TestCase):
             prefix='pricing_object',
         )
         self.assertEquals(headers, {
-            0: 'Id',
-            1: 'Name',
-            2: 'Serial Number',
-            3: 'Barcode',
+            '0': 'Id',
+            '1': 'Name',
+            '2': 'Serial Number',
+            '3': 'Barcode',
         })
 
     @override_settings(COMPONENTS_TABLE_SCHEMA={'Asset': {
@@ -137,9 +137,9 @@ class TestComponents(TestCase):
 
         def get_asset_dict(a):
             return {
-                0: a.pricing_object.id,
-                1: a.pricing_object.name,
-                2: a.service_environment.service.name,
+                '0': a.pricing_object.id,
+                '1': a.pricing_object.name,
+                '2': a.service_environment.service.name,
             }
         self.assertEquals(result, {
             'name': asset_type.name,
@@ -147,9 +147,9 @@ class TestComponents(TestCase):
             'slug': asset_type.name.lower().replace(' ', '_'),
             'value': map(get_asset_dict, dpo),
             'schema': {
-                0: 'Id',
-                1: 'Name',
-                2: 'Name',
+                '0': 'Id',
+                '1': 'Name',
+                '2': 'Name',
             },
             'color': asset_type.color,
         })

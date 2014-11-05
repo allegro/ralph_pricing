@@ -4,19 +4,10 @@
 
   <div ng-include="'/static/scrooge/partials/breadcrumbs.html'"></div>
     <div class="row data">
-      <div class="row">
+      <div class="col-xs-12 col-md-12">
         <menucalendardirective></menucalendardirective>
       </div>
       <div class="col-xs-12">
-        <div ng-show="stats.components.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content">
-        <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-show-toggle="true">
-          <thead>
-            <tr>
-              <th data-field="{{val}}" data-sortable="true" ng-repeat="(cell, val) in data.schema">{{val}}</th>
-            </tr>
-          </thead>
-        </table>
-        </div>
       </div>
     </div>
   </div>

@@ -173,11 +173,9 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             total_usages.append(self._get_total_usage(
                 usage_type=service_usage_type.usage_type,
                 date=date,
-                service_environments=service_environments,
                 excluded_services=pricing_service.excluded_services.all(),
             ))
             percentage.append(service_usage_type.percent)
-
         # create hierarchy basing on usages
         for (po, se), po_usages in usages.items():
             po_usages_info = zip(po_usages, total_usages, percentage)

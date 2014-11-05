@@ -37,7 +37,7 @@ class UpdateReadonlyMixin(object):
 # =============================================================================
 @register(models.Warehouse)
 class WarehouseAdmin(ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'show_in_report')
     search_fields = ('name',)
 
 
@@ -122,9 +122,6 @@ class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
         result = super(PricingObjectAdmin, self).queryset(request)
         return result.exclude(
             type_id=models.PRICING_OBJECT_TYPES.DUMMY
-        ).select_related(
-            'service_environment',
-            'service_environment__service',
         )
 
 
@@ -290,7 +287,7 @@ class TeamForm(forms.ModelForm):
     class Meta:
         model = models.Team
         widgets = {
-            'excluded_ventures': FilteredSelectMultiple('Ventures', False)
+            'excluded_services': FilteredSelectMultiple('Service', False)
         }
 
 

@@ -4,3 +4,6 @@ from ralph_scrooge.rest.allocationclient import (  # noqa
     allocation_save,
     allocation_content,
 )
+from ralph_scrooge.rest.allocationadmin import (  # noqa
+    AllocationAdminContent,
+)

@@ -46,7 +46,7 @@ class Command(ScroogeBaseCommand):
                 asset.id,
                 asset.sn,
                 asset.barcode,
-                asset.venture,
+                asset.venture.name,
                 self.get_device_name_from_asset(asset, devices),
                 self.get_deprecated_date(asset),
             ])

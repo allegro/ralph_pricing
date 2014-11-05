@@ -1,14 +1,24 @@
 var scrooge = angular.module('scrooge.controllers', ['scrooge.services']);
 
-scrooge.controller('MainMenuCtrl', ['$scope', '$location', 'MainMenu', function ($scope, $location, MainMenu) {
-    $scope.stats.subMenus = MainMenu.items.get();
+scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'SubMenu', function ($scope, $location, SubMenu) {
+    $scope.stats.subMenus = SubMenu.items.get();
     $scope.stats.subMenus.$promise.then(function (subMenus) {
-        $scope.stats.currentSubMenu = subMenus[0]
-    })
+        subMenus.forEach(function (element) {
+            if (element.name == $scope.stats.currentSubMenu) {
+                $scope.stats.currentSubMenu = element;
+            };
+        });
+    });
     $scope.setActive = function(obj) {
-        $scope.stats.currentSubMenu = obj
-        if ($scope.stats.inArray($scope.stats.currentLeftMenu, $scope.stats.currentSubMenu.leftMenu) == false) {
-            $scope.stats.currentLeftMenu = $scope.stats.getFirstExistMenu()
+        if (obj.href.charAt(0) == "#") {
+            $location.path(obj.href.slice(1));
+        } else {
+            window.location.href = window.location.protocol + '//' + (window.location.host + obj.href)
         }
-    }
+
+        $scope.stats.currentSubMenu = obj;
+        if ($scope.stats.inArray($scope.stats.currentLeftMenu, $scope.stats.currentSubMenu.leftMenu) == false) {
+            $scope.stats.currentLeftMenu = $scope.stats.getFirstExistMenu();
+        };
+    };
 }]);

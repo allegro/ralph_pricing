@@ -1,6 +1,7 @@
 var app = angular.module('app', [
     'ngRoute',
     'ngCookies',
+    'ngAnimate',
     'ngScrollbar',
     'angular-loading-bar',
 
@@ -52,6 +53,18 @@ app.config(['$routeProvider', '$httpProvider', '$provide',
                 templateUrl: '/static/scrooge/partials/allocationclient.html',
                 controller: 'allocationClientCtrl',
             })
+            .when('/allocation/admin/', {
+                templateUrl: '/static/scrooge/partials/allocationadmin.html',
+                controller: 'allocationAdminCtrl',
+            })
             .otherwise({redirectTo: '/components/'});
     }
 ]);
+
+app.run(function($http, $cookies, $rootScope) {
+    $http.defaults.headers.common['X-CSRFToken'] = $cookies.csrftoken;
+
+    // $http.get('/api/current_user/').success(function (data) {
+    //     $rootScope.$broadcast('event:user-loggedIn', data);
+    // });
+});
