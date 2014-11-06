@@ -10,7 +10,6 @@ from django.conf import settings
 
 from ralph.util import plugin, api_scrooge
 from ralph_scrooge.models import (
-    DailyTenantInfo,
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
@@ -55,7 +54,9 @@ def save_tenant_info(ralph_tenant, unknown_service_environment):
         service_environment = unknown_service_environment
 
     try:
-        tenant_info = TenantInfo.objects.get(tenant_id=ralph_tenant['tenant_id'])
+        tenant_info = TenantInfo.objects.get(
+            tenant_id=ralph_tenant['tenant_id'],
+        )
     except TenantInfo.DoesNotExist:
         created = True
         tenant_info = TenantInfo(
