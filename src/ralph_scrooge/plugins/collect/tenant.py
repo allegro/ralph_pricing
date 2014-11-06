@@ -25,75 +25,68 @@ class UnknownServiceEnvironmentNotConfiguredError(Exception):
     pass
 
 
-def get_model(tenant):
+def get_model(ralph_tenant):
     model = PricingObjectModel.objects.get_or_create(
-        model_id=tenant['model_id'],
+        model_id=ralph_tenant['model_id'],
         type=PRICING_OBJECT_TYPES.TENANT,
         defaults=dict(
-            name=tenant['model_name'],
+            name=ralph_tenant['model_name'],
         )
     )[0]
-    model.name = tenant['model_name']
+    model.name = ralph_tenant['model_name']
     model.save()
     return model
 
 
-def save_tenant_info(tenant, unknown_service_environment):
+def save_tenant_info(ralph_tenant, unknown_service_environment):
     created = False
     try:
         service_environment = ServiceEnvironment.objects.get(
-            service__ci_id=tenant['service_id'],
-            environment__ci_id=tenant['environment_id'],
+            service__ci_id=ralph_tenant['service_id'],
+            environment__ci_id=ralph_tenant['environment_id'],
         )
     except ServiceEnvironment.DoesNotExist:
         logger.warning(
             'Invalid (or missing) service environment for tenant {}-{}'.format(
-                tenant['device_id'],
-                tenant['name']
+                ralph_tenant['device_id'],
+                ralph_tenant['name']
             )
         )
         service_environment = unknown_service_environment
 
     try:
-        tenant_info = TenantInfo.objects.get(tenant_id=tenant['tenant_id'])
+        tenant_info = TenantInfo.objects.get(tenant_id=ralph_tenant['tenant_id'])
     except TenantInfo.DoesNotExist:
         created = True
         tenant_info = TenantInfo(
-            tenant_id=tenant['tenant_id'],
+            tenant_id=ralph_tenant['tenant_id'],
             type_id=PRICING_OBJECT_TYPES.TENANT,
         )
-    tenant_info.model = get_model(tenant)
-    tenant_info.name = tenant['name']
-    tenant_info.remarks = tenant['remarks']
-    tenant_info.device_id = tenant['device_id']
+    tenant_info.model = get_model(ralph_tenant)
+    tenant_info.name = ralph_tenant['name']
+    tenant_info.remarks = ralph_tenant['remarks']
+    tenant_info.device_id = ralph_tenant['device_id']
     tenant_info.service_environment = service_environment
     tenant_info.save()
     return created, tenant_info
 
 
-def save_daily_tenant_info(tenant, tenant_info, date):
-    daily_tenant_info, created = DailyTenantInfo.objects.get_or_create(
-        tenant_info=tenant_info,
-        pricing_object=tenant_info,
-        date=date,
-        defaults=dict(
-            service_environment=tenant_info.service_environment,
-        )
-    )
+def save_daily_tenant_info(ralph_tenant, tenant_info, date):
+    daily_tenant_info = tenant_info.get_daily_pricing_object(date)
     daily_tenant_info.service_environment = tenant_info.service_environment
     daily_tenant_info.save()
     return daily_tenant_info
 
 
-def update_tenant(tenant, date, unknown_service_environment):
+def update_tenant(ralph_tenant, date, unknown_service_environment):
     """
     Updates single tenant info
     """
     created, tenant_info = save_tenant_info(
-        tenant,
+        ralph_tenant,
         unknown_service_environment,
     )
-    save_daily_tenant_info(tenant, tenant_info, date)
+    save_daily_tenant_info(ralph_tenant, tenant_info, date)
     return created
 
 
@@ -102,8 +95,8 @@ def get_unknown_service_environment(model_name):
     Returns unknown service environment for OpenStack tenants
     """
     service_uid, environment_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
-        'tenant', {}
-    ).get(model_name, (None, None))
+        'tenant', (None, None)
+    )
     unknown_service_environment = None
     if service_uid:
         try:
@@ -138,10 +131,10 @@ def tenant(today, **kwargs):
         unknown_service_environment = get_unknown_service_environment(
             openstack_model
         )
-        for tenant in api_scrooge.get_openstack_tenants(openstack_model):
+        for ralph_tenant in api_scrooge.get_openstack_tenants(openstack_model):
             total += 1
             if update_tenant(
-                tenant,
+                ralph_tenant,
                 today,
                 unknown_service_environment,
             ):
