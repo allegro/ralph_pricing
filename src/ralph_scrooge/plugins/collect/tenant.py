@@ -28,7 +28,7 @@ class UnknownServiceEnvironmentNotConfiguredError(Exception):
 def get_model(ralph_tenant):
     model = PricingObjectModel.objects.get_or_create(
         model_id=ralph_tenant['model_id'],
-        type=PRICING_OBJECT_TYPES.TENANT,
+        type_id=PRICING_OBJECT_TYPES.TENANT,
         defaults=dict(
             name=ralph_tenant['model_name'],
         )
@@ -96,7 +96,7 @@ def get_unknown_service_environment(model_name):
     """
     service_uid, environment_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
         'tenant', (None, None)
-    )
+    ).get(model_name, (None, None))
     unknown_service_environment = None
     if service_uid:
         try:
