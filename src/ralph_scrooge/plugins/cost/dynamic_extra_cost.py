@@ -48,7 +48,10 @@ class DynamicExtraCostPlugin(PricingServiceBasePlugin):
             dynamic_extra_cost_type,
             service_environments,
             costs,
-            percentage
+            percentage,
+            excluded_services=list(
+                dynamic_extra_cost_type.excluded_services.all()
+            ),
         )
 
     def _get_daily_cost(self, date, dynamic_extra_cost_type, forecast):

@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from datetime import date
 from dateutil import rrule
 from decimal import Decimal as D
+import mock
 
 from django.test import TestCase
 
@@ -28,6 +29,7 @@ from ralph_scrooge.tests.utils.factory import (
 
 class TestPricingServicePlugin(TestCase):
     def setUp(self):
+        self.maxDiff = None
         self.today = date(2013, 10, 10)
         self.start = date(2013, 10, 1)
         self.end = date(2013, 10, 30)
@@ -282,6 +284,7 @@ class TestPricingServicePlugin(TestCase):
             pricing_service=self.pricing_service1,
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
+            excluded_services=self.pricing_service1.excluded_services.all(),
         )
         # daily pricing objects which are under pricing service 1 (practically
         # under se1) are using extacly half of pricing service resources, so
@@ -586,3 +589,284 @@ class TestPricingServicePlugin(TestCase):
             ]
         }
         self.assertEquals(dict(costs), dict(result))
+
+
+class TestPricingServiceDependency(TestCase):
+    """
+    Specific test cases to test pricing services dependency
+    """
+    def setUp(self):
+        self.start = date(2014, 10, 1)
+        self.end = date(2014, 10, 31)
+        self.today = date(2014, 10, 12)
+
+    def _init(self):
+        self.ps1, self.ps2, self.ps3 = PricingServiceFactory.create_batch(3)
+        self.se1, self.se2 = ServiceEnvironmentFactory.create_batch(
+            2,
+            service__pricing_service=self.ps1,
+        )
+        self.se3, self.se4 = ServiceEnvironmentFactory.create_batch(
+            2,
+            service__pricing_service=self.ps2,
+        )
+        self.se5 = ServiceEnvironmentFactory(
+            service__pricing_service=self.ps3
+        )
+        self.other_se = ServiceEnvironmentFactory.create_batch(5)
+
+        self.service_usage_types = UsageTypeFactory.create_batch(
+            4,
+            usage_type='SU',
+        )
+
+        self.ps1.excluded_services.add(self.other_se[0].service)
+        self.ps1.save()
+
+        self.ps2.excluded_services.add(self.other_se[1].service)
+        self.ps2.save()
+
+        self.service_usage_types[0].excluded_services.add(
+            self.other_se[2].service
+        )
+        self.service_usage_types[0].save()
+
+        self.service_usage_types[3].excluded_services.add(
+            self.other_se[4].service
+        )
+        self.service_usage_types[3].save()
+
+        models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[0],
+            pricing_service=self.ps1,
+            start=self.start,
+            end=self.end,
+            percent=100,
+        )
+        models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[1],
+            pricing_service=self.ps2,
+            start=self.start,
+            end=self.end,
+            percent=70,
+        )
+        models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[2],
+            pricing_service=self.ps2,
+            start=self.start,
+            end=self.end,
+            percent=30,
+        )
+        models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[3],
+            pricing_service=self.ps3,
+            start=self.start,
+            end=self.end,
+            percent=100,
+        )
+
+    def _init_one(self):
+        """
+        Creates pricing service with 2 service usages.
+        Pricing service has se4 in excluded services, its usage type has se3 in
+        excluded services.
+
+        There are 3 daily pricing objects - one of them belongs to se1 (and
+        should not be considered to calculate usages).
+        """
+        self.ps1 = PricingServiceFactory()
+        self.se1, self.se2 = ServiceEnvironmentFactory.create_batch(
+            2,
+            service__pricing_service=self.ps1,
+        )
+        self.se3, self.se4 = ServiceEnvironmentFactory.create_batch(2)
+
+        self.service_usage_types = UsageTypeFactory.create_batch(
+            2,
+            usage_type='SU',
+        )
+        self.service_usage_types[0].excluded_services.add(self.se3.service)
+        self.service_usage_types[0].save()
+
+        self.ps1.excluded_services.add(self.se4.service)
+        self.ps1.save()
+
+        models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[0],
+            pricing_service=self.ps1,
+            start=self.start,
+            end=self.end,
+            percent=70,
+        )
+        models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[1],
+            pricing_service=self.ps1,
+            start=self.start,
+            end=self.end,
+            percent=30,
+        )
+
+        self.dpo1 = DailyPricingObjectFactory()
+        self.dpo2 = DailyPricingObjectFactory()
+        self.dpo3 = DailyPricingObjectFactory(
+            service_environment=self.se1
+        )
+
+        for dpo in models.DailyPricingObject.objects.all():
+            for su, value in zip(self.service_usage_types, [10, 20]):
+                models.DailyUsage.objects.create(
+                    daily_pricing_object=dpo,
+                    service_environment=dpo.service_environment,
+                    date=self.today,
+                    value=value,
+                    type=su,
+                )
+
+    def test_distribute_costs_with_excluded_services(self):
+        self._init_one()
+        usage_orig = PricingServicePlugin._get_usages_per_pricing_object
+        total_orig = PricingServicePlugin._get_total_usage
+        with mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin._get_usages_per_pricing_object') as usage_mock:  # noqa
+            with mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin._get_total_usage') as total_mock:  # noqa
+                usage_mock.side_effect = usage_orig
+                total_mock.side_effect = total_orig
+                se = models.ServiceEnvironment.objects.exclude(
+                    id__in=[self.se1.id, self.se2.id]
+                )
+                PricingServicePlugin._distribute_costs(
+                    self.today,
+                    pricing_service=self.ps1,
+                    service_environments=se,
+                    costs_hierarchy={},
+                    service_usage_types=self.ps1.serviceusagetypes_set.all(),
+                    excluded_services=[
+                        self.se4.service,
+                        self.se1.service,
+                        self.se2.service,
+                    ]
+                )
+
+                total_mock.assert_any_call(
+                    usage_type=self.service_usage_types[0],
+                    date=self.today,
+                    excluded_services=[
+                        self.se4.service,
+                        self.se1.service,
+                        self.se2.service,
+                        self.se3.service,
+                    ]
+                )
+                total_mock.assert_any_call(
+                    usage_type=self.service_usage_types[1],
+                    date=self.today,
+                    excluded_services=[
+                        self.se4.service,
+                        self.se1.service,
+                        self.se2.service,
+                    ]
+                )
+                usage_mock.assert_any_call(
+                    usage_type=self.service_usage_types[0],
+                    date=self.today,
+                    excluded_services=[
+                        self.se4.service,
+                        self.se1.service,
+                        self.se2.service,
+                        self.se3.service,
+                    ],
+                    service_environments=se,
+                )
+                usage_mock.assert_any_call(
+                    usage_type=self.service_usage_types[1],
+                    date=self.today,
+                    excluded_services=[
+                        self.se4.service,
+                        self.se1.service,
+                        self.se2.service,
+                    ],
+                    service_environments=se,
+                )
+
+    def test_pricing_dependent_services(self):
+        """
+        Call costs for PS1, which dependent on PS2, which dependent of PS3.
+        Check if all dependencies (and )
+        """
+        self._init()
+
+        def dependent_services(self1, date, exclude=None):
+            if self1 == self.ps1:
+                return [self.ps2]
+            elif self1 == self.ps2:
+                return [self.ps3]
+            return []
+
+        # get_dependent_services_mock.side_effect = dependent_services
+        with mock.patch.object(models.service.PricingService, 'get_dependent_services', dependent_services):  # noqa
+            distribute_costs_orig = PricingServicePlugin._distribute_costs
+            with mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin._distribute_costs') as distribute_costs_mock:  # noqa
+                distribute_costs_mock.side_effect = distribute_costs_orig
+                PricingServicePlugin.costs(
+                    pricing_service=self.ps1,
+                    date=self.today,
+                    service_environments=models.ServiceEnvironment.objects.all(),  # noqa
+                    forecast=False,
+                    pricing_services_calculated=None,
+                    excluded_services=None,
+                )
+                calls = [
+                    mock.call(
+                        self.today,  # date
+                        self.ps3,  # pricing service
+                        self.ps2.service_environments,  # service environments
+                        {self.ps3.id: (0, {})},  # costs - not important here
+                        self.ps3.serviceusagetypes_set.all(),  # percentage
+                        excluded_services=[
+                            # from ps1
+                            self.other_se[0].service,
+                            # from ps2
+                            self.other_se[1].service,
+                            # from ps3
+                            self.se5.service,
+                        ]
+                    ),
+                    mock.call(
+                        self.today,
+                        self.ps2,
+                        self.ps1.service_environments,
+                        {self.ps2.id: (0, {})},
+                        self.ps2.serviceusagetypes_set.all(),
+                        excluded_services=[
+                            # from ps1
+                            self.other_se[0].service,
+                            # from ps2
+                            self.other_se[1].service,
+                            self.se3.service,
+                            self.se4.service,
+                        ]
+                    ),
+                    mock.call(
+                        self.today,
+                        self.ps1,
+                        models.ServiceEnvironment.objects.all(),
+                        {self.ps1.id: (0, {})},
+                        self.ps1.serviceusagetypes_set.all(),
+                        excluded_services=[
+                            # from ps1
+                            self.other_se[0].service,
+                            self.se1.service,
+                            self.se2.service,
+                        ]
+                    ),
+                ]
+
+                self.assertEquals(
+                    len(calls),
+                    len(distribute_costs_mock.call_args_list)
+                )
+                # comparing strings, because of django query sets in params
+                for expected_call, actual_call in zip(
+                    calls,
+                    distribute_costs_mock.call_args_list
+                ):
+                    self.assertEquals(str(expected_call), str(actual_call))
