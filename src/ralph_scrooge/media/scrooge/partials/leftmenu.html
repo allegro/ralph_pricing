@@ -10,13 +10,13 @@
         <input type="text" placeholder="Search..." ng-model="searchTextMenu">
       </div>
     </div>
-    <div class="items scrollbar">
+    <div class="items">
         <ul class="services">
-            <li ng-show="stats.currentLeftMenu == 'services'" class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.leftMenus.services | filter:searchTextMenu">
+            <li class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.leftMenus.services | filter:searchTextMenu">
                 <a class="btn-left-menu" ng-click="menuService.changeService(service)">{{service.name}}</a>
-                <ul ng-click="menuService.changeEnv(env.id)" ng-show="stats.menuStats['service']['current'] == service.id" class="envs" ng-repeat="env in service.value.envs">
-                    <li class="{{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}">
-                        <a>{{env.name}}</a>
+                <ul class="envs">
+                    <li ng-repeat="env in service.value.envs" ng-show="stats.menuStats['service']['current'] == service.id" class="{{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}">
+                        <a ng-click="menuService.changeEnv(env.id)">{{env.name}}</a>
                     </li>
                 </ul>
             </li>

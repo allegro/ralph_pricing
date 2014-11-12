@@ -1,5 +1,11 @@
-body {
+html, body {
     font-family: 'Lato', sans-serif;
+    height:100%;
+}
+.body-wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
 }
 input:focus {
      outline: none;
@@ -31,6 +37,7 @@ a {
     border-radius: 0;
 }
 .nav.nav-main {
+    background-color: #fff;
 }
 .nav.nav-main .active a {
     cursor: pointer;
@@ -39,6 +46,7 @@ a {
 }
 .nav.nav-tabs.nav-submenu {
     background-color: #3c8dbc;
+    margin-top:40px;
 }
 .nav.nav-tabs.nav-submenu li,
 .nav.nav-tabs.nav-submenu li a,
@@ -64,7 +72,10 @@ a {
 }
 .sidebar
 {
-    height: 100%;
+    position: fixed;
+    top: 80px;
+    bottom: 30px;
+    overflow-y: visible;
     overflow: hidden;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -90,9 +101,6 @@ a {
     border-radius: 0;
     padding-right:3px;
 }
-.sidebar .items {
-
-}
 .sidebar .items ul,
 .sidebar .items ul li {
     list-style: none;
@@ -112,9 +120,12 @@ a {
     content: "\f104";
     position: absolute;
     right:0;
+    transition: all .5s ease;
 }
 .sidebar .items .services > li.active > a:after {
-    content: "\f107";
+    transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
 }
 .sidebar .items .services li {
     padding: 10px 5px;
@@ -128,14 +139,26 @@ a {
 .sidebar .items .services .envs .active {
     background-color: rgba(0,0,0,0.1);
 }
-.sidebar .items ul.services .active {
+.sidebar .items .services .active {
     background-color: rgba(255,255,255, 1);
 }
-.sidebar .items ul.envs .active {
+.sidebar .items .services .envs a{
+}
+.sidebar .items .services .active .envs a{
+}
+.sidebar .items .services .envs li {
+}
+.sidebar .items .services .envs {
+    overflow: hidden;
+    max-height: 0;
+    transition: all 1s ease;
+}
+.sidebar .items .services .active .envs {
+    max-height: 500px;
 }
 
 .content {
-    padding-top: 10px;
+    padding-top: 80px;
 }
 .content .title {
     box-shadow: inset 0px -2px 5px -3px rgba(0, 0, 0, 0.3);
@@ -204,21 +227,66 @@ a {
     color: rgba(255, 255, 255, 0.2);
 }
 
-.footer {
-    padding-top: 10px;
+.content .relative-container {
+    position: relative;
 }
 
-.scrollbar {
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: 100%;
+.content .relative-container .animate-table.ng-hide.ng-hide-add
+{
+    opacity: 0;
+}
+.content .relative-container .animate-table.ng-hide.ng-hide-remove
+{
+    opacity: 1;
+}
+.content .relative-container .animate-table.ng-hide.ng-hide-add,
+.content .relative-container .animate-table.ng-hide.ng-hide-remove {
+}
+.content .relative-container .animate-table {
+    position: absolute;
+    width: 100%;
+    opacity: 1;
+    transition: opacity .3s ease;
+    -moz-transition: opacity .3s ease;
+    -webkit-transition: opacity .3s ease;
+}
+
+.footer {
+    background-color: white;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 5px;
+    -webkit-box-shadow: inset 0px 3px 8px -4px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: inset 0px 3px 8px -4px rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0px 3px 8px -4px rgba(0, 0, 0, 0.5);
+}
+.footer ul {
+    margin:0;
+}
+.footer .pull-right {
+    text-align: right;
+}
+.footer .pull-right a .fa-bug {
+    transition: .25s ease all;
+    -moz-transition: .25s ease all;
+    -webkit-transition: .25s ease all;
+}
+.footer .pull-right a:hover {
+    text-decoration: none;
+}
+.footer .pull-right a:hover .fa-bug {
+    color: red;
+    transform: translateX(-5px) rotate(90deg);
+    -moz-transform:  translateX(-5px) rotate(90deg);
+    -webkit-transform: translateX(-5px) rotate(90deg);
 }
 
 /*Animations*/
-.opcaity-animation {
-    transition: opacity .25s ease-in-out;
-   -moz-transition: opacity .25s ease-in-out;
-   -webkit-transition: opacity .25s ease-in-out;
+.opacity-animation {
+    transition: .25s ease all;
+   -moz-transition: .25s ease all;
+   -webkit-transition: .25s ease all;
 }
 
 div.blocked {
@@ -229,24 +297,12 @@ div.blocked {
     cursor: default;
 }
 
-.animate-show {
-    opacity: 1;
-    transition: opacity .25s ease-in-out;
-    -moz-transition: opacity .25s ease-in-out;
-    -webkit-transition: opacity .25s ease-in-out;
-}
-
-.animate-show.ng-hide {
-    opacity: 0;
-}
-
-.ng-enter, .ng-leave {
+.category.ng-enter,
+.category.ng-leave,
+.animate-table.ng-enter,
+.animate-table.ng-leave
+{
     -webkit-transition: none;
     -moz-transition: none;
     transition: none;
-}
-
-.animate-table {
-    position: absolute;
-    width: 100%;
 }
