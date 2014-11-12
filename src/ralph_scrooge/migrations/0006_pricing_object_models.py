@@ -83,7 +83,7 @@ class Migration(DataMigration):
             new_model = orm.PricingObjectModel.objects.create(
                 name=model.name,
                 model_id=model.group_id,
-                type_id=4,
+                type_id=3,
             )
             model.tenants.update(model=new_model)
 
