@@ -47,7 +47,8 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         date,
         service_environments,
         forecast=False,
-        pricing_services_calculates=None,
+        pricing_services_calculated=None,
+        excluded_services=None,
         **kwargs
     ):
         """
@@ -68,13 +69,24 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             pricing_service
         ))
         percentage = self._get_percentage(date, pricing_service)
+
+        # exclude from calculations pricing service excluded services
+        excluded_services = excluded_services[:] if excluded_services else []
+        excluded_services.extend(list(pricing_service.excluded_services.all()))
+
+        # calculate costs (hierarchy) of pricing service
         costs = self._get_pricing_service_costs(
             date,
             pricing_service,
             forecast,
-            pricing_services_calculates=pricing_services_calculates,
+            pricing_services_calculated=pricing_services_calculated,
             service_environments=pricing_service.service_environments,
+            excluded_services=excluded_services,
         )
+
+        # extend exluded services by pricing services services -
+        # pricing service could not charge it's own services (CYCLE!)
+        excluded_services.extend(list(pricing_service.services.all()))
         # distribute total cost between every service_environment
         # proportionally to pricing_service usages
         return self._distribute_costs(
@@ -82,7 +94,8 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             pricing_service,
             service_environments,
             costs,
-            percentage
+            percentage,
+            excluded_services=excluded_services,
         )
 
     # HELPERS
@@ -147,6 +160,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         service_environments,
         costs_hierarchy,
         service_usage_types,
+        excluded_services,
     ):
         """
         Distribute pricing service costs (in general: hierarchy of pricing
@@ -157,12 +171,15 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         total_usages = []
         percentage = []
         result = defaultdict(list)
+
         for service_usage_type in service_usage_types:
             usages_per_po = self._get_usages_per_pricing_object(
                 usage_type=service_usage_type.usage_type,
                 date=date,
                 service_environments=service_environments,
-                excluded_services=pricing_service.excluded_services.all(),
+                excluded_services=excluded_services + list(
+                    service_usage_type.usage_type.excluded_services.all()
+                ),
             ).values_list(
                 'daily_pricing_object__pricing_object',
                 'service_environment',
@@ -173,7 +190,9 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             total_usages.append(self._get_total_usage(
                 usage_type=service_usage_type.usage_type,
                 date=date,
-                excluded_services=pricing_service.excluded_services.all(),
+                excluded_services=excluded_services + list(
+                    service_usage_type.usage_type.excluded_services.all()
+                ),
             ))
             percentage.append(service_usage_type.percent)
         # create hierarchy basing on usages
@@ -190,7 +209,8 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         pricing_service,
         forecast,
         service_environments,
-        pricing_services_calculates=None,
+        pricing_services_calculated=None,
+        excluded_services=None,
     ):
         """
         Calculates total cost of pricing service (in period of time).
@@ -230,7 +250,8 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             date,
             pricing_service,
             forecast,
-            exclude=pricing_services_calculates,
+            exclude=pricing_services_calculated,
+            excluded_services=excluded_services,
             service_environments=service_environments,
         )
         teams_costs = self._get_service_teams_cost(
@@ -377,6 +398,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         forecast,
         service_environments,
         exclude=None,
+        excluded_services=None,
     ):
         """
         Calculates cost of dependent services used by pricing_service.
@@ -399,6 +421,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                     date=date,
                     forecast=forecast,
                     service_environments=service_environments,
+                    excluded_services=excluded_services,
                 )
                 result.update(dependent_cost)
             except (KeyError, AttributeError):
