@@ -1,6 +1,5 @@
 'use strict';
-
-var scrooge = angular.module('scrooge.controllers', ['scrooge.services']);
+var scrooge = angular.module('scrooge.controller.menu', ['scrooge.service']);
 
 scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'SubMenu', function ($scope, $location, SubMenu) {
     $scope.stats.subMenus = SubMenu.items.get();
