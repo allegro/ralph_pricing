@@ -2,9 +2,10 @@
 
 var scrooge = angular.module('scrooge.service', ['ngResource']);
 
-scrooge.factory('stats', ['$http', function ($http) {
+scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
     return {
         staticUri: '/static/scrooge/partials/',
+        cancelerDeferers: [],
         currentSubMenu: false,
         currentLeftMenu: false,
         currentTab: false,
@@ -99,9 +100,14 @@ scrooge.factory('stats', ['$http', function ($http) {
                 self.menuStats['month']['current'],
                 self.menuStats['day']['current'],
             ];
+            if (typeof(self.canceler) !== 'undefined') {
+                self.canceler.resolve();
+            }
+            self.canceler = $q.defer();
             $http({
                 method: 'GET',
                 url: url_chunks.join('/'),
+                timeout: self.canceler.promise,
             }).
             success(function(data) {
                 self.components.content = data;
@@ -119,7 +125,7 @@ scrooge.factory('stats', ['$http', function ($http) {
             ];
             $http({
                 method: 'GET',
-                url: url_chunks.join('/'),
+                url: url_chunks.join('/')
             })
             .success(function(data) {
                 if (data) {

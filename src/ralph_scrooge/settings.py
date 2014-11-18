@@ -59,5 +59,5 @@ COMPONENTS_TABLE_SCHEMA = {
             'tenantinfo.device_id',
         ],
         'model': 'ralph_scrooge.models.DailyTenantInfo',
-    },
+    }
 }

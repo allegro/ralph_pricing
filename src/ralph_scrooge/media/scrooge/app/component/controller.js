@@ -13,7 +13,7 @@ scrooge.controller('componentsCtrl', ['$scope', '$routeParams', 'menuService', '
     $scope.stats.menuStats.subpage.change = 'components';
     $scope.stats.refreshData();
 
-    $scope.$watch(function () {
+    $scope.$watch('stats.components.content', function () {
         $scope.days = stats.components.days;
         if (typeof(stats.components.content) != 'undefined') {
             if (stats.components.content != $scope.content) {
