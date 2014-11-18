@@ -19,6 +19,7 @@
         <script src="{{ STATIC_URL }}scrooge/js/jquery.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/jquery.multiple.select.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/angular/angular.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.17/angular-animate.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/angular/angular-resource.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/angular/angular-route.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/angular/angular-cookies.js"></script>
@@ -44,34 +45,36 @@
         <script src="{{ STATIC_URL }}scrooge/app/allocationclient/controller.js"></script>
         <script src="{{ STATIC_URL }}scrooge/app/allocationadmin/controller.js"></script>
     </head>
-    <body ng-controller="mainCtrl" class="bs-docs-home">
-        <div class="container-fluid">
-            <nav class="row">
-                {% block header %}
-                    {% main_menu_bs3fake main_menu active_module position='fixed' white="true" title='Ralph 2' %}
-                {% endblock %}
-                {{ view }}
-                <sub-menu></sub-menu>
-            </nav>
-        </div>
-        <div class="container-fluid container-fluid-main">
-            <ng-view></ng-view>
-        </div>
-        <footer class="footer container-fluid">
-            <div class="row">
-                <ul class="col-md-8 list-inline pull-left">
-                    <li>Ralph {{ VERSION }}</li>
-                    <li><a href="{{ CHANGELOG_URL }}">{% trans 'Changes' %}</a></li>
-                </ul>
-                <ul class="col-md-4 list-inline pull-right">
-                    <li>
-                        <a href="{{ BUGTRACKER_URL }}">
-                            <i class="fugue-icon fugue-bug"></i>{% trans 'Report a bug' %}
-                        </a>
-                    </li>
-                </ul>
+    <body ng-controller="mainCtrl">
+        <div class="body-wrapper">
+            <div class="container-fluid">
+                <nav class="row">
+                    {% block header %}
+                        {% main_menu_bs3fake main_menu active_module position='fixed' white="true" title='Ralph 2' %}
+                    {% endblock %}
+                    {{ view }}
+                    <sub-menu></sub-menu>
+                </nav>
             </div>
-        </footer>
+            <div class="container-fluid container-fluid-main">
+                <ng-view></ng-view>
+            </div>
+            <footer class="footer">
+                <div class="row">
+                    <ul class="col-md-8 list-inline pull-left">
+                        <li>Ralph {{ VERSION }}</li>
+                        <li><a href="{{ CHANGELOG_URL }}">{% trans 'Changes' %}</a></li>
+                    </ul>
+                    <ul class="col-md-4 list-inline pull-right">
+                        <li>
+                            <a href="{{ BUGTRACKER_URL }}">
+                                <i class="fa fa-bug"></i> {% trans 'Report a bug' %}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </footer>
+        </div>
     </body>
 </html>
 <!--STATS-->
