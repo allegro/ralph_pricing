@@ -1,11 +1,11 @@
 'use strict';
 
+var scrooge = angular.module('scrooge.service', ['ngResource']);
 
-var ang_services = angular.module('ang_services', ['ngResource']);
-
-ang_services.factory('stats', ['$http', function ($http) {
+scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
     return {
         staticUri: '/static/scrooge/partials/',
+        cancelerDeferers: [],
         currentSubMenu: false,
         currentLeftMenu: false,
         currentTab: false,
@@ -100,9 +100,14 @@ ang_services.factory('stats', ['$http', function ($http) {
                 self.menuStats['month']['current'],
                 self.menuStats['day']['current'],
             ];
+            if (typeof(self.canceler) !== 'undefined') {
+                self.canceler.resolve();
+            }
+            self.canceler = $q.defer();
             $http({
                 method: 'GET',
                 url: url_chunks.join('/'),
+                timeout: self.canceler.promise,
             }).
             success(function(data) {
                 self.components.content = data;
@@ -120,7 +125,7 @@ ang_services.factory('stats', ['$http', function ($http) {
             ];
             $http({
                 method: 'GET',
-                url: url_chunks.join('/'),
+                url: url_chunks.join('/')
             })
             .success(function(data) {
                 if (data) {
@@ -220,80 +225,5 @@ ang_services.factory('stats', ['$http', function ($http) {
                 return self.staticUri + self.allocationadmin[self.currentTab].template;
             }
         }
-    };
-}]);
-
-ang_services.factory('menuService', ['stats', '$http', function (stats) {
-    return {
-        changeService: function(service) {
-            stats.menuStats['service']['change'] = service.id;
-            var envExist = false;
-            service.value.envs.forEach(function(element) {
-                if (element.env == stats.menuStats['env']['current']) {
-                    envExist = true;
-                }
-            });
-            if (envExist === false) {
-                stats.menuStats['env']['change'] = service.value.envs[0].id;
-            }
-            stats.refreshData();
-        },
-        changeEnv: function(env) {
-            stats.menuStats['env']['change'] = env;
-            stats.refreshData();
-        },
-    };
-}]);
-
-ang_services.factory('menuCalendar', ['stats', function (stats) {
-    return {
-        getYears: function() {
-            var years = [];
-            if (typeof(self.dates) != 'undefined') {
-                Object.keys(self.dates).forEach(function (year) {
-                    years.push(year);
-                });
-            }
-            return years;
-        },
-        getMonths: function() {
-            var months = [];
-            if (typeof(self.dates) != 'undefined') {
-                var current_year = self.menuStats['year']['current'];
-                Object.keys(self.dates[current_year]).forEach(function (month) {
-                    months.push(month);
-                });
-            }
-            return months;
-        },
-        getDays: function() {
-            var days = [];
-            if (typeof(self.dates) != 'undefined') {
-                var current_year = self.menuStats['year']['current'];
-                var current_month = self.menuStats['month']['current'];
-                self.dates[current_year][current_month].forEach(function (day) {
-                    days.push(day);
-                });
-            }
-            return days;
-        },
-        changeYear: function(year) {
-            stats.menuStats['year']['change'] = year;
-            stats.refreshData();
-        },
-        changeDay: function(day) {
-            stats.menuStats['day']['change'] = day;
-            stats.refreshData();
-        },
-        changeMonth: function(month) {
-            stats.menuStats['month']['change'] = month;
-            var current_year = stats.menuStats['year']['current'];
-            var current_day = stats.menuStats['day']['current'];
-            if (stats.inArray(current_day, self.dates[current_year][month]) === false) {
-                var days = self.dates[current_year][month];
-                stats.menuStats['day']['change'] = days[days.length-1];
-            }
-            stats.refreshData();
-        },
     };
 }]);

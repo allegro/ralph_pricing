@@ -306,3 +306,7 @@ div.blocked {
     -moz-transition: none;
     transition: none;
 }
+.animate-table {
+    position: relative;
+    width: 100%;
+}

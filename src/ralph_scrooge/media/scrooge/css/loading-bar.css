@@ -1,25 +1,26 @@
 
 /* Make clicks pass-through */
 #loading-bar,
+<<<<<<< HEAD
 #loading-bar-spinner {
   -webkit-transition: 150ms linear all;
-  -moz-transition: 150ms linear all;
-  -o-transition: 150ms linear all;
-  transition: 150ms linear all;
+     -moz-transition: 150ms linear all;
+       -o-transition: 150ms linear all;
+          transition: 150ms linear all;
 }
 
 #loading-bar.ng-enter,
 #loading-bar.ng-leave.ng-leave-active,
-#loading-bar-spinner.ng-enter,
-#loading-bar-spinner.ng-leave.ng-leave-active {
+.loading-bar-spinner.ng-enter,
+.loading-bar-spinner.ng-leave.ng-leave-active {
   opacity: 0;
 }
 
 #loading-bar.ng-enter.ng-enter-active,
 #loading-bar.ng-leave,
-#loading-bar-spinner.ng-enter.ng-enter-active,
-#loading-bar-spinner.ng-leave {
-  opacity: 0.5;
+.loading-bar-spinner.ng-enter.ng-enter-active,
+.loading-bar-spinner.ng-leave {
+  opacity: 1;
 }
 
 #loading-bar .bar {
@@ -56,7 +57,7 @@
   border-radius: 100%;
 }
 
-#loading-bar-spinner {
+.loading-bar-spinner {
   display: block;
   position: absolute;
   z-index: 10002;
@@ -68,7 +69,7 @@
   opacity: 0.8;
 }
 
-#loading-bar-spinner .spinner-icon {
+.loading-bar-spinner .spinner-icon {
   position: absolute;
   width: 14px;
   height: 14px;

@@ -1,6 +1,14 @@
 Change Log
 ----------
 
+3.0.0-beta
+~~~~~~~~~~
+
+* Added components view with permissions mechanism
+* Added saving plugins' result to database
+* Fixed data collecting (e.g. for virtual machines)
+* Report generator fixes
+
 
 3.0.0-alpha1
 ~~~~~
@@ -17,6 +25,7 @@ Change Log
 * Cost plugin calculate all cost and write it as pre-generated data to db
 * Report plugin collect pre-generated data and make ready to display
 * Created Pricing object and Pricing service for interal convention policy, this kind of feature is using to make a scrooge more scalable and flexibility.
+
 
 2.6.0
 ~~~~~

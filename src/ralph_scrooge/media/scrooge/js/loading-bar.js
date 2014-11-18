@@ -155,7 +155,7 @@ angular.module('cfp.loadingBar', [])
     this.latencyThreshold = 100;
     this.startSize = 0.02;
     this.parentSelector = 'body';
-    this.spinnerTemplate = '<div id="loading-bar-spinner"><div class="spinner-icon"></div></div>';
+    this.spinnerTemplate = '<div class="loading-bar-spinner"><div class="spinner-icon"></div></div>';
     this.loadingBarTemplate = '<div id="loading-bar"><div class="bar"><div class="peg"></div></div></div>';
 
     this.$get = ['$injector', '$document', '$timeout', '$rootScope', function ($injector, $document, $timeout, $rootScope) {
@@ -198,7 +198,7 @@ angular.module('cfp.loadingBar', [])
         }
 
         if (includeSpinner) {
-          $animate.enter(spinner, $parent);
+          $animate.enter(spinner, $document.find('.loading-bar-spinner-container'));
         }
 
         _set(startSize);
@@ -235,29 +235,7 @@ angular.module('cfp.loadingBar', [])
           return;
         }
 
-        var rnd = 0;
-
-        // TODO: do this mathmatically instead of through conditions
-
-        var stat = _status();
-        if (stat >= 0 && stat < 0.25) {
-          // Start out between 3 - 6% increments
-          rnd = (Math.random() * (5 - 3 + 1) + 3) / 100;
-        } else if (stat >= 0.25 && stat < 0.65) {
-          // increment between 0 - 3%
-          rnd = (Math.random() * 3) / 100;
-        } else if (stat >= 0.65 && stat < 0.9) {
-          // increment between 0 - 2%
-          rnd = (Math.random() * 2) / 100;
-        } else if (stat >= 0.9 && stat < 0.99) {
-          // finally, increment it .5 %
-          rnd = 0.005;
-        } else {
-          // after 99%, don't increment:
-          rnd = 0;
-        }
-
-        var pct = _status() + rnd;
+        var pct = _status();
         _set(pct);
       }
 

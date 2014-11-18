@@ -14,6 +14,7 @@
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/ng-scrollbar.css" />
         <!-- <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/multiple-select.css" /> -->
         <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+         <!-- External scripts -->
         {% panels_colors %}
         <script src="{{ STATIC_URL }}scrooge/js/jquery.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/jquery.multiple.select.js"></script>
@@ -26,17 +27,23 @@
         <script src="{{ STATIC_URL }}scrooge/js/loading-bar.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/ng-scrollbar.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/js/bootstrap.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/bootstrap-table.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/raven.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
+        <!-- Angular scripts -->
         <script src="{{ STATIC_URL }}scrooge/app/app.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/controllers.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/directives.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/filters.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/services.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/controllers/menu.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/directives/menu.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/services/menu.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/common/controller.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/common/directive.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/common/filter.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/common/service.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/menu/controller.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/menu/directive.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/menu/filter.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/menu/service.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/component/controller.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/allocationclient/controller.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/allocationadmin/controller.js"></script>
     </head>
     <body ng-controller="mainCtrl">
         <div class="body-wrapper">

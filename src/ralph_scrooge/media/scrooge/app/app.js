@@ -7,12 +7,17 @@ var app = angular.module('app', [
     'ngScrollbar',
     'angular-loading-bar',
 
-    'scrooge.directives',
-    'scrooge.controllers',
-    'ang_controllers',
-    'ang_directives',
-    'ang_services',
-    'ang_filters',
+    'scrooge.controller',
+    'scrooge.controller.menu',
+    'scrooge.controller.component',
+    'scrooge.controller.allocationclient',
+    'scrooge.controller.allocationadmin',
+    'scrooge.directive',
+    'scrooge.directive.menu',
+    'scrooge.service',
+    'scrooge.service.menu',
+    'scrooge.filter',
+    'scrooge.filter.menu',
 ]);
 
 app.config(['$routeProvider', '$httpProvider',
@@ -46,7 +51,7 @@ app.config(['$routeProvider', '$httpProvider',
     }
 ]);
 
-app.run(function($http, $cookies, $rootScope) {
+app.run(function($http, $cookies) {
     $http.defaults.headers.common['X-CSRFToken'] = $cookies.csrftoken;
 
     // $http.get('/api/current_user/').success(function (data) {
