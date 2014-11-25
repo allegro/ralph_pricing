@@ -18,16 +18,25 @@ class SubMenu(APIView):
                 'name': 'Components',
                 'href': '#/components/',
                 'leftMenu': ['services'],
+                'calendarMenu': ['year', 'month', 'day'],
+            },
+            {
+                'name': 'Cost card',
+                'href': '#/costcard/',
+                'leftMenu': ['services'],
+                'calendarMenu': ['year', 'month'],
             },
             {
                 'name': 'Allocations',
                 'href': '#/allocation/client/',
                 'leftMenu': ['services', 'teams'],
+                'calendarMenu': ['year', 'month', 'day'],
             },
             {
                 'name': 'Allocations Admin',
                 'href': '#/allocation/admin/',
                 'leftMenu': [],
+                'calendarMenu': ['year', 'month', 'day'],
             }
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES

@@ -64,8 +64,6 @@ urlpatterns = patterns(
         login_required(BootstrapAngular.as_view()),
         name='services_costs_report',
     ),
-
-
     # OLD URLS
     url(
         r'^services-costs-report/$',

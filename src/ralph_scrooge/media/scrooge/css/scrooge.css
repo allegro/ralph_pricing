@@ -310,3 +310,7 @@ div.blocked {
     position: relative;
     width: 100%;
 }
+
+#table-costcard tbody tr:last-child {
+    font-weight: bold;
+}

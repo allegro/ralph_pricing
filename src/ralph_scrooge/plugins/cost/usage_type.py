@@ -17,6 +17,7 @@ from ralph_scrooge.plugins.cost.base import (
     MultiplePriceCostError,
 )
 
+
 logger = logging.getLogger(__name__)
 
 
