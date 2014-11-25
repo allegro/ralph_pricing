@@ -41,6 +41,9 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                 rows: [{'id': false, 'name': false}]
             }
         },
+        costcard: {
+            content: false,
+        },
         init: function() {
             self = this;
             $http({method: 'GET', url: '/scrooge/leftmenu/components/'}).
@@ -115,6 +118,9 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             });
         },
         getAllocationClientData: function () {
+            /**
+             * Load allocation data
+             */
             var url_chunks = [
                 '/scrooge/allocateclient',
                 self.menuStats['service']['current'],
@@ -142,6 +148,9 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             });
         },
         getAllocationAdminData: function () {
+            /**
+             * Load admin allocation data
+             */
             var url_chunks = [
                 '/scrooge/rest/allocateadmin',
                 self.menuStats['year']['current'],
@@ -161,6 +170,25 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                     });
                     self.currentTab = Object.keys(self.allocationadmin)[0];
                 }
+            });
+        },
+        getCostCardData: function () {
+            /**
+             * Load cost card data
+             */
+            var url_chunks = [
+                '/scrooge/rest/costcard',
+                self.menuStats['service']['current'],
+                self.menuStats['env']['current'],
+                self.menuStats['year']['current'],
+                self.menuStats['month']['current'],
+            ];
+            $http({
+                method: 'GET',
+                url: url_chunks.join('/'),
+            })
+            .success(function(data) {
+                self.costcard.content = data;
             });
         },
         saveAllocation: function (tab) {

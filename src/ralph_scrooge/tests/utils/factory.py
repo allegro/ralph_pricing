@@ -54,6 +54,19 @@ class ServiceEnvironmentFactory(DjangoModelFactory):
     environment = SubFactory(EnvironmentFactory)
 
 
+class BaseUsageFactory(DjangoModelFactory):
+    FACTORY_FOR = models.BaseUsage
+
+    type = models.BaseUsageType.usage_type
+
+
+class DailyCostFactory(DjangoModelFactory):
+    FACTORY_FOR = models.DailyCost
+
+    service_environment = SubFactory(ServiceEnvironmentFactory)
+    type = SubFactory(BaseUsageFactory)
+
+
 class UsageTypeFactory(DjangoModelFactory):
     FACTORY_FOR = models.UsageType
 

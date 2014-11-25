@@ -65,7 +65,10 @@ def left_menu(request, *args, **kwargs):
             "current": False,
             "change": date_generated[-1].month,
         },
-        "day": {"current": False, "change": date_generated[-1].day},
+        "day": {
+            "current": False,
+            "change": date_generated[-1].day,
+        },
     }
 
     menu = OrderedDict()
