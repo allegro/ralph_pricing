@@ -88,6 +88,7 @@ class PricingObjectFactory(DjangoModelFactory):
     type_id = 1
     service_environment = SubFactory(ServiceEnvironmentFactory)
     name = Sequence(lambda n: 'Pricing Object%s' % n)
+    model = SubFactory(PricingObjectModelFactory)
 
 
 class DailyPricingObjectFactory(DjangoModelFactory):
