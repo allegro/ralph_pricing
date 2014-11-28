@@ -37,6 +37,7 @@ class DailyCost(MultiPathNode):
         blank=False,
         related_name='daily_costs',
         verbose_name=_('service environment'),
+        db_index=True,
     )
     type = db.ForeignKey(
         'BaseUsage',
@@ -44,6 +45,7 @@ class DailyCost(MultiPathNode):
         blank=False,
         related_name='daily_costs',
         verbose_name=_('type'),
+        db_index=True,
     )
     warehouse = db.ForeignKey(
         'Warehouse',
@@ -69,7 +71,8 @@ class DailyCost(MultiPathNode):
         editable=False,
     )
     date = db.DateField(
-        verbose_name=_('date')
+        verbose_name=_('date'),
+        db_index=True,
     )
 
     class Meta:

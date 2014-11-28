@@ -1,4 +1,4 @@
-from ralph_scrooge.models.base import BaseUsage
+from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
 from ralph_scrooge.models.cost import CostDateStatus, DailyCost
 
@@ -70,6 +70,7 @@ from ralph_scrooge.models.warehouse import (
 __all__ = [
     'AssetInfo',
     'BaseUsage',
+    'BaseUsageType',
     'BusinessLine',
     'CostDateStatus',
     'DailyAssetInfo',
