@@ -237,6 +237,9 @@ class ServiceAdmin(UpdateReadonlyMixin, SimpleHistoryAdmin):
 class PricingServiceForm(forms.ModelForm):
     class Meta:
         model = models.PricingService
+        widgets = {
+            'excluded_services': FilteredSelectMultiple('Service', False)
+        }
 
     services = forms.ModelMultipleChoiceField(
         help_text=_('Services used to calculate costs of Pricing Service'),
