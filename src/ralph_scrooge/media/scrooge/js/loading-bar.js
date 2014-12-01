@@ -152,7 +152,7 @@ angular.module('cfp.loadingBar', [])
 
     this.includeSpinner = true;
     this.includeBar = true;
-    this.latencyThreshold = 100;
+    this.latencyThreshold = 10;
     this.startSize = 0.02;
     this.parentSelector = 'body';
     this.spinnerTemplate = '<div class="loading-bar-spinner"><div class="spinner-icon"></div></div>';

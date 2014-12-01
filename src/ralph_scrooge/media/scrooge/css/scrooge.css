@@ -38,6 +38,9 @@ a {
 }
 .nav.nav-main {
     background-color: #fff;
+    position: fixed;
+    z-index: 100;
+    width: 100%;
 }
 .nav.nav-main .active a {
     cursor: pointer;
@@ -46,7 +49,8 @@ a {
 }
 .nav.nav-tabs.nav-submenu {
     background-color: #3c8dbc;
-    margin-top:40px;
+    top:40px;
+    position: fixed;
 }
 .nav.nav-tabs.nav-submenu li,
 .nav.nav-tabs.nav-submenu li a,
@@ -75,8 +79,7 @@ a {
     position: fixed;
     top: 80px;
     bottom: 30px;
-    overflow-y: visible;
-    overflow: hidden;
+    overflow-y: scroll;
     padding-top: 10px;
     padding-bottom: 10px;
     background-color: #f4f4f4;
@@ -94,7 +97,6 @@ a {
     padding:5px 10px;
     border: 1px solid #ccc;
     border-left: 0;
-
 }
 .sidebar .search .input-group-addon {
     background-color:#fff;
@@ -198,7 +200,7 @@ a {
     cursor: pointer;
 }
 .content .categories .category .wrapper{
-    margin: 5px;
+    margin-right: 10px;
     position: relative;
 }
 .content .categories .category .name {
@@ -243,7 +245,6 @@ a {
 .content .relative-container .animate-table.ng-hide.ng-hide-remove {
 }
 .content .relative-container .animate-table {
-    position: absolute;
     width: 100%;
     opacity: 1;
     transition: opacity .3s ease;
@@ -254,9 +255,11 @@ a {
 .footer {
     background-color: white;
     position: fixed;
+    z-index: 100;
     bottom: 0;
     width: 100%;
     padding: 5px;
+    margin-top: 100px;
     -webkit-box-shadow: inset 0px 3px 8px -4px rgba(0, 0, 0, 0.5);
     -moz-box-shadow: inset 0px 3px 8px -4px rgba(0, 0, 0, 0.5);
     box-shadow: inset 0px 3px 8px -4px rgba(0, 0, 0, 0.5);
@@ -306,11 +309,29 @@ div.blocked {
     -moz-transition: none;
     transition: none;
 }
+.animate-table.ng-hide-add,
+.animate-table.ng-hide-remove
+{
+    position: absolute;
+}
+
 .animate-table {
     position: relative;
     width: 100%;
 }
 
-#table-costcard tbody tr:last-child {
+.total-cost {
     font-weight: bold;
+}
+
+.content-container {
+    padding-bottom: 45px;
+}
+
+.breadcrumbs-container {
+    padding-top: 10px;
+}
+
+.date-choice {
+    padding: 10px 0px 20px 0px;
 }
