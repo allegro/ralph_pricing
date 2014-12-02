@@ -13,7 +13,12 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND
 from rest_framework.views import APIView
 
-from ralph_scrooge.models import BaseUsage, DailyCost, ServiceEnvironment
+from ralph_scrooge.models import (
+    BaseUsage,
+    CostDateStatus,
+    DailyCost,
+    ServiceEnvironment,
+)
 from ralph_scrooge.rest.common import get_dates
 
 
@@ -32,7 +37,6 @@ class CostCardContent(APIView):
         :returns object: json response
         """
         first_day, last_day, days_in_month = get_dates(year, month)
-
         try:
             service_environment = ServiceEnvironment.objects.get(
                 service__id=service,
@@ -49,11 +53,16 @@ class CostCardContent(APIView):
                 },
                 status=HTTP_404_NOT_FOUND
             )
-        monthly_costs = DailyCost.objects.filter(
+        forecast = request.QUERY_PARAMS.get('forecast', False)
+        dates = CostDateStatus.objects.filter(
             date__gte=first_day,
             date__lte=last_day,
+            **{'forecast_accepted' if forecast else 'accepted': True}
+        ).values_list('date', flat=True)
+        monthly_costs = DailyCost.objects.filter(
+            date__in=dates,
             service_environment=service_environment,
-            verified=True,
+            forecast=forecast,
         ).values(
             'type'
         ).annotate(
