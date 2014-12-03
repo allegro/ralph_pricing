@@ -29,12 +29,10 @@ class ExtraCostType(BaseUsage):
         super(ExtraCostType, self).save(*args, **kwargs)
 
 
-class ExtraCost(db.Model):
+class AbstractExtraCost(db.Model):
     """
-    Contains information about cost of extra cost types per venture.
-    This is a static value without any time interval becouse this
-    value (cost) is accumulate each day by collect plugin in
-    DailyExtraCost model.
+    Base (abstract) type for ExtraCost and SupportCost with common fields such
+    as cost, start, end.
     """
     extra_cost_type = db.ForeignKey(ExtraCostType, verbose_name=_("type"))
     cost = db.DecimalField(
@@ -49,11 +47,6 @@ class ExtraCost(db.Model):
         decimal_places=PRICE_PLACES,
         default=0.00,
         verbose_name=_("forecast cost"),
-    )
-    service_environment = db.ForeignKey(
-        'ServiceEnvironment',
-        related_name='extra_costs',
-        verbose_name=_("service environment"),
     )
     start = db.DateField(
         verbose_name=_("start time"),
@@ -72,6 +65,24 @@ class ExtraCost(db.Model):
         help_text=_("Additional information."),
         blank=True,
         default="",
+    )
+
+    class Meta:
+        abstract = True
+        app_label = 'ralph_scrooge'
+
+
+class ExtraCost(AbstractExtraCost):
+    """
+    Contains information about cost of extra cost types per venture.
+    This is a static value without any time interval becouse this
+    value (cost) is accumulate each day by collect plugin in
+    DailyExtraCost model.
+    """
+    service_environment = db.ForeignKey(
+        'ServiceEnvironment',
+        related_name='extra_costs',
+        verbose_name=_("service environment"),
     )
 
     class Meta:
@@ -182,3 +193,31 @@ class DynamicExtraCost(db.Model):
             self.start,
             self.end,
         )
+
+
+class SupportCost(AbstractExtraCost):
+    support_id = db.IntegerField(
+        verbose_name=_("support id"),
+        null=False,
+        blank=False,
+    )
+    pricing_object = db.ForeignKey(
+        'PricingObject',
+        verbose_name=_("pricing object"),
+    )
+
+    class Meta:
+        verbose_name = _("Support cost")
+        verbose_name_plural = _("Support costs")
+        app_label = 'ralph_scrooge'
+
+    def __unicode__(self):
+        return 'Support: {} ({} - {})'.format(
+            self.pricing_object.name,
+            self.start,
+            self.end,
+        )
+
+    def save(self, *args, **kwargs):
+        self.extra_cost_type_id = 2  # from fixture
+        return super(SupportCost, self).save(*args, **kwargs)

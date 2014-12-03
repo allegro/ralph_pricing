@@ -263,6 +263,7 @@ class Collector(object):
         each, such as name and arguments
         """
         extra_cost_types_plugins = cls._get_extra_cost_types_plugins()
+        support_plugins = cls._get_support_plugins()
         dynamic_extra_cost_types_plugins = (
             cls._get_dynamic_extra_cost_types_plugins()
         )
@@ -271,7 +272,7 @@ class Collector(object):
         services_plugins = cls._get_pricing_services_plugins()
         teams_plugins = cls._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
-                   services_plugins + teams_plugins +
+                   services_plugins + teams_plugins + support_plugins +
                    extra_cost_types_plugins + dynamic_extra_cost_types_plugins)
         return plugins
 
@@ -394,9 +395,10 @@ class Collector(object):
     @classmethod
     def _get_extra_cost_types(cls):
         """
-        Returns all extra costs
+        Returns all extra costs (excluding supports)
         """
-        return ExtraCostType.objects.order_by('name')
+        # exclude supports (from fixture)
+        return ExtraCostType.objects.exclude(pk=2).order_by('name')
 
     @classmethod
     def _get_extra_cost_types_plugins(cls):
@@ -415,6 +417,15 @@ class Collector(object):
             )
             result.append(extra_cost_info)
         return result
+
+    @classmethod
+    def _get_support_plugins(cls):
+        return [
+            AttributeDict(
+                name='support',
+                plugin_name='support_plugin',
+            )
+        ]
 
     @classmethod
     def _get_dynamic_extra_cost_types(cls):

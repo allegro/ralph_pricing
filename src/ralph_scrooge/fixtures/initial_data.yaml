@@ -36,6 +36,18 @@
   fields:
     baseusage_ptr: 1
 
+- model: ralph_scrooge.BaseUsage
+  pk: 2
+  fields:
+    name: 'Support'
+    symbol: 'support'
+    type: 3  # extra cost
+
+- model: ralph_scrooge.ExtraCostType
+  pk: 2
+  fields:
+    baseusage_ptr: 2
+
 # Pricing object types
 - model: ralph_scrooge.PricingObjectType
   pk: 1

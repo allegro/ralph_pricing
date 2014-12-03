@@ -8,6 +8,7 @@ from ralph_scrooge.models.extra_cost import (
     DynamicExtraCostType,
     ExtraCost,
     ExtraCostType,
+    SupportCost,
 )
 
 from ralph_scrooge.models.owner import (
@@ -99,6 +100,7 @@ __all__ = [
     'ServiceOwnership',
     'ServiceUsageTypes',
     'Statement',
+    'SupportCost',
     'SyncStatus',
     'Team',
     'TeamBillingType',
