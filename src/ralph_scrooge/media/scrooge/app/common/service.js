@@ -79,6 +79,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                 }
             });
             if (force === false && refresh === true) {
+                self.clearPreviousContent();
                 self.refreshCurrentSubpage();
             }
             if (self.menuReady === false) {
@@ -190,6 +191,14 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             .success(function(data) {
                 self.costcard.content = data;
             });
+        },
+        clearPreviousContent: function () {
+            self.components = {
+                contentStats: {}
+            };
+            self.allocationclient = {};
+            self.allocationadmin = {};
+            self.costcard = {};
         },
         saveAllocation: function (tab) {
             var url = '';

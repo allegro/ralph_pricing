@@ -1,28 +1,21 @@
-<div class="row row-main" style="position:relative;">
-  <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
-  <div class="content col-md-offset-2 col-xs-12 col-md-10">
-    <div ng-include="'/static/scrooge/partials/breadcrumbs.html'"></div>
-    <div class="row data">
-      <div class="col-xs-12 col-md-12">
-        <menucalendardirective ng-show="stats.menuReady"></menucalendardirective>
-      </div>
-      <div class="col-xs-12 col-md-12 animate-show loading-bar-spinner-container">
-          <div id="table-costcard" class="animate-table" ng-repeat="forceRefresh in forceRefreshDomElement">
-            <table data-toggle="table" data="{{stats.costcard.content}}">
-              <thead>
-                <tr>
-                  <th data-field="name" data-sortable="true">Usage name</th>
-                  <th data-field="cost" data-sortable="true" data-formatter="costFormatter">Cost</th>
-                </tr>
-              </thead>
-            </table>
-          </div>
-      </div>
-    </div>
-  </div>
+<div id="table-costcard" class="animate-table" ng-repeat="forceRefresh in forceRefreshDomElement">
+  <table data-toggle="table" data="{{stats.costcard.content}}" data-row-style="rowStyle">
+    <thead>
+      <tr>
+        <th data-field="name" data-sortable="true">Usage name</th>
+        <th data-field="cost" data-sortable="true" data-formatter="costFormatter">Cost</th>
+      </tr>
+    </thead>
+  </table>
   <script>
       function costFormatter(value, row) {
-          return value + ' PLN';
+        return value + ' PLN';
+      }
+      function rowStyle(row, index) {
+        if (row.name == 'Total') {
+          return {classes: 'total-cost'};
+        }
+        return {};
       }
   </script>
 </div>
