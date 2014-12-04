@@ -26,18 +26,6 @@ class SubMenu(APIView):
                 'leftMenu': ['services'],
                 'calendarMenu': ['year', 'month'],
             },
-            {
-                'name': 'Allocations',
-                'href': '#/allocation/client/',
-                'leftMenu': ['services', 'teams'],
-                'calendarMenu': ['year', 'month', 'day'],
-            },
-            {
-                'name': 'Allocations Admin',
-                'href': '#/allocation/admin/',
-                'leftMenu': [],
-                'calendarMenu': ['year', 'month', 'day'],
-            }
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
             # ####################################################
@@ -65,20 +53,20 @@ class SubMenu(APIView):
                     'href': '/scrooge/services-usages-report',
                 },
                 {
-                    'name': 'Services changes report',
-                    'href': '/scrooge/services-changes-report',
+                    'name': 'Collect plugins',
+                    'href': '/scrooge/collect-plugins',
                 },
                 {
-                    'name': 'Usage types',
-                    'href': '/scrooge/usage-types',
+                    'name': 'Services changes report',
+                    'href': '/scrooge/services-changes-report',
                 },
                 {
                     'name': 'Extra Costs',
                     'href': '/scrooge/extra-costs',
                 },
                 {
-                    'name': 'Collect plugins',
-                    'href': '/scrooge/collect-plugins',
+                    'name': 'Usage types',
+                    'href': '/scrooge/usage-types',
                 },
                 {
                     'name': 'Monthly costs',

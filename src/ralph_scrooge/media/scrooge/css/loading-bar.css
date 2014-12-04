@@ -66,26 +66,24 @@
   bottom: 0;
   left:0;
   background-color: #fff;
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .loading-bar-spinner .spinner-icon {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  top: 10px;
-  right: 10px;
-
-  border: solid 2px transparent;
+  width: 100px;
+  height: 100px;
+  border: solid 10px transparent;
   border-top-color:  #29d;
   border-left-color: #29d;
-  border-radius: 10px;
+  border-radius: 50px;
+  margin: 0 auto;
+  margin-top: 50px;
 
-  -webkit-animation: loading-bar-spinner 800ms linear infinite;
-  -moz-animation:    loading-bar-spinner 800ms linear infinite;
-  -ms-animation:     loading-bar-spinner 800ms linear infinite;
-  -o-animation:      loading-bar-spinner 800ms linear infinite;
-  animation:         loading-bar-spinner 800ms linear infinite;
+  -webkit-animation: loading-bar-spinner 500ms linear infinite;
+  -moz-animation:    loading-bar-spinner 500ms linear infinite;
+  -ms-animation:     loading-bar-spinner 500ms linear infinite;
+  -o-animation:      loading-bar-spinner 500ms linear infinite;
+  animation:         loading-bar-spinner 500ms linear infinite;
 }
 
 @-webkit-keyframes loading-bar-spinner {

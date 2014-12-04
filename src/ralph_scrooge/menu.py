@@ -29,6 +29,13 @@ class ScroogeMenu(Menu):
                 view_name='components',
                 href="/scrooge/#/components/"
             ),
+            MenuItem(
+                _("Cost card"),
+                name='costcard',
+                fugue_icon='fugue-arrow-switch',
+                view_name='costcard',
+                href="/scrooge/#/costcard/"
+            ),
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
             ####################################################

@@ -1,34 +1,21 @@
-<div class="row row-main" style="position:relative;">
-  <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
-  <div class="content col-md-offset-2 col-xs-12 col-md-10">
-    <div ng-include="'/static/scrooge/partials/breadcrumbs.html'"></div>
-    <div class="row data">
-      <div class="col-xs-12 col-md-12">
-        <menucalendardirective ng-show="stats.menuReady"></menucalendardirective>
-      </div>
-      <div class="col-xs-12 col-md-12 animate-show loading-bar-spinner-container">
-        <div class="categories">
-          <div class="category opacity-animation {{ category.slug }} {{stats.components.contentStats.table == category.name ? 'active' : ''}}" ng-repeat="category in content">
-            <div class="wrapper" ng-click="stats.components.contentStats.table = category.name">
-              <div class="name">{{ category.name }}</div>
-              <div class="value">{{ category.value.length }}</div>
-              <i class="fa {{ category.icon_class }}"></i>
-              <div class="link">Show</div>
-            </div>
-          </div>
-        </div>
-        <div class="relative-container">
-          <div ng-show="stats.components.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content" class="animate-table">
-            <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-smart-display="true" data-search-align="left">
-              <thead>
-                <tr>
-                  <th data-field="{{field_id}}" data-sortable="true" ng-repeat="(field_id, val) in data.schema">{{val}}</th>
-                </tr>
-              </thead>
-            </table>
-          </div>
-        </div>
-      </div>
+<div class="categories">
+  <div class="category opacity-animation {{ category.slug }} {{stats.components.contentStats.table == category.name ? 'active' : ''}}" ng-repeat="category in content">
+    <div class="wrapper" ng-click="stats.components.contentStats.table = category.name">
+      <div class="name">{{ category.name }}</div>
+      <div class="value">{{ category.value.length }}</div>
+      <i class="fa {{ category.icon_class }}"></i>
+      <div class="link">Show</div>
     </div>
+  </div>
+</div>
+<div class="relative-container">
+  <div ng-show="stats.components.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content" class="animate-table">
+    <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-smart-display="true" data-search-align="left">
+      <thead>
+        <tr>
+          <th data-field="{{field_id}}" data-sortable="true" ng-repeat="(field_id, val) in data.schema">{{val}}</th>
+        </tr>
+      </thead>
+    </table>
   </div>
 </div>
