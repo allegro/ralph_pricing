@@ -5,7 +5,7 @@
 {% block extra_headers %}
     {{ block.super }}
     {% if got_query and progress < 100 %}
-        <meta http-equiv="refresh" content="5">
+        <meta http-equiv="refresh" content="{{ refresh_time }}">
     {% endif %}
 {% endblock %}
 

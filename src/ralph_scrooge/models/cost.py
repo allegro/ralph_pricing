@@ -65,11 +65,11 @@ class DailyCost(MultiPathNode):
         verbose_name=_('forecast'),
         default=False,
     )
-    verified = db.BooleanField(
-        verbose_name=_("verified"),
-        default=False,
-        editable=False,
-    )
+    # verified = db.BooleanField(
+    #     verbose_name=_("verified"),
+    #     default=False,
+    #     editable=False,
+    # )
     date = db.DateField(
         verbose_name=_('date'),
         db_index=True,
