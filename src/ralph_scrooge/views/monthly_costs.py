@@ -69,13 +69,19 @@ class MonthlyCosts(WorkerJob, Base):
                 self.progress = 0
                 self.clear_cache(**self.form.cleaned_data)
                 messages.success(
-                    self.request, "Cache cleared.",
+                    self.request, _("Cache cleared."),
                 )
         return super(MonthlyCosts, self).get(*args, **kwargs)
 
     def run_jobs(self, start, end, **kwargs):
         """
         Run calculating as separated jobs - each for one day in period.
+
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
+        :param kwargs: additional params to costs collector
         """
         days = (end - start).days + 1
         self.progress = 0
@@ -97,6 +103,11 @@ class MonthlyCosts(WorkerJob, Base):
         """
         Set cache timeout to `cache_all_done_timeout` when all jobs are
         finished.
+
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
         """
         cache = get_cache(self.cache_name)
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
@@ -107,6 +118,11 @@ class MonthlyCosts(WorkerJob, Base):
     def clear_cache(self, start, end, **kwargs):
         """
         Clear cache for period of time as clearing for one day at once.
+
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
         """
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
             self._clear_cache(day=day, **kwargs)
