@@ -152,6 +152,7 @@ class Collector(object):
         self._delete_daily_costs(date, forecast, delete_verified)
         costs = self._collect_costs(date, service_environments, forecast)
         self._save_costs(date, costs, forecast)
+        logger.info('Costs saved for date {}'.format(date))
 
     def _delete_daily_costs(self, date, forecast, delete_verified=False):
         """
@@ -164,7 +165,13 @@ class Collector(object):
             **{'forecast_accepted' if forecast else 'accepted': True}
         ):
             raise VerifiedDailyCostsExistsError()
-        DailyCost.objects.filter(date=date).delete()
+        cursor = connection.cursor()
+        cursor.execute(
+            "DELETE FROM {} WHERE date=%s and forecast=%s".format(
+                DailyCost._meta.db_table,
+            ),
+            [date, forecast]
+        )
 
     def _save_costs(self, date, costs, forecast):
         """
@@ -172,13 +179,18 @@ class Collector(object):
 
         At the end update status of date costs to calculated.
         """
+        daily_costs = []
         for service_environment, se_costs in costs.iteritems():
-            DailyCost.build_tree(
+            # use _build_tree directly, to collect DailyCosts for all services
+            # and save all at the end
+            daily_costs.extend(DailyCost._build_tree(
                 tree=se_costs,
                 date=date,
                 service_environment_id=service_environment,
                 forecast=forecast,
-            )
+            ))
+        DailyCost.objects.bulk_create(daily_costs)
+
         # update status to created
         status, created = CostDateStatus.objects.get_or_create(date=date)
         if forecast:
@@ -245,13 +257,7 @@ class Collector(object):
         :rtype list:
         """
         logger.debug("Getting services environments")
-        services = ServiceEnvironment.objects.select_related(
-            'service',
-            'environment',
-        ).order_by(
-            'service__name',
-            'environment__name',
-        )
+        services = ServiceEnvironment.objects.all()
         logger.debug("Got {0} services".format(services.count()))
         return services
 

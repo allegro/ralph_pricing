@@ -62,7 +62,7 @@ class ExtraCostPlugin(BaseCostPlugin):
         usages = defaultdict(list)
         for extra_cost in extra_costs:
             cost = extra_cost.forecast_cost if forecast else extra_cost.cost
-            usages[extra_cost.service_environment.id].append({
+            usages[extra_cost.service_environment_id].append({
                 'cost': (cost / (
                     (extra_cost.end - extra_cost.start).days + 1)
                 ),

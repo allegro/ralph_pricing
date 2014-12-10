@@ -83,6 +83,12 @@ class DailyCost(MultiPathNode):
             self.date,
         )
 
+    @classmethod
+    def _are_params_valid(self, params):
+        if 'cost' in params:
+            return params['cost'] > 0
+        return True
+
 
 class CostDateStatus(db.Model):
     date = db.DateField(

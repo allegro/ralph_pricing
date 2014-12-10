@@ -63,6 +63,7 @@ class BaseReport(Base):
     allow_statement = True
     allow_csv_download = True
     report = None
+    refresh_time = 10  # time to refresh page to check for result (in seconds)
 
     def __init__(self, *args, **kwargs):
         super(BaseReport, self).__init__(*args, **kwargs)
@@ -123,6 +124,7 @@ class BaseReport(Base):
             'got_query': self.got_query,
             'allow_statement': self.allow_statement,
             'allow_csv_download': self.allow_csv_download,
+            'refresh_time': self.refresh_time
         })
         return context
 
