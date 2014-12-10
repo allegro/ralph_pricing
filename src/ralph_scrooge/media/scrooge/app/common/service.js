@@ -187,6 +187,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             $http({
                 method: 'GET',
                 url: url_chunks.join('/'),
+                params: {forecast: true} // TEMPORARY!
             })
             .success(function(data) {
                 self.costcard.content = data;
