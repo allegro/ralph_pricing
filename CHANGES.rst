@@ -1,6 +1,20 @@
 Change Log
 ----------
 
+
+3.0.0-beta
+~~~~~~~~~~
+
+* improve collector performance
+* recalculating performance improvement
+* fix for virtual collect plugin - manufacturer uniqueness
+* fix cost card - show only accepted costs & accept forecast param
+* fix gui bugs - components & costcard
+* added tenants instances report
+* Added cost card subpage and make configurable calendar menu
+* Clean old and needless code like tests
+
+
 3.0.0-beta
 ~~~~~~~~~~
 
