@@ -36,6 +36,13 @@ class ScroogeMenu(Menu):
                 view_name='costcard',
                 href="/scrooge/#/costcard/"
             ),
+            MenuItem(
+                _("Allocations admin"),
+                name='components',
+                fugue_icon='fugue-arrow-switch',
+                view_name='components',
+                href="/scrooge/#/allocation/admin/"
+            ),
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
             ####################################################
@@ -45,13 +52,6 @@ class ScroogeMenu(Menu):
             #     fugue_icon='fugue-arrow-switch',
             #     view_name='components',
             #     href="/scrooge/#/allocation/client/"
-            # ),
-            # MenuItem(
-            #     _("Allocations admin"),
-            #     name='components',
-            #     fugue_icon='fugue-arrow-switch',
-            #     view_name='components',
-            #     href="/scrooge/#/allocation/admin/"
             # ),
             ####################################################
             MenuItem(

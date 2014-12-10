@@ -26,6 +26,12 @@ class SubMenu(APIView):
                 'leftMenu': ['services'],
                 'calendarMenu': ['year', 'month'],
             },
+            {
+                'name': 'Allocations Admin',
+                'href': '#/allocation/admin/',
+                'leftMenu': [],
+                'calendarMenu': ['year', 'month'],
+            }
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
             # ####################################################
@@ -34,11 +40,6 @@ class SubMenu(APIView):
             #     'href': '#/allocation/client/',
             #     'leftMenu': ['services', 'teams'],
             # },
-            # {
-            #     'name': 'Allocations Admin',
-            #     'href': '#/allocation/admin/',
-            #     'leftMenu': [],
-            # }
             ####################################################
         ]
         profile = request.user.get_profile()
