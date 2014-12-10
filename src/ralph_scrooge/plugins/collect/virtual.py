@@ -84,9 +84,9 @@ def get_or_create_model(group_name, data):
     model = PricingObjectModel.objects.get_or_create(
         model_id=data['model_id'],
         type_id=PRICING_OBJECT_TYPES.VIRTUAL,
-        manufacturer=group_name,
         defaults=dict(
             name=data['model_name'],
+            manufacturer=group_name,
         )
     )[0]
     model.name = data['model_name']
