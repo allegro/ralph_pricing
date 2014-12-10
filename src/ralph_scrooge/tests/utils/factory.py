@@ -187,6 +187,23 @@ class DailyTenantInfoFactory(DailyPricingObjectFactory):
     enabled = True
 
 
+class VIPInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.VIPInfo
+
+    vip_id = Sequence(lambda n: n)
+    ip_info = SubFactory(PricingObjectFactory)
+    type_id = models.PRICING_OBJECT_TYPES.VIP
+    port = 80
+    load_balancer = SubFactory(AssetInfoFactory)
+
+
+class DailyVIPFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyVIPInfo
+
+    vip_info = SubFactory(VIPInfoFactory)
+    ip_info = SubFactory(PricingObjectFactory)
+
+
 class DailyUsageFactory(DjangoModelFactory):
     FACTORY_FOR = models.DailyUsage
 
