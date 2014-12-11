@@ -9,6 +9,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
         currentSubMenu: false,
         currentLeftMenu: false,
         currentTab: false,
+        currentTabs: {},
         menuReady: false,
         leftMenus: {},
         subMenus: {},
@@ -31,7 +32,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             serviceExtraCostTypes: false,
             serviceDivision: {
                 total: 0,
-                rows: [{'id': false, 'name': false, 'env': [{'name': false, 'id': false}], 'value': 0}]
+                rows: [{'service': false, 'env': false, 'share': 0}]
             },
             serviceExtraCost: {
                 rows: [{'id': false, 'name': false, 'value': 0, 'remarks': false}]
@@ -123,10 +124,9 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
              * Load allocation data
              */
             var url_chunks = [
-                '/scrooge/allocateclient',
+                '/scrooge/rest/allocateclient',
                 self.menuStats['service']['current'],
                 self.menuStats['env']['current'],
-                self.menuStats['team']['current'],
                 self.menuStats['year']['current'],
                 self.menuStats['month']['current'],
             ];
@@ -136,15 +136,17 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             })
             .success(function(data) {
                 if (data) {
-                    data.forEach(function (element) {
-                        self.allocationclient[element.key] = element.value;
-                        if (element.value.rows.length === 0 || element.value.disabled === true) {
-                            element.value.rows = [{}];
+                    Object.keys(data).forEach(function (key) {
+                        self.allocationclient[key] = data[key];
+                        if (data[key].rows.length === 0 || data[key].disabled === true) {
+                            data[key].rows = [{}];
                         }
-                        if (element.key == 'serviceExtraCost') {
-                            self.allocationclient.serviceExtraCostTypes = element.extra_cost_types;
+                        if (key == 'serviceExtraCost') {
+                            self.allocationclient.serviceExtraCostTypes = data[key].extra_cost_types;
                         }
                     });
+                    self.currentTabs = self.allocationclient;
+                    self.currentTab = Object.keys(self.allocationclient)[0];
                 }
             });
         },
@@ -169,6 +171,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                             self.allocationadmin[element].rows = [{}];
                         }
                     });
+                    self.currentTabs = self.allocationclient;
                     self.currentTab = Object.keys(self.allocationadmin)[0];
                 }
             });
@@ -258,8 +261,8 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             return false;
         },
         getCurrentTab: function() {
-            if (Object.keys(self.allocationadmin).length > 0) {
-                return self.staticUri + self.allocationadmin[self.currentTab].template;
+            if (Object.keys(self.currentTabs).length > 0) {
+                return self.staticUri + self.currentTabs[self.currentTab].template;
             }
         }
     };
