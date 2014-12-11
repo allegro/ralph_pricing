@@ -13,6 +13,7 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuServi
     $scope.stats.menuStats.subpage.change = 'allocationclient';
     $scope.stats.refreshData();
 
+    /*
     $scope.addRow = function (costList) {
         costList.push({'service': false, 'value': 0});
     };
@@ -52,4 +53,5 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuServi
             stats.refreshData();
         }
     };
+    */
 }]);

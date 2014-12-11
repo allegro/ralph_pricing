@@ -11,6 +11,14 @@ from rest_framework import routers
 from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource, SyncStatusViewSet
+from ralph_scrooge.rest import (
+    left_menu,
+    components_content,
+)
+from ralph_scrooge.utils.security import (
+    service_permission,
+    scrooge_permission,
+)
 from ralph_scrooge.views.bootstrapangular import BootstrapAngular
 from ralph_scrooge.views.collect_plugins import CollectPlugins
 from ralph_scrooge.views.extra_costs import ExtraCosts
@@ -21,17 +29,6 @@ from ralph_scrooge.views.monthly_costs import MonthlyCosts
 from ralph_scrooge.views.report_services_changes import ServicesChangesReportView  # noqa
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
-from ralph_scrooge.rest import (
-    left_menu,
-    components_content,
-    allocation_save,
-    allocation_content
-)
-
-from ralph_scrooge.utils.security import (
-    service_permission,
-    scrooge_permission,
-)
 
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
@@ -43,14 +40,6 @@ for r in (SyncStatusViewSet, ):
 
 urlpatterns = patterns(
     '',
-    url(
-        r'^allocateclient/(?P<service>\d+|false)/(?P<env>\d+|false)/(?P<team>\d+|false)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
-        allocation_content,
-    ),
-    url(
-        r'^allocateclient/(?P<allocate_type>\S+)/save/$',
-        login_required(allocation_save),
-    ),
     url(
         r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',  # noqa
         service_permission(components_content),

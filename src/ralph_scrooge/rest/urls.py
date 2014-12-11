@@ -10,6 +10,7 @@ from django.conf.urls import patterns, url
 
 from ralph_scrooge.rest import (
     AllocationAdminContent,
+    AllocationClientContent,
     CostCardContent,
 )
 
@@ -21,6 +22,10 @@ urlpatterns = patterns(
     url(
         r'^allocateadmin/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
         AllocationAdminContent.as_view(),
+    ),
+    url(
+        r'^allocateclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
+        AllocationClientContent.as_view(),
     ),
     url(
         r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa

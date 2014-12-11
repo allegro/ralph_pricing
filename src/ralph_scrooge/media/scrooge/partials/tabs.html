@@ -1,6 +1,6 @@
 <div>
     <ul class="nav nav-tabs allocation-tabs" role="tablist">
-        <li ng-click="stats.currentTab = tab" ng-repeat="(tab, value) in stats.allocationadmin" ng-class="stats.currentTab == tab ? 'active': ''">
+        <li ng-click="stats.currentTab = tab" ng-repeat="(tab, value) in stats.currentTabs" ng-class="stats.currentTab == tab ? 'active': ''">
             <a>{{value.name}}</a>
         </li>
     </ul>
