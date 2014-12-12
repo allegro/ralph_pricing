@@ -20,6 +20,37 @@ class AttributeDict(dict):
         self.__dict__ = self
 
 
+class HashableDict(dict):
+    """
+    Dict that could be used as element in set (thus it's immutable). Should
+    only be used to comparisons etc.
+    """
+
+    @classmethod
+    def parse(cls, el):
+        """
+        Convert all dicts to HashableDicts in nested structure.
+        """
+        if isinstance(el, list):
+            for i, x in enumerate(el):
+                el[i] = HashableDict.parse(x)
+        elif isinstance(el, dict):
+            d = HashableDict()
+            for k, v in el.iteritems():
+                d[k] = HashableDict.parse(v)
+            return d
+        return el
+
+    def __key(self):
+        return tuple((k, self[k]) for k in sorted(self))
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __eq__(self, other):
+        return self.__key() == other.__key()
+
+
 def get_cache_name(name):
     if name in settings.CACHES:
         return name
