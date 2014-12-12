@@ -325,11 +325,12 @@ class AllocationClientContent(APIView):
             #    'rows': team_costs,
             #    'template': 'tabteamcosts.html',
             #},
-            #'extracosts': {
-            #    'name': 'Extra Costs',
-            #    'rows': [{'extra_cost': 4, 'value': 400}],
-            #    'template': 'tabextracosts.html',
-            #},
+            'serviceExtraCost': {
+                'total': 400,
+                'name': 'Extra Costs',
+                'rows': [{'value': 400, 'description': 'test'}],
+                'template': 'tabextracosts.html',
+            },
         })
 
 

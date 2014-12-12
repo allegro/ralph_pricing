@@ -19,21 +19,19 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
         }
     };
     $scope.updateTotal = function (tab) {
-        var _updateTotal = function (scope) {
+        var _updateTotal = function (obj) {
             var count = 0;
-            var save = true;
-            scope.rows.forEach(function (element) {
-                if (element.service === false || element.env === false) {
-                    save = false;
-                }
-                count += parseInt(element.value, 10);
-                console.log(count)
+            obj.rows.forEach(function (element) {
+                count += parseFloat(element.value);
             });
-            scope.total = count;
+            obj.total = count;
         };
         switch(tab) {
             case 'serviceDivision':
                 _updateTotal(stats.allocationclient.serviceDivision);
+                break;
+            case 'serviceExtraCost':
+                _updateTotal(stats.allocationclient.serviceExtraCost);
                 break;
             case 'teamDivision':
                 _updateTotal(stats.allocationclient.teamDivision);
