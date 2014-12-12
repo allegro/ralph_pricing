@@ -262,6 +262,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
         },
         getCurrentTab: function() {
             if (Object.keys(self.currentTabs).length > 0) {
+                console.log(self.staticUri + self.currentTabs[self.currentTab].template)
                 return self.staticUri + self.currentTabs[self.currentTab].template;
             }
         }

@@ -1,27 +1,21 @@
 <table class="table">
     <tr>
       <td></td>
-      <td></td>
-      <td>{{stats.allocationclient.serviceDivision.total}}%</td>
-      <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">+</button></td>
+      <td>{{stats.allocationclient.serviceExtraCost.total}}</td>
+      <td><button ng-click="addRow(stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-success">+</button></td>
     </tr>
-    <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
+    <tr ng-repeat="row in stats.allocationclient.serviceExtraCost.rows">
       <td>
-        <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.menus['service']">
-        </select>
+        <input ng-model="row.description" type="text" class="form-control" value="{{row.description}}">
       </td>
       <td>
-        <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
-        </select>
+        <input ng-model="row.value" ng-change="updateTotal('serviceExtraCost')" type="text" class="form-control" value="{{row.value}}">
       </td>
       <td>
-        <input ng-model="row.value" ng-change="updateTotal('serviceDivision')" type="text" class="form-control" value="{{row.value}}">
-      </td>
-      <td>
-        <button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">-</button>
+        <button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">-</button>
       </td>
     </tr>
 </table>
 <div>
-  <button ng-click="stats.saveAllocation('teamDivision')">Save</button>
+  <button ng-click="stats.saveAllocation('serviceExtraCost')">Save</button>
 </div>
