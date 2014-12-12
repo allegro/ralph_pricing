@@ -10,7 +10,10 @@ from django.contrib import admin
 from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import ugettext_lazy as _
-from lck.django.common.admin import ModelAdmin
+from lck.django.common.admin import (
+    ForeignKeyAutocompleteInlineMixin,
+    ModelAdmin,
+)
 from simple_history.admin import SimpleHistoryAdmin
 
 from ralph_scrooge import models
@@ -69,6 +72,20 @@ class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     readonly_when_update = ('tenant_id', )
 
 
+class VIPInfoInline(
+    UpdateReadonlyMixin,
+    ForeignKeyAutocompleteInlineMixin,
+    PricingObjectChildInlineBase
+):
+    model = models.VIPInfo
+    readonly_when_update = ('vip_id', )
+    fk_name = 'pricingobject_ptr'
+    related_search_fields = {
+        'ip_info': ['^name'],
+        'load_balancer': ['^name'],
+    }
+
+
 class PricingObjectTypeFilter(SimpleListFilter):
     """
     Hides dummy pricing object type on filter list
@@ -96,7 +113,12 @@ class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
     search_fields = ('name', 'service_environment__service__name', 'remarks',)
     list_filter = (PricingObjectTypeFilter,)
     filter_exclude = ['created_by', 'modified_by']
-    inlines = [AssetInfoInline, VirtualInfoInline, TenantInfoInline]
+    inlines = [
+        AssetInfoInline,
+        VirtualInfoInline,
+        TenantInfoInline,
+        VIPInfoInline,
+    ]
     # TODO: display inlines based on pricing object type
 
     def service(self, obj):

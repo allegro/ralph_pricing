@@ -57,6 +57,7 @@ class PRICING_OBJECT_TYPES(Choices):
     VIRTUAL = _("Virtual")
     TENANT = _("OpenStack Tenant")
     IP_ADDRESS = _("IP Address")
+    VIP = _("VIP")
     # dummy type to use in service environments where there is no real
     # pricing object; there should be only one pricing object with dummy type
     # for each service environment
@@ -371,6 +372,54 @@ class DailyTenantInfo(DailyPricingObject):
         blank=False,
         default=False,
         verbose_name=_("enabled"),
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
+class VIPInfo(PricingObject):
+    vip_id = db.IntegerField(unique=True, verbose_name=_("Ralph VIP ID"))
+    ip_info = db.ForeignKey(
+        PricingObject,
+        related_name='vip',
+        verbose_name=_("ip address"),
+    )
+    port = db.PositiveIntegerField(verbose_name=_("port"))
+    load_balancer = db.ForeignKey(
+        PricingObject,
+        null=True,
+        blank=True,
+        related_name='vips',
+        verbose_name=_('load')
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+    def get_daily_pricing_object(self, date):
+        try:
+            return self.daily_vips.get(date=date)
+        except DailyVIPInfo.DoesNotExist:
+            return DailyVIPInfo.objects.create(
+                pricing_object=self,
+                vip_info=self,
+                date=date,
+                service_environment=self.service_environment,
+                ip_info=self.ip_info,
+            )
+
+
+class DailyVIPInfo(DailyPricingObject):
+    vip_info = db.ForeignKey(
+        VIPInfo,
+        related_name='daily_vips',
+        verbose_name=_("VIP details"),
+    )
+    ip_info = db.ForeignKey(
+        PricingObject,
+        related_name='ip_daily_vips',
+        verbose_name=_("IP details"),
     )
 
     class Meta:

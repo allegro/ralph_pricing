@@ -46,7 +46,7 @@ def get_ssh_client_mock(address, login, password):
     return SshClientMock(
         stdout=[
             '',
-            '10.10.10.10 | 20.20.20.20 | 30',
+            '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 30',
             '',
             '',
             '',
@@ -88,38 +88,42 @@ class TestNetwork(TestCase):
                 'test-channel',
                 '2014-10-01',
                 ['file1', 'file2'],
-                'scrip',
+                'srcip',
+                settings.NFSEN_CLASS_ADDRESS,
             ),
             [u'1', u'2'],
         )
 
     @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
-    def test_extract_ip_and_bytes_when_input_output_is_scrip(self):
+    def test_extract_ip_and_bytes_when_input_output_is_srcip(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
-                '10.10.10.10 | 20.20.20.20 | 30',
-                'scrip',
+                '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 30',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
             ),
-            (u'10.10.10.10', 30)
+            (u'10.10.10.10', '80', 30)
         )
 
     @override_settings(NFSEN_CLASS_ADDRESS=['20.20.20.20'])
     def test_extract_ip_and_bytes_when_input_output_is_dstip(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
-                '10.10.10.10 | 20.20.20.20 | 30',
-                'dstip',
+                '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 30',
+                ['dst', 'dstip'],
+                settings.NFSEN_CLASS_ADDRESS,
             ),
-            (u'20.20.20.20', 30),
+            (u'20.20.20.20', '443', 30),
         )
 
     @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_bytes_format(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
-                '10.10.10.10 | 20.20.20.20 | 3000',
-                'scrip',
-            )[1],
+                '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 3000',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
+            )[-1],
             3000
         )
 
@@ -127,9 +131,10 @@ class TestNetwork(TestCase):
     def test_extract_ip_and_bytes_when_bytes_string_is_megabytes_format(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
-                '10.10.10.10 | 20.20.20.20 | 1 M',
-                'scrip',
-            )[1],
+                '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 1 M',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
+            )[-1],
             1048576
         )
 
@@ -137,9 +142,10 @@ class TestNetwork(TestCase):
     def test_extract_ip_and_bytes_when_bytes_string_is_gigabytes_format(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
-                '10.10.10.10 | 20.20.20.20 | 1 G',
-                'scrip',
-            )[1],
+                '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 1 G',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
+            )[-1],
             1073741824
         )
 
@@ -148,16 +154,18 @@ class TestNetwork(TestCase):
         self.assertRaises(
             netflow.UnknowDataFormatError,
             netflow.extract_ip_and_bytes,
-            row='10.10.10.10 | 20.20.20.20 | 1 X',
-            input_output='scrip',
+            row='10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 1 X',
+            input_output=['src', 'srcip'],
+            class_addresses=settings.NFSEN_CLASS_ADDRESS,
         )
 
     @override_settings(NFSEN_CLASS_ADDRESS=['30.30.30.30'])
     def test_extract_ip_and_bytes_when_ip_is_not_in_class_address(self):
         self.assertEqual(
             netflow.extract_ip_and_bytes(
-                '10.10.10.10 | 20.20.20.20 | 30',
-                'scrip',
+                '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 30',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
             ),
             None
         )
@@ -178,7 +186,8 @@ class TestNetwork(TestCase):
                 'test-channel',
                 '2014-10-01',
                 ['file1', 'file2'],
-                'scrip',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
             ),
             {}
         )
@@ -190,7 +199,7 @@ class TestNetwork(TestCase):
                 SshClientMock(
                     stdout=[
                         '',
-                        '10.10.10.10 | 20.20.20.20 | 30',
+                        '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 30',
                         '',
                         '',
                         '',
@@ -200,9 +209,10 @@ class TestNetwork(TestCase):
                 'test-channel',
                 '2014-10-01',
                 ['file1', 'file2'],
-                'scrip',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
             ),
-            {u'10.10.10.10': 30}
+            {('10.10.10.10', '80'): 30}
         )
 
     @patch.object(netflow, 'get_ssh_client', get_ssh_client_mock)
@@ -219,8 +229,11 @@ class TestNetwork(TestCase):
     )
     def test_get_network_usages(self):
         self.assertEqual(
-            netflow.get_network_usages('2014-10-01'),
-            {u'20.20.20.20': 30, u'10.10.10.10': 30},
+            netflow.get_network_usages(
+                '2014-10-01',
+                settings.NFSEN_CLASS_ADDRESS
+            ),
+            {('20.20.20.20', '443'): 30, ('10.10.10.10', '80'): 30},
         )
 
     def test_get_usages_type(self):
@@ -240,7 +253,7 @@ class TestNetwork(TestCase):
         )
         self.assertEqual(
             netflow.update(
-                {'8.8.8.8': 30},
+                {('8.8.8.8', '80'): 30},
                 netflow.get_usage_type(),
                 service_environment,
                 date(year=2014, month=1, day=1),

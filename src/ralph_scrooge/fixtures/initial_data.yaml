@@ -78,6 +78,13 @@
     icon_class: 'fa-sitemap'
 
 - model: ralph_scrooge.PricingObjectType
+  pk: 5
+  fields:
+    name: 'VIP'
+    color: '#9039E0'
+    icon_class: ''
+
+- model: ralph_scrooge.PricingObjectType
   pk: 254
   fields:
     name: 'Dummy'

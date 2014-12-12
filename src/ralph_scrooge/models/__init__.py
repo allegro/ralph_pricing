@@ -23,12 +23,14 @@ from ralph_scrooge.models.pricing_object import (
     DailyAssetInfo,
     DailyPricingObject,
     DailyTenantInfo,
+    DailyVIPInfo,
     DailyVirtualInfo,
     PricingObjectModel,
     PricingObjectType,
     PRICING_OBJECT_TYPES,
     PricingObject,
     TenantInfo,
+    VIPInfo,
     VirtualInfo,
 )
 
@@ -79,6 +81,7 @@ __all__ = [
     'DailyPricingObject',
     'DailyTenantInfo',
     'DailyUsage',
+    'DailyVIPInfo',
     'DailyVirtualInfo',
     'DynamicExtraCost',
     'DynamicExtraCostDivision',
@@ -111,6 +114,7 @@ __all__ = [
     'TenantInfo',
     'UsageType',
     'UsagePrice',
+    'VIPInfo',
     'VirtualInfo',
     'Warehouse',
 ]
