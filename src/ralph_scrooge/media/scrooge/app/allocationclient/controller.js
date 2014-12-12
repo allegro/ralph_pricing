@@ -42,6 +42,7 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
     };
     $scope.changeTab = function (tab) {
         stats.currentTab = tab;
+        //TODO:: what's with this? stats.refreshData();
     };
     $scope.stats.menuStats.subpage.change = 'allocationclient';
     $scope.stats.refreshData();

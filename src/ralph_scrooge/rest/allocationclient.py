@@ -340,7 +340,7 @@ class AllocationClientPerTeam(APIView):
             'teamDivision': {
                 'total': 50,
                 'name': 'Team division',
-                'rows': [{'team': 97, 'value': 50}],
-                'template': 'tabteamcost.html',
+                'rows': [{'team': 1, 'value': 50}],
+                'template': 'tabteamcosts.html',
             },
         })

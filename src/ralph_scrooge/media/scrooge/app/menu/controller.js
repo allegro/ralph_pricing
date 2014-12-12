@@ -11,8 +11,19 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
             }
         });
     });
+
+
+
+
+
+    $scope.changeLeftMenu = function (leftMenuName) {
+        stats.menuStats.leftMenu['change'] = leftMenuName;
+        stats.refreshData();
+    };
+
     $scope.changeTeam = function (team) {
-        if (stats.menuStats.team.current != team.team) {
+        console.log('team', team);
+        if (stats.menuStats.team.current != team.name) {
             stats.menuStats.team.change = team.id;
             stats.refreshData();
         }
@@ -25,8 +36,8 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
         }
 
         $scope.stats.currentSubMenu = obj;
-        if ($scope.stats.inArray($scope.stats.currentLeftMenu, $scope.stats.currentSubMenu.leftMenu) === false) {
-            $scope.stats.currentLeftMenu = $scope.stats.getFirstExistMenu();
+        if ($scope.stats.inArray($scope.stats.menuStats.leftMenu, $scope.stats.currentSubMenu.leftMenu) === false) {
+            $scope.stats.menuStats.leftMenu = $scope.stats.getFirstExistMenu();
         }
     };
 }]);

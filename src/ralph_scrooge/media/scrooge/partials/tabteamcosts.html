@@ -1,37 +1,25 @@
 <table class="table">
 
   <h1>team coast</h1>
-
-  TODO:: rm debug info
-   {{stats.allocationclient}}
-   <br>
-   {{stats.currentLeftMenu}}
-
-
     <tr>
       <td></td>
-      <td></td>
-      <td>{{stats.allocationclient.serviceDivision.total}}%</td>
+      <td>{{stats.currentTabs.teamDivision.total}}%</td>
 
-      <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">+</button></td>
+      <td><button ng-click="addRow(stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-success">+</button></td>
     </tr>
-    <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
+    <tr ng-repeat="row in stats.currentTabs.teamDivision.rows">
       <td>
-        <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
+        <select ng-model="row.team" class="form-control" ng-options="team.id as team.name for team in stats.leftMenus.teams">
         </select>
       </td>
       <td>
-        <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
-        </select>
+        <input ng-model="row.value" ng-change="updateTotal('teamDivision')" type="text" class="form-control" value="{{row.value}}">
       </td>
       <td>
-        <input ng-model="row.value" ng-change="updateTotal('serviceDivision')" type="text" class="form-control" value="{{row.value}}">
-      </td>
-      <td>
-        <button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">-</button>
+        <button ng-click="removeRow($index, stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-danger">-</button>
       </td>
     </tr>
 </table>
 <div>
-  <button ng-click="stats.saveAllocation('serviceDivision')">Save</button>
+  <button ng-click="stats.saveAllocation('teamDivision')">Save</button>
 </div>
