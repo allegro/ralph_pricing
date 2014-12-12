@@ -2,6 +2,42 @@
 
 var scrooge = angular.module('scrooge.service', ['ngResource']);
 
+var allocationHelper = {
+    'baseUrl': '/scrooge/rest/allocateclient',
+
+    'getTeamsUrlChunks': function (menuStats) {
+        var urlChunks = [
+            this.baseUrl,
+            menuStats.teams.current,
+            menuStats.year.current,
+            menuStats.month.current
+        ];
+        return urlChunks;
+    },
+    'getServicesUrlChunks': function (menuStats) {
+        var urlChunks = [
+            this.baseUrl,
+            menuStats.service.current,
+            menuStats.env.current,
+            menuStats.year.current,
+            menuStats.month.current
+        ];
+        return urlChunks;
+    },
+    'getUrl': function (menuType, menuStats) {
+        var urlChunks;
+        if (menuType === 'services') {
+            urlChunks = this.getServicesUrlChunks(menuStats);
+        } else if (menuType === 'teams') {
+            urlChunks = this.getTeamsUrlChunks(menuStats);
+        } else {
+            throw "Unknown menuType passed to fn getUrl";
+        }
+        return urlChunks.join('/');
+    }
+};
+
+
 scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
     return {
         staticUri: '/static/scrooge/partials/',
@@ -120,19 +156,14 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             });
         },
         getAllocationClientData: function () {
-            /**
+            /*
              * Load allocation data
              */
-            var url_chunks = [
-                '/scrooge/rest/allocateclient',
-                self.menuStats['service']['current'],
-                self.menuStats['env']['current'],
-                self.menuStats['year']['current'],
-                self.menuStats['month']['current'],
-            ];
             $http({
                 method: 'GET',
-                url: url_chunks.join('/')
+                url: allocationHelper.getUrl(
+                    self.currentLeftMenu, self.menuStats
+                )
             })
             .success(function(data) {
                 if (data) {

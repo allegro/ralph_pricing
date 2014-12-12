@@ -309,6 +309,8 @@ def allocation_save(request, *args, **kwargs):
 
 
 
+
+#TODO:: rename it to AllocationClientPerService
 class AllocationClientContent(APIView):
     def get(self, request, service, env, year, month, format=None):
         return Response({
@@ -328,4 +330,16 @@ class AllocationClientContent(APIView):
             #    'rows': [{'extra_cost': 4, 'value': 400}],
             #    'template': 'tabextracosts.html',
             #},
+        })
+
+
+class AllocationClientPerTeam(APIView):
+    def get(self, request, team, year, month, format=None):
+        return Response({
+            'teamDivision': {
+                'total': 50,
+                'name': 'Team division',
+                'rows': [{'team': 97, 'value': 50}],
+                'template': 'tabteamcost.html',
+            },
         })

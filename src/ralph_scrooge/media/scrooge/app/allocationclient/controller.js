@@ -10,9 +10,6 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
     stats.refreshCurrentSubpage = function () {
         stats.getAllocationClientData();
     };
-
-
-
     $scope.addRow = function (costList) {
         costList.push({'service': false, 'value': 0});
     };
@@ -48,17 +45,6 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
     $scope.changeTab = function (tab) {
         stats.currentTab = tab;
     };
-    $scope.changeTeam = function (team) {
-        if (stats.menuStats.team.current != team.team) {
-            stats.menuStats.team.change = team.id;
-            stats.refreshData();
-        }
-    };
-
-
-
-
-
     $scope.stats.menuStats.subpage.change = 'allocationclient';
     $scope.stats.refreshData();
 }]);

@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.menu', ['scrooge.service']);
 
-scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'SubMenu', function ($scope, $location, SubMenu) {
+scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', function ($scope, $location, stats, SubMenu) {
     $scope.stats.subMenus = SubMenu.items.get();
     $scope.stats.subMenus.$promise.then(function (subMenus) {
         subMenus.forEach(function (element) {
@@ -11,6 +11,12 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'SubMenu', function ($
             }
         });
     });
+    $scope.changeTeam = function (team) {
+        if (stats.menuStats.team.current != team.team) {
+            stats.menuStats.team.change = team.id;
+            stats.refreshData();
+        }
+    };
     $scope.setActive = function(obj) {
         if (obj.href.charAt(0) == '#') {
             $location.path(obj.href.slice(1));
