@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.allocationclient', []);
 
-scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', '$http', 'stats', function ($scope, $routeParams, $http, menuService, menuCalendar, stats) {
+scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', 'menuService', 'menuCalendar', 'stats', function ($scope, $routeParams, $http, menuService, menuCalendar, stats) {
     stats.breadcrumbs = ['service', 'env', 'tab'];
     if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Allocations';
@@ -10,10 +10,9 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuServi
     stats.refreshCurrentSubpage = function () {
         stats.getAllocationClientData();
     };
-    $scope.stats.menuStats.subpage.change = 'allocationclient';
-    $scope.stats.refreshData();
 
-    /*
+
+
     $scope.addRow = function (costList) {
         costList.push({'service': false, 'value': 0});
     };
@@ -30,6 +29,8 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuServi
                 if (element.service === false || element.env === false) {
                     save = false;
                 }
+                count += parseInt(element.value, 10);
+                console.log(count)
             });
             scope.total = count;
         };
@@ -53,5 +54,11 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', 'menuServi
             stats.refreshData();
         }
     };
-    */
+
+
+
+
+
+    $scope.stats.menuStats.subpage.change = 'allocationclient';
+    $scope.stats.refreshData();
 }]);

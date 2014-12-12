@@ -35,6 +35,7 @@ class SubMenu(APIView):
             {
                 'name': 'Allocations',
                 'href': '#/allocation/client/',
+                'calendarMenu': ['year', 'month'],
                 'leftMenu': ['services', 'teams'],
             },
         ]
