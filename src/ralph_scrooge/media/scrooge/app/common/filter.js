@@ -6,18 +6,22 @@ scrooge.filter('breadcrumbs', ['stats', function(stats) {
     return function(input, scope) {
         switch(scope) {
             case 'env':
-                for (var i in stats.leftMenus[stats.currentLeftMenu]) {
-                    for (var k in stats.leftMenus[stats.menuStats.leftMenu][i].value.envs) {
-                        if (stats.leftMenus[stats.menuStats.leftMenu][i].value.envs[k].id == input) {
-                            return stats.leftMenus[stats.menuStats.leftMenu][i].value.envs[k].name;
+              var currentLeftMenu = stats.menuStats.leftMenu.current;
+                for (var menuIdx in stats.leftMenus[currentLeftMenu]) {
+                    var envsOfService = stats.leftMenus[currentLeftMenu][menuIdx].value.envs
+                    for (var envIdx in envsOfService) {
+                        if (envsOfService[envIdx].id == input) {
+                            return envsOfService[envIdx].name;
                         }
                     }
                 }
                 break;
             case 'service':
-                for (var j in stats.leftMenus[stats.menuStats.leftMenu]) {
-                    if (stats.leftMenus[stats.menuStats.leftMenu][j].id == input) {
-                        return stats.leftMenus[stats.menuStats.leftMenu][j].name;
+                var currentLeftMenu = stats.menuStats.leftMenu['current'];
+                for (var menuIdx in stats.leftMenus[currentLeftMenu]) {
+                    var menuItem = stats.leftMenus[currentLeftMenu][menuIdx];
+                    if (menuItem.id == input) {
+                        return menuItem.name;
                     }
                 }
                 break;
