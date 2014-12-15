@@ -26,7 +26,6 @@ var allocationHelper = {
     },
     'getUrl': function (menuType, menuStats) {
         var urlChunks;
-        console.log('menustats', menuStats, menuType);
         if (menuType === 'services') {
             urlChunks = this.getServicesUrlChunks(menuStats);
         } else if (menuType === 'teams') {
@@ -294,7 +293,6 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
         },
         getCurrentTab: function() {
             if (Object.keys(self.currentTabs).length > 0) {
-                console.log('currenttabs', self.currentTabs, self.currentTab);
                 return self.staticUri + self.currentTabs[self.currentTab].template;
             }
         }

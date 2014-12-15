@@ -295,22 +295,6 @@ def allocation_save(request, *args, **kwargs):
     return {'status': True}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#TODO:: rename it to AllocationClientPerService
 class AllocationClientContent(APIView):
     def get(self, request, service, env, year, month, format=None):
         return Response({

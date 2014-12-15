@@ -27,7 +27,6 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
             obj.total = count;
         };
         var rows_with_data = self.currentTabs[tab];
-        console.log('rows_with_data', rows_with_data);
         if (typeof rows_with_data !== 'undefined') {
           _updateTotal(rows_with_data);
         }

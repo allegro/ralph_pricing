@@ -17,7 +17,6 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
     };
 
     $scope.changeTeam = function (team) {
-        console.log('team', team);
         if (stats.menuStats.team.current != team.name) {
             stats.menuStats.team.change = team.id;
             stats.refreshData();
