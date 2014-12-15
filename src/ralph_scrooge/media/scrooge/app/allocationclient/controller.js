@@ -19,16 +19,16 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
         }
     };
     $scope.updateTotal = function (tab) {
-        var _updateTotal = function (obj) {
+        var rows_with_data, _updateTotal = function (obj) {
             var count = 0;
             obj.rows.forEach(function (element) {
-                count += parseFloat(element.value);
+                count += parseFloat(element.value, 10);
             });
-            obj.total = count;
+            obj.total = isNaN(count) ? '' : count;
         };
-        var rows_with_data = self.currentTabs[tab];
+        rows_with_data = stats.currentTabs[tab];
         if (typeof rows_with_data !== 'undefined') {
-          _updateTotal(rows_with_data);
+            _updateTotal(rows_with_data);
         }
     };
     $scope.changeTab = function (tab) {
