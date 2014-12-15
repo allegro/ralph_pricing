@@ -25,6 +25,12 @@ scrooge.filter('breadcrumbs', ['stats', function(stats) {
                     }
                 }
                 break;
+            case 'tab':
+                var tabObj = stats.currentTabs[stats.currentTab];
+                if (tabObj) {
+                    return tabObj.name;
+                }
+                break;
             default:
                 return false;
         }
