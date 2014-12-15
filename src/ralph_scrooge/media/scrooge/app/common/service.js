@@ -24,14 +24,14 @@ var allocationHelper = {
         ];
         return urlChunks;
     },
-    'getUrl': function (menuType, menuStats) {
+    'getUrl': function (leftMenu, menuStats) {
         var urlChunks;
-        if (menuType === 'services') {
+        if (leftMenu === 'services') {
             urlChunks = this.getServicesUrlChunks(menuStats);
-        } else if (menuType === 'teams') {
+        } else if (leftMenu === 'teams') {
             urlChunks = this.getTeamsUrlChunks(menuStats);
         } else {
-            throw "Unknown menuType passed to fn getUrl";
+            throw "Unknown leftMenu passed to fn getUrl";
         }
         return urlChunks.join('/');
     }

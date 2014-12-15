@@ -36,7 +36,7 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
 
         $scope.stats.currentSubMenu = obj;
         if ($scope.stats.inArray($scope.stats.menuStats.leftMenu, $scope.stats.currentSubMenu.leftMenu) === false) {
-            $scope.stats.menuStats.leftMenu = $scope.stats.getFirstExistMenu();
+            $scope.stats.menuStats.leftMenu.current = $scope.stats.getFirstExistMenu();
         }
     };
 }]);
