@@ -177,7 +177,8 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                         }
                     });
                     self.currentTabs = self.allocationclient.data;
-                    self.currentTab = Object.keys(self.allocationclient.data)[0];
+                    var tabs = Object.keys(self.allocationclient.data);
+                    self.currentTab = tabs[tabs.length - 1];
                 }
             });
         },

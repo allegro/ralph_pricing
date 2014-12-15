@@ -26,23 +26,14 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
             });
             obj.total = count;
         };
-        switch(tab) {
-            case 'serviceDivision':
-                _updateTotal(stats.allocationclient.serviceDivision);
-                break;
-            case 'serviceExtraCost':
-                _updateTotal(stats.allocationclient.serviceExtraCost);
-                break;
-            case 'teamDivision':
-                _updateTotal(stats.allocationclient.teamDivision);
-                break;
-            default:
-                break;
+        var rows_with_data = self.currentTabs[tab];
+        console.log('rows_with_data', rows_with_data);
+        if (typeof rows_with_data !== 'undefined') {
+          _updateTotal(rows_with_data);
         }
     };
     $scope.changeTab = function (tab) {
         stats.currentTab = tab;
-        //TODO:: what's with this? stats.refreshData();
     };
     $scope.stats.menuStats.subpage.change = 'allocationclient';
     $scope.stats.refreshData();

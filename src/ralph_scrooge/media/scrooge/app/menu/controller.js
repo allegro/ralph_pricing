@@ -11,13 +11,8 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
             }
         });
     });
-
-
-
-
-
     $scope.changeLeftMenu = function (leftMenuName) {
-        stats.menuStats.leftMenu['change'] = leftMenuName;
+        stats.menuStats.leftMenu.change = leftMenuName;
         stats.refreshData();
     };
 
