@@ -25,6 +25,16 @@ scrooge.filter('breadcrumbs', ['stats', function(stats) {
                     }
                 }
                 break;
+            case 'teams':
+                for (var teamIdx in stats.leftMenus.teams) {
+                    var teamObj = stats.leftMenus.teams[teamIdx];
+                    console.log('team', teamIdx, stats.leftMenus.teams, teamObj)
+                    console.log(teamObj.id, stats.menuStats.team.current);
+                    if (teamObj.id === stats.menuStats.team.current) {
+                        return teamObj.name;
+                    }
+                }
+                break;
             case 'tab':
                 var tabObj = stats.currentTabs[stats.currentTab];
                 if (tabObj) {
