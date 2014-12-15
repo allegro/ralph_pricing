@@ -3,7 +3,7 @@
 var scrooge = angular.module('scrooge.controller.allocationclient', []);
 
 scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', 'menuService', 'menuCalendar', 'stats', function ($scope, $routeParams, $http, menuService, menuCalendar, stats) {
-    stats.breadcrumbs = ['service', 'env', 'tab'];
+    stats.breadcrumbs = ['tab', 'service', 'env'];
     if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Allocations';
     }

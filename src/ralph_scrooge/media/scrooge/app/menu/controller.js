@@ -15,10 +15,10 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
         stats.menuStats.leftMenu.change = leftMenuName;
         stats.refreshData();
         if (leftMenuName === 'services') {
-            stats.breadcrumbs = ['service', 'env', 'tab'];
+            stats.breadcrumbs = ['tab', 'service', 'env'];
         }
         else if (leftMenuName === 'teams') {
-            stats.breadcrumbs = ['teams', 'tab'];
+            stats.breadcrumbs = ['tab', 'teams'];
         }
     };
     $scope.changeTeam = function (team) {
