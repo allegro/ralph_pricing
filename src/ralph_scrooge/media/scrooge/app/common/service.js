@@ -238,14 +238,14 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             var data = {};
             switch(tab) {
                 case 'serviceDivision':
-                    url = '/scrooge/allocateclient/servicedivision/save/';
+                    url = '/scrooge/rest/allocateclient/service/servicedivision/save/';
                     data = {
                         'service': self.menuStats['service']['current'],
                         'rows': self.currentTabs.serviceDivision.rows,
                     };
                     break;
                 case 'serviceExtraCost':
-                    url = '/scrooge/allocateclient/serviceextracost/save/';
+                    url = '/scrooge/rest/allocateclient/service/serviceextracost/save/';
                     data = {
                         'service': self.menuStats['service']['current'],
                         'env': self.menuStats['env']['current'],
@@ -253,7 +253,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                     };
                     break;
                 case 'teamDivision':
-                    url = '/scrooge/allocateclient/teamdivision/save/';
+                    url = '/scrooge/rest/allocateclient/team/teamdivision/save/';
                     data = {
                         'team': self.menuStats['team']['current'],
                         'rows': self.currentTabs.teamDivision.rows,

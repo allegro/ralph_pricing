@@ -4,7 +4,7 @@ from ralph_scrooge.rest.allocationadmin import (
     AllocationAdminContent,
 )
 from ralph_scrooge.rest.allocationclient import (
-    AllocationClientDivision,
+    AllocationClientService,
     AllocationClientPerTeam,
     allocation_content,
     allocation_save,
@@ -15,7 +15,7 @@ from ralph_scrooge.rest.costcard import (
 
 __all__ = [
     'AllocationAdminContent',
-    'AllocationClientDivision',
+    'AllocationClientService',
     'AllocationClientPerTeam',
     'allocation_save',
     'components_content',

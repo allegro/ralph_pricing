@@ -1,7 +1,5 @@
-
 /* Make clicks pass-through */
 #loading-bar,
-<<<<<<< HEAD
 #loading-bar-spinner {
   -webkit-transition: 150ms linear all;
      -moz-transition: 150ms linear all;

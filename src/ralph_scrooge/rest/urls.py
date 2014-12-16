@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 
 from ralph_scrooge.rest import (
     AllocationAdminContent,
-    AllocationClientDivision,
+    AllocationClientService,
     AllocationClientPerTeam,
     CostCardContent,
     allocation_save,
@@ -29,19 +29,19 @@ urlpatterns = patterns(
     ),
     url(
         r'^allocateclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
-        AllocationClientDivision.as_view(),
+        AllocationClientService.as_view(),
     ),
     url(
         r'^allocateclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',
         AllocationClientPerTeam.as_view(),
     ),
     url(
-        r'^allocateclient/(?P<service>\d+|false)/(?P<env>\d+|false)/(?P<team>\d+|false)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
-        allocation_content,
+        r'^allocateclient/service/(?P<allocate_type>\S+)/save/$',
+        AllocationClientService.as_view(),
     ),
     url(
-        r'^allocateclient/(?P<allocate_type>\S+)/save/$',
-        login_required(allocation_save),
+        r'^allocateclient/team/(?P<allocate_type>\S+)/save/$',
+        AllocationClientPerTeam.as_view(),
     ),
     url(
         r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa

@@ -6,7 +6,7 @@
     </tr>
     <tr ng-repeat="row in stats.currentTabs.serviceExtraCost.rows">
       <td>
-        <input ng-model="row.description" type="text" class="form-control" value="{{row.description}}">
+        <input ng-model="row.remarks" type="text" class="form-control" value="{{row.remarks}}">
       </td>
       <td>
         <input ng-model="row.value" ng-change="updateTotal('serviceExtraCost')" type="text" class="form-control col-xs-1" value="{{row.value}}">
