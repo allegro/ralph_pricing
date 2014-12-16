@@ -107,6 +107,7 @@ class AllocationClientService(APIView):
                 environment__id=env,
             )
         )
+        total = 0
         rows = []
         for extra_cost in extra_costs:
             rows.append({
@@ -115,13 +116,14 @@ class AllocationClientService(APIView):
                 "value": extra_cost.cost,
                 "remarks": extra_cost.remarks,
             })
+            total += extra_cost.cost
         extra_cost_types = []
         for extra_cost_type in ExtraCostType.objects.all():
             extra_cost_types.append({
                 "name": extra_cost_type.name,
                 "id": extra_cost_type.id
             })
-        return rows, 999
+        return rows, total
 
 
     def _clear_daily_usages(

@@ -14,8 +14,6 @@ from ralph_scrooge.rest import (
     AllocationClientService,
     AllocationClientPerTeam,
     CostCardContent,
-    allocation_save,
-    allocation_content,
 )
 
 from ralph_scrooge.rest.menu import SubMenu
