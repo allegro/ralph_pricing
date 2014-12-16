@@ -1,18 +1,20 @@
 <table class="table">
+<tr>
+<thead>
+<th>Cost description</th>
+<th>Cost value(PLN)</th>
+</thead>
+</tr>
+<tbody>
+    <tr class="additional-row-header">
+      <th></th>
+      <th></th>
+      <th ng-class="stats.allocationclient.serviceDivision.total==100 ? 'green' : 'red'" class="col-xs-2 total">
+      <label for="total">Total:</label>
+      {{stats.allocationclient.serviceDivision.total}}%</th>
+      <th class="col-xs-1 action-col">
 
-
-  TODO:: rm debug info
-   {{stats.allocationclient}}
-   <br>
-   {{stats.currentLeftMenu}}
-
-
-    <tr>
-      <td></td>
-      <td></td>
-      <td>{{stats.allocationclient.serviceDivision.total}}%</td>
-
-      <td><button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">+</button></td>
+      <button ng-click="addRow(stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-success">+</button></th>
     </tr>
     <tr ng-repeat="row in stats.allocationclient.serviceDivision.rows">
       <td>
@@ -24,13 +26,18 @@
         </select>
       </td>
       <td>
-        <input ng-model="row.value" ng-change="updateTotal('serviceDivision')" type="text" class="form-control" value="{{row.value}}">
+
+        <input ng-model="row.value" ng-change="updateTotal('serviceDivision')" type="text" class="form-control" value="{{row.value}}"> %
       </td>
-      <td>
+      <td class="action-col">
         <button ng-click="removeRow($index, stats.allocationclient.serviceDivision.rows)" type="button" class="btn btn-danger">-</button>
       </td>
     </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td class="action-col"><button ng-click="stats.saveAllocation('serviceDivision')" class="btn btn-success allocation-save">Save</button></td>
+    </tr>
+    </tbody>
 </table>
-<div>
-  <button ng-click="stats.saveAllocation('serviceDivision')">Save</button>
-</div>

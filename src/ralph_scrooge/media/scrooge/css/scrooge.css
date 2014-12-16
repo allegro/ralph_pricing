@@ -59,9 +59,30 @@ a {
     background-color: transparent;
     color: #fff;
 }
+.nav.nav-tabs.allocation-tabs li a {
+    color: #555;
+    border-radius: 8px 8px 0 0;
+}
 .nav.nav-tabs.nav-submenu li.active a {
     color: #fff;
     background-color: rgba(255,255,255,0.3);
+}
+.nav.nav-tabs.allocation-tabs li.active a {
+    background-color: #7A868F;
+    color: #fff;
+}
+.action-col {
+    text-align: center;
+}
+.action-col button {
+    border-radius: 4px;
+    min-width: 35px;
+}
+.table {
+    border-bottom: 0px;
+}
+.table .ng-scope td {
+    border: 0px;
 }
 .sidebar .nav.nav-tabs.teams-menu ul {
     margin-top:10px;
@@ -334,4 +355,26 @@ div.blocked {
 
 .date-choice {
     padding: 10px 0px 20px 0px;
+}
+.allocation-tabs input {
+    border-radius: 4px;
+    text-align: center;
+}
+
+.allocation-tabs tr th {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.allocation-tabs .total {
+    margin: auto;
+    font-size: 24px;
+}
+
+.green {
+    color: green;
+}
+
+.red {
+    color: red;
 }
