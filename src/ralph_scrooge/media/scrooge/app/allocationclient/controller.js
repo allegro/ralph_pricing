@@ -14,7 +14,7 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
         costList.push({'service': false, 'value': 0});
     };
     $scope.removeRow = function (index, currentList) {
-        if (currentList.length >=2) {
+        if (currentList.length >= 2) {
             currentList.splice(index, 1);
         }
     };

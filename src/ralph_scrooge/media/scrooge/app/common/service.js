@@ -43,7 +43,6 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
         staticUri: '/static/scrooge/partials/',
         cancelerDeferers: [],
         currentSubMenu: false,
-        //currentLeftMenu: false,
         currentTab: false,
         currentTabs: {},
         menuReady: false,
@@ -90,7 +89,9 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                     Object.keys(data['menuStats']).forEach(function (key){
                         self.menuStats[key] = data['menuStats'][key];
                     });
+                    console.log('leftmenu', self.leftMenus)
                     self.leftMenus = data['menus'];
+                    console.log('leftmenu', self.leftMenus)
                     self.dates = data['dates'];
                     self.menuStats.leftMenu['change'] = Object.keys(self.leftMenus)[0];
                     self.refreshData();
@@ -284,8 +285,10 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             self.currentTab = tab;
         },
         getFirstExistMenu: function () {
+            console.log('leftmenus', self.leftMenus);
             for (var i in self.leftMenus) {
                 if (self.inArray(i, self.currentSubMenu.leftMenu) === true) {
+                    console.log('got leftmenu', i);
                     return i;
                 }
             }

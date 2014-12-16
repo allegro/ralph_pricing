@@ -13,13 +13,13 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
     });
     $scope.changeLeftMenu = function (leftMenuName) {
         stats.menuStats.leftMenu.change = leftMenuName;
-        stats.refreshData();
         if (leftMenuName === 'services') {
             stats.breadcrumbs = ['tab', 'service', 'env'];
         }
         else if (leftMenuName === 'teams') {
             stats.breadcrumbs = ['tab', 'teams'];
         }
+        stats.refreshData();
     };
     $scope.changeTeam = function (team) {
         if (stats.menuStats.team.current != team.name) {
@@ -36,7 +36,9 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
 
         $scope.stats.currentSubMenu = obj;
         if ($scope.stats.inArray($scope.stats.menuStats.leftMenu, $scope.stats.currentSubMenu.leftMenu) === false) {
-            $scope.stats.menuStats.leftMenu.current = $scope.stats.getFirstExistMenu();
+            var leftMenu = $scope.stats.getFirstExistMenu();
+            $scope.stats.menuStats.leftMenu.current = leftMenu;
+            $scope.changeLeftMenu(leftMenu);
         }
     };
 }]);
