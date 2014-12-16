@@ -9,13 +9,7 @@ from __future__ import unicode_literals
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-
-
-
-
-
 import json
-
 
 from datetime import date, timedelta
 
@@ -28,6 +22,7 @@ from ralph_scrooge.models import (
     ExtraCost,
     ExtraCostType,
     PricingObject,
+    PricingService,
     DailyPricingObject,
     PRICING_OBJECT_TYPES,
     Service,
@@ -36,50 +31,9 @@ from ralph_scrooge.models import (
     Team,
     TeamCost,
     TeamServiceEnvironmentPercent,
+    UsageType,
 )
 from ralph.util.views import jsonify
-
-
-def _get_service_usage_type(service):
-    return ServiceUsageTypes.objects.get(
-        pricing_service__services__id=service
-    )
-
-
-def _get_service_divison(service, year, month):
-    service_obj = Service.objects.get(id=service)
-    results = {"key": "serviceDivision", "disabled": False}
-    if not service_obj.manually_allocate_costs:
-        results['value'] = {"disabled": True, "rows": []}
-        return results
-    total = 0
-    service_usage_type = _get_service_usage_type(service)
-    first_day = date(int(year), int(month), 1)
-    daily_pricing_object = PricingObject.objects.filter(
-        service_environment__service=service_obj,
-        type=PRICING_OBJECT_TYPES.DUMMY,
-    )[0].get_daily_pricing_object(first_day)
-    rows = []
-    for daily_usage in DailyUsage.objects.filter(
-        date=first_day,
-        daily_pricing_object=daily_pricing_object,
-        type=service_usage_type.usage_type,
-    ).select_related(
-        "service_environment",
-        "service_environment__service",
-        "service_environment__environment",
-    ):
-        rows.append({
-            "service": daily_usage.service_environment.service.id,
-            "env": daily_usage.service_environment.environment.id,
-            "value": daily_usage.value
-        })
-        total += daily_usage.value
-    results['value'] = {
-        "rows": rows,
-        "total": total,
-    }
-    return results
 
 
 def _get_team_divison(team, start, end):
@@ -107,38 +61,6 @@ def _get_team_divison(team, start, end):
             "rows": rows,
             "total": total,
         },
-    }
-
-
-def _get_service_extra_cost(service, env, start, end):
-    extra_costs = ExtraCost.objects.filter(
-        start=start,
-        end=end,
-        service_environment=ServiceEnvironment.objects.get(
-            service__id=service,
-            environment__id=env,
-        )
-    )
-    rows = []
-    for extra_cost in extra_costs:
-        rows.append({
-            "id": extra_cost.id,
-            "type": extra_cost.extra_cost_type.id,
-            "value": extra_cost.cost,
-            "remarks": extra_cost.remarks,
-        })
-    extra_cost_types = []
-    for extra_cost_type in ExtraCostType.objects.all():
-        extra_cost_types.append({
-            "name": extra_cost_type.name,
-            "id": extra_cost_type.id
-        })
-    return {
-        "key": "serviceExtraCost",
-        "extra_cost_types": extra_cost_types,
-        "value": {
-            "rows": rows,
-        }
     }
 
 
@@ -201,9 +123,6 @@ def _clear_daily_usages(
 @jsonify
 @require_http_methods(["POST"])
 def allocation_save(request, *args, **kwargs):
-    # mock :p
-    return {'status': True}
-
     post_data = json.loads(request.raw_post_data)
     first_day, last_day, days_in_month = get_dates(
         post_data['year'],
@@ -304,11 +223,6 @@ class AllocationClientContent(APIView):
                 'rows': [{'service': 97, 'env': 1, 'value': 100}],
                 'template': 'tabservicedivision.html',
             },
-            #'teamcosts': {
-            #    'name': 'Team Costs',
-            #    'rows': team_costs,
-            #    'template': 'tabteamcosts.html',
-            #},
             'serviceExtraCost': {
                 'total': 400,
                 'name': 'Extra Costs',
@@ -316,6 +230,135 @@ class AllocationClientContent(APIView):
                 'template': 'tabextracosts.html',
             },
         })
+
+
+class AllocationClientDivision(APIView):
+    def _get_service_usage_type(self, service):
+        service = Service.objects.get(id=service)
+        try:
+            pricing_service = PricingService.objects.get(services=service)
+        except:
+            pricing_service = PricingService.objects.create(
+                name=service.name + '_pricing_service',
+                symbol=(
+                    service.symbol or
+                    service.name.lower().replace(' ', '_') + '_pricing_service'
+                )
+            )
+            pricing_service.services.add(service)
+
+        try:
+            service_usage_type = ServiceUsageTypes.objects.get(
+                pricing_service=pricing_service,
+            )
+        except:
+            usage_type = UsageType.objects.create(
+                name=service.name + '_usage_type',
+                symbol=(
+                    service.symbol or
+                    service.name.lower().replace(' ', '_') + '_usage_type'
+                ),
+            )
+            service_usage_type = ServiceUsageTypes.objects.create(
+                usage_type=usage_type,
+                pricing_service=pricing_service,
+            )
+
+        return service_usage_type
+
+    def _get_service_divison(self, service, year, month, first_day):
+        service_obj = Service.objects.get(id=service)
+        service_usage_type = self._get_service_usage_type(service)
+        daily_pricing_object = PricingObject.objects.filter(
+            service_environment__service=service_obj,
+            type=PRICING_OBJECT_TYPES.DUMMY,
+        )[0].get_daily_pricing_object(first_day)
+
+        rows = []
+        total = 0
+        for daily_usage in DailyUsage.objects.filter(
+            date=first_day,
+            daily_pricing_object=daily_pricing_object,
+            type=service_usage_type.usage_type,
+        ).select_related(
+            "service_environment",
+            "service_environment__service",
+            "service_environment__environment",
+        ):
+            rows.append({
+                "service": daily_usage.service_environment.service.id,
+                "env": daily_usage.service_environment.environment.id,
+                "value": daily_usage.value
+            })
+            total += daily_usage.value
+
+        return rows, total
+
+
+    def _get_service_extra_cost(self, service, env, start, end):
+        extra_costs = ExtraCost.objects.filter(
+            start=start,
+            end=end,
+            service_environment=ServiceEnvironment.objects.get(
+                service__id=service,
+                environment__id=env,
+            )
+        )
+        rows = []
+        for extra_cost in extra_costs:
+            rows.append({
+                "id": extra_cost.id,
+                "type": extra_cost.extra_cost_type.id,
+                "value": extra_cost.cost,
+                "remarks": extra_cost.remarks,
+            })
+        extra_cost_types = []
+        for extra_cost_type in ExtraCostType.objects.all():
+            extra_cost_types.append({
+                "name": extra_cost_type.name,
+                "id": extra_cost_type.id
+            })
+        return rows, 999
+
+    def get(self, request, *args, **kwargs):
+        first_day, last_day, days_in_month = get_dates(
+            kwargs.get('year'),
+            kwargs.get('month')
+        )
+        division_rows, division_total = self._get_service_divison(
+            kwargs.get('service'),
+            kwargs.get('year'),
+            kwargs.get('month'),
+            first_day,
+        )
+        extracost_rows, extracost_total = self._get_service_extra_cost(
+            kwargs.get('service'),
+            kwargs.get('env'),
+            first_day,
+            last_day,
+        )
+        return Response({
+            "serviceDivision": {
+                "name": "Service Devision",
+                "template": "tabservicedivision.html",
+                "rows": division_rows,
+                "total": division_total,
+            },
+            "serviceExtraCost": {
+                "name": "Extra Cost",
+                "template": "tabextracosts.html",
+                "rows": extracost_rows,
+                "total": extracost_total,
+            },
+        })
+        # if kwargs.get('team'):
+        #     results.append(
+        #         _get_team_divison(
+        #             kwargs.get('team'),
+        #             first_day,
+        #             last_day,
+        #         )
+        #     )
 
 
 class AllocationClientPerTeam(APIView):
