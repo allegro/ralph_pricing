@@ -60,6 +60,7 @@ def left_menu(request, *args, **kwargs):
     menuStats = {
         "service": {"current": False, "change": False},
         "env": {"current": False, "change": False},
+        "team": {"current": False, "change": False},
         "year": {"current": False, "change": date_generated[-1].year},
         "month": {
             "current": False,
@@ -73,7 +74,7 @@ def left_menu(request, *args, **kwargs):
 
     menu = OrderedDict()
     for i, service_environment in enumerate(service_environments):
-        if i <= 1:
+        if i == 0:
             menuStats['service']['change'] = service_environment.service.id
             menuStats['env']['change'] = service_environment.environment.id
         if (service_environment.service not in menu):
@@ -89,11 +90,14 @@ def left_menu(request, *args, **kwargs):
         results['menus']['services'].append(
             {"id": row.id, "name": row.name, "value": menu[row]}
         )
+
     results['menus']['teams'] = []
-    for row in Team.objects.all():
+    for i, team in enumerate(Team.objects.all()):
+        if i == 0:
+            menuStats['team']['change'] = team.id
         results['menus']['teams'].append({
-            "id": row.id,
-            "name": row.name,
+            "id": team.id,
+            "name": team.name,
             "value": {}
         })
     results['menuStats'] = menuStats

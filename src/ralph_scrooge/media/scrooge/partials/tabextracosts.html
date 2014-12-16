@@ -1,10 +1,10 @@
 <table class="table">
     <tr class="additional-row-header">
       <th></th>
-      <th class="col-xs-2 total">{{stats.allocationclient.serviceExtraCost.total}} <span>PLN</span></th>
-      <th class="col-xs-1 action-col"><button ng-click="addRow(stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-success">+</button></th>
+      <th class="col-xs-2 total">{{stats.currentTabs.serviceExtraCost.total}} <span>PLN</span></th>
+      <th class="col-xs-1 action-col"><button ng-click="addRow(stats.currentTabs.serviceExtraCost.rows)" type="button" class="btn btn-success">+</button></th>
     </tr>
-    <tr ng-repeat="row in stats.allocationclient.serviceExtraCost.rows">
+    <tr ng-repeat="row in stats.currentTabs.serviceExtraCost.rows">
       <td>
         <input ng-model="row.description" type="text" class="form-control" value="{{row.description}}">
       </td>
@@ -13,7 +13,7 @@
         <div>PLN</div>
       </td>
       <td class="action-col">
-        <button ng-click="removeRow($index, stats.allocationclient.serviceExtraCost.rows)" type="button" class="btn btn-danger">-</button>
+        <button ng-click="removeRow($index, stats.currentTabs.serviceExtraCost.rows)" type="button" class="btn btn-danger">-</button>
       </td>
     </tr>
     <tr>
