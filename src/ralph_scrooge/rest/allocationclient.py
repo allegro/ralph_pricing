@@ -295,20 +295,6 @@ def allocation_save(request, *args, **kwargs):
     return {'status': True}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class AllocationClientContent(APIView):
     def get(self, request, service, env, year, month, format=None):
         return Response({
@@ -328,5 +314,17 @@ class AllocationClientContent(APIView):
                 'name': 'Extra Costs',
                 'rows': [{'value': 400, 'description': 'test'}],
                 'template': 'tabextracosts.html',
+            },
+        })
+
+
+class AllocationClientPerTeam(APIView):
+    def get(self, request, team, year, month, format=None):
+        return Response({
+            'teamDivision': {
+                'total': 50,
+                'name': 'Team division',
+                'rows': [{'team': 1, 'value': 50}],
+                'template': 'tabteamcosts.html',
             },
         })
