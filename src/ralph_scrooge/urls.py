@@ -22,10 +22,8 @@ from ralph_scrooge.views.report_services_changes import ServicesChangesReportVie
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
 from ralph_scrooge.rest import (
-    left_menu,
     components_content,
-    allocation_save,
-    allocation_content
+    left_menu,
 )
 
 from ralph_scrooge.utils.security import (
@@ -43,14 +41,6 @@ for r in (SyncStatusViewSet, ):
 
 urlpatterns = patterns(
     '',
-    url(
-        r'^allocateclient/(?P<service>\d+|false)/(?P<env>\d+|false)/(?P<team>\d+|false)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
-        allocation_content,
-    ),
-    url(
-        r'^allocateclient/(?P<allocate_type>\S+)/save/$',
-        login_required(allocation_save),
-    ),
     url(
         r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',  # noqa
         service_permission(components_content),

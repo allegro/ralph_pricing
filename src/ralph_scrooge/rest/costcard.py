@@ -53,7 +53,7 @@ class CostCardContent(APIView):
             date__gte=first_day,
             date__lte=last_day,
             service_environment=service_environment,
-            verified=False,
+            verified=True,
         ).values(
             'type'
         ).annotate(

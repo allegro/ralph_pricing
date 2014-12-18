@@ -8,7 +8,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="row in stats.currentTabs.teamDivision.rows">
+    <tr ng-repeat="row in stats.currentTabs.serviceDivision.rows">
       <td>
         <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
         </select>
@@ -18,29 +18,29 @@
         </select>
       </td>
       <td class="value-col value-percent-col">
-        <input ng-model="row.value" type="text" class="form-control" value="{{row.value}}" id="{{row.id}}">
+        <input ng-model="row.value" min="0" max="100" type="number" class="form-control" value="{{row.value}}" id="{{row.id}}">
         <label> %</label>
       </td>
       <td class="action-col">
-        <button ng-click="removeRow($index, stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-danger">-</button>
+        <button ng-click="removeRow($index, stats.currentTabs.serviceDivision.rows)" type="button" class="btn btn-danger">-</button>
       </td>
     </tr>
     <tr class="additional-row-header">
       <td></td>
       <td></td>
-      <td ng-class="getTotal('teamDivision')==100 ? 'green' : 'red'" class="col-xs-1 total">
-        {{getTotal('teamDivision')}}
+      <td ng-class="getTotal('serviceDivision')==100 ? 'green' : 'red'" class="col-xs-1 total">
+        {{getTotal('serviceDivision') | number:2}}
         <div>%</div>
       </td>
       <td class="col-xs-1 action-col">
-        <button ng-click="addRow(stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-success">+</button>
+        <button ng-click="addRow(stats.currentTabs.serviceDivision.rows)" type="button" class="btn btn-success">+</button>
       </td>
     </tr>
     <tr>
       <td></td>
       <td></td>
       <td></td>
-      <td class="action-col"><button ng-click="stats.saveAllocation('teamDivision')" class="btn btn-success allocation-save">Save</button></td>
+      <td class="action-col"><button ng-click="stats.saveAllocation('serviceDivision')" class="btn btn-success allocation-save">Save</button></td>
     </tr>
   </tbody>
 </table>

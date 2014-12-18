@@ -31,16 +31,13 @@ class SubMenu(APIView):
                 'href': '#/allocation/admin/',
                 'leftMenu': [],
                 'calendarMenu': ['year', 'month'],
-            }
-            ####################################################
-            # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
-            # ####################################################
-            # {
-            #     'name': 'Allocations',
-            #     'href': '#/allocation/client/',
-            #     'leftMenu': ['services', 'teams'],
-            # },
-            ####################################################
+            },
+            {
+                'name': 'Allocations',
+                'href': '#/allocation/client/',
+                'calendarMenu': ['year', 'month'],
+                'leftMenu': ['services', 'teams'],
+            },
         ]
         profile = request.user.get_profile()
         if profile.has_perm(Perm.has_scrooge_access) or profile.is_superuser:
