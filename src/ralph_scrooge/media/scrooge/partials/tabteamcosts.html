@@ -1,15 +1,13 @@
 <table class="table">
-<tbody>
-    <tr class="additional-row-header">
+  <thead>
+    <tr>
+      <th>Charged service</th>
+      <th>Charged environment</th>
+      <th>Division (%)</th>
       <th></th>
-      <th></th>
-      <th ng-class="stats.allocationclient.teamDivision.total==100 ? 'green' : 'red'" class="col-xs-2 total">
-      <label for="total">Total:</label>
-      {{stats.currentTabs.teamDivision.total}}%</th>
-      <th class="col-xs-1 action-col">
-
-      <button ng-click="addRow(stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-success">+</button></th>
     </tr>
+  </thead>
+  <tbody>
     <tr ng-repeat="row in stats.currentTabs.teamDivision.rows">
       <td>
         <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
@@ -19,12 +17,23 @@
         <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
         </select>
       </td>
-      <td>
-
-        <input ng-model="row.value" ng-change="updateTotal('teamDivision')" type="text" class="form-control" value="{{row.value}}"> %
+      <td class="value-col value-percent-col">
+        <input ng-model="row.value" type="text" class="form-control" value="{{row.value}}" id="{{row.id}}">
+        <label> %</label>
       </td>
       <td class="action-col">
         <button ng-click="removeRow($index, stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-danger">-</button>
+      </td>
+    </tr>
+    <tr class="additional-row-header">
+      <td></td>
+      <td></td>
+      <td ng-class="getTotal('teamDivision')==100 ? 'green' : 'red'" class="col-xs-1 total">
+        {{getTotal('teamDivision')}}
+        <div>%</div>
+      </td>
+      <td class="col-xs-1 action-col">
+        <button ng-click="addRow(stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-success">+</button>
       </td>
     </tr>
     <tr>
@@ -33,5 +42,5 @@
       <td></td>
       <td class="action-col"><button ng-click="stats.saveAllocation('teamDivision')" class="btn btn-success allocation-save">Save</button></td>
     </tr>
-    </tbody>
+  </tbody>
 </table>

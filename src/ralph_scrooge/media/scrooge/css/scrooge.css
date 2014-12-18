@@ -21,9 +21,6 @@ a {
 .brand a:hover {
     text-decoration: none;
 }
-.nav-tabs {
-    border-bottom: 0;
-}
 .nav .brand {
     font-size: 20px;
     color: #777;
@@ -59,7 +56,7 @@ a {
     background-color: transparent;
     color: #fff;
 }
-.nav.nav-tabs.allocation-tabs li a {
+.nav.nav-tabs.nav-allocation-tabs li a {
     color: #555;
     border-radius: 8px 8px 0 0;
 }
@@ -67,9 +64,30 @@ a {
     color: #fff;
     background-color: rgba(255,255,255,0.3);
 }
-.nav.nav-tabs.allocation-tabs li.active a {
+.nav.nav-tabs.nav-allocation-tabs li.active a {
     background-color: #7A868F;
     color: #fff;
+}
+.value-col {
+    text-align: right;
+}
+.value-col input {
+    display: inline;
+}
+.value-col label {
+    display: inline;
+}
+.value-percent-col input {
+    width: 70%;
+}
+.value-percent-col label {
+    width: 30%;
+}
+.value-currency-col input {
+    width: 85%;
+}
+.value-currency-col label {
+    width: 15%;
 }
 .action-col {
     text-align: center;
@@ -358,23 +376,47 @@ div.blocked {
 }
 .allocation-tabs input {
     border-radius: 4px;
-    text-align: center;
+    text-align: right;
 }
-
-.allocation-tabs tr th {
+.allocation-tabs .table tr td {
+    padding: 1px;
+}
+.allocation-tabs .table tr:nth-last-child(2) td {
+    padding-bottom: 8px;
+}
+.allocation-tabs .table tr:last-child td {
+    padding-top: 8px;
+}
+.allocation-tabs .table thead tr th {
+    border-top: 1px;
     vertical-align: middle;
     text-align: center;
 }
-
-.allocation-tabs .total {
-    margin: auto;
-    font-size: 24px;
+.allocation-tabs .table tr:first-child td {
+    padding-top: 8px;
 }
-
+.allocation-tabs .table tr:nth-last-child(2) td.total {
+    margin: auto;
+    font-size: 18px;
+    text-align: right;
+    vertical-align: bottom;
+}
+.allocation-tabs .table tr:nth-last-child(2) td.total div {
+    padding-left: 9px;
+    display: inline;
+}
 .green {
     color: green;
 }
-
 .red {
     color: red;
+}
+
+.table>tbody>tr>td {
+    border: 0px;
+}
+
+.table tbody tr td.tab-error {
+    background-color: red;
+    border-radius: 4px;
 }

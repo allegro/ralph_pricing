@@ -234,8 +234,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             self.costcard = {};
         },
         saveAllocation: function (tab) {
-            var url = '';
-            var data = {};
+            var url = '', data = {}, errors = true;
             switch(tab) {
                 case 'serviceDivision':
                     url = '/scrooge/rest/allocateclient/service/servicedivision/save/';
@@ -260,13 +259,24 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                     };
                     break;
             }
-            data['month'] = self.menuStats['month']['current'];
-            data['year'] = self.menuStats['year']['current'];
-            $http({
-                url: url,
-                method: 'POST',
-                data: data,
+            data.rows.forEach(function (obj) {
+                Object.keys(obj).forEach(function (key) {
+                    console.log(obj[key], typeof(obj[key]))
+                    if (obj[key] === false) {
+                        errors = false;
+                        obj['error'] = 'Please fill the field.';
+                    }
+                });
             });
+            if (errors === true) {
+                data['month'] = self.menuStats['month']['current'];
+                data['year'] = self.menuStats['year']['current'];
+                $http({
+                    url: url,
+                    method: 'POST',
+                    data: data,
+                });
+            }
         },
         getEnvs: function (service_id) {
             var envs = [];
