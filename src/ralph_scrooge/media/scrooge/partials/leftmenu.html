@@ -1,7 +1,10 @@
-<div class="sidebar col-xs-12 col-md-2">
+
+<div class="sidebar col-xs-12 col-md-2" ng-show="stats.currentSubMenu.leftMenu.length > 0">
     <div ng-if="stats.currentSubMenu.leftMenu.length > 1">
         <ul class="nav nav-tabs nav-justified teams-menu">
-          <li ng-click="stats.currentLeftMenu = menuName" ng-repeat="(menuName, menu) in stats.leftMenus" class="{{stats.currentLeftMenu == menuName ? 'active' : ''}}"><a>{{ menuName }}</a></li>
+          <li ng-click="changeLeftMenu(menuName)" ng-repeat="(menuName, menu) in stats.leftMenus" class="{{stats.menuStats.leftMenu.current == menuName ? 'active' : ''}}">
+            <a>{{ menuName }}</a>
+          </li>
         </ul>
     </div>
     <div class="search">
@@ -12,7 +15,7 @@
     </div>
     <div class="items">
         <ul class="services">
-            <li class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.leftMenus.services | filter:searchTextMenu">
+            <li ng-show="stats.menuStats.leftMenu.current == 'services'" class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.leftMenus.services | filter:searchTextMenu">
                 <a class="btn-left-menu" ng-click="menuService.changeService(service)">{{service.name}}</a>
                 <ul class="envs">
                     <li ng-repeat="env in service.value.envs" ng-show="stats.menuStats['service']['current'] == service.id" class="{{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}">
@@ -20,9 +23,11 @@
                     </li>
                 </ul>
             </li>
-            <li ng-show="stats.currentLeftMenu == 'teams'" class="env-menu" ng-repeat="team in stats.leftMenus.teams | filter:searchTextMenu">
+
+            <li ng-show="stats.menuStats.leftMenu.current == 'teams'" class="env-menu" ng-repeat="team in stats.leftMenus.teams | filter:searchTextMenu">
                 <a class="btn-left-menu {{stats.menuStats['team']['current'] == team.id ? 'active' : ''}}" ng-click="changeTeam(team)">{{team.name}}</a>
             </li>
+
         </ul>
     </div>
 </div>

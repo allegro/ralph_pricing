@@ -23,7 +23,6 @@
         <script src="{{ STATIC_URL }}scrooge/js/angular/angular-resource.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/angular/angular-route.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/angular/angular-cookies.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-animate.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/loading-bar.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/ng-scrollbar.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
@@ -60,7 +59,7 @@
             <div class="container-fluid container-fluid-main">
                 <div class="row row-main" style="position:relative;">
                   <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
-                  <div class="content col-md-offset-2 col-xs-12 col-md-10">
+                  <div class="content col-xs-12" ng-class="stats.currentSubMenu.leftMenu.length > 0 ? 'col-md-offset-2 col-md-10':''">
                     <div class="breadcrumbs-container" ng-include="'/static/scrooge/partials/breadcrumbs.html'"></div>
                     <div class="row data">
                       <div class="col-xs-12 col-md-12">

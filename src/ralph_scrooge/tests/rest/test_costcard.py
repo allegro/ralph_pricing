@@ -9,7 +9,9 @@ import json
 import datetime
 from decimal import Decimal as D
 
+from django.contrib.auth.models import User
 from django.test import TestCase
+from django.test.client import Client
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -18,7 +20,9 @@ from ralph_scrooge.tests.utils import factory
 
 class TestCardCost(TestCase):
     def setUp(self):
+        User.objects.create_superuser('test', 'test@test.test', 'test')
         self.client = APIClient()
+        self.client.login(username='test', password='test')
 
         self.month = 11
         self.year = 2014

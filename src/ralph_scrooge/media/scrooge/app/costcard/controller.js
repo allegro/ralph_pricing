@@ -3,7 +3,7 @@
 var scrooge = angular.module('scrooge.controller.costcard', []);
 
 scrooge.controller('costCardCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
-    // Base configuration for each subpage
+    // Base configuration
     stats.breadcrumbs = ['service', 'env'];
     if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Cost card';
@@ -14,11 +14,10 @@ scrooge.controller('costCardCtrl', ['$scope', '$routeParams', 'menuService', 'me
     $scope.stats.menuStats.subpage.change = 'costcard';
     $scope.stats.refreshData();
 
-    // watchers
+    /**
+     * Watchers. Render bootstrap-table component when there are new data.
+     */
     $scope.$watch('stats.costcard.content', function () {
-        /**
-         * Render bootstrap-table component when there are new data
-         */
         if (stats.costcard.content) {
             /**
              * Some kind of hack for force refresh doom element,
