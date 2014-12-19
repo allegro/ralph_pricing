@@ -88,6 +88,7 @@ class PricingObjectFactory(DjangoModelFactory):
     type_id = 1
     service_environment = SubFactory(ServiceEnvironmentFactory)
     name = Sequence(lambda n: 'Pricing Object%s' % n)
+    model = SubFactory(PricingObjectModelFactory)
 
 
 class DailyPricingObjectFactory(DjangoModelFactory):
@@ -186,6 +187,23 @@ class DailyTenantInfoFactory(DailyPricingObjectFactory):
     enabled = True
 
 
+class VIPInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.VIPInfo
+
+    vip_id = Sequence(lambda n: n)
+    ip_info = SubFactory(PricingObjectFactory)
+    type_id = models.PRICING_OBJECT_TYPES.VIP
+    port = 80
+    load_balancer = SubFactory(AssetInfoFactory)
+
+
+class DailyVIPFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyVIPInfo
+
+    vip_info = SubFactory(VIPInfoFactory)
+    ip_info = SubFactory(PricingObjectFactory)
+
+
 class DailyUsageFactory(DjangoModelFactory):
     FACTORY_FOR = models.DailyUsage
 
@@ -217,7 +235,6 @@ class ExtraCostFactory(DjangoModelFactory):
     extra_cost_type = SubFactory(ExtraCostTypeFactory)
     cost = 3100
     service_environment = SubFactory(ServiceEnvironmentFactory)
-    pricing_object = SubFactory(PricingObjectFactory)
     start = datetime.date.today()
     end = datetime.date.today()
 
@@ -269,7 +286,7 @@ class TeamCostFactory(DjangoModelFactory):
 class TeamServiceEnvironmentPercentFactory(DjangoModelFactory):
     FACTORY_FOR = models.TeamServiceEnvironmentPercent
 
-    team = SubFactory(TeamFactory)
+    team_cost = SubFactory(TeamCostFactory)
     service_environment = SubFactory(ServiceEnvironmentFactory)
     percent = fuzzy.FuzzyDecimal(0, 100)
 
@@ -286,3 +303,10 @@ class CostDateStatusFactory(DjangoModelFactory):
     FACTORY_FOR = models.CostDateStatus
 
     date = datetime.date.today()
+
+
+class ServiceUsageTypesFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ServiceUsageTypes
+
+    usage_type = SubFactory(UsageTypeFactory)
+    pricing_service = SubFactory(PricingServiceFactory)

@@ -8,19 +8,17 @@ from __future__ import unicode_literals
 import logging
 from collections import defaultdict
 
-from ralph_scrooge.models import ExtraCost
+from ralph_scrooge.models import DailyPricingObject, ExtraCostType, SupportCost
 from ralph_scrooge.plugins.base import register
-from ralph_scrooge.plugins.cost.base import (
-    BaseCostPlugin,
-)
+from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 
 logger = logging.getLogger(__name__)
 
 
 @register(chain='scrooge_costs')
-class ExtraCostPlugin(BaseCostPlugin):
+class SupportPlugin(BaseCostPlugin):
     """
-    Extra cost plugin, total cost and cost from daily extra
+    Support cost plugin, total cost and cost from daily extra
     cost model.
     """
 
@@ -28,7 +26,6 @@ class ExtraCostPlugin(BaseCostPlugin):
         self,
         date,
         service_environments,
-        extra_cost_type,
         forecast=False,
         *args,
         **kwargs
@@ -50,22 +47,25 @@ class ExtraCostPlugin(BaseCostPlugin):
             ...
         }
         """
-        logger.debug("Get extra cost {} costs".format(extra_cost_type.name))
-
-        extra_costs = ExtraCost.objects.filter(
+        logger.debug("Get support costs")
+        support_type = ExtraCostType.objects.get(pk=2)  # from fixture
+        daily_po = dict(DailyPricingObject.objects.filter(
+            service_environment__in=service_environments,
+            date=date
+        ).values_list('pricing_object_id', 'service_environment_id'))
+        supports = SupportCost.objects.filter(
             end__gte=date,
             start__lte=date,
-            service_environment__in=service_environments,
-            extra_cost_type=extra_cost_type,
+            pricing_object__in=daily_po.keys(),
         )
 
         usages = defaultdict(list)
-        for extra_cost in extra_costs:
-            cost = extra_cost.forecast_cost if forecast else extra_cost.cost
-            usages[extra_cost.service_environment_id].append({
+        for support in supports:
+            cost = support.forecast_cost if forecast else support.cost
+            usages[daily_po[support.pricing_object_id]].append({
                 'cost': (cost / (
-                    (extra_cost.end - extra_cost.start).days + 1)
+                    (support.end - support.start).days + 1)
                 ),
-                'type': extra_cost_type,
+                'type': support_type,
             })
         return usages

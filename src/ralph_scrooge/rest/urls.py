@@ -17,33 +17,37 @@ from ralph_scrooge.rest import (
 )
 
 from ralph_scrooge.rest.menu import SubMenu
-
+from ralph_scrooge.utils.security import (
+    scrooge_permission,
+    service_permission,
+    team_permission,
+)
 
 urlpatterns = patterns(
     '',
     url(
-        r'^allocateadmin/(?P<year>\d+)/(?P<month>\d+)/$',
-        login_required(AllocationAdminContent.as_view()),
+        r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/$',
+        scrooge_permission(AllocationAdminContent.as_view()),
     ),
     url(
-        r'^allocateclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
-        login_required(AllocationClientService.as_view()),
+        r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
+        service_permission(AllocationClientService.as_view()),
     ),
     url(
-        r'^allocateclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',
-        login_required(AllocationClientPerTeam.as_view()),
+        r'^allocationclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',
+        team_permission(AllocationClientPerTeam.as_view()),
     ),
     url(
-        r'^allocateclient/service/(?P<allocate_type>\S+)/save/$',
-        login_required(AllocationClientService.as_view()),
+        r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/$',  # noqa
+        service_permission(AllocationClientService.as_view()),
     ),
     url(
-        r'^allocateclient/team/(?P<allocate_type>\S+)/save/$',
-        login_required(AllocationClientPerTeam.as_view()),
+        r'^allocationclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/$',  # noqa
+        team_permission(AllocationClientPerTeam.as_view()),
     ),
     url(
         r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
-        login_required(CostCardContent.as_view()),
+        service_permission(CostCardContent.as_view()),
     ),
     url(
         r'^submenu/$',

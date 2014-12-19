@@ -61,6 +61,10 @@ class MultiPathNode(db.Model):
         return result
 
     @classmethod
+    def _are_params_valid(self, params):
+        return True
+
+    @classmethod
     def _build_tree(cls, tree, parent=None, **global_params):
         """
         Build MultiPath tree Nodes according to tree list
@@ -80,14 +84,15 @@ class MultiPathNode(db.Model):
                 )]
             )
             params.update(global_params)
-            if parent is None:
-                newobj = cls(**params)
-                newobj._create_path()
-                result.append(newobj)
-            else:
-                newobj = parent.add_child(**params)
-                result.append(newobj)
-            result.extend(cls._build_tree(
-                child.get('_children', []), newobj, **global_params
-            ))
+            if cls._are_params_valid(params):
+                if parent is None:
+                    newobj = cls(**params)
+                    newobj._create_path()
+                    result.append(newobj)
+                else:
+                    newobj = parent.add_child(**params)
+                    result.append(newobj)
+                result.extend(cls._build_tree(
+                    child.get('_children', []), newobj, **global_params
+                ))
         return result

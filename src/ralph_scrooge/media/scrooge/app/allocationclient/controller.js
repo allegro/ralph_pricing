@@ -44,7 +44,7 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
             rows_with_data.rows.forEach(function (element) {
                 count += Number(element.value, 10);
             });
-            return isNaN(count) ? 0.00 : count;
+            return isNaN(count) ? 0.00 : count.toFixed(2);
         }
         return 0.00;
     };

@@ -64,11 +64,7 @@ class DailyCost(MultiPathNode):
     forecast = db.BooleanField(
         verbose_name=_('forecast'),
         default=False,
-    )
-    verified = db.BooleanField(
-        verbose_name=_("verified"),
-        default=False,
-        editable=False,
+        db_index=True,
     )
     date = db.DateField(
         verbose_name=_('date'),
@@ -86,6 +82,12 @@ class DailyCost(MultiPathNode):
             self.type,
             self.date,
         )
+
+    @classmethod
+    def _are_params_valid(self, params):
+        if 'cost' in params:
+            return params['cost'] > 0
+        return True
 
 
 class CostDateStatus(db.Model):

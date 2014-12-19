@@ -145,5 +145,6 @@ class TestServicesChangesReport(TestCase):
             PRICING_OBJECT_TYPES.VIRTUAL: [default],
             PRICING_OBJECT_TYPES.TENANT: [default],
             PRICING_OBJECT_TYPES.IP_ADDRESS: [default],
+            PRICING_OBJECT_TYPES.VIP: [default],
             PRICING_OBJECT_TYPES.UNKNOWN: [default],
         })

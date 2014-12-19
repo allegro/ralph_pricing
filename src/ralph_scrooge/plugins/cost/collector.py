@@ -152,6 +152,7 @@ class Collector(object):
         self._delete_daily_costs(date, forecast, delete_verified)
         costs = self._collect_costs(date, service_environments, forecast)
         self._save_costs(date, costs, forecast)
+        logger.info('Costs saved for date {}'.format(date))
 
     def _delete_daily_costs(self, date, forecast, delete_verified=False):
         """
@@ -164,7 +165,13 @@ class Collector(object):
             **{'forecast_accepted' if forecast else 'accepted': True}
         ):
             raise VerifiedDailyCostsExistsError()
-        DailyCost.objects.filter(date=date).delete()
+        cursor = connection.cursor()
+        cursor.execute(
+            "DELETE FROM {} WHERE date=%s and forecast=%s".format(
+                DailyCost._meta.db_table,
+            ),
+            [date, forecast]
+        )
 
     def _save_costs(self, date, costs, forecast):
         """
@@ -172,13 +179,18 @@ class Collector(object):
 
         At the end update status of date costs to calculated.
         """
+        daily_costs = []
         for service_environment, se_costs in costs.iteritems():
-            DailyCost.build_tree(
+            # use _build_tree directly, to collect DailyCosts for all services
+            # and save all at the end
+            daily_costs.extend(DailyCost._build_tree(
                 tree=se_costs,
                 date=date,
                 service_environment_id=service_environment,
                 forecast=forecast,
-            )
+            ))
+        DailyCost.objects.bulk_create(daily_costs)
+
         # update status to created
         status, created = CostDateStatus.objects.get_or_create(date=date)
         if forecast:
@@ -245,13 +257,7 @@ class Collector(object):
         :rtype list:
         """
         logger.debug("Getting services environments")
-        services = ServiceEnvironment.objects.select_related(
-            'service',
-            'environment',
-        ).order_by(
-            'service__name',
-            'environment__name',
-        )
+        services = ServiceEnvironment.objects.all()
         logger.debug("Got {0} services".format(services.count()))
         return services
 
@@ -263,6 +269,7 @@ class Collector(object):
         each, such as name and arguments
         """
         extra_cost_types_plugins = cls._get_extra_cost_types_plugins()
+        support_plugins = cls._get_support_plugins()
         dynamic_extra_cost_types_plugins = (
             cls._get_dynamic_extra_cost_types_plugins()
         )
@@ -271,7 +278,7 @@ class Collector(object):
         services_plugins = cls._get_pricing_services_plugins()
         teams_plugins = cls._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
-                   services_plugins + teams_plugins +
+                   services_plugins + teams_plugins + support_plugins +
                    extra_cost_types_plugins + dynamic_extra_cost_types_plugins)
         return plugins
 
@@ -394,9 +401,10 @@ class Collector(object):
     @classmethod
     def _get_extra_cost_types(cls):
         """
-        Returns all extra costs
+        Returns all extra costs (excluding supports)
         """
-        return ExtraCostType.objects.order_by('name')
+        # exclude supports (from fixture)
+        return ExtraCostType.objects.exclude(pk=2).order_by('name')
 
     @classmethod
     def _get_extra_cost_types_plugins(cls):
@@ -415,6 +423,15 @@ class Collector(object):
             )
             result.append(extra_cost_info)
         return result
+
+    @classmethod
+    def _get_support_plugins(cls):
+        return [
+            AttributeDict(
+                name='support',
+                plugin_name='support_plugin',
+            )
+        ]
 
     @classmethod
     def _get_dynamic_extra_cost_types(cls):

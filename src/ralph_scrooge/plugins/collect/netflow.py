@@ -98,7 +98,14 @@ def get_names_of_data_files(ssh_client, channel, date):
     return sorted([row.strip('\n') for row in stdout.readlines()])
 
 
-def execute_nfdump(ssh_client, channel, date, file_names, input_output):
+def execute_nfdump(
+    ssh_client,
+    channel,
+    date,
+    file_names,
+    input_output,
+    class_addresses
+):
     """
     Collects data by executing correct nfdump command on remote server
 
@@ -114,35 +121,37 @@ def execute_nfdump(ssh_client, channel, date, file_names, input_output):
     def get_networks(input_output):
         direct = input_output.replace('ip', '')
         networks = []
-        for class_address in settings.NFSEN_CLASS_ADDRESS:
+        for class_address in class_addresses:
             networks.append('{0} net '.format(direct) + class_address)
         return ' or '.join(networks)
 
     split_date = str(date).split('-')
-    nfdump_str = "nfdump -M {0}/{1}"\
-        " -T -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -o "\
-        "\"fmt:%sa | %da | %byt\" -a -A {7} '{8}';exit".format(
-            settings.NFSEN_FILES_PATH,
-            channel,
-            split_date[0],
-            split_date[1],
-            split_date[2],
-            file_names[0],
-            file_names[-1],
-            input_output,
-            get_networks(input_output)
-        )
+    nfdump_str = (
+        "nfdump -M {0}/{1}"
+        " -T -R {2}/{3}/{4}/{5}:{2}/{3}/{4}/{6} -o "
+        "\"fmt:%sa | %da | %sp | %dp | %pr | %byt\" -a -A {7} '{8}';exit"
+    ).format(
+        settings.NFSEN_FILES_PATH,
+        channel,
+        split_date[0],
+        split_date[1],
+        split_date[2],
+        file_names[0],
+        file_names[-1],
+        input_output[1],
+        get_networks(input_output[0])
+    )
     logger.debug(nfdump_str)
     stdin, stdout, stderr = ssh_client.exec_command(nfdump_str)
     return stdout.readlines()[1:-4]
 
 
-def extract_ip_and_bytes(row, input_output):
+def extract_ip_and_bytes(row, input_output, class_addresses):
     """
     Extract/process ip address and usage in bytes from string. String is taken
     from executing nfdump commend on remote server and looks like:
 
-    'srcip_ip_address | dstip_ip_address | usage_in_bytes'
+    'srcip_ip | dstip_ip | srcport | dstport | protocol | usage_in_bytes'
 
     :param string row: Single row gain from remote server by execute nfdump
     commands
@@ -170,15 +179,24 @@ def extract_ip_and_bytes(row, input_output):
 
     split_row = [cell.replace('\x01', '').strip() for cell in row.split('|')]
     ip_address = split_row[0]
-    if input_output == 'dstip':
+    port = split_row[2]
+    if input_output[0] == 'dst':
         ip_address = split_row[1]
+        port = split_row[3]
 
-    for class_address in settings.NFSEN_CLASS_ADDRESS:
+    for class_address in class_addresses:
         if ipaddr.IPv4Address(ip_address) in ipaddr.IPv4Network(class_address):
-            return (ip_address, unification(split_row[2]))
+            return (ip_address, port, unification(split_row[-1]))
 
 
-def get_network_usage(ssh_client, channel, date, file_names, input_output):
+def get_network_usage(
+    ssh_client,
+    channel,
+    date,
+    file_names,
+    input_output,
+    class_addresses
+):
     """
     Collect usages for given channel, date and input/output. Used by
     get_network_usages method. Returned data struct looks like:
@@ -204,14 +222,15 @@ def get_network_usage(ssh_client, channel, date, file_names, input_output):
         date,
         file_names,
         input_output,
+        class_addresses
     ):
-        ip_and_byte = extract_ip_and_bytes(row, input_output)
+        ip_and_byte = extract_ip_and_bytes(row, input_output, class_addresses)
         if ip_and_byte:
-            ip_and_bytes[ip_and_byte[0]] += ip_and_byte[1]
+            ip_and_bytes[(ip_and_byte[0], ip_and_byte[1])] += ip_and_byte[2]
     return ip_and_bytes
 
 
-def get_network_usages(date):
+def get_network_usages(date, class_addresses):
     """
     Based on settings, collect data from remote server. Returned data struct
     looks like:
@@ -230,15 +249,19 @@ def get_network_usages(date):
     for address, credentials in settings.SSH_NFSEN_CREDENTIALS.iteritems():
         ssh_client = get_ssh_client(address, **credentials)
         for channel in settings.NFSEN_CHANNELS:
-            for input_output in ['srcip', 'dstip']:
+            for input_output in [
+                ('src', 'srcip,srcport'),
+                ('dst', 'dstip,dstport')
+            ]:
                 logger.debug("Server:{0} Channel:{1} I/O:{2}".format(
-                    address, channel, input_output))
+                    address, channel, input_output[0]))
                 for ip, value in get_network_usage(
                     ssh_client,
                     channel,
                     date,
                     get_names_of_data_files(ssh_client, channel, date),
                     input_output,
+                    class_addresses,
                 ).iteritems():
                     network_usages[ip] += value
     return network_usages
@@ -256,6 +279,13 @@ def get_usage_type():
         symbol='network_bytes',
     )
     return usage_type
+
+
+def _group_by_ip(usages):
+    grouped_usages = defaultdict(int)
+    for (ip, port), value in usages.iteritems():
+        grouped_usages[ip] += value
+    return grouped_usages
 
 
 def update(
@@ -276,7 +306,7 @@ def update(
     logger.debug('Saving usages as a daily usages per service')
     new = updated = total = 0
 
-    for ip, value in network_usages.iteritems():
+    for ip, value in _group_by_ip(network_usages).iteritems():
         total += 1
         pricing_object, created = PricingObject.objects.get_or_create(
             name=ip,
@@ -300,8 +330,10 @@ def update(
                 service_environment=daily_pricing_object.service_environment,
             ),
         )
-        daily_usage.service = daily_pricing_object.service_environment
-        daily_usage.value = value
+        daily_usage.service_environment = (
+            daily_pricing_object.service_environment
+        )
+        daily_usage.value += value
         daily_usage.save()
         if created:
             logger.warning(
@@ -310,6 +342,11 @@ def update(
         new += created
         updated += not created
     return (new, updated, total)
+
+
+def delete_previous_usages(date):
+    usage_type = get_usage_type()
+    DailyUsage.objects.filter(type=usage_type, date=date).delete()
 
 
 @plugin.register(chain='scrooge', requires=['service'])
@@ -335,8 +372,9 @@ def netflow(**kwargs):
         return False, 'Unknown service environment for netflow not configured'
 
     date = kwargs['today']
+    delete_previous_usages(date)
     new, updated, total = update(
-        get_network_usages(date),
+        get_network_usages(date, settings.NFSEN_CLASS_ADDRESS),
         get_usage_type(),
         default_service,
         date,

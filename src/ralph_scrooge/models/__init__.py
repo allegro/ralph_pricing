@@ -8,6 +8,7 @@ from ralph_scrooge.models.extra_cost import (
     DynamicExtraCostType,
     ExtraCost,
     ExtraCostType,
+    SupportCost,
 )
 
 from ralph_scrooge.models.owner import (
@@ -22,12 +23,14 @@ from ralph_scrooge.models.pricing_object import (
     DailyAssetInfo,
     DailyPricingObject,
     DailyTenantInfo,
+    DailyVIPInfo,
     DailyVirtualInfo,
     PricingObjectModel,
     PricingObjectType,
     PRICING_OBJECT_TYPES,
     PricingObject,
     TenantInfo,
+    VIPInfo,
     VirtualInfo,
 )
 
@@ -78,6 +81,7 @@ __all__ = [
     'DailyPricingObject',
     'DailyTenantInfo',
     'DailyUsage',
+    'DailyVIPInfo',
     'DailyVirtualInfo',
     'DynamicExtraCost',
     'DynamicExtraCostDivision',
@@ -99,6 +103,7 @@ __all__ = [
     'ServiceOwnership',
     'ServiceUsageTypes',
     'Statement',
+    'SupportCost',
     'SyncStatus',
     'Team',
     'TeamBillingType',
@@ -109,6 +114,7 @@ __all__ = [
     'TenantInfo',
     'UsageType',
     'UsagePrice',
+    'VIPInfo',
     'VirtualInfo',
     'Warehouse',
 ]

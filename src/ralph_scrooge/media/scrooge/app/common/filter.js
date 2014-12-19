@@ -4,7 +4,9 @@ var scrooge = angular.module('scrooge.filter', []);
 
 scrooge.filter('breadcrumbs', ['stats', function(stats) {
     /**
-     * Breadcrumbs is composed with numbers of elements. This filter change number to string.
+     * Breadcrumbs is composed based on data from stats.menuStats.
+     * There we have only a numbers. For example service id or team id.
+     * This filter change number to string.
      */
     return function(input, scope) {
         var currentLeftMenu, menuIdx;

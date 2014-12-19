@@ -3,7 +3,7 @@
 var scrooge = angular.module('scrooge.service', ['ngResource']);
 
 var allocationHelper = {
-    'baseUrl': '/scrooge/rest/allocateclient',
+    'baseUrl': '/scrooge/rest/allocationclient',
     /**
      * Return url for collect team data.
      * @param {object} menuStats - menuStats from stats.menuStats.
@@ -63,14 +63,14 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
         leftMenus: {},
         subMenus: {},
         menuStats: {
-            'subpage': {'current': false, 'change': false},
-            'team': {'current': false, 'change': false},
-            'service': {'current': false, 'change': false},
-            'env': {'current': false, 'change': false},
-            'year': {'current': false, 'change': false},
-            'month': {'current': false, 'change': false},
-            'leftMenu': {'current': false, 'change': false},
-            'day': {'current': false, 'change': false},
+            'subpage': {'current': null, 'change': null},
+            'team': {'current': null, 'change': null},
+            'service': {'current': null, 'change': null},
+            'env': {'current': null, 'change': null},
+            'year': {'current': null, 'change': null},
+            'month': {'current': null, 'change': null},
+            'leftMenu': {'current': null, 'change': null},
+            'day': {'current': null, 'change': null},
         },
         components: {
             'contentStats': {
@@ -130,7 +130,8 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                     self.menuStats[menu]['current'] = self.menuStats[menu]['change'];
                 }
                 if (menu != 'service' && menu != 'env' && menu != 'team') {
-                    if (self.menuStats[menu]['change'] === false) {
+                    console.log(self.menuStats[menu]['change'], self.menuStats[menu]['current'])
+                    if (self.menuStats[menu]['change'] === null) {
                         force = true;
                     }
                 }
@@ -216,7 +217,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          */
         getAllocationAdminData: function () {
             var url_chunks = [
-                '/scrooge/rest/allocateadmin',
+                '/scrooge/rest/allocationadmin',
                 self.menuStats['year']['current'],
                 self.menuStats['month']['current'],
             ];
@@ -251,11 +252,13 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             $http({
                 method: 'GET',
                 url: url_chunks.join('/'),
+                params: {forecast: true} // TEMPORARY!
             })
             .success(function(data) {
                 self.costcard.content = data;
             });
         },
+
         /**
          * This is used for smart change subpage. When user change different subpage
          * then old data are still visible by 1 second befor everything is change.
@@ -269,12 +272,13 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             self.allocationadmin = {};
             self.costcard = {};
         },
+
         /**
          * Validating data for given tab name and when there is everything cool then
          * send POST (save) request with data.
          */
         saveAllocation: function (tab) {
-            var url = '', data = {}, error = false;
+            var urlChunks = ['/scrooge/rest/allocationclient'], data = {}, error = false;
 
             // Validators with valid method. Should be move to separated service?
             var valid_service = function (row) {
@@ -305,36 +309,35 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             };
             switch(tab) {
                 case 'serviceDivision':
-                    url = '/scrooge/rest/allocateclient/service/servicedivision/save/';
-                    data = {
-                        'service': self.menuStats['service']['current'],
-                        'rows': self.currentTabs.serviceDivision.rows,
-                    };
+                    urlChunks.push(self.menuStats['service']['current']);
+                    urlChunks.push(self.menuStats['env']['current']);
+                    urlChunks.push(self.menuStats['year']['current']);
+                    urlChunks.push(self.menuStats['month']['current']);
+                    urlChunks.push('servicedivision/save/');
+                    data = {'rows': self.currentTabs.serviceDivision.rows};
                     valid(data.rows, [valid_service, valid_env]);
                     break;
                 case 'serviceExtraCost':
-                    url = '/scrooge/rest/allocateclient/service/serviceextracost/save/';
-                    data = {
-                        'service': self.menuStats['service']['current'],
-                        'env': self.menuStats['env']['current'],
-                        'rows': self.currentTabs.serviceExtraCost.rows,
-                    };
+                    urlChunks.push(self.menuStats['service']['current']);
+                    urlChunks.push(self.menuStats['env']['current']);
+                    urlChunks.push(self.menuStats['year']['current']);
+                    urlChunks.push(self.menuStats['month']['current']);
+                    urlChunks.push('serviceextracost/save/');
+                    data = {'rows': self.currentTabs.serviceExtraCost.rows};
                     valid(data.rows, [valid_value]);
                     break;
                 case 'teamDivision':
-                    url = '/scrooge/rest/allocateclient/team/teamdivision/save/';
-                    data = {
-                        'team': self.menuStats['team']['current'],
-                        'rows': self.currentTabs.teamDivision.rows,
-                    };
+                    urlChunks.push(self.menuStats['team']['current']);
+                    urlChunks.push(self.menuStats['year']['current']);
+                    urlChunks.push(self.menuStats['month']['current']);
+                    urlChunks.push('teamdivision/save/');
+                    data = {'rows': self.currentTabs.teamDivision.rows};
                     valid(data.rows, [valid_service, valid_env]);
                     break;
             }
             if (error === false) {
-                data['month'] = self.menuStats['month']['current'];
-                data['year'] = self.menuStats['year']['current'];
                 $http({
-                    url: url,
+                    url: urlChunks.join('/'),
                     method: 'POST',
                     data: data,
                 });

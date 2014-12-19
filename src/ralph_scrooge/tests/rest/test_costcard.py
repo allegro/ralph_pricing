@@ -11,7 +11,6 @@ from decimal import Decimal as D
 
 from django.contrib.auth.models import User
 from django.test import TestCase
-from django.test.client import Client
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -36,28 +35,37 @@ class TestCardCost(TestCase):
         )
 
         self.base_usage = factory.BaseUsageFactory()
+
+    def _init(self, forecast=False):
         self.daily_cost = factory.DailyCostFactory(
             date=datetime.date(year=self.year, month=self.month, day=1),
             service_environment=self.service_environment,
             cost=self.value,
             type=self.base_usage,
-            verified=True,
+            forecast=forecast,
         )
         self.daily_cost = factory.DailyCostFactory(
             date=datetime.date(year=self.year, month=self.month, day=2),
             service_environment=self.service_environment,
             cost=self.value,
             type=self.base_usage,
-            verified=True,
+            forecast=forecast,
         )
         self.daily_cost = factory.DailyCostFactory(
             date=datetime.date(year=self.year, month=self.month, day=3),
             service_environment=self.service_environment,
             cost=self.value,
             type=self.base_usage,
+            forecast=forecast,
         )
+        for day in range(1, 3):  # skip 3 day!
+            factory.CostDateStatusFactory(
+                date=datetime.date(year=self.year, month=self.month, day=day),
+                **{'forecast_accepted' if forecast else 'accepted': True}
+            )
 
     def test_get_cost_card(self):
+        self._init()
         response = self.client.get(
             '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/'.format(
                 self.service.id,
@@ -75,7 +83,27 @@ class TestCardCost(TestCase):
             }],
         )
 
+    def test_get_cost_card_forecast(self):
+        self._init(forecast=True)
+        response = self.client.get(
+            '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/?forecast=true'.format(
+                self.service.id,
+                self.environment.id,
+                self.year,
+                self.month,
+            )
+        )
+        self.assertEquals(
+            json.loads(response.content),
+            [{
+                'cost': 200.0, 'name': self.base_usage.name,
+            }, {
+                'cost': 200.0, 'name': 'Total'
+            }],
+        )
+
     def test_get_when_wrong_service(self):
+        self._init()
         response = self.client.get(
             '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/'.format(
                 9999999,
@@ -88,6 +116,7 @@ class TestCardCost(TestCase):
         self.assertFalse(status.is_success(response.status_code))
 
     def test_get_when_wrong_environment(self):
+        self._init()
         response = self.client.get(
             '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/'.format(
                 self.service.id,

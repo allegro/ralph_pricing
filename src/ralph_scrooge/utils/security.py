@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from ralph.account.views import HTTP403
 from ralph.account.models import Perm, ralph_permission
 
-from ralph_scrooge.models import ServiceOwnership
+from ralph_scrooge.models import ServiceOwnership, TeamManager
 
 
 def superuser_or_permission(view_func, perms):
@@ -48,6 +48,17 @@ def _has_permission_to_service(user, service):
     ).exists()
 
 
+def _has_permission_to_team(user, team):
+    profile = user.get_profile()
+    # check for superuser or accountant, which have access to all services
+    if user.is_superuser or profile.has_perm(Perm.has_scrooge_access):
+        return True
+    return TeamManager.objects.filter(
+        team__id=team,
+        owner__profile__user=user,
+    ).exists()
+
+
 def service_permission(view_func):
     """
     Wraps view to check, if user has access to passed service
@@ -64,4 +75,23 @@ def service_permission(view_func):
         ):
             return view_func(request, *args, **kwargs)
         return HTTP403(request, 'No permission to service')
+    return login_required(_wrapped_view)
+
+
+def team_permission(view_func):
+    """
+    Wraps view to check, if user has access to passed team
+    """
+    @wraps(view_func, assigned=available_attrs(view_func))
+    def _wrapped_view(request, *args, **kwargs):
+        # if we get here, user has scrooge permission
+        if (
+            (
+                'team' in kwargs and
+                _has_permission_to_team(request.user, kwargs['team'])
+            ) or
+            'team' not in kwargs
+        ):
+            return view_func(request, *args, **kwargs)
+        return HTTP403(request, 'No permission to team')
     return login_required(_wrapped_view)
