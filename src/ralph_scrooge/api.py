@@ -19,6 +19,7 @@ import datetime
 import logging
 from collections import defaultdict
 
+import django_filters
 from django.conf.urls.defaults import url
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
@@ -518,9 +519,19 @@ class SyncStatusSerializer(ModelSerializer):
         exclude = ('created', 'modified', 'id', 'cache_version')
 
 
+class SyncStatusFilter(django_filters.FilterSet):
+    class Meta:
+        model = SyncStatus
+        fields = {
+            'date': ['exact', 'gte', 'lte', 'gt', 'lt'],
+            'plugin': ['exact'],
+            'success': ['exact']
+        }
+
+
 class SyncStatusViewSet(ModelViewSet):
-    queryset = SyncStatus.objects.all()
+    queryset = SyncStatus.objects.order_by('-date')
     serializer_class = SyncStatusSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('date', 'plugin', 'success')
+    filter_class = SyncStatusFilter
     resource_name = 'sync_status'
