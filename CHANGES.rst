@@ -11,13 +11,13 @@ Change Log
 
 
 3.0.0-alpha1
-~~~~~
+~~~~~~~~~~~~
 
 * Serveral fixes related to fine tune version
 
 
 3.0.0-alpha
-~~~~~
+~~~~~~~~~~~
 
 * Servces instead ventures
 * Refactoring archiveture
