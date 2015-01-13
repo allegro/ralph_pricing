@@ -33,7 +33,6 @@ nosetests.xml
 .project
 .pydevproject
 
-
 # Documentation
 /doc/_build/
 
@@ -42,3 +41,6 @@ nosetests.xml
 
 # Grunt
 /node_modules/*
+
+#npm
+npm-debug.log
