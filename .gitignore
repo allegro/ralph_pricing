@@ -37,3 +37,8 @@ nosetests.xml
 # Documentation
 /doc/_build/
 
+# Static
+/src/ralph_scrooge/static/vendor/*
+
+# Grunt
+/node_modules/*
