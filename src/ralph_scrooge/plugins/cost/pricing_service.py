@@ -264,6 +264,16 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             forecast,
             service_environments=service_environments,
         )
+        dynamic_extra_costs = self._get_service_dynamic_extra_cost(
+            date,
+            forecast,
+            service_environments=service_environments,
+        )
+        diffs_costs = self._get_service_charging_by_diffs(
+            date,
+            forecast,
+            pricing_service,
+        )
 
         costs = dict(itertools.chain(
             base_usage_types_costs.items(),
@@ -271,6 +281,8 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             dependent_services_costs.items(),
             teams_costs.items(),
             extra_costs.items(),
+            dynamic_extra_costs.items(),
+            diffs_costs.items(),
         ))
         total_cost = sum([v[0] for v in costs.values()])
 
@@ -439,8 +451,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         """
         Calculates total cost of extra costs for given pricing_service.
 
-        :param datatime start: Begin of time interval
-        :param datatime end: End of time interval
+        :param datatime date: day for which calculate extra costs
         :param list service_environments: List of service_environments
         :returns decimal: price
         :rtype decimal:
@@ -476,8 +487,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         """
         Calculates total cost of dynamic extra costs for given pricing_service.
 
-        :param datatime start: Begin of time interval
-        :param datatime end: End of time interval
+        :param datatime date: day for which calculate extra costs
         :param list service_environments: List of service_environments
         :returns decimal: price
         :rtype decimal:
@@ -502,6 +512,57 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                         dynamic_extra_cost_type.name
                     )
                 )
+        return result
+
+    def _get_service_charging_by_diffs(
+        self,
+        date,
+        forecast,
+        pricing_service,
+    ):
+        """
+        Calculates total cost of diffs (between real and calculated costs) of
+        selected pricing services.
+
+        ::param datatime date: day for which calculate extra costs
+        :param list service_environments: List of service_environments
+        :returns decimal: price
+        :rtype decimal:
+        """
+        result = {}
+        for ps in pricing_service.charged_by_diffs.all():
+            args = dict(
+                type='total_cost',
+                date=date,
+                forecast=forecast,
+                pricing_service=ps,
+                collapse=True
+            )
+            try:
+                # first run valid pricing service plugin to get "offical" costs
+                ps_cost = plugin_runner.run(
+                    'scrooge_costs',
+                    ps.get_plugin_name(),
+                    **args
+                )
+
+                # then call universal plugin to get real cost
+                ps_real_cost = plugin_runner.run(
+                    'scrooge_costs',
+                    'pricing_service_plugin',
+                    **args
+                )
+            except (KeyError, AttributeError):
+                logger.warning(
+                    'Invalid call for {0} total cost diff'.format(
+                        ps.name
+                    )
+                )
+            else:
+                # calculate difference between real cost and calculated cost
+                diff = ps_real_cost - ps_cost
+                result[ps.id] = diff, {}
+
         return result
 
     def _get_percentage(self, date, pricing_service):

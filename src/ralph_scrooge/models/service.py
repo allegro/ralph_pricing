@@ -205,6 +205,21 @@ class PricingService(BaseUsage):
         null=True,
         verbose_name=_("regular usage types"),
     )
+    charge_diff_to_real_costs = db.ForeignKey(
+        'PricingService',
+        related_name='charged_by_diffs',
+        limit_choices_to={
+            'plugin_type': PricingServicePlugin.pricing_service_plugin.id,
+        },
+        blank=True,
+        null=True,
+        verbose_name=_('charge diff to real costs'),
+        help_text=_(
+            'if plugin type different than universal, select pricing service '
+            'to charge by difference between costs calculated by plugin and '
+            'real costs'
+        )
+    )
 
     class Meta:
         verbose_name = _("pricing service")

@@ -888,3 +888,100 @@ class TestPricingServiceDependency(TestCase):
                     distribute_costs_mock.call_args_list
                 ):
                     self.assertEquals(str(expected_call), str(actual_call))
+
+
+class TestPricingServiceDiffCharging(TestCase):
+    def setUp(self):
+        self.today = date(2014, 11, 10)
+
+        self.pricing_service1 = PricingServiceFactory()
+
+        fixed_price = (
+            models.PricingServicePlugin.pricing_service_fixed_price_plugin
+        )
+        self.pricing_service2 = PricingServiceFactory(plugin_type=fixed_price)
+        self.pricing_service2.charge_diff_to_real_costs = self.pricing_service1
+        self.pricing_service2.save()
+
+        self.pricing_service3 = PricingServiceFactory(plugin_type=fixed_price)
+        self.pricing_service3.charge_diff_to_real_costs = self.pricing_service1
+        self.pricing_service3.save()
+
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin.total_cost')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service_fixed_price.PricingServiceFixedPricePlugin.total_cost')  # noqa
+    def test_get_service_charging_by_diffs(self, fixed_total_mock, total_mock):
+        def total_cost(pricing_service, *args, **kwargs):
+            if pricing_service == self.pricing_service2:
+                return 100
+            return 1000
+
+        def fixed_total_cost(pricing_service, *args, **kwargs):
+            if pricing_service == self.pricing_service2:
+                return 1000
+            return 100
+
+        total_mock.side_effect = total_cost
+        fixed_total_mock.side_effect = fixed_total_cost
+        result = PricingServicePlugin._get_service_charging_by_diffs(
+            pricing_service=self.pricing_service1,
+            date=self.today,
+            forecast=False,
+        )
+        self.assertEquals(result, {
+            self.pricing_service2.id: (-900, {}),
+            self.pricing_service3.id: (900, {}),
+        })
+        calls = [
+            mock.call(
+                date=self.today,
+                pricing_service=x,
+                collapse=True,
+                forecast=False,
+            ) for x in (self.pricing_service2, self.pricing_service3)
+        ]
+        total_mock.assert_has_calls(calls)
+        fixed_total_mock.assert_has_calls(calls)
+
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin.total_cost')  # noqa
+    def test_get_service_charging_by_diffs_error(self, total_mock):
+        def total_cost(pricing_service, *args, **kwargs):
+            if pricing_service == self.pricing_service2:
+                return 100
+            raise KeyError()
+        total_mock.side_effect = total_cost
+        result = PricingServicePlugin._get_service_charging_by_diffs(
+            pricing_service=self.pricing_service1,
+            date=self.today,
+            forecast=False,
+        )
+        self.assertEquals(result, {
+            self.pricing_service2.id: (0, {}),
+        })
+
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin.total_cost')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service_fixed_price.PricingServiceFixedPricePlugin.total_cost')  # noqa
+    def test_get_pricing_service_costs(self, fixed_total_mock, total_mock):
+        def total_cost(pricing_service, *args, **kwargs):
+            if pricing_service == self.pricing_service2:
+                return 100
+            return 1000
+
+        def fixed_total_cost(pricing_service, *args, **kwargs):
+            if pricing_service == self.pricing_service2:
+                return 1000
+            return 100
+
+        total_mock.side_effect = total_cost
+        fixed_total_mock.side_effect = fixed_total_cost
+        result = PricingServicePlugin._get_pricing_service_costs(
+            pricing_service=self.pricing_service1,
+            date=self.today,
+            forecast=False,
+            service_environments=self.pricing_service1.service_environments,
+        )
+        self.assertEquals(result, {
+            self.pricing_service1.id: (0, {
+                self.pricing_service2.id: (-900, {}),
+                self.pricing_service3.id: (900, {}),
+            })
+        })

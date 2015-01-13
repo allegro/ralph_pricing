@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
-
 from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
 PRICE_DIGITS = 16

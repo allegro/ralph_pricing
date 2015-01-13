@@ -39,6 +39,7 @@ from ralph_scrooge.models.service import (
     Environment,
     HistoricalService,  # dynamic model
     PricingService,
+    PricingServicePlugin,
     ProfitCenter,
     Service,
     ServiceEnvironment,
@@ -98,6 +99,7 @@ __all__ = [
     'PricingObjectType',
     'PRICING_OBJECT_TYPES',
     'PricingService',
+    'PricingServicePlugin',
     'Service',
     'ServiceEnvironment',
     'ServiceOwnership',
