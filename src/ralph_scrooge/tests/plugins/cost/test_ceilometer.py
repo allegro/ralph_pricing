@@ -12,7 +12,9 @@ import mock
 from django.test import TestCase
 
 from ralph_scrooge import models
-from ralph_scrooge.plugins.cost.ceilometer import Ceilometer
+from ralph_scrooge.plugins.cost.pricing_service_fixed_price import (
+    PricingServiceFixedPricePlugin,
+)
 from ralph_scrooge.tests.utils.factory import (
     PricingServiceFactory,
     ServiceEnvironmentFactory,
@@ -20,7 +22,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestCeilometerPlugin(TestCase):
+class TestPricingServiceFixedPricePluginPlugin(TestCase):
     def setUp(self):
         self.today = date(2013, 10, 10)
         self.start = date(2013, 10, 1)
@@ -45,7 +47,7 @@ class TestCeilometerPlugin(TestCase):
         self.service_environments = ServiceEnvironmentFactory.create_batch(2)
         self.maxDiff = None
 
-    @mock.patch('ralph_scrooge.plugins.cost.ceilometer.plugin_runner.run')
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service_fixed_price.plugin_runner.run')  # noqa
     def test_costs(self, plugin_runner_mock):
         def effect(
             chain,
@@ -102,7 +104,7 @@ class TestCeilometerPlugin(TestCase):
                 ]
             }
         plugin_runner_mock.side_effect = effect
-        costs = Ceilometer(
+        costs = PricingServiceFixedPricePlugin(
             type='costs',
             pricing_service=self.pricing_service,
             date=self.today,

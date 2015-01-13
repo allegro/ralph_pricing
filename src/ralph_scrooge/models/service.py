@@ -10,6 +10,7 @@ from datetime import date
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
+from lck.django.choices import Choices
 from lck.django.common.models import (
     EditorTrackable,
     Named,
@@ -155,10 +156,17 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         return self.name
 
 
+class PricingServicePlugin(Choices):
+    _ = Choices.Choice
+    pricing_service_plugin = _("universal")
+    pricing_service_fixed_price_plugin = _("fixed price")
+
+
 class PricingService(BaseUsage):
-    use_universal_plugin = db.BooleanField(
-        verbose_name=_("Use universal plugin"),
-        default=True,
+    plugin_type = db.PositiveIntegerField(
+        verbose_name=_("plugin type"),
+        choices=PricingServicePlugin(),
+        default=PricingServicePlugin.pricing_service_plugin.id,
     )
     usage_types = db.ManyToManyField(
         'UsageType',
@@ -221,9 +229,7 @@ class PricingService(BaseUsage):
         """
         Returns plugin name for pricing service.
         """
-        if self.use_universal_plugin:
-            return 'pricing_service_plugin'
-        return self.symbol or self.name.lower().replace(' ', '_')
+        return PricingServicePlugin.name_from_id(self.plugin_type)
 
     def get_dependent_services(self, date, exclude=None):
         """

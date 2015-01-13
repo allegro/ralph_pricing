@@ -8,6 +8,7 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        return
         # Deleting field 'DailyCost.verified'
         db.delete_column(u'ralph_scrooge_dailycost', 'verified')
 
