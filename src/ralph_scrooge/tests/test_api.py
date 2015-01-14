@@ -19,6 +19,7 @@ from ralph_scrooge.api import (
     UsagesObject,
     UsageObject,
 )
+from ralph_scrooge.tests import ScroogeTestCaseMixin
 from ralph_scrooge.tests.utils.factory import (
     PricingObjectFactory,
     PricingServiceFactory,
@@ -27,7 +28,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestPricingServiceUsagesApi(ResourceTestCase):
+class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
     def setUp(self):
         super(TestPricingServiceUsagesApi, self).setUp()
         self.maxDiff = None
@@ -482,4 +483,4 @@ class TestPricingServiceUsagesApi(ResourceTestCase):
         compare_to['usages'][1]['service'] = self.service_environment2.service.name  # noqa
         # add service_id
         compare_to['usages'][0]['service_id'] = self.service_environment1.service.id  # noqa
-        self.assertEquals(compare_to, json.loads(resp.content))
+        self.assertItemsEqual(compare_to, json.loads(resp.content))

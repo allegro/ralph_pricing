@@ -1,13 +1,15 @@
 language: python
 env:
   matrix:
-    - DJANGO_VERSION=1.4.17 TEST_DATABASE_ENGINE=mysql
-    - DJANGO_VERSION=1.4.17 TEST_DATABASE_ENGINE=sqlite
-    - DJANGO_VERSION=1.6.9 TEST_DATABASE_ENGINE=sqlite
+    - DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=mysql
+    - DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=sqlite
+    # - DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=postgres
+    - DJANGO_VERSION=1.6.10 TEST_DATABASE_ENGINE=sqlite
 matrix:
   allow_failures:
-    - env: DJANGO_VERSION=1.4.17 TEST_DATABASE_ENGINE=sqlite
-    - env: DJANGO_VERSION=1.6.9 TEST_DATABASE_ENGINE=sqlite
+    - env: DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=sqlite
+    # - env: DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=postgres
+    - env: DJANGO_VERSION=1.6.10 TEST_DATABASE_ENGINE=sqlite
 python:
   - "2.7"
 cache:
@@ -15,6 +17,7 @@ cache:
   - /home/travis/virtualenv/python2.7.9/lib/python2.7/site-packages
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
+  - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
   - pip install git+https://github.com/quamilek/bob-ajax-selects.git@develop
   - pip install git+https://github.com/allegro/django-bob.git@develop
   - pip install git+https://github.com/zefciu/django-search-forms@develop
@@ -26,7 +29,8 @@ before_install:
   - pip install flake8 --use-mirrors
   - make flake
 before_script:
-  mysql -e 'CREATE DATABASE ralph CHARACTER SET utf8 COLLATE utf8_general_ci;'
+  - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;'
+  # - psql -c 'create database ralph_test;' -U postgres
 # command to run tests, e.g. python setup.py test
 script:
   make test-with-coveralls

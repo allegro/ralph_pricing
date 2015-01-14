@@ -8,9 +8,9 @@ from __future__ import unicode_literals
 import datetime
 from decimal import Decimal as D
 
-from django.test import TestCase
 
 from ralph_scrooge import models
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.models import History, HistoricalHistory
 from ralph_scrooge.tests.utils.factory import (
     DailyPricingObjectFactory,
@@ -23,7 +23,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestHistory(TestCase):
+class TestHistory(ScroogeTestCase):
     def test_history_flow(self):
         current_now = datetime.datetime.now()
         obj = History(field1=11, field2='aa')
@@ -35,8 +35,8 @@ class TestHistory(TestCase):
         self.assertEquals(obj1.field2, 'aa')
 
         history1 = obj.history.all()[:1].get()
-        self.assertGreater(history1.active_from, current_now)
-        self.assertEquals(history1.active_to, datetime.datetime.max)
+        self.assertGreaterEqual(history1.active_from, current_now)
+        self.assertEqual(history1.active_to, datetime.datetime.max)
 
         current_now = datetime.datetime.now()
         # change obj
@@ -50,8 +50,8 @@ class TestHistory(TestCase):
         self.assertEquals(obj2.field2, 'aa')
 
         history2, history1 = obj.history.all()[:2]
-        self.assertEquals(history1.active_to, history2.active_from)
-        self.assertEquals(history2.active_to, datetime.datetime.max)
+        self.assertEqual(history1.active_to, history2.active_from)
+        self.assertEqual(history2.active_to, datetime.datetime.max)
 
     def test_history_without_changes(self):
         obj = History(field1=11, field2='aa')
@@ -79,7 +79,7 @@ class TestHistory(TestCase):
         self.assertLess(history1.active_to, datetime.datetime.now())
 
 
-class TestModelDiff(TestCase):
+class TestModelDiff(ScroogeTestCase):
     def test_obj_diff(self):
         obj = History(field1=11, field2='b')
         obj.save()
@@ -98,7 +98,7 @@ class TestModelDiff(TestCase):
         self.assertEquals(obj._dict, {'field1': 11, 'field2': 'b', 'id': None})
 
 
-class TestPricingService(TestCase):
+class TestPricingService(ScroogeTestCase):
     def _set_sample_usages(self):
         # 3 Pricing Services (1 tested and dependent from others)
         # usage types:
@@ -183,7 +183,7 @@ class TestPricingService(TestCase):
         self.assertEquals(set(result), set())
 
 
-class TestDailyCost(TestCase):
+class TestDailyCost(ScroogeTestCase):
     def setUp(self):
         self.se1, self.se2 = ServiceEnvironmentFactory.create_batch(2)
         self.po1 = PricingObjectFactory(service_environment=self.se1)
