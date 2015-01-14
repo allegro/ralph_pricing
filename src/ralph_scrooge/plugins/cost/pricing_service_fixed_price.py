@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 @register(chain='scrooge_costs')
-class Ceilometer(PricingServiceBasePlugin):
+class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
     """
-    Ceilometer service cost is sum of costs of attached service usage types -
+    Fixed price service cost is sum of costs of attached service usage types -
     each of this service usage types must has price (and forecast price)
     defined for date, in which costs are generated.
     """

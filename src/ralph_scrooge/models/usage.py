@@ -62,10 +62,6 @@ class UsageType(BaseUsage):
         choices=TYPE_CHOICES,
         default='SU',
     )
-    use_universal_plugin = db.BooleanField(
-        verbose_name=_("Use universal plugin"),
-        default=True,
-    )
     excluded_services = db.ManyToManyField(
         'Service',
         verbose_name=_("Excluded services"),
@@ -87,9 +83,7 @@ class UsageType(BaseUsage):
         super(UsageType, self).save(*args, **kwargs)
 
     def get_plugin_name(self):
-        if self.use_universal_plugin:
-            return 'usage_type_plugin'
-        return self.symbol or self.name.lower().replace(' ', '_')
+        return 'usage_type_plugin'
 
 
 class UsagePrice(db.Model):

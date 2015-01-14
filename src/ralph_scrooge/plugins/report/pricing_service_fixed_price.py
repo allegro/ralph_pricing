@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 @register(chain='scrooge_reports')
-class Ceilometer(BaseReportPlugin):
+class PricingServiceFixedPricePlugin(BaseReportPlugin):
     """
-    Ceilometer reports plugin
+    Pricing service with fixed prices reports plugin
     """
     base_usage_cost_symbol = 'cost_{0}'
