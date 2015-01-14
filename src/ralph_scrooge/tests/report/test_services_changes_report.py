@@ -7,11 +7,11 @@ from __future__ import unicode_literals
 
 from datetime import date, timedelta
 
-from django.test import TestCase
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.models import PRICING_OBJECT_TYPES
 from ralph_scrooge.report.report_services_changes import ServicesChangesReport
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
     DailyAssetInfoFactory,
@@ -21,7 +21,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestServicesChangesReport(TestCase):
+class TestServicesChangesReport(ScroogeTestCase):
     def setUp(self):
         self.se1 = ServiceEnvironmentFactory()
         self.se2 = ServiceEnvironmentFactory()

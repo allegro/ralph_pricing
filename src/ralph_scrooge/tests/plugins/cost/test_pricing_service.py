@@ -25,7 +25,6 @@ from ralph_scrooge.tests.utils.factory import (
     TeamFactory,
     UsageTypeFactory,
 )
-from ralph_scrooge.utils.common import HashableDict
 
 
 class TestPricingServicePlugin(TestCase):
@@ -590,23 +589,7 @@ class TestPricingServicePlugin(TestCase):
             ]
         }
 
-        def list2set(d):
-            """
-            Change all list to frozensets
-            """
-            if isinstance(d, dict):
-                for k, v in d.iteritems():
-                    d[k] = list2set(v)
-            elif isinstance(d, list):
-                return frozenset(map(list2set, d))
-            return d
-
-        # change everything to "immutable" (hashable), then converts all lists
-        # to (frozen)sets to compare without order matter
-        self.assertEquals(
-            list2set(HashableDict.parse(dict(costs))),
-            list2set(HashableDict.parse(dict(result))),
-        )
+        self.assertItemsEqual(costs, result)
 
 
 class TestPricingServiceDependency(TestCase):
