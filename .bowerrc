@@ -1,0 +1,10 @@
+{
+  "directory": "src/ralph_scrooge/static/vendor/",
+  "analytics": false,
+  "timeout": 120000,
+  "registry": {
+    "search": [
+      "https://bower.herokuapp.com"
+    ]
+  }
+}

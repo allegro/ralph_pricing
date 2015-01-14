@@ -58,6 +58,8 @@ def left_menu(request, *args, **kwargs):
         dates[year][month].append(one_day_date.day)
 
     menuStats = {
+        "team": {"current": False, "change": False},
+        "subpage": {"current": False, "change": False},
         "service": {"current": False, "change": False},
         "env": {"current": False, "change": False},
         "year": {"current": False, "change": date_generated[-1].year},

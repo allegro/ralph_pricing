@@ -45,14 +45,14 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             content: false,
         },
         init: function() {
-            self = this;
+            var self = this;
             $http({method: 'GET', url: '/scrooge/leftmenu/components/'}).
                 success(function(data) {
-                    Object.keys(data['menuStats']).forEach(function (key){
-                        self.menuStats[key] = data['menuStats'][key];
+                    Object.keys(data.menuStats).forEach(function (key){
+                        self.menuStats[key] = data.menuStats[key];
                     });
-                    self.leftMenus = data['menus'];
-                    self.dates = data['dates'];
+                    self.leftMenus = data.menus;
+                    self.dates = data.dates;
                     self.currentLeftMenu = Object.keys(self.leftMenus)[0];
                     self.refreshData();
                 });
@@ -64,21 +64,15 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             return [31, (this.isLeapYear(date.getYear()) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         },
         refreshData: function() {
-            self = this;
-            var force = false;
+            var self = this;
             var refresh = false;
             Object.keys(self.menuStats).forEach(function (menu) {
-                if (self.menuStats[menu]['current'] != self.menuStats[menu]['change']) {
+                if (self.menuStats[menu].current != self.menuStats[menu].change) {
                     refresh = true;
-                    self.menuStats[menu]['current'] = self.menuStats[menu]['change'];
-                }
-                if (menu != 'service' && menu != 'env' && menu != 'team') {
-                    if (self.menuStats[menu]['change'] === false) {
-                        force = true;
-                    }
+                    self.menuStats[menu].current = self.menuStats[menu].change;
                 }
             });
-            if (force === false && refresh === true) {
+            if (refresh === true) {
                 self.clearPreviousContent();
                 self.refreshCurrentSubpage();
             }
@@ -96,13 +90,14 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             return false;
         },
         getComponentsData: function () {
+            var self = this;
             var url_chunks = [
                 '/scrooge/components',
-                self.menuStats['service']['current'],
-                self.menuStats['env']['current'],
-                self.menuStats['year']['current'],
-                self.menuStats['month']['current'],
-                self.menuStats['day']['current'],
+                self.menuStats.service.current,
+                self.menuStats.env.current,
+                self.menuStats.year.current,
+                self.menuStats.month.current,
+                self.menuStats.day.current,
             ];
             if (typeof(self.canceler) !== 'undefined') {
                 self.canceler.resolve();
@@ -122,13 +117,14 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             /**
              * Load allocation data
              */
+            var self = this;
             var url_chunks = [
                 '/scrooge/allocateclient',
-                self.menuStats['service']['current'],
-                self.menuStats['env']['current'],
-                self.menuStats['team']['current'],
-                self.menuStats['year']['current'],
-                self.menuStats['month']['current'],
+                self.menuStats.service.current,
+                self.menuStats.env.current,
+                self.menuStats.team.current,
+                self.menuStats.year.current,
+                self.menuStats.month.current,
             ];
             $http({
                 method: 'GET',
@@ -152,10 +148,11 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             /**
              * Load admin allocation data
              */
+            var self = this;
             var url_chunks = [
                 '/scrooge/rest/allocateadmin',
-                self.menuStats['year']['current'],
-                self.menuStats['month']['current'],
+                self.menuStats.year.current,
+                self.menuStats.month.current,
             ];
             $http({
                 method: 'GET',
@@ -177,12 +174,13 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             /**
              * Load cost card data
              */
+            var self = this;
             var url_chunks = [
                 '/scrooge/rest/costcard',
-                self.menuStats['service']['current'],
-                self.menuStats['env']['current'],
-                self.menuStats['year']['current'],
-                self.menuStats['month']['current'],
+                self.menuStats.service.current,
+                self.menuStats.env.current,
+                self.menuStats.year.current,
+                self.menuStats.month.current,
             ];
             $http({
                 method: 'GET',
@@ -194,6 +192,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             });
         },
         clearPreviousContent: function () {
+            var self = this;
             self.components = {
                 contentStats: {}
             };
@@ -202,34 +201,35 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             self.costcard = {};
         },
         saveAllocation: function (tab) {
+            var self = this;
             var url = '';
             var data = {};
             switch(tab) {
                 case 'serviceDivision':
                     url = '/scrooge/allocateclient/servicedivision/save/';
                     data = {
-                        'service': self.menuStats['service']['current'],
+                        'service': self.menuStats.service.current,
                         'rows': self.allocationclient.serviceDivision.rows,
                     };
                     break;
                 case 'serviceExtraCost':
                     url = '/scrooge/allocateclient/serviceextracost/save/';
                     data = {
-                        'service': self.menuStats['service']['current'],
-                        'env': self.menuStats['env']['current'],
+                        'service': self.menuStats.service.current,
+                        'env': self.menuStats.env.current,
                         'rows': self.allocationclient.serviceExtraCost.rows,
                     };
                     break;
                 case 'teamDivision':
                     url = '/scrooge/allocateclient/teamdivision/save/';
                     data = {
-                        'team': self.menuStats['team']['current'],
+                        'team': self.menuStats.team.current,
                         'rows': self.allocationclient.teamDivision.rows,
                     };
                     break;
             }
-            data['month'] = self.menuStats['month']['current'];
-            data['year'] = self.menuStats['year']['current'];
+            data.month = self.menuStats.month.current;
+            data.year = self.menuStats.year.current;
             $http({
                 url: url,
                 method: 'POST',
@@ -237,9 +237,10 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             });
         },
         getEnvs: function (service_id) {
+            var self = this;
             var envs = [];
             if (Object.keys(self.leftMenus).length > 0) {
-                self.leftMenus['services'].forEach(function (element) {
+                self.leftMenus.services.forEach(function (element) {
                     if (element.id == service_id) {
                         envs = element.value.envs;
                     }
@@ -248,9 +249,11 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             return envs;
         },
         changeTab: function (tab) {
+            var self = this;
             self.currentTab = tab;
         },
         getFirstExistMenu: function () {
+            var self = this;
             for (var i in self.leftMenus) {
                 if (self.inArray(i, self.currentSubMenu.leftMenu) === true) {
                     return i;
@@ -259,6 +262,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             return false;
         },
         getCurrentTab: function() {
+            var self = this;
             if (Object.keys(self.allocationadmin).length > 0) {
                 return self.staticUri + self.allocationadmin[self.currentTab].template;
             }

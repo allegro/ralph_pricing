@@ -13,8 +13,14 @@ install:
 before_install:
   - pip install flake8 --use-mirrors
   - make flake
+  - npm install
+  - grunt jshint
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
 # command to run tests, e.g. python setup.py test
 script:
-  make test-with-coveralls
+  - bower install
+  - grunt karma
+  - make test-with-coveralls
 after_success:
   coveralls

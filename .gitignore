@@ -33,7 +33,14 @@ nosetests.xml
 .project
 .pydevproject
 
-
 # Documentation
 /doc/_build/
 
+# Static
+/src/ralph_scrooge/static/vendor/*
+
+# Grunt
+/node_modules/*
+
+#npm
+npm-debug.log

@@ -6,30 +6,31 @@
     <head>
         <meta charset="utf-8">
         <title>Ralph Scrooge | {% block title %}{% block titlesection %}{{ active_menu.module.label }}{% block titlesubsection %}{% endblock %} - {{ active_submodule|title }}{% endblock %}{% endblock %}</title>
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/bootstrap-table.css" />
+        <!-- External css -->
+        <link rel="stylesheet" href="{{ STATIC_URL }}vendor/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}vendor/bootstrap-table/dist/bootstrap-table.min.css" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}vendor/ng-scrollbar/dist/ng-scrollbar.css" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}vendor/multiple-select/multiple-select.css" />
+        <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+        <!-- Local css -->
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/scrooge.css" />
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/loading-bar.css" />
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/font-awesome.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/ng-scrollbar.css" />
-        <!-- <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/multiple-select.css" /> -->
-        <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
          <!-- External scripts -->
         {% panels_colors %}
-        <script src="{{ STATIC_URL }}scrooge/js/jquery.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/jquery.multiple.select.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.17/angular-animate.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-resource.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-route.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-cookies.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-animate.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/loading-bar.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/ng-scrollbar.js"></script>
+        <script src="{{ STATIC_URL }}vendor/jquery/dist/jquery.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/multiple-select/jquery.multiple.select.js"></script>
+        <script src="{{ STATIC_URL }}vendor/angular/angular.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/angular-animate/angular-animate.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/angular-resource/angular-resource.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/angular-route/angular-route.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/angular-cookies/angular-cookies.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/ng-scrollbar/dist/ng-scrollbar.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="{{ STATIC_URL }}vendor/bootstrap-table/dist/bootstrap-table.min.js"></script>
+        <!-- Local scripts -->
         <script src="{{ STATIC_URL }}scrooge/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/bootstrap.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/bootstrap-table.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/raven.min.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/js/loading-bar.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
         <!-- Angular scripts -->
         <script src="{{ STATIC_URL }}scrooge/app/app.js"></script>
