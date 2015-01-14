@@ -235,7 +235,6 @@ class ExtraCostFactory(DjangoModelFactory):
     extra_cost_type = SubFactory(ExtraCostTypeFactory)
     cost = 3100
     service_environment = SubFactory(ServiceEnvironmentFactory)
-    pricing_object = SubFactory(PricingObjectFactory)
     start = datetime.date.today()
     end = datetime.date.today()
 
@@ -287,7 +286,7 @@ class TeamCostFactory(DjangoModelFactory):
 class TeamServiceEnvironmentPercentFactory(DjangoModelFactory):
     FACTORY_FOR = models.TeamServiceEnvironmentPercent
 
-    team = SubFactory(TeamFactory)
+    team_cost = SubFactory(TeamCostFactory)
     service_environment = SubFactory(ServiceEnvironmentFactory)
     percent = fuzzy.FuzzyDecimal(0, 100)
 
@@ -304,3 +303,10 @@ class CostDateStatusFactory(DjangoModelFactory):
     FACTORY_FOR = models.CostDateStatus
 
     date = datetime.date.today()
+
+
+class ServiceUsageTypesFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ServiceUsageTypes
+
+    usage_type = SubFactory(UsageTypeFactory)
+    pricing_service = SubFactory(PricingServiceFactory)

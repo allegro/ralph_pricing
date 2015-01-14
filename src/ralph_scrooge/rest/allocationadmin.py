@@ -16,10 +16,33 @@ from ralph_scrooge.models import (
     UsageType,
     Warehouse,
     UsagePrice,
+    TeamCost,
+    Team,
 )
 
 
 class AllocationAdminContent(APIView):
+    def _get_team_costs(self, start, end):
+        rows = []
+        for team in Team.objects.all():
+            try:
+                members, cost = TeamCost.objects.get(
+                    team=team,
+                    start=start,
+                    end=end,
+                ).value('members', 'cost')
+            except:
+                members, cost = 0, D(0)
+            rows.append({
+                'team': {
+                    'id': team.id,
+                    'name': team.name,
+                },
+                'cost': cost,
+                'members': members,
+            })
+        return rows
+
     def _get_base_usages(self, start, end):
         rows = []
         warehouses = Warehouse.objects.filter(
@@ -72,6 +95,7 @@ class AllocationAdminContent(APIView):
     def get(self, request, month, year, format=None):
         first_day, last_day, days_in_month = get_dates(year, month)
         base_usages = self._get_base_usages(first_day, last_day)
+        team_costs = self._get_team_costs(first_day, last_day)
         return Response({
             'baseusages': {
                 'name': 'Base Usages',
@@ -80,7 +104,7 @@ class AllocationAdminContent(APIView):
             },
             'teamcosts': {
                 'name': 'Team Costs',
-                'rows': [{'team_cost': 3, 'value': 300}],
+                'rows': team_costs,
                 'template': 'tabteamcosts.html',
             },
             'extracosts': {
