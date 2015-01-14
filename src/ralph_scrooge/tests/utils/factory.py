@@ -309,3 +309,11 @@ class ServiceUsageTypesFactory(DjangoModelFactory):
 
     usage_type = SubFactory(UsageTypeFactory)
     pricing_service = SubFactory(PricingServiceFactory)
+
+
+class UsagePriceFactory(DjangoModelFactory):
+    FACTORY_FOR = models.UsagePrice
+
+    type = SubFactory(UsageTypeFactory)
+    start = datetime.date(2014, 10, 1)
+    end = datetime.date(2014, 10, 31)
