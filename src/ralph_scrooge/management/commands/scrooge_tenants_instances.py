@@ -22,7 +22,7 @@ from ralph_scrooge.models import (
     UsageType,
 )
 from ralph_scrooge.plugins.cost.collector import Collector
-from ralph_scrooge.utils.common import memoize
+from ralph_scrooge.utils.common import memoize, normalize_decimal
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +122,9 @@ class Command(ScroogeBaseCommand):
             end__gte=start,
         ).order_by('start'):
             prices.append(price.forecast_price if forecast else price.price)
-        return usage_type, ' / '.join(map(unicode, prices))
+        return usage_type, ' / '.join(
+            map(lambda x: unicode(normalize_decimal(x)), prices)
+        )
 
     @memoize(skip_first=True)
     def _get_model(self, model_id):

@@ -231,7 +231,7 @@ class TestScroogeTenantsInstances(TestCase):
                     prices,
                     value * days * 24,
                 ])
-        self.assertEqual(result, expected)
+        self.assertItemsEqual(result, expected)
 
     def test_get_costs_simple_usage(self):
         self.command.type = 'simple_usage'
@@ -260,7 +260,7 @@ class TestScroogeTenantsInstances(TestCase):
                     prices,
                     value * days * 24,
                 ])
-        self.assertEqual(result, expected)
+        self.assertItemsEqual(result, expected)
 
     def test_get_costs_ceilometer_forecast(self):
         self._set_usage_prices()
@@ -288,7 +288,7 @@ class TestScroogeTenantsInstances(TestCase):
                     prices,
                     value * days * 24,
                 ])
-        self.assertEqual(result, expected)
+        self.assertItemsEqual(result, expected)
 
     def test_get_usages_without_cost_ceilometer(self):
         DailyCost.objects.filter(type=self.ceilometer_usage1).delete()
@@ -313,7 +313,7 @@ class TestScroogeTenantsInstances(TestCase):
                 '-',
                 '-',
             ])
-        self.assertEqual(result, expected)
+        self.assertItemsEqual(result, expected)
 
     def test_get_usages_without_cost_simple_usage(self):
         self.command.type = 'simple_usage'
@@ -340,7 +340,7 @@ class TestScroogeTenantsInstances(TestCase):
                 '-',
                 '-',
             ])
-        self.assertEqual(result, expected)
+        self.assertItemsEqual(result, expected)
 
     @mock.patch('ralph_scrooge.management.commands.scrooge_tenants_instances.Command._calculate_missing_dates')  # noqa
     @mock.patch('ralph_scrooge.management.commands.scrooge_tenants_instances.Command.get_costs')  # noqa

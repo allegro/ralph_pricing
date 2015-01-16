@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from decimal import Decimal
 from functools import wraps
 
 from django.conf import settings
@@ -103,6 +104,23 @@ def sum_of_intervals(intervals):
                 result.append((current_start, value))
                 current_start = None
     return result
+
+
+def normalize_decimal(d):
+    """
+    Normalize decimal without scientific notation (remove exponent and trailing
+    zeros).
+
+    Source: https://docs.python.org/2/library/decimal.html#decimal-faq
+
+    >>> normalize_decimal(Decimal('11.00000'))
+    Decimal('11')
+    >>> normalize_decimal(Decimal('11.11000'))
+    Decimal('11.11')
+    >>> normalize_decimal(Decimal('11E2'))
+    Decimal('1100')
+    """
+    return d.quantize(Decimal(1)) if d == d.to_integral() else d.normalize()
 
 
 def memoize_proxy(func=None, *rargs, **rkwargs):

@@ -38,6 +38,7 @@ setup(
         'django-simple-history',
         'djangorestframework==2.4.3',
         'django-filter>=0.8',
+        'django-nose>=1.3',
     ],
     entry_points={
         'django.pluggable_app': [
