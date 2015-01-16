@@ -15,13 +15,11 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     TenantInfo,
 )
-
+from ralph_scrooge.plugins.collect._exceptions import (
+    UnknownServiceEnvironmentNotConfiguredError,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class UnknownServiceEnvironmentNotConfiguredError(Exception):
-    pass
 
 
 def get_model(ralph_tenant):

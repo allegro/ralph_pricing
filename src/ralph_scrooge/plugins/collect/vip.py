@@ -17,13 +17,12 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     VIPInfo,
 )
+from ralph_scrooge.plugins.collect._exceptions import (
+    UnknownServiceEnvironmentNotConfiguredError,
+)
 
 
 logger = logging.getLogger(__name__)
-
-
-class UnknownServiceEnvironmentNotConfiguredError(Exception):
-    pass
 
 
 def get_vip_model(ralph_vip):

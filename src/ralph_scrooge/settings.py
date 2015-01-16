@@ -18,6 +18,9 @@ OPENSTACK_TENANTS_MODELS = []
 # VIP
 VIP_TYPES = []
 
+# Database
+DATABASE_TYPES = []
+
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
 

@@ -85,6 +85,13 @@
     icon_class: ''
 
 - model: ralph_scrooge.PricingObjectType
+  pk: 6
+  fields:
+    name: 'Database'
+    color: '#2E0000'
+    icon_class: 'fa-database'
+
+- model: ralph_scrooge.PricingObjectType
   pk: 254
   fields:
     name: 'Dummy'
