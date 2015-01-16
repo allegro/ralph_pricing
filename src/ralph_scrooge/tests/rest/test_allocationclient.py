@@ -304,12 +304,12 @@ class TestAllocationClient(TestCase):
                 "rows": [{
                     'env': service_environment_1.environment.id,
                     'id': team_percent_1.id,
-                    'service': service_environment_1.environment.id,
+                    'service': service_environment_1.service.id,
                     'value': float(team_percent_1.percent),
                 }, {
                     'env': service_environment_2.environment.id,
                     'id': team_percent_2.id,
-                    'service': service_environment_2.environment.id,
+                    'service': service_environment_2.service.id,
                     'value': float(team_percent_2.percent),
                 }],
                 "name": "Team Devision",

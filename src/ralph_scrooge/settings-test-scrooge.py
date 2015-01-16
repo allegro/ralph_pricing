@@ -41,6 +41,12 @@ else:
 PLUGGABLE_APPS = ['assets', 'scrooge', 'cmdb']
 
 SOUTH_TESTS_MIGRATE = False
+try:
+    INSTALLED_APPS += ('django_nose',)
+    TEST_RUNNER = str('django_nose.NoseTestSuiteRunner')
+    NOSE_ARGS = ['--with-doctest']
+except NameError:
+    print('Cannot use nose test runner')
 
 try:
     execfile(os.path.expanduser("~/.ralph/settings-test-scrooge-local"))

@@ -14,7 +14,7 @@ python:
   - "2.7"
 cache:
   directories:
-  - /home/travis/virtualenv/python2.7.9/lib/python2.7/site-packages
+    - /home/travis/virtualenv/python2.7.9/lib/python2.7/site-packages
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
   - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
