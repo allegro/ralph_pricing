@@ -2,7 +2,13 @@ Change Log
 ----------
 
 
-3.0.0-beta
+3.0.0-beta2
+~~~~~~~~~~
+
+* Fixed angular routes
+
+
+3.0.0-beta1
 ~~~~~~~~~~
 
 * improve collector performance
