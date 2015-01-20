@@ -71,7 +71,7 @@ class Information(BaseReportPlugin):
             )
         for service_environment in service_environments:
             info[service_environment.id] = {
-                'service_id': service_environment.service.ci_uid,
+                'id': service_environment.id,
                 'service': service_environment.service.name,
                 'environment': service_environment.environment.name,
                 'profit_center': ' / '.join([
@@ -132,7 +132,7 @@ class Information(BaseReportPlugin):
         """
         logger.debug("Get information schema")
         schema = OrderedDict()
-        schema['service_id'] = {
+        schema['id'] = {
             'name': _("ID"),
         }
         schema['service'] = {
