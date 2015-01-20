@@ -130,7 +130,6 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                     self.menuStats[menu]['current'] = self.menuStats[menu]['change'];
                 }
                 if (menu != 'service' && menu != 'env' && menu != 'team') {
-                    console.log(self.menuStats[menu]['change'], self.menuStats[menu]['current'])
                     if (self.menuStats[menu]['change'] === null) {
                         force = true;
                     }
