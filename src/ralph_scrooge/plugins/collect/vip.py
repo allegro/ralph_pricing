@@ -69,7 +69,7 @@ def save_vip_info(ralph_vip, unknown_service_environment):
         )
     ip_info = PricingObject.objects.get_or_create(
         name=ralph_vip['ip_address'],
-        type=PRICING_OBJECT_TYPES.IP_ADDRESS,
+        type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
         defaults=dict(
             service_environment=service_environment,
         )
