@@ -26,7 +26,7 @@ class UnknownServiceEnvironmentNotConfiguredError(Exception):
     pass
 
 
-def get_model(ralph_vip):
+def get_vip_model(ralph_vip):
     model = PricingObjectModel.objects.get_or_create(
         model_id=ralph_vip['type_id'],
         type_id=PRICING_OBJECT_TYPES.VIP,
@@ -84,7 +84,7 @@ def save_vip_info(ralph_vip, unknown_service_environment):
     except AssetInfo.DoesNotExist:
         load_balancer = None
 
-    vip_info.model = get_model(ralph_vip)
+    vip_info.model = get_vip_model(ralph_vip)
     vip_info.name = ralph_vip['name']
     vip_info.port = ralph_vip['port']
     vip_info.ip_info = ip_info
@@ -138,31 +138,26 @@ def get_unknown_service_environment(model_name):
 @plugin.register(chain='scrooge', requires=['service', 'asset'])
 def vip(today, **kwargs):
     new = total = 0
-    # check if all unknown SE are configured
     for vip_type in settings.VIP_TYPES:
         try:
             unknown_service_environment = get_unknown_service_environment(
                 vip_type
             )
         except UnknownServiceEnvironmentNotConfiguredError:
-            msg = 'Unknown service environment not configured for {}'.format(
-                vip_type
+            logger.error(
+                'Unknown service environment not configured for {}'.format(
+                    vip_type
+                )
             )
-            logger.error(msg)
-            return (False, msg)
-
-    for vip_type in settings.VIP_TYPES:
-        unknown_service_environment = get_unknown_service_environment(
-            vip_type
-        )
-        for ralph_vip in api_scrooge.get_vips(load_balancer_type=vip_type):
-            total += 1
-            if update_vip(
-                ralph_vip,
-                today,
-                unknown_service_environment,
-            ):
-                new += 1
+        else:
+            for ralph_vip in api_scrooge.get_vips(load_balancer_type=vip_type):
+                total += 1
+                if update_vip(
+                    ralph_vip,
+                    today,
+                    unknown_service_environment,
+                ):
+                    new += 1
     return True, 'VIPs: {0} new, {1} updated, {2} total'.format(
         new,
         total - new,

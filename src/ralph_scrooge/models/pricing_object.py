@@ -391,7 +391,7 @@ class VIPInfo(PricingObject):
         null=True,
         blank=True,
         related_name='vips',
-        verbose_name=_('load')
+        verbose_name=_('load balancer')
     )
 
     class Meta:
