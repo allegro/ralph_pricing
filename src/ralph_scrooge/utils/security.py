@@ -55,7 +55,7 @@ def _has_permission_to_team(user, team):
         return True
     return TeamManager.objects.filter(
         team__id=team,
-        owner__profile__user=user,
+        manager__profile__user=user,
     ).exists()
 
 
