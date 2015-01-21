@@ -26,31 +26,31 @@ from ralph_scrooge.utils.security import (
 urlpatterns = patterns(
     '',
     url(
-        r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/$',
+        r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/?$',
         scrooge_permission(AllocationAdminContent.as_view()),
     ),
     url(
-        r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
+        r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         service_permission(AllocationClientService.as_view()),
     ),
     url(
-        r'^allocationclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',
+        r'^allocationclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',
         team_permission(AllocationClientPerTeam.as_view()),
     ),
     url(
-        r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/$',  # noqa
+        r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/?$',  # noqa
         service_permission(AllocationClientService.as_view()),
     ),
     url(
-        r'^allocationclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/$',  # noqa
+        r'^allocationclient/(?P<team>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/?$',  # noqa
         team_permission(AllocationClientPerTeam.as_view()),
     ),
     url(
-        r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/$',  # noqa
+        r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         service_permission(CostCardContent.as_view()),
     ),
     url(
-        r'^submenu/$',
+        r'^submenu/?$',
         login_required(SubMenu.as_view()),
         name='submenu'
     ),

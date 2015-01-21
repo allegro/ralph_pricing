@@ -42,7 +42,7 @@ for r in (SyncStatusViewSet, ):
 urlpatterns = patterns(
     '',
     url(
-        r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',  # noqa
+        r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/?$',  # noqa
         service_permission(components_content),
     ),
     url(r'^rest/', include('ralph_scrooge.rest.urls')),
