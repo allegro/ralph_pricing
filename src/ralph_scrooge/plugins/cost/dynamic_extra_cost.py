@@ -20,13 +20,6 @@ class CostNotFoundError(Exception):
 
 @register(chain='scrooge_costs')
 class DynamicExtraCostPlugin(PricingServiceBasePlugin):
-    def total_cost(self, collapse=False, *args, **kwargs):
-        return super(DynamicExtraCostPlugin, self).total_cost(
-            collapse=collapse,
-            *args,
-            **kwargs
-        )
-
     def costs(
         self,
         dynamic_extra_cost_type,

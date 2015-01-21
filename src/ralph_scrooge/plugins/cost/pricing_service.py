@@ -36,7 +36,9 @@ class PricingServiceBasePlugin(BaseCostPlugin):
     def total_cost(self, collapse=True, *args, **kwargs):
         service_costs = self.costs(*args, **kwargs)
         if collapse:
-            return sum([v[0] for v in service_costs.values()])
+            return sum(
+                [sum([s['cost'] for s in c]) for c in service_costs.values()]
+            )
         else:
             # sum by type on each level
             return self._get_total_costs_from_costs(service_costs)

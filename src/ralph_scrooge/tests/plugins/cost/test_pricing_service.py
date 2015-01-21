@@ -591,6 +591,45 @@ class TestPricingServicePlugin(TestCase):
 
         self.assertItemsEqual(costs, result)
 
+    def test_total_costs(self):
+        costs = PricingServicePlugin(
+            type='total_cost',
+            date=self.today,
+            pricing_service=self.pricing_service1,
+            service_environments=self.service_environments,
+            forecast=True,
+            collapse=True,
+        )
+        self.assertEquals(costs, D('1010'))
+
+    def test_total_costs_not_collapsed(self):
+        costs = PricingServicePlugin(
+            type='total_cost',
+            date=self.today,
+            pricing_service=self.pricing_service1,
+            service_environments=self.service_environments,
+            forecast=True,
+            collapse=False,
+        )
+        self.assertEquals(costs, {
+            self.pricing_service1.id: [
+                D('1010'), {
+                    self.pricing_service2.id: [
+                        D('122'),
+                        {
+                            self.base_usage_type.id: [D('20'), {}],
+                            self.team.id: [D('2'), {}],
+                            self.extra_cost_type.id: [D('100'), {}]
+                        }
+                    ],
+                    self.base_usage_type.id: [D('80'), {}],
+                    self.regular_usage_type.id: [D('400'), {}],
+                    self.team.id: [D('8'), {}],
+                    self.extra_cost_type.id: [D('400'), {}]
+                }
+            ]
+        })
+
 
 class TestPricingServiceDependency(TestCase):
     """
@@ -922,8 +961,8 @@ class TestPricingServiceDiffCharging(TestCase):
                 forecast=False,
             ) for x in (self.pricing_service2, self.pricing_service3)
         ]
-        total_mock.assert_has_calls(calls)
-        fixed_total_mock.assert_has_calls(calls)
+        total_mock.assert_has_calls(calls, any_order=True)
+        fixed_total_mock.assert_has_calls(calls, any_order=True)
 
     @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin.total_cost')  # noqa
     def test_get_service_charging_by_diffs_error(self, total_mock):
