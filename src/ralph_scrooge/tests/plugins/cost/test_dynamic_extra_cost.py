@@ -100,6 +100,28 @@ class TestDynamicExtraCostPlugin(TestCase):
         )
         self.assertEquals(set(result), set(self.division))
 
+    def test_total_cost(self):
+        self._create_usages()
+        result = DynamicExtraCostPlugin.total_cost(
+            date=self.today,
+            dynamic_extra_cost_type=self.dynamic_extra_cost_type,
+            service_environments=self.service_environments,
+            collapse=True
+        )
+        self.assertEquals(result, D(10))
+
+    def test_total_cost_not_collapsed(self):
+        self._create_usages()
+        result = DynamicExtraCostPlugin.total_cost(
+            date=self.today,
+            dynamic_extra_cost_type=self.dynamic_extra_cost_type,
+            service_environments=self.service_environments,
+            collapse=False
+        )
+        self.assertEquals(result, {
+            self.dynamic_extra_cost_type.id: [D(10), {}]
+        })
+
     def test_costs(self):
         self._create_usages()
         result = DynamicExtraCostPlugin(
