@@ -14,10 +14,13 @@ from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.models import History, HistoricalHistory
 from ralph_scrooge.tests.utils.factory import (
     DailyPricingObjectFactory,
+    DynamicExtraCostFactory,
+    ExtraCostFactory,
     ExtraCostTypeFactory,
     PricingObjectFactory,
     PricingServiceFactory,
     ServiceEnvironmentFactory,
+    SupportCostFactory,
     UsageTypeFactory,
     WarehouseFactory,
 )
@@ -281,3 +284,31 @@ class TestDailyCost(ScroogeTestCase):
         )
         for t in tree_flat:
             self.assertIn(t, daily_costs_dicts)
+
+
+class TestModelRepr(ScroogeTestCase):
+    def test_extra_cost(self):
+        extra_cost = ExtraCostFactory()
+        result = unicode(extra_cost)
+        self.assertEqual(result, '{} - {}'.format(
+            extra_cost.service_environment,
+            extra_cost.extra_cost_type
+        ))
+
+    def test_dynamic_extra_cost(self):
+        dynamic_extra_cost = DynamicExtraCostFactory()
+        result = unicode(dynamic_extra_cost)
+        self.assertEqual(result, '{} ({}-{})'.format(
+            dynamic_extra_cost.dynamic_extra_cost_type,
+            dynamic_extra_cost.start,
+            dynamic_extra_cost.end,
+        ))
+
+    def test_support(self):
+        support_cost = SupportCostFactory()
+        result = unicode(support_cost)
+        self.assertEqual(result, '{} ({} - {})'.format(
+            support_cost.pricing_object.name,
+            support_cost.start,
+            support_cost.end,
+        ))
