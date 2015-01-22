@@ -189,7 +189,7 @@ class DynamicExtraCost(db.Model):
 
     def __unicode__(self):
         return '{} ({}-{})'.format(
-            self.extra_cost_type,
+            self.dynamic_extra_cost_type,
             self.start,
             self.end,
         )
@@ -212,7 +212,7 @@ class SupportCost(AbstractExtraCost):
         app_label = 'ralph_scrooge'
 
     def __unicode__(self):
-        return 'Support: {} ({} - {})'.format(
+        return '{} ({} - {})'.format(
             self.pricing_object.name,
             self.start,
             self.end,
