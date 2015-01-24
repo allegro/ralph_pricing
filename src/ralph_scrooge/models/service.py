@@ -260,6 +260,7 @@ class PricingService(BaseUsage):
                 date=date,
             ).values_list('type', flat=True).distinct()
         )
+        ps = ps.exclude(excluded_services__in=self.services.all())
         if exclude:
             ps = ps.exclude(id__in=[p.id for p in exclude])
         return ps.distinct()

@@ -10,6 +10,8 @@ from datetime import datetime
 
 from django.test import TestCase
 
+from ralph_scrooge.utils.common import HashableDict
+
 logging.disable(logging.CRITICAL)
 
 
@@ -31,6 +33,29 @@ class ScroogeTestCaseMixin(object):
     def assertGreaterEqual(self, *args):
         return super(ScroogeTestCaseMixin, self).assertGreaterEqual(
             *self._fix_dates(*args)
+        )
+
+    def _list2set(self, d):
+        """
+        Change all list to frozensets
+        """
+        if isinstance(d, dict):
+            for k, v in d.iteritems():
+                d[k] = self._list2set(v)
+        elif isinstance(d, list):
+            return frozenset(map(self._list2set, d))
+        return d
+
+    def assertNestedDictsEqual(self, el1, el2):
+        """
+        Test nested dicts equality by changing them to HashableDict (dict,
+        which could be element of a set) and changing all list to frozenset
+        (to don't compare order) - useful when comparing with QuerySets, which
+        could have random order.
+        """
+        return self.assertEqual(
+            self._list2set(HashableDict.parse(dict(el1))),
+            self._list2set(HashableDict.parse(dict(el2)))
         )
 
 
