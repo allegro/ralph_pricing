@@ -19,6 +19,7 @@ class MultiPathNode(db.Model):
     path = db.CharField(max_length=255, db_index=True)
     depth = db.PositiveIntegerField(db_index=True, default=0)
     parent = None
+    _only_first_depth = False
 
     class Meta:
         abstract = True
@@ -92,7 +93,8 @@ class MultiPathNode(db.Model):
                 else:
                     newobj = parent.add_child(**params)
                     result.append(newobj)
-                result.extend(cls._build_tree(
-                    child.get('_children', []), newobj, **global_params
-                ))
+                if not cls._only_first_depth:
+                    result.extend(cls._build_tree(
+                        child.get('_children', []), newobj, **global_params
+                    ))
         return result

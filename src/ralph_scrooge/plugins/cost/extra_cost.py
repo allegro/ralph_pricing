@@ -50,8 +50,9 @@ class ExtraCostPlugin(BaseCostPlugin):
             ...
         }
         """
-        logger.debug("Get extra cost {} costs".format(extra_cost_type.name))
-
+        logger.info("Calculating extra costs: {0}".format(
+            extra_cost_type.name,
+        ))
         extra_costs = ExtraCost.objects.filter(
             end__gte=date,
             start__lte=date,

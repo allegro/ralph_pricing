@@ -28,6 +28,9 @@ class ExtraCostType(BaseUsage):
         self.type = BaseUsageType.extra_cost
         super(ExtraCostType, self).save(*args, **kwargs)
 
+    def get_plugin_name(self):
+        return 'extra_cost_plugin' if self.id != 2 else 'support_plugin'
+
 
 class AbstractExtraCost(db.Model):
     """

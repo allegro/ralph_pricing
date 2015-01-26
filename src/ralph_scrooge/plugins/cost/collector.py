@@ -195,8 +195,8 @@ class Collector(object):
                 service_environment_id=service_environment,
                 forecast=forecast,
             ))
+        logger.info('Saving {} costs'.format(len(daily_costs)))
         DailyCost.objects.bulk_create(daily_costs)
-
         # update status to created
         status, created = CostDateStatus.objects.get_or_create(date=date)
         if forecast:
@@ -204,6 +204,7 @@ class Collector(object):
         else:
             status.calculated = True
         status.save()
+        logger.info('Costs saved')
 
     def _collect_costs(
         self,

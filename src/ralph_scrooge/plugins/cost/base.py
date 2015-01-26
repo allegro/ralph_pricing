@@ -93,7 +93,6 @@ class BaseCostPlugin(BasePlugin):
             price = cost / D(total_usage)
         return D(price)
 
-    @memoize(skip_first=True)
     def _get_daily_usages_in_period(
         self,
         usage_type,
@@ -141,7 +140,6 @@ class BaseCostPlugin(BasePlugin):
             total=Sum('value')
         ).get('total') or 0
 
-    @memoize(skip_first=True)
     def _get_usages_per_service_environment(self, *args, **kwargs):
         """
         Method similar to `_get_total_usage_in_period`, but instead of
@@ -156,7 +154,6 @@ class BaseCostPlugin(BasePlugin):
             usage=Sum('value'),
         ).order_by('service_environment'))
 
-    @memoize(skip_first=True)
     def _get_usages_per_service(self, *args, **kwargs):
         """
         Method similar to `_get_total_usage_in_period`, but instead of
@@ -173,7 +170,6 @@ class BaseCostPlugin(BasePlugin):
             ).order_by('service_environment__service')
         )
 
-    @memoize(skip_first=True)
     def _get_usages_per_pricing_object(self, *args, **kwargs):
         """
         Works almost exactly as `_get_usages_in_period_per_service`, but

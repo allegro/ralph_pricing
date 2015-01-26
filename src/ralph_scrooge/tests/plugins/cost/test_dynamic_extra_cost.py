@@ -65,8 +65,8 @@ class TestDynamicExtraCostPlugin(TestCase):
                         value=value,
                     )
 
-    def test_get_daily_cost(self):
-        result = DynamicExtraCostPlugin._get_daily_cost(
+    def test_get_costs(self):
+        result = DynamicExtraCostPlugin._get_costs(
             date=self.today,
             dynamic_extra_cost_type=self.dynamic_extra_cost_type,
             forecast=False,
@@ -75,8 +75,8 @@ class TestDynamicExtraCostPlugin(TestCase):
             self.dynamic_extra_cost_type.id: (10, None)
         })
 
-    def test_get_daily_cost_forecast(self):
-        result = DynamicExtraCostPlugin._get_daily_cost(
+    def test_get_costs_forecast(self):
+        result = DynamicExtraCostPlugin._get_costs(
             date=self.today,
             dynamic_extra_cost_type=self.dynamic_extra_cost_type,
             forecast=True,
@@ -85,9 +85,9 @@ class TestDynamicExtraCostPlugin(TestCase):
             self.dynamic_extra_cost_type.id: (20, None)
         })
 
-    def test_get_daily_cost_not_found(self):
+    def test_get_costs_not_found(self):
         with self.assertRaises(CostNotFoundError):
-            DynamicExtraCostPlugin._get_daily_cost(
+            DynamicExtraCostPlugin._get_costs(
                 date=self.date_out_of_range,
                 dynamic_extra_cost_type=self.dynamic_extra_cost_type,
                 forecast=False,
@@ -100,23 +100,12 @@ class TestDynamicExtraCostPlugin(TestCase):
         )
         self.assertEquals(set(result), set(self.division))
 
-    def test_total_cost(self):
-        self._create_usages()
-        result = DynamicExtraCostPlugin.total_cost(
-            date=self.today,
-            dynamic_extra_cost_type=self.dynamic_extra_cost_type,
-            service_environments=self.service_environments,
-            collapse=True
-        )
-        self.assertEquals(result, D(10))
-
     def test_total_cost_not_collapsed(self):
         self._create_usages()
         result = DynamicExtraCostPlugin.total_cost(
             date=self.today,
             dynamic_extra_cost_type=self.dynamic_extra_cost_type,
             service_environments=self.service_environments,
-            collapse=False
         )
         self.assertEquals(result, {
             self.dynamic_extra_cost_type.id: [D(10), {}]

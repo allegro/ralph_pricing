@@ -13,6 +13,10 @@ from django.test import TestCase
 
 from ralph_scrooge import models
 from ralph_scrooge.plugins.cost.pricing_service import PricingServicePlugin
+from ralph_scrooge.plugins.cost.pricing_service_fixed_price import (
+    PricingServiceFixedPricePlugin
+)
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.plugins.cost.sample.pricing_service_costs import (
     PRICING_SERVICE_COSTS,
 )
@@ -284,7 +288,7 @@ class TestPricingServicePlugin(TestCase):
             pricing_service=self.pricing_service1,
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
-            excluded_services=self.pricing_service1.excluded_services.all(),
+            all_service_environments=self.service_environments,
         )
         # daily pricing objects which are under pricing service 1 (practically
         # under se1) are using extacly half of pricing service resources, so
@@ -306,6 +310,7 @@ class TestPricingServicePlugin(TestCase):
             pricing_service=self.pricing_service1,
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
+            all_service_environments=self.service_environments,
         )
         self.assertEquals(costs, {
             self.pricing_service1.id: (
@@ -340,6 +345,7 @@ class TestPricingServicePlugin(TestCase):
             self.pricing_service2,
             forecast=False,
             service_environments=self.pricing_service2.service_environments,
+            all_service_environments=self.service_environments,
         )
         self.assertEquals(costs, {
             self.pricing_service2.id: (D('122'), {
@@ -598,20 +604,22 @@ class TestPricingServicePlugin(TestCase):
             pricing_service=self.pricing_service1,
             service_environments=self.service_environments,
             forecast=True,
-            collapse=True,
         )
-        self.assertEquals(costs, D('1010'))
+        self.assertItemsEqual(
+            costs,
+            {self.pricing_service1.id: (D('1010'), {})}
+        )
 
-    def test_total_costs_not_collapsed(self):
+    def test_total_costs_for_all_service_environments(self):
         costs = PricingServicePlugin(
             type='total_cost',
             date=self.today,
             pricing_service=self.pricing_service1,
             service_environments=self.service_environments,
             forecast=True,
-            collapse=False,
+            for_all_service_environments=True,
         )
-        self.assertEquals(costs, {
+        self.assertItemsEqual(costs, {
             self.pricing_service1.id: [
                 D('1010'), {
                     self.pricing_service2.id: [
@@ -779,51 +787,51 @@ class TestPricingServiceDependency(TestCase):
                     service_environments=se,
                     costs_hierarchy={},
                     service_usage_types=self.ps1.serviceusagetypes_set.all(),
-                    excluded_services=[
+                    excluded_services=set([
                         self.se4.service,
                         self.se1.service,
                         self.se2.service,
-                    ]
+                    ])
                 )
 
                 total_mock.assert_any_call(
                     usage_type=self.service_usage_types[0],
                     date=self.today,
-                    excluded_services=[
+                    excluded_services=set([
                         self.se4.service,
                         self.se1.service,
                         self.se2.service,
                         self.se3.service,
-                    ]
+                    ])
                 )
                 total_mock.assert_any_call(
                     usage_type=self.service_usage_types[1],
                     date=self.today,
-                    excluded_services=[
+                    excluded_services=set([
                         self.se4.service,
                         self.se1.service,
                         self.se2.service,
-                    ]
+                    ])
                 )
                 usage_mock.assert_any_call(
                     usage_type=self.service_usage_types[0],
                     date=self.today,
-                    excluded_services=[
+                    excluded_services=set([
                         self.se4.service,
                         self.se1.service,
                         self.se2.service,
                         self.se3.service,
-                    ],
+                    ]),
                     service_environments=se,
                 )
                 usage_mock.assert_any_call(
                     usage_type=self.service_usage_types[1],
                     date=self.today,
-                    excluded_services=[
+                    excluded_services=set([
                         self.se4.service,
                         self.se1.service,
                         self.se2.service,
-                    ],
+                    ]),
                     service_environments=se,
                 )
 
@@ -852,7 +860,6 @@ class TestPricingServiceDependency(TestCase):
                     service_environments=models.ServiceEnvironment.objects.all(),  # noqa
                     forecast=False,
                     pricing_services_calculated=None,
-                    excluded_services=None,
                 )
                 calls = [
                     mock.call(
@@ -861,14 +868,10 @@ class TestPricingServiceDependency(TestCase):
                         self.ps2.service_environments,  # service environments
                         {self.ps3.id: (0, {})},  # costs - not important here
                         self.ps3.serviceusagetypes_set.all(),  # percentage
-                        excluded_services=[
-                            # from ps1
-                            self.other_se[0].service,
-                            # from ps2
-                            self.other_se[1].service,
+                        excluded_services=set([
                             # from ps3
                             self.se5.service,
-                        ]
+                        ])
                     ),
                     mock.call(
                         self.today,
@@ -876,14 +879,12 @@ class TestPricingServiceDependency(TestCase):
                         self.ps1.service_environments,
                         {self.ps2.id: (0, {})},
                         self.ps2.serviceusagetypes_set.all(),
-                        excluded_services=[
-                            # from ps1
-                            self.other_se[0].service,
+                        excluded_services=set([
                             # from ps2
                             self.other_se[1].service,
                             self.se3.service,
                             self.se4.service,
-                        ]
+                        ])
                     ),
                     mock.call(
                         self.today,
@@ -891,12 +892,12 @@ class TestPricingServiceDependency(TestCase):
                         models.ServiceEnvironment.objects.all(),
                         {self.ps1.id: (0, {})},
                         self.ps1.serviceusagetypes_set.all(),
-                        excluded_services=[
+                        excluded_services=set([
                             # from ps1
                             self.other_se[0].service,
                             self.se1.service,
                             self.se2.service,
-                        ]
+                        ])
                     ),
                 ]
 
@@ -934,13 +935,17 @@ class TestPricingServiceDiffCharging(TestCase):
     def test_get_service_charging_by_diffs(self, fixed_total_mock, total_mock):
         def total_cost(pricing_service, *args, **kwargs):
             if pricing_service == self.pricing_service2:
-                return 100
-            return 1000
+                val = D(100)
+            else:
+                val = D(1000)
+            return {pricing_service.id: (val, {})}
 
         def fixed_total_cost(pricing_service, *args, **kwargs):
             if pricing_service == self.pricing_service2:
-                return 1000
-            return 100
+                val = D(1000)
+            else:
+                val = D(100)
+            return {pricing_service.id: (val, {})}
 
         total_mock.side_effect = total_cost
         fixed_total_mock.side_effect = fixed_total_cost
@@ -957,7 +962,7 @@ class TestPricingServiceDiffCharging(TestCase):
             mock.call(
                 date=self.today,
                 pricing_service=x,
-                collapse=True,
+                for_all_service_environments=True,
                 forecast=False,
             ) for x in (self.pricing_service2, self.pricing_service3)
         ]
@@ -965,16 +970,29 @@ class TestPricingServiceDiffCharging(TestCase):
         fixed_total_mock.assert_has_calls(calls, any_order=True)
 
     @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin.total_cost')  # noqa
-    def test_get_service_charging_by_diffs_error(self, total_mock):
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service_fixed_price.PricingServiceFixedPricePlugin.total_cost')  # noqa
+    def test_get_service_charging_by_diffs_error(
+        self,
+        fixed_total_mock,
+        total_mock
+    ):
         def total_cost(pricing_service, *args, **kwargs):
             if pricing_service == self.pricing_service2:
-                return 100
+                return {pricing_service.id: (100, {})}
             raise KeyError()
+
+        def fixed_total_cost(pricing_service, *args, **kwargs):
+            if pricing_service == self.pricing_service2:
+                return {pricing_service.id: (100, {})}
+            raise AttributeError()
+
         total_mock.side_effect = total_cost
+        fixed_total_mock.side_effect = fixed_total_cost
         result = PricingServicePlugin._get_service_charging_by_diffs(
             pricing_service=self.pricing_service1,
             date=self.today,
             forecast=False,
+            service_environments=models.ServiceEnvironment.objects.all(),
         )
         self.assertEquals(result, {
             self.pricing_service2.id: (0, {}),
@@ -985,13 +1003,17 @@ class TestPricingServiceDiffCharging(TestCase):
     def test_get_pricing_service_costs(self, fixed_total_mock, total_mock):
         def total_cost(pricing_service, *args, **kwargs):
             if pricing_service == self.pricing_service2:
-                return 100
-            return 1000
+                val = D(100)
+            else:
+                val = D(1000)
+            return {pricing_service.id: (val, {})}
 
         def fixed_total_cost(pricing_service, *args, **kwargs):
             if pricing_service == self.pricing_service2:
-                return 1000
-            return 100
+                val = D(1000)
+            else:
+                val = D(100)
+            return {pricing_service.id: (val, {})}
 
         total_mock.side_effect = total_cost
         fixed_total_mock.side_effect = fixed_total_cost
@@ -1000,10 +1022,213 @@ class TestPricingServiceDiffCharging(TestCase):
             date=self.today,
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
+            all_service_environments=models.ServiceEnvironment.objects.all(),
         )
         self.assertEquals(result, {
             self.pricing_service1.id: (0, {
                 self.pricing_service2.id: (-900, {}),
                 self.pricing_service3.id: (900, {}),
             })
+        })
+
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin._get_service_charging_by_diffs')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin._get_dependent_services_cost')  # noqa
+    def test_get_pricing_service_costs_when_diff_key_exist(
+        self,
+        dependent_costs_mock,
+        diff_costs_mock
+    ):
+        self.usage_type1 = UsageTypeFactory()
+
+        def dependent_costs(*args, **kwargs):
+            return {
+                self.pricing_service2.id: (100, {
+                    self.usage_type1.id: (100, {}),
+                }),
+                self.pricing_service3.id: (300, {
+                    self.usage_type1.id: (100, {}),
+                }),
+            }
+
+        def diff_costs(pricing_service, *args, **kwargs):
+            return {
+                self.pricing_service2.id: (200, {}),
+            }
+
+        dependent_costs_mock.side_effect = dependent_costs
+        diff_costs_mock.side_effect = diff_costs
+        result = PricingServicePlugin._costs(
+            pricing_service=self.pricing_service1,
+            date=self.today,
+            forecast=False,
+            service_environments=models.ServiceEnvironment.objects.all(),
+        )
+        self.assertEquals(result, {
+            self.pricing_service1.id: (600, {
+                self.pricing_service2.id: (300, {}),
+                self.pricing_service3.id: (300, {
+                    self.usage_type1.id: (100, {}),
+                }),
+            })
+        })
+
+
+class TestPricingServiceFixedPricePlugin(ScroogeTestCase):
+    def setUp(self):
+        self.maxDiff = None
+        self.today = date(2013, 10, 10)
+        self.start = date(2013, 10, 1)
+        self.end = date(2013, 10, 30)
+
+        fixed_price = (
+            models.PricingServicePlugin.pricing_service_fixed_price_plugin
+        )
+        self.pricing_service1 = PricingServiceFactory(plugin_type=fixed_price)
+
+        self.service_environments = ServiceEnvironmentFactory.create_batch(
+            2,
+            service__pricing_service=self.pricing_service1,
+        )
+        self.service_environments.append(ServiceEnvironmentFactory())
+
+        self.service_usage_types = UsageTypeFactory.create_batch(
+            2,
+            usage_type='SU',
+        )
+        self.sut1 = models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[0],
+            pricing_service=self.pricing_service1,
+            start=self.start,
+            end=self.end,
+            percent=100,
+        )
+        self.sut2 = models.ServiceUsageTypes.objects.create(
+            usage_type=self.service_usage_types[1],
+            pricing_service=self.pricing_service1,
+            start=self.start,
+            end=self.end,
+            percent=100,
+        )
+
+        self.se1_dpo = DailyPricingObjectFactory.create_batch(
+            2,
+            service_environment=self.service_environments[0]
+        )
+        self.se2_dpo = DailyPricingObjectFactory.create_batch(
+            2,
+            service_environment=self.service_environments[1]
+        )
+        self.se3_dpo = DailyPricingObjectFactory.create_batch(
+            2,
+            service_environment=self.service_environments[2]
+        )
+
+        models.UsagePrice(
+            type=self.service_usage_types[0],
+            price=10,
+            forecast_price=20,
+            start=self.start,
+            end=self.end,
+        ).save()
+        models.UsagePrice(
+            type=self.service_usage_types[1],
+            price=20,
+            forecast_price=40,
+            start=self.start,
+            end=self.end,
+        ).save()
+
+        days = rrule.rrule(rrule.DAILY, dtstart=self.start, until=self.end)
+        for day in days:
+            for dpo in models.DailyPricingObject.objects.all():
+                DailyUsageFactory(
+                    date=day,
+                    daily_pricing_object=dpo,
+                    service_environment=dpo.service_environment,
+                    value=10,
+                    type=self.service_usage_types[0],
+                )
+                DailyUsageFactory(
+                    date=day,
+                    daily_pricing_object=dpo,
+                    service_environment=dpo.service_environment,
+                    value=5,
+                    type=self.service_usage_types[1],
+                )
+
+    def test_get_fixed_prices_costs(self):
+        result = PricingServiceFixedPricePlugin.costs(
+            self.pricing_service1,
+            self.today,
+            self.service_environments[:2]
+        )
+
+        def _get_single(dpo):
+            return {
+                'cost': D('200'),
+                'pricing_object_id': dpo.pricing_object.id,
+                'type_id': self.pricing_service1.id,
+                '_children': [
+                    {
+                        'cost': D('100'),
+                        'pricing_object_id': dpo.pricing_object.id,
+                        'type_id': self.service_usage_types[0].id,
+                        'value': 10.0
+                    },
+                    {
+                        'cost': D('100'),
+                        'pricing_object_id': dpo.pricing_object.id,
+                        'type_id': self.service_usage_types[1].id,
+                        'value': 5.0
+                    }
+                ],
+            }
+        self.assertNestedDictsEqual(result, {
+            self.service_environments[0].id: [
+                _get_single(self.se1_dpo[0]),
+                _get_single(self.se1_dpo[1]),
+            ],
+            self.service_environments[1].id: [
+                _get_single(self.se2_dpo[0]),
+                _get_single(self.se2_dpo[1]),
+            ]
+        })
+
+    def test_get_total_cost(self):
+        result = PricingServiceFixedPricePlugin.total_cost(
+            pricing_service=self.pricing_service1,
+            date=self.today,
+            service_environments=self.service_environments[:2]
+        )
+        self.assertEqual(result, {
+            self.pricing_service1.id: [D('800'), {
+                self.service_usage_types[0].id: [D('400'), {}],
+                self.service_usage_types[1].id: [D('400'), {}],
+            }]
+        })
+
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service.PricingServiceBasePlugin._get_pricing_service_costs')  # noqa
+    def test_get_pricing_service_real_costs_diff(
+        self,
+        pricing_service_costs_mock,
+    ):
+        ps2 = PricingServiceFactory()
+        self.pricing_service1.charge_diff_to_real_costs = ps2
+        self.pricing_service1.save()
+
+        pricing_service_costs_mock.return_value = {
+            self.pricing_service1.id: (D(100), {
+                self.service_usage_types[0].id: (D(50), {}),
+                self.service_usage_types[1].id: (D(50), {}),
+            })
+        }
+
+        result = PricingServicePlugin._get_service_charging_by_diffs(
+            ps2,
+            date=self.today,
+            forecast=False,
+            service_environments=models.ServiceEnvironment.objects.all(),
+        )
+        self.assertEqual(result, {
+            self.pricing_service1.id: (D(-1100), {})  # 100 - 1200
         })

@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
@@ -23,6 +24,7 @@ class DailyCost(MultiPathNode):
     _path_field = 'type_id'
     objects = DailyCostManager()
     objects_tree = db.Manager()
+    _only_first_depth = settings.SAVE_ONLY_FIRST_DEPTH_COSTS
 
     pricing_object = db.ForeignKey(
         'PricingObject',
