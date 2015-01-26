@@ -239,6 +239,17 @@ class ExtraCostFactory(DjangoModelFactory):
     end = datetime.date.today()
 
 
+class SupportCostFactory(DjangoModelFactory):
+    FACTORY_FOR = models.SupportCost
+
+    extra_cost_type = SubFactory(ExtraCostTypeFactory)
+    cost = 100
+    start = datetime.date.today()
+    end = datetime.date.today()
+    support_id = Sequence(lambda n: n)
+    pricing_object = SubFactory(PricingObjectFactory)
+
+
 class DynamicExtraCostTypeFactory(DjangoModelFactory):
     FACTORY_FOR = models.DynamicExtraCostType
 
