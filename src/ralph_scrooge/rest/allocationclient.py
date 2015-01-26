@@ -8,10 +8,12 @@ from __future__ import unicode_literals
 
 import json
 
-from rest_framework.views import APIView
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from datetime import timedelta
+from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
 
 from django.db.transaction import commit_on_success
 
@@ -31,12 +33,25 @@ from ralph_scrooge.models import (
 )
 
 
+class CannotDetermineValidServiceUsageTypeException(APIException):
+    status_code = 400
+    default_detail = 'Cannot determine valid (single!) service usage type'
+
+
 class AllocationClientService(APIView):
-    def _get_service_usage_type(self, service):
+    def _get_service_usage_type(
+        self,
+        service,
+        year,
+        month,
+        create_if_not_exist=False
+    ):
         service = Service.objects.get(id=service)
         try:
             pricing_service = PricingService.objects.get(services=service)
         except PricingService.DoesNotExist:
+            if not create_if_not_exist:
+                return None
             pricing_service = PricingService.objects.create(
                 name=service.name + '_pricing_service',
                 symbol=(
@@ -46,11 +61,17 @@ class AllocationClientService(APIView):
             )
             pricing_service.services.add(service)
 
+        start_date = date(int(year), int(month), 1)
+        end_date = start_date + relativedelta(months=1) - timedelta(days=1)
         try:
             service_usage_type = ServiceUsageTypes.objects.get(
                 pricing_service=pricing_service,
+                start__lte=start_date,
+                end__gte=end_date,
             )
         except ServiceUsageTypes.DoesNotExist:
+            if not create_if_not_exist:
+                return None
             usage_type = UsageType.objects.create(
                 name=service.name + '_usage_type',
                 symbol=(
@@ -58,28 +79,63 @@ class AllocationClientService(APIView):
                     service.name.lower().replace(' ', '_') + '_usage_type'
                 ),
             )
+            dates = self._get_new_service_usage_type_max_daterange(
+                pricing_service,
+                start_date,
+                end_date,
+            )
             service_usage_type = ServiceUsageTypes.objects.create(
                 usage_type=usage_type,
                 pricing_service=pricing_service,
+                start=dates[0],
+                end=dates[1]
             )
+        except ServiceUsageTypes.MultipleObjectsReturned:
+            raise CannotDetermineValidServiceUsageTypeException()
 
         return service_usage_type
 
+    def _get_new_service_usage_type_max_daterange(
+        self,
+        pricing_service,
+        start_date,
+        end_date
+    ):
+        """
+        Returns maximum daterange (tuple) for newly created service usage type
+        """
+        try:
+            new_start_date = ServiceUsageTypes.objects.filter(
+                end__lte=start_date
+            ).order_by('-end')[:1].get().end + timedelta(days=1)
+        except ServiceUsageTypes.DoesNotExist:
+            new_start_date = date.min
+
+        try:
+            new_end_date = ServiceUsageTypes.objects.filter(
+                start__gte=start_date
+            ).order_by('start')[:1].get().start - timedelta(days=1)
+        except ServiceUsageTypes.DoesNotExist:
+            new_end_date = date.max
+
+        return new_start_date, new_end_date
+
     def _get_service_divison(self, service, year, month, first_day):
-        service_usage_type = self._get_service_usage_type(service)
+        service_usage_type = self._get_service_usage_type(service, year, month)
 
         rows = []
-        for daily_usage in DailyUsage.objects.filter(
-            date=first_day,
-            type=service_usage_type.usage_type,
-        ).select_related(
-            "service_environment",
-        ):
-            rows.append({
-                "service": daily_usage.service_environment.service_id,
-                "env": daily_usage.service_environment.environment_id,
-                "value": daily_usage.value
-            })
+        if service_usage_type:
+            for daily_usage in DailyUsage.objects.filter(
+                date=first_day,
+                type=service_usage_type.usage_type,
+            ).select_related(
+                "service_environment",
+            ):
+                rows.append({
+                    "service": daily_usage.service_environment.service_id,
+                    "env": daily_usage.service_environment.environment_id,
+                    "value": daily_usage.value
+                })
         return rows
 
     def _get_service_extra_cost(self, service, env, start, end):
@@ -144,7 +200,12 @@ class AllocationClientService(APIView):
         post_data = json.loads(request.raw_post_data)
         first_day, last_day, days_in_month = get_dates(year, month)
         if kwargs.get('allocate_type') == 'servicedivision':
-            service_usage_type = self._get_service_usage_type(service)
+            service_usage_type = self._get_service_usage_type(
+                service,
+                year,
+                month,
+                create_if_not_exist=True
+            )
             self._clear_daily_usages(
                 service_usage_type.usage_type,
                 first_day,

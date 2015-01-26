@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 
 import json
 import datetime
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -37,11 +39,14 @@ class TestAllocationClient(TestCase):
 
     def _init_service_division(self, forecast=False):
         self.service_environment_base = factory.ServiceEnvironmentFactory()
-        pricing_service = factory.PricingServiceFactory()
-        pricing_service.services.add(self.service_environment_base.service)
-        service_usage_type = factory.ServiceUsageTypesFactory(
+        self.pricing_service = factory.PricingServiceFactory()
+        self.pricing_service.services.add(
+            self.service_environment_base.service
+        )
+        self.pricing_service.save()
+        self.service_usage_type = factory.ServiceUsageTypesFactory(
             usage_type=factory.UsageTypeFactory(),
-            pricing_service=pricing_service,
+            pricing_service=self.pricing_service,
         )
         pricing_object = self.service_environment_base.pricing_objects.get(
             type_id=models.PRICING_OBJECT_TYPES.DUMMY
@@ -54,13 +59,13 @@ class TestAllocationClient(TestCase):
         pricing_object.daily_pricing_object = daily_pricing_object
         self.service_environment_1, self.daily_usage1 = (
             self._create_daily_usage(
-                service_usage_type.usage_type,
+                self.service_usage_type.usage_type,
                 daily_pricing_object,
             )
         )
         self.service_environment_2, self.daily_usage2 = (
             self._create_daily_usage(
-                service_usage_type.usage_type,
+                self.service_usage_type.usage_type,
                 daily_pricing_object,
             )
         )
@@ -85,6 +90,7 @@ class TestAllocationClient(TestCase):
 
     def test_get_service_division_when_there_is_no_usages(self):
         service_environment_base = factory.ServiceEnvironmentFactory()
+        usage_types_before_request = models.UsageType.objects.count()
         response = self.client.get(
             '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 service_environment_base.service.id,
@@ -100,6 +106,11 @@ class TestAllocationClient(TestCase):
                 "name": "Service Devision",
                 "template": "tabservicedivision.html",
             }
+        )
+        # check if get request does not create new usage type
+        self.assertEqual(
+            models.UsageType.objects.count(),
+            usage_types_before_request
         )
 
     def test_get_service_division_when_there_are_two_daily_usages(self):
@@ -127,6 +138,33 @@ class TestAllocationClient(TestCase):
                 "name": "Service Devision",
                 "template": "tabservicedivision.html",
             }
+        )
+
+    def test_get_service_division_with_different_service_usage_date(self):
+        self._init_service_division()
+        self.service_usage_type.end = self.date - relativedelta(months=1)
+        self.service_usage_type.save()
+        usage_types_before_request = models.UsageType.objects.count()
+        response = self.client.get(
+            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+                self.service_environment_base.service.id,
+                self.service_environment_base.environment.id,
+                self.date.year,
+                self.date.month,
+            )
+        )
+        self.assertEquals(
+            json.loads(response.content)['serviceDivision'],
+            {
+                "rows": [],
+                "name": "Service Devision",
+                "template": "tabservicedivision.html",
+            }
+        )
+        # check if get request does not create new usage type
+        self.assertEqual(
+            models.UsageType.objects.count(),
+            usage_types_before_request
         )
 
     def test_save_service_division(self):
@@ -168,6 +206,76 @@ class TestAllocationClient(TestCase):
                 "name": "Service Devision",
                 "template": "tabservicedivision.html",
             }
+        )
+
+    def test_save_service_division_with_different_service_usage_date(self):
+        service_environment_1 = factory.ServiceEnvironmentFactory()
+        self._init_service_division()
+        self.service_usage_type.end = self.date - relativedelta(months=1)
+        self.service_usage_type.save()
+        usage_types_before_request = models.UsageType.objects.count()
+        service_usage_types_before_request = (
+            models.ServiceUsageTypes.objects.count()
+        )
+        response = self.client.post(
+            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/{4}/save/'.format(
+                self.service_environment_base.service.id,
+                self.service_environment_base.environment.id,
+                self.date.year,
+                self.date.month,
+                'servicedivision'
+            ),
+            {
+                'rows': [{
+                    "service": service_environment_1.service.id,
+                    "env": service_environment_1.environment.id,
+                    "value": 100,
+                }]
+            },
+            format='json'
+        )
+        response = self.client.get(
+            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+                self.service_environment_base.service.id,
+                self.service_environment_base.environment.id,
+                self.date.year,
+                self.date.month,
+            )
+        )
+        self.assertEquals(
+            json.loads(response.content)['serviceDivision'],
+            {
+                "rows": [{
+                    "value": 100.0,
+                    "env": service_environment_1.environment.id,
+                    "service": service_environment_1.service.id
+                }],
+                "name": "Service Devision",
+                "template": "tabservicedivision.html",
+            }
+        )
+        # check if this request created new usage type and created
+        # new service usage type with valid dates
+        self.assertEqual(
+            models.UsageType.objects.count(),
+            usage_types_before_request + 1
+        )
+        self.assertEqual(
+            models.ServiceUsageTypes.objects.count(),
+            service_usage_types_before_request + 1
+        )
+        self.assertEqual(
+            set(self.pricing_service.serviceusagetypes_set.values_list(
+                'start',
+                'end'
+            )),
+            set([
+                (datetime.date.min, self.date - relativedelta(months=1)),
+                (
+                    self.date - relativedelta(months=1) + timedelta(days=1),
+                    datetime.date.max
+                ),
+            ])
         )
 
     def test_get_extra_costs_when_there_is_no_extra_costs(self):
