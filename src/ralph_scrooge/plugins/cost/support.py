@@ -6,13 +6,26 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
-from ralph_scrooge.models import DailyPricingObject, ExtraCostType, SupportCost
+from ralph_scrooge.models import ExtraCostType, SupportCost
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 
 logger = logging.getLogger(__name__)
+
+
+SupportRecord = namedtuple(
+    'SupportRecord',
+    [
+        'service_environment_id',
+        'pricing_object_id',
+        'cost',
+        'forecast_cost',
+        'start',
+        'end',
+    ]
+)
 
 
 @register(chain='scrooge_costs')
@@ -49,23 +62,29 @@ class SupportPlugin(BaseCostPlugin):
         """
         logger.info("Calculating supports costs")
         support_type = ExtraCostType.objects.get(pk=2)  # from fixture
-        daily_po = dict(DailyPricingObject.objects.filter(
-            service_environment__in=service_environments,
-            date=date
-        ).values_list('pricing_object_id', 'service_environment_id'))
+        usages = defaultdict(list)
         supports = SupportCost.objects.filter(
             end__gte=date,
             start__lte=date,
-            pricing_object__in=daily_po.keys(),
+            pricing_object__daily_pricing_objects__date=date,
+            pricing_object__daily_pricing_objects__service_environment__in=(
+                service_environments
+            )
+        ).values_list(
+            'pricing_object__daily_pricing_objects__service_environment_id',
+            'pricing_object_id',
+            'cost',
+            'forecast_cost',
+            'start',
+            'end',
         )
-
-        usages = defaultdict(list)
-        for support in supports:
+        for support in map(SupportRecord._make, list(supports)):
             cost = support.forecast_cost if forecast else support.cost
-            usages[daily_po[support.pricing_object_id]].append({
+            usages[support.service_environment_id].append({
                 'cost': (cost / (
                     (support.end - support.start).days + 1)
                 ),
                 'type': support_type,
+                'pricing_object_id': support.pricing_object_id
             })
         return usages

@@ -72,6 +72,7 @@ class BaseCostPlugin(BasePlugin):
         warehouse=None,
         service_environments=None,
         excluded_services=None,
+        excluded_services_environments=None
     ):
         """
         Calculate price for single unit of usage type in period of time defined
@@ -86,6 +87,7 @@ class BaseCostPlugin(BasePlugin):
             warehouse=warehouse,
             service_environments=service_environments,
             excluded_services=excluded_services,
+            excluded_services_environments=excluded_services_environments,
         )
         cost = usage_price.forecast_cost if forecast else usage_price.cost
         price = 0
@@ -102,6 +104,7 @@ class BaseCostPlugin(BasePlugin):
         warehouse=None,
         service_environments=None,
         excluded_services=None,
+        excluded_services_environments=None
     ):
         """
         Filter daily usages based on passed params
@@ -123,6 +126,10 @@ class BaseCostPlugin(BasePlugin):
         if excluded_services:
             daily_usages = daily_usages.exclude(
                 service_environment__service__in=excluded_services
+            )
+        if excluded_services_environments:
+            daily_usages = daily_usages.exclude(
+                service_environment__in=excluded_services_environments
             )
         return daily_usages.select_related('daily_pricing_object')
 

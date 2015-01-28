@@ -10,7 +10,7 @@ from dateutil import rrule
 
 from django.conf import settings
 from django.db import connection
-from django.db.transaction import commit_on_success
+from django.db import transaction
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
@@ -126,7 +126,6 @@ class Collector(object):
                 **{'forecast_calculated' if forecast else 'calculated': True}
             ).values_list('date', flat=True)))
 
-    @commit_on_success
     def process(
         self,
         date,
@@ -150,14 +149,16 @@ class Collector(object):
         ))
         if service_environments is None:
             service_environments = self._get_services_environments()
-        self._delete_daily_costs(date, forecast, delete_verified)
+        self._verify_accepted_costs(date, forecast, delete_verified)
         costs = self._collect_costs(
             date,
             service_environments,
             forecast,
             plugins,
         )
-        self._save_costs(date, costs, forecast)
+        with transaction.commit_on_success():
+            self._delete_daily_costs(date, forecast, delete_verified)
+            self._save_costs(date, costs, forecast)
         logger.info('Costs saved for date {}'.format(date))
 
     def _delete_daily_costs(self, date, forecast, delete_verified=False):
@@ -166,11 +167,6 @@ class Collector(object):
         If no, delete previously saved costs for given date.
         If yes,
         """
-        if not delete_verified and CostDateStatus.objects.filter(
-            date=date,
-            **{'forecast_accepted' if forecast else 'accepted': True}
-        ):
-            raise VerifiedDailyCostsExistsError()
         cursor = connection.cursor()
         cursor.execute(
             "DELETE FROM {} WHERE date=%s and forecast=%s".format(
@@ -178,6 +174,13 @@ class Collector(object):
             ),
             [date, forecast]
         )
+
+    def _verify_accepted_costs(self, date, forecast, delete_verified):
+        if not delete_verified and CostDateStatus.objects.filter(
+            date=date,
+            **{'forecast_accepted' if forecast else 'accepted': True}
+        ):
+            raise VerifiedDailyCostsExistsError()
 
     def _save_costs(self, date, costs, forecast):
         """
@@ -198,7 +201,7 @@ class Collector(object):
         logger.info('Saving {} costs'.format(len(daily_costs)))
         DailyCost.objects.bulk_create(daily_costs)
         # update status to created
-        status, created = CostDateStatus.objects.get_or_create(date=date)
+        status, created = CostDateStatus.concurrent_get_or_create(date=date)
         if forecast:
             status.forecast_calculated = True
         else:
@@ -366,7 +369,7 @@ class Collector(object):
         """
         Returns services which should be visible on report
         """
-        return PricingService.objects.order_by('name')
+        return PricingService.objects.order_by('id')
 
     @classmethod
     def _get_pricing_services_plugins(cls):

@@ -11,6 +11,7 @@ from decimal import Decimal as D
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.plugins.base import register
+from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.plugins.cost.pricing_service import PricingServiceBasePlugin
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,10 @@ class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
             )
         )
         result_dict = defaultdict(dict)
+        # if service_environments are not defined, use all (usefull when
+        # calculating diff between real and calculated costs)
+        if not service_environments:
+            service_environments = Collector._get_services_environments()
         usage_types = pricing_service.usage_types.all()
         for usage_type in usage_types:
             try:

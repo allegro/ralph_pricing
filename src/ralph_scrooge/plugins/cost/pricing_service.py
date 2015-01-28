@@ -39,12 +39,12 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         Returns total cost of pricing service
 
         If for_all_service_environments is True, then cost will be calculated
-        for all possible service_environments (passed in
-        all_service_environments param), which is in general "real" total cost
-        of this pricing service (equivalent of pricing service column in costs
-        report). It's usefull to calculate difference between real costs of
-        pricing service (equivalent of row in costs report) and costs
-        calculated by specific plugin for pricing service.
+        for all possible service_environments, which is in general "real" total
+        cost of this pricing service (equivalent of pricing service row in
+        costs report). It's usefull to calculate difference between real costs
+        of pricing service (equivalent of row in costs report) and costs
+        calculated by specific plugin for pricing service (column in costs
+        report).
 
         If for_all_service_environments is False, then total costs is
         calculated only for service_environments specified in
@@ -74,7 +74,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         date,
         service_environments,
         forecast=False,
-        all_service_environments=None,
         **kwargs
     ):
         """
@@ -94,18 +93,10 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         logger.info("Calculating pricing service costs: {0}".format(
             pricing_service.name,
         ))
-        # if all_service_environments not passed, take service_environments as
-        # all_service_environments - it's main level call (not for dependent
-        # services)
-        all_service_environments = (
-            all_service_environments or service_environments
-        )
         costs = self._costs(
             pricing_service=pricing_service,
             date=date,
-            service_environments=service_environments,
             forecast=forecast,
-            all_service_environments=all_service_environments
         )
         percentage = self._get_percentage(date, pricing_service)
         excluded_services = self._get_excluded_services(pricing_service)
@@ -181,6 +172,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             # service and depth is 0 (whole pricing service level)
             if len(po_usages) == 1 and depth == 0:
                 base_usage_result['value'] = po_usages[0][0]
+
             if children and not settings.SAVE_ONLY_FIRST_DEPTH_COSTS:
                 base_usage_result['_children'] = self._add_hierarchy_costs(
                     po,
@@ -251,6 +243,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         total_usages = []
         percentage = []
         result = defaultdict(list)
+        self.pricing_service = pricing_service
 
         for service_usage_type in service_usage_types:
             service_excluded = excluded_services.union(
@@ -287,24 +280,18 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         self,
         pricing_service,
         date,
-        service_environments,
         forecast=False,
-        all_service_environments=None,
         **kwargs
     ):
         """
         Calculate total cost for pricing service (which is total cost of all
         pricing object in services associated with this pricing service).
         """
-        # calculate costs (hierarchy) of pricing service
         costs = self._get_pricing_service_costs(
             date,
             pricing_service,
             forecast,
             service_environments=pricing_service.service_environments,
-            all_service_environments=(
-                all_service_environments or service_environments
-            ),
         )
         return costs
 
@@ -314,7 +301,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         pricing_service,
         forecast,
         service_environments,
-        all_service_environments,
     ):
         """
         Calculates total cost of pricing service (for one day).
@@ -378,7 +364,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             pricing_service,
             forecast,
             service_environments=service_environments,
-            all_service_environments=all_service_environments,
         )
         teams_costs = self._get_service_teams_cost(
             date,
@@ -399,7 +384,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             pricing_service=pricing_service,
             date=date,
             forecast=forecast,
-            service_environments=all_service_environments,
         )
         costs = dict(itertools.chain(
             base_usage_types_costs.items(),
@@ -539,18 +523,12 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         pricing_service,
         forecast,
         service_environments,
-        all_service_environments,
-        exclude=None,
     ):
         """
         Calculates cost of dependent services used by pricing_service.
-
-        :param all_service_environments: service_environments used to calculate
-            total costs of dependent pricing service
         """
         result = {}
-        exclude = exclude[:] if exclude else []
-        exclude.append(pricing_service)
+        exclude = [pricing_service]
         dependent_services = pricing_service.get_dependent_services(
             date,
             exclude,
@@ -565,7 +543,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                     date=date,
                     forecast=forecast,
                     service_environments=service_environments,
-                    all_service_environments=all_service_environments,
                 )
                 result.update(dependent_cost)
             except (KeyError, AttributeError):
@@ -667,6 +644,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 type='total_cost',
                 pricing_service=ps,
                 for_all_service_environments=True,
+                service_environments=None,
                 **kwargs
             )
             try:
