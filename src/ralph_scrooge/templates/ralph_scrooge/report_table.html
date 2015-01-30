@@ -1,7 +1,6 @@
-<table class="table table-striped table-bordered table-condensed fixed-header report">
-
-    <thead>
-        {% for row in header %}
+<table class="table table-striped table-bordered table-condensed report">
+<thead>
+    {% for row in header %}
         <tr>
             {% for column, opt in row %}
                 <th
@@ -11,8 +10,8 @@
                 >{{ column }}</th>
             {% endfor %}
         </tr>
-        {% endfor %}
-    </thead>
+    {% endfor %}
+</thead>
     {% for row in data %}
         <tr>
             {% for value in row %}
