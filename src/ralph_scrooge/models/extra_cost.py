@@ -28,6 +28,9 @@ class ExtraCostType(BaseUsage):
         self.type = BaseUsageType.extra_cost
         super(ExtraCostType, self).save(*args, **kwargs)
 
+    def get_plugin_name(self):
+        return 'extra_cost_plugin' if self.id != 2 else 'support_plugin'
+
 
 class AbstractExtraCost(db.Model):
     """
@@ -189,7 +192,7 @@ class DynamicExtraCost(db.Model):
 
     def __unicode__(self):
         return '{} ({}-{})'.format(
-            self.extra_cost_type,
+            self.dynamic_extra_cost_type,
             self.start,
             self.end,
         )
@@ -212,7 +215,7 @@ class SupportCost(AbstractExtraCost):
         app_label = 'ralph_scrooge'
 
     def __unicode__(self):
-        return 'Support: {} ({} - {})'.format(
+        return '{} ({} - {})'.format(
             self.pricing_object.name,
             self.start,
             self.end,

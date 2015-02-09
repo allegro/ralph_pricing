@@ -1,9 +1,9 @@
 <div>
-    <ul class="nav nav-tabs allocation-tabs" role="tablist">
-        <li ng-click="stats.currentTab = tab" ng-repeat="(tab, value) in stats.allocationadmin">
+    <ul class="nav nav-tabs nav-allocation-tabs" role="tablist">
+        <li ng-click="stats.currentTab = tab" ng-repeat="(tab, value) in stats.currentTabs" ng-class="stats.currentTab == tab ? 'active': ''">
             <a>{{value.name}}</a>
         </li>
     </ul>
     {{tabs}}
-    <div ng-include="stats.getCurrentTab()"></div>
+    <div class="allocation-tabs" ng-include="stats.getCurrentTab()"></div>
 </div>

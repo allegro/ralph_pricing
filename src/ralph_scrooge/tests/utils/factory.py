@@ -235,9 +235,19 @@ class ExtraCostFactory(DjangoModelFactory):
     extra_cost_type = SubFactory(ExtraCostTypeFactory)
     cost = 3100
     service_environment = SubFactory(ServiceEnvironmentFactory)
-    pricing_object = SubFactory(PricingObjectFactory)
     start = datetime.date.today()
     end = datetime.date.today()
+
+
+class SupportCostFactory(DjangoModelFactory):
+    FACTORY_FOR = models.SupportCost
+
+    extra_cost_type = SubFactory(ExtraCostTypeFactory)
+    cost = 100
+    start = datetime.date.today()
+    end = datetime.date.today()
+    support_id = Sequence(lambda n: n)
+    pricing_object = SubFactory(PricingObjectFactory)
 
 
 class DynamicExtraCostTypeFactory(DjangoModelFactory):
@@ -287,7 +297,7 @@ class TeamCostFactory(DjangoModelFactory):
 class TeamServiceEnvironmentPercentFactory(DjangoModelFactory):
     FACTORY_FOR = models.TeamServiceEnvironmentPercent
 
-    team = SubFactory(TeamFactory)
+    team_cost = SubFactory(TeamCostFactory)
     service_environment = SubFactory(ServiceEnvironmentFactory)
     percent = fuzzy.FuzzyDecimal(0, 100)
 
@@ -297,10 +307,24 @@ class PricingServiceFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Pricing Service %s' % n)
     symbol = Sequence(lambda n: 'ps%s' % n)
-    use_universal_plugin = True
 
 
 class CostDateStatusFactory(DjangoModelFactory):
     FACTORY_FOR = models.CostDateStatus
 
     date = datetime.date.today()
+
+
+class ServiceUsageTypesFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ServiceUsageTypes
+
+    usage_type = SubFactory(UsageTypeFactory)
+    pricing_service = SubFactory(PricingServiceFactory)
+
+
+class UsagePriceFactory(DjangoModelFactory):
+    FACTORY_FOR = models.UsagePrice
+
+    type = SubFactory(UsageTypeFactory)
+    start = datetime.date(2014, 10, 1)
+    end = datetime.date(2014, 10, 31)

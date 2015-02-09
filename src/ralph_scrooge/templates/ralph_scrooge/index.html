@@ -61,7 +61,7 @@
             <div class="container-fluid container-fluid-main">
                 <div class="row row-main" style="position:relative;">
                   <menuservicedirective ng-if="stats.menuReady"></menuservicedirective>
-                  <div class="content col-md-offset-2 col-xs-12 col-md-10">
+                  <div class="content col-xs-12" ng-class="stats.currentSubMenu.leftMenu.length > 0 ? 'col-md-offset-2 col-md-10':''">
                     <div class="breadcrumbs-container" ng-include="'/static/scrooge/partials/breadcrumbs.html'"></div>
                     <div class="row data">
                       <div class="col-xs-12 col-md-12">

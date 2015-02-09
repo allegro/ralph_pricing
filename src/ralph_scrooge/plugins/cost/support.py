@@ -47,7 +47,7 @@ class SupportPlugin(BaseCostPlugin):
             ...
         }
         """
-        logger.debug("Get support costs")
+        logger.info("Calculating supports costs")
         support_type = ExtraCostType.objects.get(pk=2)  # from fixture
         daily_po = dict(DailyPricingObject.objects.filter(
             service_environment__in=service_environments,

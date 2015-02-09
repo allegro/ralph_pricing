@@ -83,7 +83,7 @@ class TeamPlugin(BaseCostPlugin):
         """
         Calculates teams costs.
         """
-        logger.debug("Get teams usages")
+        logger.info("Calculating team costs: {0}".format(team.name))
         return self._get_team_cost_per_service_environment(team, **kwargs)
 
     def _get_team_cost_per_service_environment(self, team, *args, **kwargs):
@@ -109,7 +109,6 @@ class TeamPlugin(BaseCostPlugin):
         }
         func = functions.get(team.billing_type)
         if func:
-            logger.debug("Getting team {0} costs".format(team))
             return func(team=team, *args, **kwargs)
         logger.warning('No handle method for billing type {0}'.format(
             team.billing_type

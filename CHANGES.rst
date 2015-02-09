@@ -1,6 +1,26 @@
 Change Log
 ----------
 
+
+3.0.0-beta2
+~~~~~~~~~~
+
+* Fixed angular routes
+
+
+3.0.0-beta1
+~~~~~~~~~~
+
+* improve collector performance
+* recalculating performance improvement
+* fix for virtual collect plugin - manufacturer uniqueness
+* fix cost card - show only accepted costs & accept forecast param
+* fix gui bugs - components & costcard
+* added tenants instances report
+* Added cost card subpage and make configurable calendar menu
+* Clean old and needless code like tests
+
+
 3.0.0-beta
 ~~~~~~~~~~
 
@@ -11,13 +31,13 @@ Change Log
 
 
 3.0.0-alpha1
-~~~~~
+~~~~~~~~~~~~
 
 * Serveral fixes related to fine tune version
 
 
 3.0.0-alpha
-~~~~~
+~~~~~~~~~~~
 
 * Servces instead ventures
 * Refactoring archiveture

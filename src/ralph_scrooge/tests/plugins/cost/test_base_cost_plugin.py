@@ -10,10 +10,9 @@ import mock
 from dateutil import rrule
 from decimal import Decimal as D
 
-from django.test import TestCase
-
 from ralph_scrooge import models
 from ralph_scrooge.plugins.cost.base import BaseCostPlugin
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     DailyUsageFactory,
     ServiceEnvironmentFactory,
@@ -27,7 +26,7 @@ class SampleCostPlugin(BaseCostPlugin):
         pass
 
 
-class TestBaseCostPlugin(TestCase):
+class TestBaseCostPlugin(ScroogeTestCase):
     def setUp(self):
         self.plugin = SampleCostPlugin()
 
@@ -303,7 +302,7 @@ class TestBaseCostPlugin(TestCase):
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
             warehouse=self.warehouse1,
-            excluded_services=[self.service_environment2],
+            excluded_services=[self.service_environment2.service],
         )
         #  5 * (20 + 60 + 80)= 800
         # /^\
@@ -321,10 +320,22 @@ class TestBaseCostPlugin(TestCase):
             usage_type=self.usage_type,
         )
         self.assertEquals(result, [
-            {'usage': 110.0, 'service_environment': 1},  # 11 * 10 = 110
-            {'usage': 220.0, 'service_environment': 2},  # 11 * 20 = 220
-            {'usage': 330.0, 'service_environment': 3},  # 11 * 30 = 330
-            {'usage': 440.0, 'service_environment': 4},  # 11 * 40 = 440
+            {
+                'usage': 110.0,  # 11 * 10 = 110
+                'service_environment': self.service_environment1.id,
+            },
+            {
+                'usage': 220.0,  # 11 * 20 = 220
+                'service_environment': self.service_environment2.id,
+            },
+            {
+                'usage': 330.0,  # 11 * 30 = 330
+                'service_environment': self.service_environment3.id,
+            },
+            {
+                'usage': 440.0,  # 11 * 40 = 440
+                'service_environment': self.service_environment4.id,
+            },
         ])
 
     def test_get_usages_per_service_environment_with_warehouse(self):
@@ -335,10 +346,22 @@ class TestBaseCostPlugin(TestCase):
             warehouse=self.warehouse1,
         )
         self.assertEquals(result, [
-            {'usage': 100.0, 'service_environment': 1},  # 5 * 20 = 100
-            {'usage': 200.0, 'service_environment': 2},  # 5 * 40 = 200
-            {'usage': 300.0, 'service_environment': 3},  # 5 * 60 = 300
-            {'usage': 400.0, 'service_environment': 4},  # 5 * 80 = 400
+            {
+                'usage': 100.0,  # 5 * 20 = 100
+                'service_environment': self.service_environment1.id,
+            },
+            {
+                'usage': 200.0,  # 5 * 40 = 200
+                'service_environment': self.service_environment2.id,
+            },
+            {
+                'usage': 300.0,  # 5 * 60 = 300
+                'service_environment': self.service_environment3.id,
+            },
+            {
+                'usage': 400.0,  # 5 * 80 = 400
+                'service_environment': self.service_environment4.id,
+            },
         ])
 
     def test_get_usages_per_service_environment_with_services(self):
@@ -349,7 +372,10 @@ class TestBaseCostPlugin(TestCase):
             service_environments=[self.service_environment1],
         )
         self.assertEquals(result, [
-            {'usage': 110.0, 'service_environment': 1},  # 11 * 10 = 110
+            {
+                'usage': 110.0,  # 11 * 10 = 110
+                'service_environment': self.service_environment1.id,
+            },
         ])
 
     def test_get_usages_per_service_environment_without_services(self):
@@ -370,7 +396,10 @@ class TestBaseCostPlugin(TestCase):
             service_environments=[self.service_environment2],
         )
         self.assertEquals(result, [
-            {'usage': 240.0, 'service_environment': 2}  # 6 * 40 = 240
+            {
+                'usage': 240.0,  # 6 * 40 = 240
+                'service_environment': self.service_environment2.id,
+            }
         ])
 
     def test_get_usages_per_service_environment_with_excluded_services(self):
@@ -379,10 +408,19 @@ class TestBaseCostPlugin(TestCase):
             end=datetime.date(2013, 10, 20),
             usage_type=self.usage_type_cost_wh,
             warehouse=self.warehouse1,
-            excluded_services=[self.service_environment3],
+            excluded_services=[self.service_environment3.service],
         )
         self.assertEquals(result, [
-            {'usage': 100.0, 'service_environment': 1},  # 5 * 20 = 100
-            {'usage': 200.0, 'service_environment': 2},  # 5 * 40 = 200
-            {'usage': 400.0, 'service_environment': 4},  # 5 * 80 = 400
+            {
+                'usage': 100.0,  # 5 * 20 = 100
+                'service_environment': self.service_environment1.id,
+            },
+            {
+                'usage': 200.0,  # 5 * 40 = 200
+                'service_environment': self.service_environment2.id,
+            },
+            {
+                'usage': 400.0,  # 5 * 80 = 400
+                'service_environment': self.service_environment4.id,
+            },
         ])

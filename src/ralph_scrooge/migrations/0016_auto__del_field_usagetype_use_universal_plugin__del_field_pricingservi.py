@@ -8,20 +8,22 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting field 'DailyCost.verified'
-        db.delete_column(u'ralph_scrooge_dailycost', 'verified')
+        # Deleting field 'UsageType.use_universal_plugin'
+        db.delete_column(u'ralph_scrooge_usagetype', 'use_universal_plugin')
 
-        # Adding index on 'DailyCost', fields ['forecast']
-        db.create_index(u'ralph_scrooge_dailycost', ['forecast'])
+        # Deleting field 'PricingService.use_universal_plugin'
+        db.delete_column(u'ralph_scrooge_pricingservice', 'use_universal_plugin')
 
 
     def backwards(self, orm):
-        # Removing index on 'DailyCost', fields ['forecast']
-        db.delete_index(u'ralph_scrooge_dailycost', ['forecast'])
+        # Adding field 'UsageType.use_universal_plugin'
+        db.add_column(u'ralph_scrooge_usagetype', 'use_universal_plugin',
+                      self.gf('django.db.models.fields.BooleanField')(default=True),
+                      keep_default=False)
 
-        # Adding field 'DailyCost.verified'
-        db.add_column(u'ralph_scrooge_dailycost', 'verified',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Adding field 'PricingService.use_universal_plugin'
+        db.add_column(u'ralph_scrooge_pricingservice', 'use_universal_plugin',
+                      self.gf('django.db.models.fields.BooleanField')(default=True),
                       keep_default=False)
 
 
@@ -165,6 +167,12 @@ class Migration(SchemaMigration):
             'value': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             'warehouse': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'to': u"orm['ralph_scrooge.Warehouse']", 'on_delete': 'models.PROTECT'})
         },
+        u'ralph_scrooge.dailyvipinfo': {
+            'Meta': {'object_name': 'DailyVIPInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
+            'dailypricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.DailyPricingObject']", 'unique': 'True', 'primary_key': 'True'}),
+            'ip_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'ip_daily_vips'", 'to': u"orm['ralph_scrooge.PricingObject']"}),
+            'vip_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'daily_vips'", 'to': u"orm['ralph_scrooge.VIPInfo']"})
+        },
         u'ralph_scrooge.dailyvirtualinfo': {
             'Meta': {'object_name': 'DailyVirtualInfo', '_ormbases': [u'ralph_scrooge.DailyPricingObject']},
             'dailypricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.DailyPricingObject']", 'unique': 'True', 'primary_key': 'True'}),
@@ -280,9 +288,9 @@ class Migration(SchemaMigration):
             'baseusage_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.BaseUsage']", 'unique': 'True', 'primary_key': 'True'}),
             'excluded_base_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_from_pricing_service'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['ralph_scrooge.UsageType']"}),
             'excluded_services': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_from_pricing_services'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['ralph_scrooge.Service']"}),
+            'plugin_type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             'regular_usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'pricing_services'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['ralph_scrooge.UsageType']"}),
-            'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceUsageTypes']", 'to': u"orm['ralph_scrooge.UsageType']"}),
-            'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
+            'usage_types': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceUsageTypes']", 'to': u"orm['ralph_scrooge.UsageType']"})
         },
         u'ralph_scrooge.profitcenter': {
             'Meta': {'object_name': 'ProfitCenter'},
@@ -342,6 +350,18 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'start': ('django.db.models.fields.DateField', [], {})
+        },
+        u'ralph_scrooge.supportcost': {
+            'Meta': {'object_name': 'SupportCost'},
+            'cost': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '6'}),
+            'end': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'extra_cost_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.ExtraCostType']"}),
+            'forecast_cost': ('django.db.models.fields.DecimalField', [], {'default': '0.0', 'max_digits': '16', 'decimal_places': '6'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'pricing_object': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.PricingObject']"}),
+            'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
+            'start': ('django.db.models.fields.DateField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'support_id': ('django.db.models.fields.IntegerField', [], {})
         },
         u'ralph_scrooge.syncstatus': {
             'Meta': {'unique_together': "((u'date', u'plugin'),)", 'object_name': 'SyncStatus'},
@@ -420,8 +440,15 @@ class Migration(SchemaMigration):
             'show_in_devices_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_in_services_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'usage_type': ('django.db.models.fields.CharField', [], {'default': "u'SU'", 'max_length': '2'}),
-            'use_universal_plugin': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
+            'usage_type': ('django.db.models.fields.CharField', [], {'default': "u'SU'", 'max_length': '2'})
+        },
+        u'ralph_scrooge.vipinfo': {
+            'Meta': {'object_name': 'VIPInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
+            'ip_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'vip'", 'to': u"orm['ralph_scrooge.PricingObject']"}),
+            'load_balancer': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'vips'", 'null': 'True', 'to': u"orm['ralph_scrooge.PricingObject']"}),
+            'port': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
+            'vip_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'})
         },
         u'ralph_scrooge.virtualinfo': {
             'Meta': {'object_name': 'VirtualInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},

@@ -10,10 +10,11 @@ from django.test import TestCase, Client
 from ralph.account.models import Perm
 
 from ralph_scrooge.app import Scrooge
-from ralph_scrooge.models import ServiceOwnership
+from ralph_scrooge.models import ServiceOwnership, TeamManager
 from ralph_scrooge.tests.utils.factory import (
     OwnerFactory,
     ServiceEnvironmentFactory,
+    TeamFactory,
 )
 
 
@@ -34,7 +35,10 @@ class TestSecurity(TestCase):
             username='owner',
             password='12345'
         )
-
+        self.team_manager = User.objects.create_user(
+            username='team_manager',
+            password='12345'
+        )
         self.superuser = User.objects.create_user(
             username='superuser',
             password='12345',
@@ -54,6 +58,12 @@ class TestSecurity(TestCase):
         self.se2 = ServiceEnvironmentFactory()
         self.service2 = self.se2.service
 
+        # create teams
+        self.team1 = TeamFactory()
+        team_manager = OwnerFactory(profile=self.team_manager.profile)
+        TeamManager.objects.create(team=self.team1, manager=team_manager)
+        self.team2 = TeamFactory()
+
     def _login_as(self, user):
         self.client.login(username=user, password='12345')
 
@@ -67,6 +77,12 @@ class TestSecurity(TestCase):
     def _get_report(self):
         return self.client.get('/{}/services-costs-report/'.format(
             Scrooge.url_prefix,
+        ))
+
+    def _get_team_allocation(self, team):
+        return self.client.get('/{}/rest/allocationclient/{}/2014/10/'.format(
+            Scrooge.url_prefix,
+            team.id,
         ))
 
     def test_components_superuser_access(self):
@@ -104,4 +120,14 @@ class TestSecurity(TestCase):
     def test_report_owner_access(self):
         self._login_as('owner')
         response = self._get_report()
+        self.assertEquals(response.status_code, 403)
+
+    def test_allocation_team_manager_access(self):
+        self._login_as('team_manager')
+        response = self._get_team_allocation(self.team1)
+        self.assertEquals(response.status_code, 200)
+
+    def test_allocation_team_manager_access_permission_denied(self):
+        self._login_as('team_manager')
+        response = self._get_team_allocation(self.team2)
         self.assertEquals(response.status_code, 403)

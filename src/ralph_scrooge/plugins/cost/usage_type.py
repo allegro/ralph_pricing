@@ -171,7 +171,9 @@ class UsageTypeBasePlugin(BaseCostPlugin):
             ...
         }
         """
-        logger.debug("Get {0} usages".format(usage_type.name))
+        logger.info("Calculating usage type costs: {0}".format(
+            usage_type.name,
+        ))
         return self._get_costs_per_warehouse(
             date=date,
             service_environments=service_environments,

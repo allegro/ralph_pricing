@@ -17,12 +17,16 @@ logger = logging.getLogger(__name__)
 
 
 @register(chain='scrooge_costs')
-class Ceilometer(PricingServiceBasePlugin):
+class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
     """
-    Ceilometer service cost is sum of costs of attached service usage types -
+    Fixed price service cost is sum of costs of attached service usage types -
     each of this service usage types must has price (and forecast price)
     defined for date, in which costs are generated.
     """
+    def total_cost(self, for_all_service_environments=False, *args, **kwargs):
+        service_costs = self.costs(*args, **kwargs)
+        return self._get_total_costs_from_costs(service_costs)
+
     def costs(
         self,
         pricing_service,
@@ -31,9 +35,14 @@ class Ceilometer(PricingServiceBasePlugin):
         forecast=False,
         **kwargs
     ):
-        logger.debug("Calculating report for pricing service {0}".format(
-            pricing_service
-        ))
+        logger.info(
+            (
+                "Calculating pricing service costs (using fixed "
+                "prices): {0}"
+            ).format(
+                pricing_service.name,
+            )
+        )
         result_dict = defaultdict(dict)
         usage_types = pricing_service.usage_types.all()
         for usage_type in usage_types:

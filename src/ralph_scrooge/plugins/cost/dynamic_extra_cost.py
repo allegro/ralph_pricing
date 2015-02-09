@@ -20,12 +20,9 @@ class CostNotFoundError(Exception):
 
 @register(chain='scrooge_costs')
 class DynamicExtraCostPlugin(PricingServiceBasePlugin):
-    def total_cost(self, collapse=False, *args, **kwargs):
-        return super(DynamicExtraCostPlugin, self).total_cost(
-            collapse=collapse,
-            *args,
-            **kwargs
-        )
+    def total_cost(self, for_all_service_environments=False, *args, **kwargs):
+        service_costs = self.costs(*args, **kwargs)
+        return self._get_total_costs_from_costs(service_costs)
 
     def costs(
         self,
@@ -35,8 +32,11 @@ class DynamicExtraCostPlugin(PricingServiceBasePlugin):
         forecast=False,
         **kwargs
     ):
+        logger.info("Calculating dynamic extra costs: {0}".format(
+            dynamic_extra_cost_type.name,
+        ))
         percentage = self._get_percentage(date, dynamic_extra_cost_type)
-        costs = self._get_daily_cost(
+        costs = self._get_costs(
             date,
             dynamic_extra_cost_type,
             forecast,
@@ -49,12 +49,12 @@ class DynamicExtraCostPlugin(PricingServiceBasePlugin):
             service_environments,
             costs,
             percentage,
-            excluded_services=list(
+            excluded_services=set(
                 dynamic_extra_cost_type.excluded_services.all()
             ),
         )
 
-    def _get_daily_cost(self, date, dynamic_extra_cost_type, forecast):
+    def _get_costs(self, date, dynamic_extra_cost_type, forecast, **kwargs):
         try:
             cost = dynamic_extra_cost_type.costs.get(
                 end__gte=date,

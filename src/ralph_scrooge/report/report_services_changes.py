@@ -178,7 +178,7 @@ class ServicesChangesReport(BaseReport):
             pricing_object_type_id = pricing_object_type.id
             q = query.format(**locals())
             cursor.execute(q)
-            result[pricing_object_type] = cursor.fetchall()
+            result[pricing_object_type] = list(cursor.fetchall())
             progress += 100.0 / len(types)
             yield progress, result
         if progress < 100:

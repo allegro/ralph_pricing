@@ -1,7 +1,7 @@
 <ul class="nav navbar-fixed-top nav-tabs nav-submenu">
-	<li ng-repeat="subMenu in stats.subMenus" class="{{ stats.currentSubMenu == subMenu ? 'active': '' }}">
-		<a ng-click="setActive(subMenu)">
-			{{ subMenu.name }}
-		</a>
-	</li>
+    <li ng-repeat="subMenu in stats.subMenus" class="{{ stats.currentSubMenu == subMenu ? 'active': '' }}">
+        <a ng-click="setActive(subMenu)">
+            {{ subMenu.name }}
+        </a>
+    </li>
 </ul>

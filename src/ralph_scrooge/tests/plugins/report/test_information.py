@@ -52,7 +52,7 @@ class TestInformationPlugin(TestCase):
                     self.pc1.business_line.name,
                     self.pc2.business_line.name,
                 )),
-                'service_id': self.service_environment1.service.ci_uid,
+                'id': self.service_environment1.id,
                 'service': self.service_environment1.service.name,
                 'environment': self.service_environment1.environment.name,
             },
@@ -62,7 +62,7 @@ class TestInformationPlugin(TestCase):
                     self.pc2.description
                 )),
                 'business_line': self.pc2.business_line.name,
-                'service_id': self.service_environment2.service.ci_uid,
+                'id': self.service_environment2.id,
                 'service': self.service_environment2.service.name,
                 'environment': self.service_environment2.environment.name,
             },

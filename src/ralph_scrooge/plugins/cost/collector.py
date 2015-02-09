@@ -133,6 +133,7 @@ class Collector(object):
         forecast=False,
         delete_verified=False,
         service_environments=None,
+        plugins=None,
     ):
         """
         Process costs for single date.
@@ -150,7 +151,12 @@ class Collector(object):
         if service_environments is None:
             service_environments = self._get_services_environments()
         self._delete_daily_costs(date, forecast, delete_verified)
-        costs = self._collect_costs(date, service_environments, forecast)
+        costs = self._collect_costs(
+            date,
+            service_environments,
+            forecast,
+            plugins,
+        )
         self._save_costs(date, costs, forecast)
         logger.info('Costs saved for date {}'.format(date))
 
@@ -189,8 +195,8 @@ class Collector(object):
                 service_environment_id=service_environment,
                 forecast=forecast,
             ))
+        logger.info('Saving {} costs'.format(len(daily_costs)))
         DailyCost.objects.bulk_create(daily_costs)
-
         # update status to created
         status, created = CostDateStatus.objects.get_or_create(date=date)
         if forecast:
@@ -198,15 +204,22 @@ class Collector(object):
         else:
             status.calculated = True
         status.save()
+        logger.info('Costs saved')
 
-    def _collect_costs(self, date, service_environments, forecast):
+    def _collect_costs(
+        self,
+        date,
+        service_environments,
+        forecast,
+        plugins=None
+    ):
         """
         Collects costs from all plugins and stores them per service environment
         """
         logger.debug("Getting report date")
         old_queries_count = len(connection.queries)
         data = {se.id: [] for se in service_environments}
-        for i, plugin in enumerate(self.get_plugins()):
+        for i, plugin in enumerate(plugins or self.get_plugins()):
             try:
                 plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
