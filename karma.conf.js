@@ -15,17 +15,17 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        'src/ralph_scrooge/static/vendor/jquery/dist/jquery.min.js',
-        'src/ralph_scrooge/static/vendor/multiple-select/jquery.multiple.select.js',
-        'src/ralph_scrooge/static/vendor/angular/angular.min.js',
-        'src/ralph_scrooge/static/vendor/angular-mocks/angular-mocks.js',
-        'src/ralph_scrooge/static/vendor/angular-animate/angular-animate.min.js',
-        'src/ralph_scrooge/static/vendor/angular-resource/angular-resource.min.js',
-        'src/ralph_scrooge/static/vendor/angular-route/angular-route.min.js',
-        'src/ralph_scrooge/static/vendor/angular-cookies/angular-cookies.min.js',
-        'src/ralph_scrooge/static/vendor/ng-scrollbar/dist/ng-scrollbar.min.js',
-        'src/ralph_scrooge/static/vendor/bootstrap/dist/js/bootstrap.min.js',
-        'src/ralph_scrooge/static/vendor/bootstrap-table/dist/bootstrap-table.min.js',
+        'src/ralph_scrooge/static/vendor/jquery.min.js',
+        'src/ralph_scrooge/static/vendor/jquery.multiple.select.js',
+        'src/ralph_scrooge/static/vendor/angular.min.js',
+        'src/ralph_scrooge/static/vendor/angular-mocks.js',
+        'src/ralph_scrooge/static/vendor/angular-animate.min.js',
+        'src/ralph_scrooge/static/vendor/angular-resource.min.js',
+        'src/ralph_scrooge/static/vendor/angular-route.min.js',
+        'src/ralph_scrooge/static/vendor/angular-cookies.min.js',
+        'src/ralph_scrooge/static/vendor/ng-scrollbar.min.js',
+        'src/ralph_scrooge/static/vendor/bootstrap.min.js',
+        'src/ralph_scrooge/static/vendor/bootstrap-table.min.js',
 
         'src/ralph_scrooge/static/scrooge/js/ui-bootstrap-tpls-0.10.0.min.js',
         'src/ralph_scrooge/static/scrooge/js/loading-bar.js',

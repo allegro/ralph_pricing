@@ -38,9 +38,13 @@ nosetests.xml
 
 # Static
 /src/ralph_scrooge/static/vendor/*
+/src/ralph_scrooge/static/scrooge/fonts/*
 
 # Grunt
 /node_modules/*
 
-#npm
+# npm
 npm-debug.log
+
+# Bower
+/bower_components/*
