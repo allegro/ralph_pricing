@@ -415,6 +415,44 @@ class TestTeamPlugin(TestCase):
                 forecast=False,
             )
 
+    @mock.patch('ralph_scrooge.plugins.cost.team.TeamPlugin._get_total_assets_count')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.team.TeamPlugin._get_assets_count_by_service_environment')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.team.TeamPlugin._get_team_daily_cost')  # noqa
+    def test_team_assets_cost_0(
+        self,
+        team_daily_cost_mock,
+        assets_count_mock,
+        total_assets_mock,
+    ):
+        assets_count_mock.return_value = {
+            self.service_environment1.id: 0,
+            self.service_environment2.id: 0,
+        }
+        total_assets_mock.return_value = 0
+        team_daily_cost_mock.return_value = (0, 0, 0)
+        costs = TeamPlugin.costs(
+            date=self.today,
+            service_environments=self.service_environments_subset,
+            team=self.team_assets,
+            forecast=False,
+        )
+        self.assertEquals(costs, {
+            self.service_environment1.id: [
+                {
+                    'cost': D('0'),
+                    'type': self.team_assets,
+                    'percent': D(0),
+                }
+            ],
+            self.service_environment2.id: [
+                {
+                    'cost': D('0'),
+                    'type': self.team_assets,
+                    'percent': D(0),
+                }
+            ]
+        })
+
     # =========================================================================
     # DISTRIBUTION (BY MEMEBERS COUNT)
     # =========================================================================

@@ -9,13 +9,10 @@ import logging
 
 from ralph_scrooge.models import DynamicExtraCost
 from ralph_scrooge.plugins.base import register
+from ralph_scrooge.plugins.cost.base import NoPriceCostError
 from ralph_scrooge.plugins.cost.pricing_service import PricingServiceBasePlugin
 
 logger = logging.getLogger(__name__)
-
-
-class CostNotFoundError(Exception):
-    pass
 
 
 @register(chain='scrooge_costs')
@@ -61,7 +58,7 @@ class DynamicExtraCostPlugin(PricingServiceBasePlugin):
                 start__lte=date,
             )
         except DynamicExtraCost.DoesNotExist:
-            raise CostNotFoundError()
+            raise NoPriceCostError()
         else:
 
             daily_cost = (
