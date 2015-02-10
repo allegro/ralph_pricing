@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class UnknownServiceEnvironmentNotConfigured(Exception):
+class UnknownServiceEnvironmentNotConfiguredError(Exception):
     """
     Raised when unknown service-environment is not configured for plugin.
     """
