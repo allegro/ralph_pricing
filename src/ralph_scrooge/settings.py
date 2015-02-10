@@ -1,3 +1,5 @@
+import sys
+
 # NFSEN (network) plugin default config
 SSH_NFSEN_CREDENTIALS = {}
 NFSEN_CHANNELS = []
@@ -44,7 +46,6 @@ ADDITIONAL_PRICING_OBJECT_TYPES = {}
 
 SAVE_ONLY_FIRST_DEPTH_COSTS = False
 
-import sys
 TESTING = 'test' in sys.argv
 
 COMPONENTS_TABLE_SCHEMA = {
