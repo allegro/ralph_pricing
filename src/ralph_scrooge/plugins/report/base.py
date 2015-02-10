@@ -47,6 +47,7 @@ class BaseReportPlugin(BasePlugin):
         end,
         base_usage,
         service_environments,
+        forecast=False,
         *args,
         **kwargs
     ):
@@ -70,6 +71,7 @@ class BaseReportPlugin(BasePlugin):
             date__lte=end,
             service_environment__in=service_environments,
             type=base_usage,
+            forecast=forecast,
         ).values(
             'service_environment__id'
         ).annotate(

@@ -196,6 +196,8 @@ class DailyPricingObject(db.Model):
     class Meta:
         app_label = 'ralph_scrooge'
         unique_together = ('pricing_object', 'date')
+        # TODO: after migration to Django>=1.5 add index_together on
+        # date, service_environment_id (see migration 0019 for details)
 
     def __unicode__(self):
         return '{} ({})'.format(self.pricing_object, self.date)

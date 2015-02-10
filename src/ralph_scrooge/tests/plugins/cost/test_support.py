@@ -48,20 +48,23 @@ class TestSupportPlugin(TestCase):
         self.assertEquals(costs, {
             self.service_environments[0].id: [
                 {
+                    'type': self.support_type,
                     'cost': D('100'),
-                    'type': self.support_type
+                    'pricing_object_id': self.pricing_objects[0].id,
                 }
             ],
             self.service_environments[1].id: [
                 {
+                    'type': self.support_type,
                     'cost': D('100'),
-                    'type': self.support_type
+                    'pricing_object_id': self.pricing_objects[1].id,
                 }
             ],
             self.service_environments[2].id: [
                 {
+                    'type': self.support_type,
                     'cost': D('100'),
-                    'type': self.support_type
+                    'pricing_object_id': self.pricing_objects[2].id,
                 }
             ]
         })
@@ -76,13 +79,15 @@ class TestSupportPlugin(TestCase):
             self.service_environments[0].id: [
                 {
                     'cost': D('200'),
-                    'type': self.support_type
+                    'type': self.support_type,
+                    'pricing_object_id': self.pricing_objects[0].id,
                 }
             ],
             self.service_environments[1].id: [
                 {
                     'cost': D('200'),
-                    'type': self.support_type
+                    'type': self.support_type,
+                    'pricing_object_id': self.pricing_objects[1].id,
                 }
             ],
         })

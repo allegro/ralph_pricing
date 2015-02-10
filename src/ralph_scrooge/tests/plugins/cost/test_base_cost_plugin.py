@@ -147,6 +147,7 @@ class TestBaseCostPlugin(ScroogeTestCase):
             end=datetime.date(2013, 10, 10),
             usage_type=self.usage_type_cost_wh,
             excluded_services=None,
+            excluded_services_environments=None,
             warehouse=None,
             service_environments=None,
         )
@@ -175,6 +176,7 @@ class TestBaseCostPlugin(ScroogeTestCase):
             end=datetime.date(2013, 10, 10),
             usage_type=self.usage_type_cost_wh,
             excluded_services=None,
+            excluded_services_environments=None,
             warehouse=self.warehouse1,
             service_environments=None,
         )
@@ -199,6 +201,7 @@ class TestBaseCostPlugin(ScroogeTestCase):
             end=datetime.date(2013, 10, 10),
             usage_type=self.usage_type_cost_wh,
             excluded_services=None,
+            excluded_services_environments=None,
             warehouse=None,
             service_environments=None,
         )
@@ -243,6 +246,7 @@ class TestBaseCostPlugin(ScroogeTestCase):
             end=datetime.date(2013, 10, 10),
             usage_type=self.usage_type_cost_wh,
             excluded_services=[self.service_environment1],
+            excluded_services_environments=None,
             warehouse=None,
             service_environments=None,
         )

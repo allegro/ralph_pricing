@@ -263,6 +263,8 @@ class PricingService(BaseUsage):
         ps = ps.exclude(excluded_services__in=self.services.all())
         if exclude:
             ps = ps.exclude(id__in=[p.id for p in exclude])
+        # exclude self to prevent cycle
+        ps = ps.exclude(id=self.id)
         return ps.distinct()
 
 
