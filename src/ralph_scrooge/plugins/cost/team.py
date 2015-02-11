@@ -414,7 +414,7 @@ class TeamPlugin(BaseCostPlugin):
             result[service_environment].append({
                 'cost': cost,
                 'type': team,
-                'percent': D(cost) / D(daily_cost),
+                'percent': D(cost) / D(daily_cost) if daily_cost else 0,
             })
 
         return result
