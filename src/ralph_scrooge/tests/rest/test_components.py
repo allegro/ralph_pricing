@@ -124,8 +124,26 @@ class TestComponents(TestCase):
             '3': 'Barcode',
         })
 
+    def test_get_headers_with_alias(self):
+        fields = ['id', 'name', 'assetinfo.sn', ('assetinfo.barcode', 'Alias')]
+        headers = components._get_headers(
+            models.DailyAssetInfo,
+            fields,
+            prefix='pricing_object',
+        )
+        self.assertEquals(headers, {
+            '0': 'Id',
+            '1': 'Name',
+            '2': 'Serial Number',
+            '3': 'Alias',
+        })
+
     @override_settings(COMPONENTS_TABLE_SCHEMA={'Asset': {
-        'fields': ['id', 'name', 'service_environment.service.name'],
+        'fields': [
+            'pricing_object.id',
+            'pricing_object.name',
+            ('service_environment.service.name', 'Serv')
+        ],
         'model': 'ralph_scrooge.models.DailyAssetInfo',
     }})
     def test_process_single_type(self):
@@ -149,7 +167,7 @@ class TestComponents(TestCase):
             'schema': {
                 '0': 'Id',
                 '1': 'Name',
-                '2': 'Name',
+                '2': 'Serv',
             },
             'color': asset_type.color,
         })
