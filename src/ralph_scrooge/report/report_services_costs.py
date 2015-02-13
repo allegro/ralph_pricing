@@ -128,8 +128,6 @@ class ServicesCostsReport(BasePluginReport):
         """
         logger.info("Generating report from {0} to {1}".format(start, end))
         services_environments = cls._get_services_environments(is_active)
-        # calculate costs (if not calculated for any of report days)
-        cls.calculate_costs(start, end, forecast)
         data = cls._get_report_data(
             start,
             end,

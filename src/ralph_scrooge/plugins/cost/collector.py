@@ -156,17 +156,19 @@ class Collector(object):
             forecast,
             plugins,
         )
+        daily_costs = self._create_daily_costs(date, costs, forecast)
         with transaction.commit_on_success():
-            self._delete_daily_costs(date, forecast, delete_verified)
-            self._save_costs(date, costs, forecast)
+            self._delete_daily_costs(date, forecast)
+            self._save_costs(date, daily_costs, forecast)
         logger.info('Costs saved for date {}'.format(date))
 
-    def _delete_daily_costs(self, date, forecast, delete_verified=False):
+    def _delete_daily_costs(self, date, forecast):
         """
         Check if there are any verfifed daily costs for given date.
         If no, delete previously saved costs for given date.
         If yes,
         """
+        logger.info('Deleting previously saved costs')
         cursor = connection.cursor()
         cursor.execute(
             "DELETE FROM {} WHERE date=%s and forecast=%s".format(
@@ -182,12 +184,12 @@ class Collector(object):
         ):
             raise VerifiedDailyCostsExistsError()
 
-    def _save_costs(self, date, costs, forecast):
+    def _create_daily_costs(self, date, costs, forecast):
         """
-        For every service environment in costs save tree structure in database
-
-        At the end update status of date costs to calculated.
+        For every service environment in costs create DailyCost instance to
+        save it in database.
         """
+        logger.info('Creating daily costs instances')
         daily_costs = []
         for service_environment, se_costs in costs.iteritems():
             # use _build_tree directly, to collect DailyCosts for all services
@@ -198,6 +200,13 @@ class Collector(object):
                 service_environment_id=service_environment,
                 forecast=forecast,
             ))
+        return daily_costs
+
+    def _save_costs(self, date, daily_costs, forecast):
+        """
+        Save daily_costs in database and update status of date costs to
+        calculated.
+        """
         logger.info('Saving {} costs'.format(len(daily_costs)))
         DailyCost.objects.bulk_create(daily_costs)
         # update status to created
