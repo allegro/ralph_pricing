@@ -64,8 +64,8 @@ class DirectoryTimedRotatingFileHandler(TimedRotatingFileHandler):
             newRolloverAt = newRolloverAt + self.interval
         # If DST changes and midnight or weekly rollover, adjust for this.
         if (
-            (self.when == 'MIDNIGHT' or self.when.startswith('W'))
-            and not self.utc
+            (self.when == 'MIDNIGHT' or self.when.startswith('W')) and not
+            self.utc
         ):
             dstAtRollover = time.localtime(newRolloverAt)[-1]
             if dstNow != dstAtRollover:
