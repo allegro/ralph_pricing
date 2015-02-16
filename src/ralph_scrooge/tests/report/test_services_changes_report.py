@@ -146,5 +146,6 @@ class TestServicesChangesReport(ScroogeTestCase):
             PRICING_OBJECT_TYPES.TENANT: [default],
             PRICING_OBJECT_TYPES.IP_ADDRESS: [default],
             PRICING_OBJECT_TYPES.VIP: [default],
+            PRICING_OBJECT_TYPES.DATABASE: [default],
             PRICING_OBJECT_TYPES.UNKNOWN: [default],
         })

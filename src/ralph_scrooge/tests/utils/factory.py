@@ -328,3 +328,18 @@ class UsagePriceFactory(DjangoModelFactory):
     type = SubFactory(UsageTypeFactory)
     start = datetime.date(2014, 10, 1)
     end = datetime.date(2014, 10, 31)
+
+
+class DatabaseInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.DatabaseInfo
+    type_id = models.PRICING_OBJECT_TYPES.DATABASE
+
+    database_id = Sequence(lambda n: n)
+    parent_device = SubFactory(AssetInfoFactory)
+
+
+class DailyDatabaseInfoFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyDatabaseInfo
+
+    database_info = SubFactory(DatabaseInfoFactory)
+    parent_device = SubFactory(DailyAssetInfoFactory)

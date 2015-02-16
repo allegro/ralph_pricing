@@ -12,7 +12,7 @@ from django.test import TestCase
 
 from ralph_scrooge import models
 from ralph_scrooge.plugins.cost.dynamic_extra_cost import (
-    CostNotFoundError,
+    NoPriceCostError,
     DynamicExtraCostPlugin,
 )
 from ralph_scrooge.tests.utils.factory import (
@@ -86,7 +86,7 @@ class TestDynamicExtraCostPlugin(TestCase):
         })
 
     def test_get_costs_not_found(self):
-        with self.assertRaises(CostNotFoundError):
+        with self.assertRaises(NoPriceCostError):
             DynamicExtraCostPlugin._get_costs(
                 date=self.date_out_of_range,
                 dynamic_extra_cost_type=self.dynamic_extra_cost_type,

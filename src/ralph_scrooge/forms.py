@@ -134,8 +134,9 @@ class UsagesBaseFormSet(forms.models.BaseModelFormSet):
                 # or there is no additional column and dateranges are
                 # overlapping
                 if (
-                   (other_additional == additional_value and additional_column)
-                   or not additional_column
+                   (other_additional == additional_value and
+                    additional_column) or not
+                   additional_column
                    ) and ranges_overlap(start, end, other_start, other_end):
                     form._errors['start'] = form.error_class([msg])
                     form._errors['end'] = form.error_class([msg])

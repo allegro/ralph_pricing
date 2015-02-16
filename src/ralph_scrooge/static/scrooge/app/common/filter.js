@@ -23,7 +23,7 @@ scrooge.filter('breadcrumbs', ['stats', function(stats) {
                 }
                 break;
             case 'service':
-                currentLeftMenu = stats.menuStats.leftMenu['current'];
+                currentLeftMenu = stats.menuStats.leftMenu.current;
                 for (menuIdx in stats.leftMenus[currentLeftMenu]) {
                     var menuItem = stats.leftMenus[currentLeftMenu][menuIdx];
                     if (menuItem.id == input) {

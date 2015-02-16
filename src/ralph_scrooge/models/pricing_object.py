@@ -58,6 +58,7 @@ class PRICING_OBJECT_TYPES(Choices):
     TENANT = _("OpenStack Tenant")
     IP_ADDRESS = _("IP Address")
     VIP = _("VIP")
+    DATABASE = _("Database")
     # dummy type to use in service environments where there is no real
     # pricing object; there should be only one pricing object with dummy type
     # for each service environment
@@ -71,12 +72,11 @@ class PRICING_OBJECT_TYPES(Choices):
 class PricingObjectModel(db.Model):
     model_id = db.IntegerField(
         verbose_name=_("model id"),
-        unique=True,
         null=True,
         blank=True,
     )
     name = db.CharField(
-        verbose_name=_("name"),
+        verbose_name=_("model name"),
         max_length=100,
     )
     manufacturer = db.CharField(
@@ -101,6 +101,7 @@ class PricingObjectModel(db.Model):
     class Meta:
         app_label = 'ralph_scrooge'
         ordering = ['manufacturer', 'name']
+        unique_together = ('model_id', 'type')
 
     def __unicode__(self):
         return '{} - {}'.format(self.manufacturer, self.name)
@@ -195,6 +196,8 @@ class DailyPricingObject(db.Model):
     class Meta:
         app_label = 'ralph_scrooge'
         unique_together = ('pricing_object', 'date')
+        # TODO: after migration to Django>=1.5 add index_together on
+        # date, service_environment_id (see migration 0019 for details)
 
     def __unicode__(self):
         return '{} ({})'.format(self.pricing_object, self.date)
@@ -420,6 +423,52 @@ class DailyVIPInfo(DailyPricingObject):
         PricingObject,
         related_name='ip_daily_vips',
         verbose_name=_("IP details"),
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+
+class DatabaseInfo(PricingObject):
+    database_id = db.IntegerField(
+        unique=True,
+        verbose_name=_("Ralph database ID")
+    )
+    parent_device = db.ForeignKey(
+        AssetInfo,
+        verbose_name=_("parent device"),
+        related_name='databases',
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+    def get_daily_pricing_object(self, date):
+        try:
+            return self.daily_databases.get(date=date)
+        except DailyDatabaseInfo.DoesNotExist:
+            return DailyDatabaseInfo.objects.create(
+                pricing_object=self,
+                database_info=self,
+                date=date,
+                service_environment=self.service_environment,
+            )
+
+
+class DailyDatabaseInfo(DailyPricingObject):
+    parent_device = db.ForeignKey(
+        DailyAssetInfo,
+        verbose_name=_("parent device"),
+        related_name='daily_databases',
+        null=True,
+        blank=True,
+    )
+    database_info = db.ForeignKey(
+        DatabaseInfo,
+        related_name='daily_databases',
+        verbose_name=_("database details"),
     )
 
     class Meta:

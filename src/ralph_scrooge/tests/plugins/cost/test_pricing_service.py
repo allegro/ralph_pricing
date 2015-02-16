@@ -10,6 +10,7 @@ from decimal import Decimal as D
 import mock
 
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from ralph_scrooge import models
 from ralph_scrooge.plugins.cost.pricing_service import PricingServicePlugin
@@ -282,13 +283,13 @@ class TestPricingServicePlugin(TestCase):
         )
         self.assertEquals(result, {self.extra_cost_type.id: (D('200'), {})})
 
+    @override_settings(SAVE_ONLY_FIRST_DEPTH_COSTS=False)
     def test_get_dependent_services_cost(self):
         result = PricingServicePlugin._get_dependent_services_cost(
             self.today,
             pricing_service=self.pricing_service1,
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
-            all_service_environments=self.service_environments,
         )
         # daily pricing objects which are under pricing service 1 (practically
         # under se1) are using extacly half of pricing service resources, so
@@ -304,13 +305,25 @@ class TestPricingServicePlugin(TestCase):
             ]
         })
 
+    @override_settings(SAVE_ONLY_FIRST_DEPTH_COSTS=True)
+    def test_get_dependent_services_cost_only_first_depth(self):
+        result = PricingServicePlugin._get_dependent_services_cost(
+            self.today,
+            pricing_service=self.pricing_service1,
+            forecast=False,
+            service_environments=self.pricing_service1.service_environments,
+        )
+        self.assertEquals(result, {
+            self.pricing_service2.id: [D('61'), {}]
+        })
+
+    @override_settings(SAVE_ONLY_FIRST_DEPTH_COSTS=False)
     def test_get_pricing_service_costs(self):
         costs = PricingServicePlugin._get_pricing_service_costs(
             date=self.today,
             pricing_service=self.pricing_service1,
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
-            all_service_environments=self.service_environments,
         )
         self.assertEquals(costs, {
             self.pricing_service1.id: (
@@ -332,6 +345,27 @@ class TestPricingServicePlugin(TestCase):
             )
         })
 
+    @override_settings(SAVE_ONLY_FIRST_DEPTH_COSTS=True)
+    def test_get_pricing_service_costs_only_first_depth(self):
+        costs = PricingServicePlugin._get_pricing_service_costs(
+            date=self.today,
+            pricing_service=self.pricing_service1,
+            forecast=False,
+            service_environments=self.pricing_service1.service_environments,
+        )
+        self.assertEquals(costs, {
+            self.pricing_service1.id: (
+                D('505'),
+                {
+                    self.base_usage_type.id: (D('40'), {}),
+                    self.regular_usage_type.id: (D('200'), {}),
+                    self.team.id: (D('4'), {}),
+                    self.extra_cost_type.id: (D('200'), {}),
+                    self.pricing_service2.id: [D('61'), {}]
+                }
+            )
+        })
+
     def test_get_pricing_service_costs2(self):
         # there are 4 daily pricing objects that are using pricing service 2:
         # 2 are in se1, 2 are in se6
@@ -345,7 +379,6 @@ class TestPricingServicePlugin(TestCase):
             self.pricing_service2,
             forecast=False,
             service_environments=self.pricing_service2.service_environments,
-            all_service_environments=self.service_environments,
         )
         self.assertEquals(costs, {
             self.pricing_service2.id: (D('122'), {
@@ -917,6 +950,7 @@ class TestPricingServiceDiffCharging(TestCase):
     def setUp(self):
         self.today = date(2014, 11, 10)
 
+        self.service_environments = ServiceEnvironmentFactory.create_batch(5)
         self.pricing_service1 = PricingServiceFactory()
 
         fixed_price = (
@@ -963,6 +997,7 @@ class TestPricingServiceDiffCharging(TestCase):
                 date=self.today,
                 pricing_service=x,
                 for_all_service_environments=True,
+                service_environments=None,
                 forecast=False,
             ) for x in (self.pricing_service2, self.pricing_service3)
         ]
@@ -992,7 +1027,6 @@ class TestPricingServiceDiffCharging(TestCase):
             pricing_service=self.pricing_service1,
             date=self.today,
             forecast=False,
-            service_environments=models.ServiceEnvironment.objects.all(),
         )
         self.assertEquals(result, {
             self.pricing_service2.id: (0, {}),
@@ -1022,7 +1056,6 @@ class TestPricingServiceDiffCharging(TestCase):
             date=self.today,
             forecast=False,
             service_environments=self.pricing_service1.service_environments,
-            all_service_environments=models.ServiceEnvironment.objects.all(),
         )
         self.assertEquals(result, {
             self.pricing_service1.id: (0, {
@@ -1227,7 +1260,6 @@ class TestPricingServiceFixedPricePlugin(ScroogeTestCase):
             ps2,
             date=self.today,
             forecast=False,
-            service_environments=models.ServiceEnvironment.objects.all(),
         )
         self.assertEqual(result, {
             self.pricing_service1.id: (D(-1100), {})  # 100 - 1200

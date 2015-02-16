@@ -84,7 +84,8 @@ class Command(BaseCommand):
         :param datetime compare_date: compare (lower) date
         '''
         def draw(data, name, date):
-            draw_lines = lambda x: ''.join(['-' for y in xrange(x)])
+            def draw_lines(x):
+                ''.join(['-' for y in xrange(x)])
             logger.info(
                 '{0}[{1} ({2})]{3}'.format(
                     draw_lines(20),
@@ -121,7 +122,9 @@ class Command(BaseCommand):
         :param datetime base_date: first (higher) date
         :param datetime compare_date: compare (lower) date
         '''
-        to_date = lambda date: datetime.strptime(date, '%Y-%m-%d').date()
+        def to_date(date):
+            datetime.strptime(date, '%Y-%m-%d').date()
+
         base = to_date(base) if base else date.today() - timedelta(days=1)
         compare = to_date(compare) if compare else base - timedelta(days=1)
 

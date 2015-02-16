@@ -9,19 +9,21 @@ import logging
 from collections import defaultdict
 from decimal import Decimal as D
 
-from ralph_scrooge.models import ServiceEnvironment, UsagePrice
+from ralph_scrooge.models import UsagePrice
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import (
     BaseCostPlugin,
     NoPriceCostError,
     MultiplePriceCostError,
 )
+from ralph_scrooge.utils.common import memoize
 
 
 logger = logging.getLogger(__name__)
 
 
 class UsageTypeBasePlugin(BaseCostPlugin):
+    @memoize(skip_first=True)
     def _get_price_per_unit(
         self,
         date,
@@ -30,6 +32,7 @@ class UsageTypeBasePlugin(BaseCostPlugin):
         warehouse=None,
         service_environments=None,
         excluded_services=None,
+        excluded_services_environments=None,
     ):
         """
         Returns price for single unit of usage for date.
@@ -59,6 +62,7 @@ class UsageTypeBasePlugin(BaseCostPlugin):
                 forecast=forecast,
                 warehouse=warehouse,
                 excluded_services=excluded_services,
+                excluded_services_environments=excluded_services_environments,
             )
         else:
             if forecast:
@@ -66,25 +70,7 @@ class UsageTypeBasePlugin(BaseCostPlugin):
             else:
                 price = usage_price.price
 
-        # total_usage for usage price
-        total_usage = self._get_total_usage(
-            start=usage_price.start,
-            end=usage_price.end,
-            warehouse=warehouse,
-            usage_type=usage_type,
-            excluded_services=excluded_services,
-            service_environments=service_environments,
-        )
-
-        return total_usage, price
-
-    def _exclude_service_environments(self, usage_type, service_environments):
-        service_environments = list(set(service_environments) - set(
-            ServiceEnvironment.objects.filter(
-                service__in=usage_type.excluded_services.all())
-            )
-        )
-        return service_environments
+        return price
 
     def _get_costs_per_warehouse(
         self,
@@ -97,7 +83,7 @@ class UsageTypeBasePlugin(BaseCostPlugin):
         Returns information about usage (of usage type) count and cost
         per service for date using forecast or real price or cost.
         """
-        excluded_services = usage_type.excluded_services.all()
+        excluded_services_envs = usage_type.excluded_services_environments
         if usage_type.by_warehouse:
             warehouses = self.get_warehouses()
         else:
@@ -105,20 +91,19 @@ class UsageTypeBasePlugin(BaseCostPlugin):
         result = defaultdict(list)
 
         for warehouse in warehouses:
-            total_usages, price_per_unit = self._get_price_per_unit(
+            price_per_unit = self._get_price_per_unit(
                 date,
                 usage_type,
-                forecast,
-                warehouse,
-                service_environments,
-                excluded_services,
+                forecast=forecast,
+                warehouse=warehouse,
+                excluded_services_environments=excluded_services_envs,
             )
             usages = self._get_usages_per_pricing_object(
                 date=date,
                 usage_type=usage_type,
                 service_environments=service_environments,
                 warehouse=warehouse,
-                excluded_services=excluded_services,
+                excluded_services_environments=excluded_services_envs,
             )
             for v in usages:
                 service_environment = v.service_environment_id
@@ -133,6 +118,7 @@ class UsageTypeBasePlugin(BaseCostPlugin):
                 if warehouse:
                     pricing_object_cost['warehouse'] = warehouse
                 result[service_environment].append(pricing_object_cost)
+
         return result
 
     def costs(

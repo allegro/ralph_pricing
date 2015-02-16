@@ -85,6 +85,13 @@ class UsageType(BaseUsage):
     def get_plugin_name(self):
         return 'usage_type_plugin'
 
+    @property
+    def excluded_services_environments(self):
+        from ralph_scrooge.models import ServiceEnvironment
+        return ServiceEnvironment.objects.filter(
+            service__in=self.excluded_services.all()
+        )
+
 
 class UsagePrice(db.Model):
     """
@@ -188,6 +195,8 @@ class DailyUsage(db.Model):
         verbose_name = _("daily usage")
         verbose_name_plural = _("daily usages")
         app_label = 'ralph_scrooge'
+        # TODO: after migration to Django>=1.5 add index_together on
+        # type_id, date and warehouse_id (see migration 0019 for details)
 
     def __unicode__(self):
         return '{0}/{1} ({2}) {3}'.format(
