@@ -208,7 +208,10 @@ class Collector(object):
         calculated.
         """
         logger.info('Saving {} costs'.format(len(daily_costs)))
-        DailyCost.objects.bulk_create(daily_costs)
+        DailyCost.objects.bulk_create(
+            daily_costs,
+            batch_size=settings.DAILY_COST_CREATE_BATCH_SIZE,
+        )
         # update status to created
         status, created = CostDateStatus.concurrent_get_or_create(date=date)
         if forecast:
