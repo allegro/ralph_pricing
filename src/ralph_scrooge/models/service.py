@@ -273,7 +273,6 @@ class ServiceUsageTypes(db.Model):
         'UsageType',
         verbose_name=_("Usage type"),
         related_name="service_division",
-        limit_choices_to=db.Q(usage_type='SU') | db.Q(symbol='depreciation'),
     )
     pricing_service = db.ForeignKey(
         PricingService,
