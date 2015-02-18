@@ -12,10 +12,10 @@
         {{row.warehouse.name || "---"}}
       </td>
       <td>
-        <input ng-model="row.value" type="text" class="form-control" value="{{row.value}}">
+        <input ng-model="row.cost" type="text" class="form-control">
       </td>
     </tr>
 </table>
 <div>
-  <button ng-click="stats.saveAllocation('teamDivision')">Save</button>
+  <button ng-click="stats.saveAllocation('baseusages')">Save</button>
 </div>

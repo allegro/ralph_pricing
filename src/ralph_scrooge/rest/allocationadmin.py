@@ -7,38 +7,110 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from decimal import Decimal as D
+import json
 
+from django.db.transaction import commit_on_success
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ralph_scrooge.rest.common import get_dates
 from ralph_scrooge.models import (
+    DynamicExtraCost,
+    DynamicExtraCostType,
+    ExtraCost,
+    ExtraCostType,
+    ServiceEnvironment,
+    Team,
+    TeamCost,
+    UsagePrice,
     UsageType,
     Warehouse,
-    UsagePrice,
-    TeamCost,
-    Team,
 )
 
 
+class NoUsageTypeError(Exception):
+    pass
+
+
+class NoDynamicExtraCostTypeError(Exception):
+    pass
+
+
+class TeamDoesNotExistError(Exception):
+    pass
+
+
+class NoExtraCostTypeError(Exception):
+    pass
+
+
 class AllocationAdminContent(APIView):
+    def _get_extra_costs(self, start, end):
+        rows = []
+        for extra_cost_type in ExtraCostType.objects.all():
+            extra_costs = []
+            for extra_cost in ExtraCost.objects.filter(
+                extra_cost_type=extra_cost_type,
+                start=start,
+                end=end,
+            ):
+                extra_costs.append({
+                    'id': extra_cost.id,
+                    'cost': extra_cost.cost,
+                    'forecast_cost': extra_cost.forecast_cost,
+                    'service': extra_cost.service_environment.service.id,
+                    'env': extra_cost.service_environment.environment.id
+                })
+            if len(extra_costs) == 0:
+                extra_costs = [{}]
+            rows.append({
+                'extra_cost_type': {
+                    'id': extra_cost_type.id,
+                    'name': extra_cost_type.name,
+                },
+                'extra_costs': extra_costs
+            })
+        return rows
+
+    def _get_dynamic_extra_costs(self, start, end):
+        rows = []
+        for dynamic_extra_cost_type in DynamicExtraCostType.objects.all():
+            try:
+                cost, forecast_cost = DynamicExtraCost.objects.filter(
+                    dynamic_extra_cost_type=dynamic_extra_cost_type,
+                    start=start,
+                    end=end,
+                ).values_list('cost', 'forecast_cost')[0]
+            except IndexError:
+                cost, forecast_cost = D(0), D(0)
+            rows.append({
+                'dynamic_extra_cost_type': {
+                    'id': dynamic_extra_cost_type.id,
+                    'name': dynamic_extra_cost_type.name,
+                },
+                'cost': cost,
+                'forecast_cost': forecast_cost,
+            })
+        return rows
+
     def _get_team_costs(self, start, end):
         rows = []
         for team in Team.objects.all():
             try:
-                members, cost = TeamCost.objects.get(
+                members, cost, forecast_cost = TeamCost.objects.filter(
                     team=team,
                     start=start,
                     end=end,
-                ).value('members', 'cost')
-            except:
-                members, cost = 0, D(0)
+                ).values_list('members_count', 'cost', 'forecast_cost')[0]
+            except IndexError:
+                members, cost, forecast_cost = 0, D(0), D(0)
             rows.append({
                 'team': {
                     'id': team.id,
                     'name': team.name,
                 },
                 'cost': cost,
+                'forecast_cost': forecast_cost,
                 'members': members,
             })
         return rows
@@ -66,7 +138,7 @@ class AllocationAdminContent(APIView):
                         'id': usage_type.id,
                         'name': usage_type.name,
                     },
-                    'value': cost,
+                    'cost': cost,
                 })
             else:
                 for warehouse in warehouses:
@@ -84,7 +156,7 @@ class AllocationAdminContent(APIView):
                             'id': usage_type.id,
                             'name': usage_type.name,
                         },
-                        'value': cost,
+                        'cost': cost,
                         'warehouse': {
                             'id': warehouse.id,
                             'name': warehouse.name,
@@ -96,6 +168,11 @@ class AllocationAdminContent(APIView):
         first_day, last_day, days_in_month = get_dates(year, month)
         base_usages = self._get_base_usages(first_day, last_day)
         team_costs = self._get_team_costs(first_day, last_day)
+        dynamic_extra_costs = self._get_dynamic_extra_costs(
+            first_day,
+            last_day,
+        )
+        extra_costs = self._get_extra_costs(first_day, last_day)
         return Response({
             'baseusages': {
                 'name': 'Base Usages',
@@ -107,9 +184,130 @@ class AllocationAdminContent(APIView):
                 'rows': team_costs,
                 'template': 'tabteamcosts.html',
             },
+            'dynamicextracosts': {
+                'name': 'Dynamic Extra Costs',
+                'rows': dynamic_extra_costs,
+                'template': 'tabdynamicextracosts.html',
+            },
             'extracosts': {
                 'name': 'Extra Costs',
-                'rows': [{'extra_cost': 4, 'value': 400}],
-                'template': 'tabextracosts.html',
+                'rows': extra_costs,
+                'template': 'tabextracostsadmin.html',
             },
         })
+
+    def _save_base_usages(self, start, end, post_data):
+        for row in post_data['rows']:
+            try:
+                usage_type = UsageType.objects.get(id=row['type']['id'])
+            except UsageType.DoesNotExist:
+                raise NoUsageTypeError(
+                    'No usage type with id {0}'.format(row['type']['id'])
+                )
+
+            params = {
+                "type": usage_type,
+                "start": start,
+                "end": end,
+            }
+            if 'warehouse' in row:
+                params.update({"warehouse": Warehouse.objects.get(
+                    id=row['warehouse']['id']
+                )})
+
+            usage_price = UsagePrice.objects.get_or_create(**params)[0]
+            usage_price.cost = row['cost']
+            usage_price.save()
+
+    def _save_extra_costs(self, start, end, post_data):
+        for row in post_data['rows']:
+            try:
+                extra_cost_type = ExtraCostType.objects.get(
+                    id=row['extra_cost_type']['id'],
+                )
+            except ExtraCostType.DoesNotExist:
+                raise NoExtraCostTypeError(
+                    'No extra cost type with id {0}'.format(
+                        row['extra_cost_type']['id']
+                    )
+                )
+            for ec_row in row['extra_costs']:
+                try:
+                    service_environment = ServiceEnvironment.objects.get(
+                        service__id=ec_row['service'],
+                        environment__id=ec_row['env']
+                    )
+                except ServiceEnvironment.DoesNotExist:
+                    raise ServiceEnvironmentDoesNotExist(
+                        'No service environment with service id {0}'
+                        ' and environment id {1}'.format(
+                            ec_row['service'],
+                            ec_row['env']
+                        )
+                    )
+                extra_cost = ExtraCost.objects.get_or_create(
+                    extra_cost_type=extra_cost_type,
+                    service_environment=service_environment,
+                )[0]
+                extra_cost.cost = ec_row['cost']
+                extra_cost.forecast_cost = ec_row['forecast_cost']
+                extra_cost.save()
+
+    def _save_dynamic_extra_costs(self, start, end, post_data):
+        for row in post_data['rows']:
+            try:
+                dynamic_extra_cost_type = DynamicExtraCostType.objects.get(
+                    id=row['dynamic_extra_cost_type']['id'],
+                )
+            except DynamicExtraCostType.DoesNotExist:
+                raise NoDynamicExtraCostTypeError(
+                    'No dynamic extra cost type with id {0}'.format(
+                        row['dynamic_extra_cost_type']['id']
+                    )
+                )
+            dynami_extra_cost = DynamicExtraCost.objects.get_or_create(
+                dynamic_extra_cost_type=dynamic_extra_cost_type,
+                start=start,
+                end=end,
+                defaults=dict(
+                    cost=row['cost'],
+                    forecast_cost=row['forecast_cost']
+                )
+            )[0]
+            dynami_extra_cost.cost = row['cost']
+            dynami_extra_cost.forecast_cost = row['forecast_cost']
+            dynami_extra_cost.save()
+
+    def _save_team_costs(self, start, end, post_data):
+        for row in post_data['rows']:
+            try:
+                team = Team.objects.get(id=row['team']['id'])
+            except Team.DoesNotExist:
+                raise TeamDoesNotExistError(
+                    "Team with id {0} does not exist".format(
+                        row['team']['id']
+                    )
+                )
+            team_cost = TeamCost.objects.get_or_create(
+                team=team,
+                start=start,
+                end=end,
+            )[0]
+            team_cost.cost = row['cost']
+            team_cost.forecast_cost = row['forecast_cost']
+            team_cost.members_count = row['members']
+            team_cost.save()
+
+    @commit_on_success()
+    def post(self, request, year, month, allocate_type, *args, **kwargs):
+        post_data = json.loads(request.raw_post_data)
+        first_day, last_day, days_in_month = get_dates(year, month)
+        if allocate_type == 'baseusages':
+            self._save_base_usages(first_day, last_day, post_data)
+        if allocate_type == 'extracosts':
+            self._save_extra_costs(first_day, last_day, post_data)
+        if allocate_type == 'dynamicextracosts':
+            self._save_dynamic_extra_costs(first_day, last_day, post_data)
+        if allocate_type == 'teamcosts':
+            self._save_team_costs(first_day, last_day, post_data)
+        return Response({"status": True})

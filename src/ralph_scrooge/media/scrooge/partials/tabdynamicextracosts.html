@@ -1,0 +1,21 @@
+<table class="table">
+    <tr>
+      <td>Extra cost name</td>
+      <td>Cost</td>
+      <td>Forecast cost</td>
+    </tr>
+    <tr ng-repeat="row in stats.allocationadmin.dynamicextracosts.rows">
+      <td>
+        {{row.dynamic_extra_cost_type.name}}
+      </td>
+      <td>
+        <input ng-model="row.cost" type="text" class="form-control">
+      </td>
+      <td>
+        <input ng-model="row.forecast_cost" type="text" class="form-control">
+      </td>
+    </tr>
+</table>
+<div>
+  <button ng-click="stats.saveAllocation('dynamicextracosts')">Save</button>
+</div>

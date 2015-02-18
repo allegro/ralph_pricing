@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller', []);
 
-scrooge.controller('mainCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats', function ($scope, $routeParams, menuService, menuCalendar, stats) {
+scrooge.controller('mainCtrl', ['$scope', '$routeParams', '$location', 'menuService', 'menuCalendar', 'stats', function ($scope, $routeParams, $location, menuService, menuCalendar, stats) {
     stats.init();
     $scope.menuService = menuService;
     $scope.menuCalendar = menuCalendar;

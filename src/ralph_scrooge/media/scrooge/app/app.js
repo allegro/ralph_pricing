@@ -48,6 +48,10 @@ app.config(['$routeProvider', '$httpProvider',
                 templateUrl: '/static/scrooge/partials/allocationadmin.html',
                 controller: 'allocationAdminCtrl',
             })
+            .when('/allocation/admin/:tab', {
+                templateUrl: '/static/scrooge/partials/allocationadmin.html',
+                controller: 'allocationAdminCtrl',
+            })
             .when('/costcard/', {
                 templateUrl: '/static/scrooge/partials/costcard.html',
                 controller: 'costCardCtrl',
