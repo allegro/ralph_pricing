@@ -88,6 +88,7 @@ class TestScroogeTenantsInstances(TestCase):
             'OpenStack Tenant ID',
             'OpenStack Tenant',
             'Flavor',
+            'Total usage',
             'Instances (avg)',
             'Hour price',
             'Cost',
@@ -103,7 +104,8 @@ class TestScroogeTenantsInstances(TestCase):
             'OpenStack Tenant ID',
             'OpenStack Tenant',
             'Resource',
-            'Usage (total)',
+            'Total usage',
+            'Avg usage per day',
             'Unit price',
             'Cost',
         ])
@@ -227,6 +229,7 @@ class TestScroogeTenantsInstances(TestCase):
                     tenant.id,
                     tenant.name,
                     usage_type.name,
+                    value * days * 24,
                     value,
                     prices,
                     value * days * 24,
@@ -257,6 +260,7 @@ class TestScroogeTenantsInstances(TestCase):
                     tenant.name,
                     usage_type.name,
                     value * days * 24,
+                    value * 24,
                     prices,
                     value * days * 24,
                 ])
@@ -284,6 +288,7 @@ class TestScroogeTenantsInstances(TestCase):
                     tenant.id,
                     tenant.name,
                     usage_type.name,
+                    value * days * 24,
                     value,
                     prices,
                     value * days * 24,
@@ -301,6 +306,7 @@ class TestScroogeTenantsInstances(TestCase):
         usage_type = self.ceilometer_usage1
         value = 1
         expected = []
+        days = (self.end - self.start).days + 1
         for tenant in self.tenants:
             expected.append([
                 tenant.service_environment.service.name,
@@ -309,6 +315,7 @@ class TestScroogeTenantsInstances(TestCase):
                 tenant.id,
                 tenant.name,
                 usage_type.name,
+                value * days * 24,
                 value,
                 '-',
                 '-',
@@ -337,6 +344,7 @@ class TestScroogeTenantsInstances(TestCase):
                 tenant.name,
                 usage_type.name,
                 value * days * 24,
+                value * 24,
                 '-',
                 '-',
             ])

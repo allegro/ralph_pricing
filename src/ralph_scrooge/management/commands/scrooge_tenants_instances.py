@@ -87,6 +87,7 @@ class Command(ScroogeBaseCommand):
         if self.type == 'ceilometer':
             additional = [
                 'Flavor',
+                'Total usage',
                 'Instances (avg)',
                 'Hour price',
                 'Cost',
@@ -94,7 +95,8 @@ class Command(ScroogeBaseCommand):
         elif self.type == 'simple_usage':
             additional = [
                 'Resource',
-                'Usage (total)',
+                'Total usage',
+                'Avg usage per day',
                 'Unit price',
                 'Cost',
             ]
@@ -172,11 +174,19 @@ class Command(ScroogeBaseCommand):
                 end,
                 forecast
             )
-            avg_day_usage = cost[-2]
+            total_usage = cost[-2]
             if self.type == 'ceilometer':
                 # get average instances in one day
-                avg_day_usage = math.ceil(avg_day_usage / (24.0 * days))
-            tmp.extend([usage_type.name, avg_day_usage, prices, cost[-1]])
+                avg_day_usage = math.ceil(total_usage / (24.0 * days))
+            else:
+                avg_day_usage = math.ceil(total_usage / float(days))
+            tmp.extend([
+                usage_type.name,
+                total_usage,
+                avg_day_usage,
+                prices,
+                cost[-1],
+            ])
             result.append(tmp)
         return result
 
@@ -218,8 +228,10 @@ class Command(ScroogeBaseCommand):
             u = list(usage)
             # get average instances in one day
             if self.type == 'ceilometer':
-                u[-1] = math.ceil(u[-1] / (24.0 * days))
-            result.append(u + ['-'] * 2)
+                avg_day_usage = math.ceil(u[-1] / (24.0 * days))
+            else:
+                avg_day_usage = math.ceil(u[-1] / float(days))
+            result.append(u + [avg_day_usage] + ['-'] * 2)
         return result
 
     def get_data(self, start, end, forecast, plugins, *args, **options):
