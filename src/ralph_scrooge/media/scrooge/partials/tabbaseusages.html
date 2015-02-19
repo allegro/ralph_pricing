@@ -1,8 +1,11 @@
-<table class="table">
+<table class="tab-base-usage-admin table">
     <tr>
-      <td></td>
-      <td></td>
-      <td></td>
+      <th>Base Usage Name</th>
+      <th>Warehouse</th>
+      <th>Cost</th>
+      <th></th>
+      <th>Forecast cost</th>
+      <th></th>
     </tr>
     <tr ng-repeat="row in stats.allocationadmin.baseusages.rows">
       <td>
@@ -11,11 +14,28 @@
       <td>
         {{row.warehouse.name || "---"}}
       </td>
-      <td>
+      <td class="base-usage-row">
         <input ng-model="row.cost" type="text" class="form-control">
       </td>
+      <td><div>PLN</div></td>
+      <td class="base-usage-row">
+        <input ng-model="row.forecast_cost" type="text" class="form-control">
+      </td>
+      <td><div>PLN</div></td>
+    </tr>
+   <tr class="additional-row-header">
+      <td></td>
+      <td></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.allocationadmin.baseusages.rows, 'cost') | number:2}}
+      </td>
+      <td><div>PLN</div></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.allocationadmin.baseusages.rows, 'forecast_cost') | number:2}}
+      </td>
+      <td><div>PLN</div></td>
     </tr>
 </table>
-<div>
-  <button ng-click="stats.saveAllocation('baseusages')">Save</button>
+<div class="tab-save-button">
+  <button class="btn btn-success" ng-click="stats.saveAllocation('baseusages')">Save</button>
 </div>

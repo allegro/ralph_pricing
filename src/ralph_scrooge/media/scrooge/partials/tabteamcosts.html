@@ -3,7 +3,9 @@
     <tr>
       <th>Team name</th>
       <th>Cost</th>
+      <th></th>
       <th>Forecast cost</th>
+      <th></th>
       <th>Members</th>
     </tr>
   </thead>
@@ -13,15 +15,31 @@
       <td class="action-col">
         <input ng-model="row.cost" type="text" class="form-control">
       </td>
+      <td><div>PLN</div></td>
       <td>
         <input ng-model="row.forecast_cost" type="text" class="form-control">
       </td>
+      <td><div>PLN</div></td>
       <td class="action-col">
         <input ng-model="row.members" type="text" class="form-control">
       </td>
     </tr>
+    <tr class="additional-row-header">
+      <td></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.currentTabs.teamcosts.rows, 'cost') | number:2}}
+      </td>
+      <td><div>PLN</div></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.currentTabs.teamcosts.rows, 'forecast_cost') | number:2}}
+      </td>
+      <td><div>PLN</div></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.currentTabs.teamcosts.rows, 'members') | number:0}}
+      </td>
+    </tr>
   </tbody>
 </table>
-<div>
-  <button ng-click="stats.saveAllocation('teamcosts')">Save</button>
+<div class="tab-save-button">
+  <button class="btn btn-success" ng-click="stats.saveAllocation('teamcosts')">Save</button>
 </div>

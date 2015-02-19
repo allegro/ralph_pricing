@@ -44,6 +44,14 @@ class NoExtraCostTypeError(Exception):
     pass
 
 
+class NoExtraCostError(Exception):
+    pass
+
+
+class ServiceEnvironmentDoesNotExistError(Exception):
+    pass
+
+
 class AllocationAdminContent(APIView):
     def _get_extra_costs(self, start, end):
         rows = []
@@ -53,13 +61,13 @@ class AllocationAdminContent(APIView):
                 extra_cost_type=extra_cost_type,
                 start=start,
                 end=end,
-            ):
+            ).select_related('service_environment'):
                 extra_costs.append({
                     'id': extra_cost.id,
-                    'cost': extra_cost.cost,
-                    'forecast_cost': extra_cost.forecast_cost,
-                    'service': extra_cost.service_environment.service.id,
-                    'env': extra_cost.service_environment.environment.id
+                    'cost': round(extra_cost.cost, 2),
+                    'forecast_cost': round(extra_cost.forecast_cost, 2),
+                    'service': extra_cost.service_environment.service_id,
+                    'env': extra_cost.service_environment.environment_id
                 })
             if len(extra_costs) == 0:
                 extra_costs = [{}]
@@ -88,8 +96,8 @@ class AllocationAdminContent(APIView):
                     'id': dynamic_extra_cost_type.id,
                     'name': dynamic_extra_cost_type.name,
                 },
-                'cost': cost,
-                'forecast_cost': forecast_cost,
+                'cost': round(cost, 2),
+                'forecast_cost': round(forecast_cost, 2)
             })
         return rows
 
@@ -109,8 +117,8 @@ class AllocationAdminContent(APIView):
                     'id': team.id,
                     'name': team.name,
                 },
-                'cost': cost,
-                'forecast_cost': forecast_cost,
+                'cost': round(cost, 2),
+                'forecast_cost': round(forecast_cost, 2),
                 'members': members,
             })
         return rows
@@ -126,37 +134,39 @@ class AllocationAdminContent(APIView):
         ):
             if not usage_type.by_warehouse:
                 try:
-                    cost = UsagePrice.objects.get(
+                    cost, forecast_cost = UsagePrice.objects.filter(
                         type=usage_type,
                         start=start,
                         end=end,
-                    ).cost
-                except UsagePrice.DoesNotExist:
-                    cost = D(0)
+                    ).values_list('cost', 'forecast_cost')[0]
+                except IndexError:
+                    cost, forecast_cost = D(0), D(0)
                 rows.append({
                     'type': {
                         'id': usage_type.id,
                         'name': usage_type.name,
                     },
-                    'cost': cost,
+                    'cost': round(cost, 2),
+                    'forecast_cost': round(forecast_cost, 2)
                 })
             else:
                 for warehouse in warehouses:
                     try:
-                        cost = UsagePrice.objects.get(
+                        cost, forecast_cost = UsagePrice.objects.filter(
                             type=usage_type,
                             start=start,
                             end=end,
                             warehouse=warehouse,
-                        ).cost
-                    except UsagePrice.DoesNotExist:
-                        cost = D(0)
+                        ).values_list('cost', 'forecast_cost')[0]
+                    except IndexError:
+                        cost, forecast_cost = D(0), D(0)
                     rows.append({
                         'type': {
                             'id': usage_type.id,
                             'name': usage_type.name,
                         },
-                        'cost': cost,
+                        'cost': round(cost, 2),
+                        'forecast_cost': round(forecast_cost, 2),
                         'warehouse': {
                             'id': warehouse.id,
                             'name': warehouse.name,
@@ -216,7 +226,8 @@ class AllocationAdminContent(APIView):
                 )})
 
             usage_price = UsagePrice.objects.get_or_create(**params)[0]
-            usage_price.cost = row['cost']
+            usage_price.cost = row.get('cost', 0)
+            usage_price.forecast_cost = row.get('forecast_cost', 0)
             usage_price.save()
 
     def _save_extra_costs(self, start, end, post_data):
@@ -232,26 +243,47 @@ class AllocationAdminContent(APIView):
                     )
                 )
             for ec_row in row['extra_costs']:
-                try:
-                    service_environment = ServiceEnvironment.objects.get(
-                        service__id=ec_row['service'],
-                        environment__id=ec_row['env']
-                    )
-                except ServiceEnvironment.DoesNotExist:
-                    raise ServiceEnvironmentDoesNotExist(
-                        'No service environment with service id {0}'
-                        ' and environment id {1}'.format(
-                            ec_row['service'],
-                            ec_row['env']
+                if ('service' in ec_row and
+                        'env' in ec_row and
+                        ec_row['service'] and
+                        ec_row['env']):
+                    try:
+                        service_environment = ServiceEnvironment.objects.get(
+                            service_id=ec_row['service'],
+                            environment_id=ec_row['env']
                         )
-                    )
-                extra_cost = ExtraCost.objects.get_or_create(
-                    extra_cost_type=extra_cost_type,
-                    service_environment=service_environment,
-                )[0]
-                extra_cost.cost = ec_row['cost']
-                extra_cost.forecast_cost = ec_row['forecast_cost']
-                extra_cost.save()
+                    except ServiceEnvironment.DoesNotExist:
+                        raise ServiceEnvironmentDoesNotExistError(
+                            'No service environment with service id {0}'
+                            ' and environment id {1}'.format(
+                                ec_row['service'],
+                                ec_row['env']
+                            )
+                        )
+                    if 'id' in ec_row:
+                        try:
+                            extra_cost = ExtraCost.objects.get(
+                                id=ec_row['id']
+                            )
+                        except ExtraCost.DoesNotExist:
+                            raise NoExtraCostError(
+                                'Extra cost with id {0}'
+                                ' does not exist'.format(
+                                    ec_row['id']
+                                )
+                            )
+                        extra_cost.cost = ec_row['cost']
+                        extra_cost.forecast_cost = ec_row['forecast_cost']
+                        extra_cost.save()
+                    else:
+                        extra_cost = ExtraCost.objects.create(
+                            extra_cost_type=extra_cost_type,
+                            service_environment=service_environment,
+                            start=start,
+                            end=end,
+                            cost=ec_row['cost'],
+                            forecast_cost=ec_row['forecast_cost']
+                        )
 
     def _save_dynamic_extra_costs(self, start, end, post_data):
         for row in post_data['rows']:
@@ -265,7 +297,7 @@ class AllocationAdminContent(APIView):
                         row['dynamic_extra_cost_type']['id']
                     )
                 )
-            dynami_extra_cost = DynamicExtraCost.objects.get_or_create(
+            dynamic_extra_cost = DynamicExtraCost.objects.get_or_create(
                 dynamic_extra_cost_type=dynamic_extra_cost_type,
                 start=start,
                 end=end,
@@ -274,9 +306,9 @@ class AllocationAdminContent(APIView):
                     forecast_cost=row['forecast_cost']
                 )
             )[0]
-            dynami_extra_cost.cost = row['cost']
-            dynami_extra_cost.forecast_cost = row['forecast_cost']
-            dynami_extra_cost.save()
+            dynamic_extra_cost.cost = row['cost']
+            dynamic_extra_cost.forecast_cost = row['forecast_cost']
+            dynamic_extra_cost.save()
 
     def _save_team_costs(self, start, end, post_data):
         for row in post_data['rows']:

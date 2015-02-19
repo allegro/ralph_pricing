@@ -44,6 +44,10 @@ app.config(['$routeProvider', '$httpProvider',
                 templateUrl: '/static/scrooge/partials/allocationclient.html',
                 controller: 'allocationClientCtrl',
             })
+            .when('/allocation/client/:tab', {
+                templateUrl: '/static/scrooge/partials/allocationclient.html',
+                controller: 'allocationClientCtrl',
+            })
             .when('/allocation/admin/', {
                 templateUrl: '/static/scrooge/partials/allocationadmin.html',
                 controller: 'allocationAdminCtrl',
@@ -66,4 +70,9 @@ app.run(function($http, $cookies) {
     // $http.get('/api/current_user/').success(function (data) {
     //     $rootScope.$broadcast('event:user-loggedIn', data);
     // });
+});
+
+app.constant('REST_URLS', {
+    'ALLOCATION_ADMIN': '/scrooge/rest/allocationadmin',
+    'ALLOCATION_CLIENT': '/scrooge/rest/allocationclient',
 });

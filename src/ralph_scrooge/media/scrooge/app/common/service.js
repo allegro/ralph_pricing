@@ -52,7 +52,7 @@ var allocationHelper = {
     }
 };
 
-scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', function ($http, $q, $routeParams, $location) {
+scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS', function ($http, $q, $routeParams, $location, REST_URLS) {
     return {
         staticUri: '/static/scrooge/partials/',
         cancelerDeferers: [],
@@ -279,20 +279,30 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', function (
          * send POST (save) request with data.
          */
         saveAllocation: function (tab) {
-            var urlClientChunks = ['/scrooge/rest/allocationclient'],
-                urlAdminChunks = ['/scrooge/rest/allocationadmin'],
+            var urlClientChunks = [REST_URLS.ALLOCATION_CLIENT],
+                urlAdminChunks = [REST_URLS.ALLOCATION_ADMIN],
                 data = {},
                 error = false,
                 urlChunks = false;
             // Validators with valid method. Should be move to separated service?
-            var valid_service = function (row) {
-                if (typeof(row.env) === 'undefined') {
+            var valid_env = function (row) {
+                var badEnv = false;
+                if (row.env === false || typeof(row.env) === 'undefined') {
+                    badEnv = true;
+                }
+                var exist = false;
+                self.getEnvs(row.service).forEach(function (env) {
+                    if (env.id === row.env) {
+                        exist = true;
+                    }
+                });
+                if (badEnv || !exist) {
                     error = true;
                     row.errors['env'] = 'Please choose environment.';
                 }
             };
-            var valid_env = function (row) {
-                if (row.service === false) {
+            var valid_service = function (row) {
+                if (row.service === false || typeof(row.service) === 'undefined') {
                     error = true;
                     row.errors['service'] = 'Please choose service.';
                 }
@@ -361,6 +371,11 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', function (
                     urlAdminChunks.push('extracosts/save/');
                     urlChunks = urlAdminChunks;
                     data = {'rows': self.currentTabs.extracosts.rows};
+                    data.rows.forEach(function (row) {
+                        if (Object.keys(row.extra_costs[0]).length > 1) {
+                            valid(row.extra_costs, [valid_service, valid_env]);
+                        }
+                    });
                     break;
                 case 'teamcosts':
                     urlAdminChunks.push(self.menuStats['year']['current']);
@@ -408,7 +423,8 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', function (
          * Return url for html template for current tab.
          */
         getCurrentTab: function() {
-            if (Object.keys(self.currentTabs).length > 0) {
+            if (Object.keys(self.currentTabs).length > 0 &&
+                self.currentTab in self.currentTabs) {
                 return self.staticUri + self.currentTabs[self.currentTab].template;
             }
         }
