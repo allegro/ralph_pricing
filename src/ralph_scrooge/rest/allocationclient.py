@@ -33,7 +33,7 @@ from ralph_scrooge.models import (
 )
 
 
-class CannotDetermineValidServiceUsageTypeException(APIException):
+class CannotDetermineValidServiceUsageTypeError(APIException):
     status_code = 400
     default_detail = 'Cannot determine valid (single!) service usage type'
 
@@ -91,7 +91,7 @@ class AllocationClientService(APIView):
                 end=dates[1]
             )
         except ServiceUsageTypes.MultipleObjectsReturned:
-            raise CannotDetermineValidServiceUsageTypeException()
+            raise CannotDetermineValidServiceUsageTypeError()
 
         return service_usage_type
 
@@ -172,17 +172,7 @@ class AllocationClientService(APIView):
 
     def get(self, request, year, month, service, env, *args, **kwargs):
         first_day, last_day, days_in_month = get_dates(year, month)
-        return Response({
-            "serviceDivision": {
-                "name": "Service Devision",
-                "template": "tabservicedivision.html",
-                "rows": self._get_service_divison(
-                    service,
-                    year,
-                    month,
-                    first_day,
-                ),
-            },
+        response = {
             "serviceExtraCost": {
                 "name": "Extra Cost",
                 "template": "tabextracosts.html",
@@ -193,7 +183,24 @@ class AllocationClientService(APIView):
                     last_day,
                 ),
             },
-        })
+        }
+        try:
+            response.update({
+                "serviceDivision": {
+                    "name": "Service Devision",
+                    "template": "tabservicedivision.html",
+                    "rows": self._get_service_divison(
+                        service,
+                        year,
+                        month,
+                        first_day,
+                    ),
+                }
+            })
+        except CannotDetermineValidServiceUsageTypeError:
+            pass
+
+        return Response(response)
 
     @commit_on_success()
     def post(self, request, year, month, service, env, *args, **kwargs):

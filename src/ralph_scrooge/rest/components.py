@@ -91,13 +91,17 @@ def _get_headers(model, fields, prefix=''):
     """
     ui_schema = []
     for field_path in fields:
-        if prefix:
-            field_path = '.'.join((prefix, field_path))
-        field = _get_field(model, field_path)
-        if field:
-            ui_schema.append(field.verbose_name.title())
+        # if field_path is list or tuple, then second element is column header
+        if isinstance(field_path, (tuple, list)):
+            ui_schema.append(field_path[1])
         else:
-            ui_schema.append(field_path)
+            if prefix:
+                field_path = '.'.join((prefix, field_path))
+            field = _get_field(model, field_path)
+            if field:
+                ui_schema.append(field.verbose_name.title())
+            else:
+                ui_schema.append(field_path)
     return dict(map(lambda x: (str(x[0]), x[1]), enumerate(ui_schema)))
 
 
@@ -121,13 +125,14 @@ def process_single_type(single_type, daily_pricing_objects):
     headers = _get_headers(
         model,
         schema['fields'],
-        prefix='pricing_object',
     )
     # replace . with __ to get fields values from Django ORM
-    django_fields = ['__'.join((
-        'pricing_object',
-        f.replace('.', '__')
-    )) for f in schema['fields']]
+    django_fields = []
+    for field in schema['fields']:
+        # if field is list/tuple, first element is path, second is header
+        if isinstance(field, (tuple, list)):
+            field = field[0]
+        django_fields.append(field.replace('.', '__'))
 
     for dpo in daily_pricing_objects.filter(
         pricing_object__type=single_type,

@@ -45,27 +45,41 @@ UNKNOWN_SERVICES_ENVIRONMENTS = {
 ADDITIONAL_PRICING_OBJECT_TYPES = {}
 
 SAVE_ONLY_FIRST_DEPTH_COSTS = True
+DAILY_COST_CREATE_BATCH_SIZE = 10000
 
 TESTING = 'test' in sys.argv
 
 COMPONENTS_TABLE_SCHEMA = {
     'Asset': {
-        'fields': ['id', 'name', 'assetinfo.sn', 'assetinfo.barcode'],
+        'fields': [
+            'pricing_object.id',
+            'pricing_object.name',
+            'pricing_object.assetinfo.sn',
+            'pricing_object.assetinfo.barcode'
+        ],
         'model': 'ralph_scrooge.models.DailyAssetInfo',
     },
     'Virtual': {
-        'fields': ['id', 'name', 'virtualinfo.device_id'],
+        'fields': [
+            'pricing_object.id',
+            'pricing_object.name',
+            'pricing_object.model.name',
+            ('dailyvirtualinfo.hypervisor.pricing_object.name', 'Hypervisor'),
+        ],
         'model': 'ralph_scrooge.models.DailyVirtualInfo',
     },
     'IP Address': {
-        'fields': ['id', 'name'],
+        'fields': [
+            'pricing_object.id',
+            'pricing_object.name'
+        ],
     },
     'OpenStack Tenant': {
         'fields': [
-            'id',
-            'name',
-            'tenantinfo.tenant_id',
-            'tenantinfo.device_id',
+            'pricing_object.id',
+            'pricing_object.name',
+            'pricing_object.tenantinfo.tenant_id',
+            'pricing_object.model.name',
         ],
         'model': 'ralph_scrooge.models.DailyTenantInfo',
     }
