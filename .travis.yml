@@ -28,11 +28,20 @@ install:
 before_install:
   - pip install flake8 --use-mirrors
   - make flake
+  - npm install
+  - grunt jshint
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;'
   # - psql -c 'create database ralph_test;' -U postgres
+
 # command to run tests, e.g. python setup.py test
 script:
-  make test-with-coveralls
+  - bower install
+  - grunt copy
+  - grunt karma
+  - make test-with-coveralls
 after_success:
   coveralls

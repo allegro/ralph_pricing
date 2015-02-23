@@ -3,15 +3,15 @@ recursive-include doc *.py *.rst *.txt *.html *.css *.js *.png *.git *.jpg *.con
 recursive-include src/ralph_scrooge/templates *
 recursive-include src/ralph_scrooge/tests *
 recursive-include src/ralph_scrooge/fixtures *
-recursive-include src/ralph_scrooge/media/scrooge/css *
-recursive-include src/ralph_scrooge/media/scrooge/js *
-recursive-include src/ralph_scrooge/media/scrooge/js/angular *
-recursive-include src/ralph_scrooge/media/scrooge/js/bootstrap *
-recursive-include src/ralph_scrooge/media/scrooge/fonts *
-recursive-include src/ralph_scrooge/media/scrooge/app *
-recursive-include src/ralph_scrooge/media/scrooge/app/controllers *
-recursive-include src/ralph_scrooge/media/scrooge/app/directives *
-recursive-include src/ralph_scrooge/media/scrooge/app/services *
-recursive-include src/ralph_scrooge/media/scrooge/img *
-recursive-include src/ralph_scrooge/media/scrooge/partials *
+recursive-include src/ralph_scrooge/static/scrooge/css *
+recursive-include src/ralph_scrooge/static/scrooge/js *
+recursive-include src/ralph_scrooge/static/scrooge/js/angular *
+recursive-include src/ralph_scrooge/static/scrooge/js/bootstrap *
+recursive-include src/ralph_scrooge/static/scrooge/fonts *
+recursive-include src/ralph_scrooge/static/scrooge/app *
+recursive-include src/ralph_scrooge/static/scrooge/app/controllers *
+recursive-include src/ralph_scrooge/static/scrooge/app/directives *
+recursive-include src/ralph_scrooge/static/scrooge/app/services *
+recursive-include src/ralph_scrooge/static/scrooge/img *
+recursive-include src/ralph_scrooge/static/scrooge/partials *
 prune doc/_build

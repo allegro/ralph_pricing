@@ -33,7 +33,18 @@ nosetests.xml
 .project
 .pydevproject
 
-
 # Documentation
 /doc/_build/
 
+# Static
+/src/ralph_scrooge/static/vendor/*
+/src/ralph_scrooge/static/scrooge/fonts/*
+
+# Grunt
+/node_modules/*
+
+# npm
+npm-debug.log
+
+# Bower
+/bower_components/*
