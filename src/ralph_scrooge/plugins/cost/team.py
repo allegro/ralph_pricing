@@ -79,7 +79,8 @@ PERCENT_PRECISION = 4
 
 @register(chain='scrooge_costs')
 class TeamPlugin(BaseCostPlugin):
-    def costs(self, team, **kwargs):
+    @memoize(skip_first=True)
+    def _costs(self, team, **kwargs):
         """
         Calculates teams costs.
         """
@@ -164,7 +165,7 @@ class TeamPlugin(BaseCostPlugin):
     def _get_assets_count_by_service_environment(
         self,
         date,
-        service_environments
+        excluded_service_environments,
     ):
         """
         Returns (total) assets count per service_environment between start and
@@ -175,8 +176,11 @@ class TeamPlugin(BaseCostPlugin):
         """
         assets_query = DailyPricingObject.objects.filter(
             date=date,
-            service_environment__in=service_environments,
             pricing_object__type=PRICING_OBJECT_TYPES.ASSET,
+        ).exclude(
+            service_environment__isnull=True
+        ).exclude(
+            service_environment__in=excluded_service_environments,
         )
         count = assets_query.values('service_environment').annotate(
             count=Count('id')
@@ -220,7 +224,7 @@ class TeamPlugin(BaseCostPlugin):
     def _get_cores_count_by_service_environment(
         self,
         date,
-        service_environments
+        excluded_service_environments,
     ):
         """
         Returns (total) cores count per service_environment between start and
@@ -232,7 +236,10 @@ class TeamPlugin(BaseCostPlugin):
         cores_query = DailyUsage.objects.filter(
             type=self._get_cores_usage_type(),
             date=date,
-            service_environment__in=service_environments
+        ).exclude(
+            service_environment__isnull=True
+        ).exclude(
+            service_environment__in=excluded_service_environments,
         )
         count = cores_query.values('service_environment').annotate(
             count=Sum('value')
@@ -282,20 +289,10 @@ class TeamPlugin(BaseCostPlugin):
 
         return team_cost_days, daily_cost, team_cost
 
-    def _exclude_service_environments(self, team, service_environments):
-        if team.excluded_services.count():
-            service_environments = list(set(service_environments) - set(
-                ServiceEnvironment.objects.filter(
-                    service__in=team.excluded_services.all()
-                )
-            ))
-        return service_environments
-
     def _get_team_time_cost_per_service_environment(
         self,
         team,
         date,
-        service_environments,
         forecast=False,
         daily_cost=None,
         **kwargs
@@ -319,8 +316,6 @@ class TeamPlugin(BaseCostPlugin):
         """
 
         result = defaultdict(list)
-        service_environments_ids = set([v.id for v in service_environments])
-
         team_cost_days, daily_cost, team_cost = self._get_team_daily_cost(
             team,
             date,
@@ -333,12 +328,11 @@ class TeamPlugin(BaseCostPlugin):
             'percent',
         ))
         for service_environment, percent in percentage.items():
-            if service_environment in service_environments_ids:
-                result[service_environment].append({
-                    'cost': D(daily_cost) * D(percent) / 100,
-                    'type': team,
-                    'percent': D(percent) / 100,
-                })
+            result[service_environment].append({
+                'cost': D(daily_cost) * D(percent) / 100,
+                'type': team,
+                'percent': D(percent) / 100,
+            })
 
         return result
 
@@ -346,7 +340,6 @@ class TeamPlugin(BaseCostPlugin):
         self,
         team,
         date,
-        service_environments,
         forecast=False,
         daily_cost=None,
         funcs=None,
@@ -376,13 +369,8 @@ class TeamPlugin(BaseCostPlugin):
         * if there is more than one funcs (resources), that total cost is
             distributed in equal parts to all resources (1/n)
         """
-
         result = defaultdict(list)
         funcs = funcs or []
-        service_environments = self._exclude_service_environments(
-            team,
-            service_environments
-        )
         excluded_service_environments = ServiceEnvironment.objects.filter(
             service__in=team.excluded_services.all(),
         )
@@ -397,7 +385,7 @@ class TeamPlugin(BaseCostPlugin):
         for count_func, total_count_func in funcs:
             count_per_service_environment = count_func(
                 date,
-                service_environments=service_environments,
+                excluded_service_environments=excluded_service_environments,
             )
             total = total_count_func(
                 date,
@@ -469,7 +457,6 @@ class TeamPlugin(BaseCostPlugin):
         self,
         team,
         date,
-        service_environments,
         forecast=False,
         **kwargs
     ):
@@ -513,10 +500,9 @@ class TeamPlugin(BaseCostPlugin):
         for team_id, members_count in teams_members.items():
             dependent_team = teams_by_id[team_id]
             daily_team_cost = float(daily_cost) * members_count / total_members
-            for sei in self._get_team_cost_per_service_environment(
+            for sei in self._costs(
                 team=dependent_team,
                 date=date,
-                service_environments=service_environments,
                 daily_cost=daily_team_cost,
                 forecast=forecast,
             ).items():
@@ -538,7 +524,6 @@ class TeamPlugin(BaseCostPlugin):
         self,
         team,
         date,
-        service_environments,
         forecast=False,
         **kwargs
     ):
@@ -567,10 +552,9 @@ class TeamPlugin(BaseCostPlugin):
         total_percent = len(teams)
 
         for dependent_team in teams:
-            seis = self._get_team_cost_per_service_environment(
+            seis = self._costs(
                 team=dependent_team,
                 date=date,
-                service_environments=service_environments,
                 forecast=forecast,
             )
             for sei in seis.items():

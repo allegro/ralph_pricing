@@ -30,7 +30,6 @@ class UsageTypeBasePlugin(BaseCostPlugin):
         usage_type,
         forecast=False,
         warehouse=None,
-        service_environments=None,
         excluded_services=None,
         excluded_services_environments=None,
     ):
@@ -77,7 +76,6 @@ class UsageTypeBasePlugin(BaseCostPlugin):
         usage_type,
         date,
         forecast,
-        service_environments,
     ):
         """
         Returns information about usage (of usage type) count and cost
@@ -101,7 +99,6 @@ class UsageTypeBasePlugin(BaseCostPlugin):
             usages = self._get_usages_per_pricing_object(
                 date=date,
                 usage_type=usage_type,
-                service_environments=service_environments,
                 warehouse=warehouse,
                 excluded_services_environments=excluded_services_envs,
             )
@@ -121,10 +118,10 @@ class UsageTypeBasePlugin(BaseCostPlugin):
 
         return result
 
-    def costs(
+    @memoize(skip_first=True)
+    def _costs(
         self,
         date,
-        service_environments,
         usage_type,
         forecast=False,
         **kwargs
@@ -162,7 +159,6 @@ class UsageTypeBasePlugin(BaseCostPlugin):
         ))
         return self._get_costs_per_warehouse(
             date=date,
-            service_environments=service_environments,
             usage_type=usage_type,
             forecast=forecast,
         )

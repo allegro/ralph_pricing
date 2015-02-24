@@ -78,7 +78,8 @@ class TestCollector(TestCase):
             self.end,
             True,
             False,
-            a=1
+            a=1,
+            service_environments=self.service_environments,
         ):
             pass
         calls = []
