@@ -10,7 +10,6 @@ from dateutil import rrule
 
 from django.conf import settings
 from django.db import connection
-from django.db import transaction
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
@@ -112,6 +111,10 @@ class Collector(object):
                 yield day, False
 
     def _get_dates(self, start, end, forecast, force_recalculation):
+        """
+        Return dates between start and end for which costs were not previously
+        calculated.
+        """
         days = [d.date() for d in rrule.rrule(
             rrule.DAILY,
             dtstart=start,
@@ -157,17 +160,36 @@ class Collector(object):
             forecast,
             plugins,
         )
+        logger.info('Costs calculated for date {}'.format(date))
+        return costs
+
+    def save_costs(self, date, forecast, costs):
+        """
+        Save costs for single date.
+
+        :param costs: costs processed by collector and and plugins
+        """
+        # create daily costs instances
         daily_costs = self._create_daily_costs(date, costs, forecast)
-        with transaction.commit_on_success():
-            self._delete_daily_costs(date, forecast)
-            self._save_costs(date, daily_costs, forecast)
+        self._delete_daily_costs(date, forecast)
+        self._save_costs(daily_costs)
+        self._update_status(date, forecast)
         logger.info('Costs saved for date {}'.format(date))
+
+    def save_period_costs(self, start, end, forecast, costs):
+        """
+        Save costs for period of time.
+
+        :param costs: list of DailyCost instances
+        """
+        self._delete_daily_period_costs(start, end, forecast)
+        self._save_costs(costs)
+        self._update_status_period(start, end, forecast)
+        logger.info('Costs saved for dates {}-{}'.format(start, end))
 
     def _delete_daily_costs(self, date, forecast):
         """
-        Check if there are any verfifed daily costs for given date.
-        If no, delete previously saved costs for given date.
-        If yes,
+        Delete previously saved costs for single date (including forecast flag)
         """
         logger.info('Deleting previously saved costs')
         cursor = connection.cursor()
@@ -178,7 +200,31 @@ class Collector(object):
             [date, forecast]
         )
 
+    def _delete_daily_period_costs(self, start, end, forecast):
+        """
+        Delete previously saved costs between start and end (including forecast
+        flag).
+        """
+        logger.info('Deleting previously saved costs between {} and {}'.format(
+            start,
+            end,
+        ))
+        cursor = connection.cursor()
+        cursor.execute("""
+            DELETE FROM {}
+            WHERE date>=%s and date<=%s and forecast=%s
+            """.format(
+                DailyCost._meta.db_table,
+            ),
+            [start, end, forecast]
+        )
+
     def _verify_accepted_costs(self, date, forecast, delete_verified):
+        """
+        Verify if costs were already accepted for passed day. If yes and
+        recalculation isn't forces VerifiedDailyCostsExistsError exception is
+        raised.
+        """
         if not delete_verified and CostDateStatus.objects.filter(
             date=date,
             **{'forecast_accepted' if forecast else 'accepted': True}
@@ -190,7 +236,7 @@ class Collector(object):
         For every service environment in costs create DailyCost instance to
         save it in database.
         """
-        logger.info('Creating daily costs instances')
+        logger.info('Creating daily costs instances for {}'.format(date))
         daily_costs = []
         for service_environment, se_costs in costs.iteritems():
             # use _build_tree directly, to collect DailyCosts for all services
@@ -203,16 +249,23 @@ class Collector(object):
             ))
         return daily_costs
 
-    def _save_costs(self, date, daily_costs, forecast):
+    def _save_costs(self, daily_costs):
         """
-        Save daily_costs in database and update status of date costs to
-        calculated.
+        Save daily_costs in database.
+
+        :param daily_costs: list instances of DailyCost
         """
         logger.info('Saving {} costs'.format(len(daily_costs)))
         DailyCost.objects.bulk_create(
             daily_costs,
             batch_size=settings.DAILY_COST_CREATE_BATCH_SIZE,
         )
+
+    def _update_status(self, date, forecast):
+        """
+        Update status for given date that costs were caculated (including
+        forecast flag).
+        """
         # update status to created
         status, created = CostDateStatus.concurrent_get_or_create(date=date)
         if forecast:
@@ -220,7 +273,14 @@ class Collector(object):
         else:
             status.calculated = True
         status.save()
-        logger.info('Costs saved')
+
+    def _update_status_period(self, start, end, forecast):
+        """
+        Update status between start and end that costs were caculated
+        (including forecast flag).
+        """
+        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            self._update_status(day, forecast)
 
     def _collect_costs(
         self,
