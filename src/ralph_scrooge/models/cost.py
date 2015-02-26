@@ -22,6 +22,12 @@ class DailyCostManager(db.Manager):
 
 
 class DailyCost(MultiPathNode):
+    """
+    Since this model use DB partitions and MySQL doesn't allow to partition
+    table with foreign keys, all foreign keys are ForeignKey django fields to
+    allow to use all Django foreign key features (ex. filtering by __), but
+    database foreign keys are removed in migration.
+    """
     _path_field = 'type_id'
     objects = DailyCostManager()
     objects_tree = db.Manager()
@@ -39,7 +45,6 @@ class DailyCost(MultiPathNode):
         blank=False,
         related_name='daily_costs',
         verbose_name=_('service environment'),
-        db_index=True,
     )
     type = db.ForeignKey(
         'BaseUsage',
@@ -47,7 +52,6 @@ class DailyCost(MultiPathNode):
         blank=False,
         related_name='daily_costs',
         verbose_name=_('type'),
-        db_index=True,
     )
     warehouse = db.ForeignKey(
         'Warehouse',
@@ -66,11 +70,9 @@ class DailyCost(MultiPathNode):
     forecast = db.BooleanField(
         verbose_name=_('forecast'),
         default=False,
-        db_index=True,
     )
     date = db.DateField(
         verbose_name=_('date'),
-        db_index=True,
     )
 
     class Meta:
