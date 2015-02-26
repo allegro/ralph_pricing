@@ -54,6 +54,7 @@ class BaseReport(WorkerJob):
             yield progress, (header, data)
         if progress < 100:
             yield 100, (header, data)
+        logger.info("Report generated")
 
     @staticmethod
     def get_data(**kwargs):

@@ -29,7 +29,7 @@ class WorkerJob(object):
     queue_name = 'default'
     cache_name = 'default'
     work_timeout = 4 * 60 * 60  # 4 hours
-    cache_timeout = 60  # 1 minute for result of work in progress
+    cache_timeout = 60 * 60  # 1 hour for result of work in progress
     cache_final_result_timeout = 60 * 10  # 10 minutes for final result
     progress_update = 5  # update cache every 5% of progress
 
