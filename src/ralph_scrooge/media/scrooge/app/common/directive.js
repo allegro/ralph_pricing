@@ -51,13 +51,15 @@ scrooge
 				$scope.date.day = endDate.getDate();
 
 				var refresh = function() {
+					startDate = $scope.startDate;
+					endDate = $scope.endDate;
 					$scope.years = getYears(startDate, endDate);
 					$scope.months = getMonths($scope.date.year);
 					$scope.days = getDays($scope.date.year, $scope.date.month);
 				};
 
-				var getYears = function(start, end) {
-					return generateListOfIntegers(start.getFullYear(), end.getFullYear());
+				var getYears = function() {
+					return generateListOfIntegers(startDate.getFullYear(), endDate.getFullYear());
 				};
 
 				var getMonths = function(year) {
@@ -111,6 +113,14 @@ scrooge
 				$scope.$watch('view', function(newValue){
 					$scope.showed = view_mapper[newValue];
 					watch_variable = watch_variable_mapper[$scope.view];
+				});
+
+				$scope.$watch('startDate', function(){
+					refresh();
+				});
+
+				$scope.$watch('endDate', function(){
+					refresh();
 				});
 
 				$scope.$watch(function() {

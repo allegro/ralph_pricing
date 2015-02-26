@@ -13,7 +13,6 @@ var app = angular.module('app', [
     'scrooge.controller.costcard',
     'scrooge.controller.allocationclient',
     'scrooge.controller.allocationadmin',
-    'scrooge.controller.costs_per_device',
     'scrooge.directive',
     'scrooge.directive.menu',
     'scrooge.service',
@@ -52,10 +51,6 @@ app.config(['$routeProvider', '$httpProvider', 'STATIC_URL',
             .when('/costcard/', {
                 templateUrl: STATIC_URL + 'scrooge/partials/costcard.html',
                 controller: 'costCardCtrl',
-            })
-            .when('/costs-per-device/', {
-                templateUrl: STATIC_URL + 'scrooge/partials/costs_per_device.html',
-                controller: 'costPerDeviceCtrl',
             })
             .otherwise({redirectTo: '/components/'});
     }

@@ -32,12 +32,6 @@ class SubMenu(APIView):
                 'calendarMenu': 'monthly',
                 'leftMenu': ['services', 'teams'],
             },
-            {
-                'name': 'Costs per device',
-                'href': '#/costs-per-device/',
-                'calendarMenu': 'monthly',
-                'leftMenu': ['services', 'teams'],
-            },
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
             # ##################################################
