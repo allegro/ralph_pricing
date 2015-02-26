@@ -16,8 +16,12 @@ class MultiPathNode(db.Model):
     _path_link = '/'
     _path_field = None
 
-    path = db.CharField(max_length=255, db_index=True)
-    depth = db.PositiveIntegerField(db_index=True, default=0)
+    path = db.CharField(
+        max_length=255,
+    )
+    depth = db.PositiveIntegerField(
+        default=0
+    )
     parent = None
 
     class Meta:
