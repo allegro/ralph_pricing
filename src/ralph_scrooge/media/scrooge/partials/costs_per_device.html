@@ -1,0 +1,32 @@
+<h2>Selected: {{ selected }}</h2>
+Only year
+<div ng-controller="menuStatsAdapterCtrl">
+	<sc-calendar
+		view="daily"
+		selected="date"
+		start-date="startDate"
+		end-date="endDate"
+	>
+	</sc-calendar>
+</div>
+<hr>
+
+Yearly with range <br>
+<sc-datepicker view="yearly" selected="selected" range></sc-datepicker>
+<hr>
+
+Monthly single <br>
+<sc-datepicker view="monthly" selected="selected"></sc-datepicker>
+<hr>
+
+Daily range <br>
+<sc-datepicker view="daily" selected="selected" range></sc-datepicker>
+<hr>
+
+Custom date format dd/yyyy/mm<br>
+<sc-datepicker view="daily" selected="selected" format="dd/mm/yyyy"></sc-datepicker>
+<hr>
+
+Autoclose<br>
+<sc-datepicker view="daily" selected="selected" autoclose></sc-datepicker>
+<hr>

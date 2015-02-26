@@ -1,0 +1,13 @@
+<div class="span5 col-md-5" ng-show="range">
+	<div class="input-daterange input-group">
+		<input type="text" class="input-sm form-control date-start" name="start" ng-model="date_range.start">
+		<span class="input-group-addon">to</span>
+		<input type="text" class="input-sm form-control date-end" name="end" ng-model="date_range.end">
+	</div>
+</div>
+
+<div class="span5 col-md-5" ng-hide="range">
+	<div class="input-group">
+		<input type="text" class="form-control input-single" ng-model="date_single">
+	</div>
+</div>

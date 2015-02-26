@@ -13,6 +13,7 @@ var app = angular.module('app', [
     'scrooge.controller.costcard',
     'scrooge.controller.allocationclient',
     'scrooge.controller.allocationadmin',
+    'scrooge.controller.costs_per_device',
     'scrooge.directive',
     'scrooge.directive.menu',
     'scrooge.service',
@@ -21,8 +22,8 @@ var app = angular.module('app', [
     'scrooge.filter.menu',
 ]);
 
-app.config(['$routeProvider', '$httpProvider',
-    function($routeProvider, $httpProvider) {
+app.config(['$routeProvider', '$httpProvider', 'STATIC_URL',
+    function($routeProvider, $httpProvider, STATIC_URL) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.interceptors.push(function ($q) {
             return {
@@ -37,20 +38,24 @@ app.config(['$routeProvider', '$httpProvider',
         });
         $routeProvider
             .when('/components/', {
-                templateUrl: '/static/scrooge/partials/components.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/components.html',
                 controller: 'componentsCtrl',
             })
             .when('/allocation/client/', {
-                templateUrl: '/static/scrooge/partials/allocationclient.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/allocationclient.html',
                 controller: 'allocationClientCtrl',
             })
             .when('/allocation/admin/', {
-                templateUrl: '/static/scrooge/partials/allocationadmin.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/allocationadmin.html',
                 controller: 'allocationAdminCtrl',
             })
             .when('/costcard/', {
-                templateUrl: '/static/scrooge/partials/costcard.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/costcard.html',
                 controller: 'costCardCtrl',
+            })
+            .when('/costs-per-device/', {
+                templateUrl: STATIC_URL + 'scrooge/partials/costs_per_device.html',
+                controller: 'costPerDeviceCtrl',
             })
             .otherwise({redirectTo: '/components/'});
     }
@@ -63,3 +68,5 @@ app.run(function($http, $cookies) {
     //     $rootScope.$broadcast('event:user-loggedIn', data);
     // });
 });
+
+app.constant('STATIC_URL', '/static/');
