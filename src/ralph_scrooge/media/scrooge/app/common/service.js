@@ -52,9 +52,9 @@ var allocationHelper = {
     }
 };
 
-scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
+scrooge.factory('stats', ['$http', '$q', 'STATIC_URL', function ($http, $q, STATIC_URL) {
     return {
-        staticUri: '/static/scrooge/partials/',
+        staticUri: STATIC_URL + 'scrooge/partials/',
         cancelerDeferers: [],
         currentSubMenu: false,
         currentTab: false,
@@ -101,7 +101,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * The next step (collect data for current subpage) will base on result of this step.
          */
         init: function() {
-            self = this;
+            var self = this;
             $http({method: 'GET', url: '/scrooge/leftmenu/components/'}).
                 success(function(data) {
                     Object.keys(data['menuStats']).forEach(function (key){
@@ -124,7 +124,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * which is defined for each subpage in the controller.
          */
         refreshData: function() {
-            self = this;
+            var self = this;
             var force = false;
             var refresh = false;
             Object.keys(self.menuStats).forEach(function (menu) {
@@ -168,6 +168,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * Collect data for components subpage.
          */
         getComponentsData: function () {
+            var self = this;
             var url_chunks = [
                 '/scrooge/components',
                 self.menuStats['service']['current'],
@@ -194,6 +195,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * Collect data for allocation client subpage.
          */
         getAllocationClientData: function () {
+            var self = this;
             $http({
                 method: 'GET',
                 url: allocationHelper.getUrl(
@@ -218,6 +220,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * Collect data for allocation admin subpage.
          */
         getAllocationAdminData: function () {
+            var self = this;
             var url_chunks = [
                 '/scrooge/rest/allocationadmin',
                 self.menuStats['year']['current'],
@@ -260,6 +263,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             });
         },
         getCostCardData: function () {
+            var self = this;
             var url_chunks = [
                 '/scrooge/rest/costcard',
                 self.menuStats['service']['current'],
@@ -283,6 +287,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * This method just clean old data and make changing subpage more smart and smooth.
          */
         clearPreviousContent: function () {
+            var self = this;
             self.components = {
                 contentStats: {}
             };
@@ -296,6 +301,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * send POST (save) request with data.
          */
         saveAllocation: function (tab) {
+            var self = this;
             var urlChunks = ['/scrooge/rest/allocationclient'], data = {}, error = false;
 
             // Validators with valid method. Should be move to separated service?
@@ -362,6 +368,7 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             }
         },
         getEnvs: function (service_id) {
+            var self = this;
             var envs = [];
             if (Object.keys(self.leftMenus).length > 0) {
                 self.leftMenus['services'].forEach(function (element) {
@@ -373,9 +380,12 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             return envs;
         },
         changeTab: function (tab) {
+            var self = this;
             self.currentTab = tab;
         },
         getFirstExistMenu: function () {
+            var self = this;
+
             for (var i in self.leftMenus) {
                 if (self.inArray(i, self.currentSubMenu.leftMenu) === true) {
                     return i;
@@ -387,6 +397,8 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * Return url for html template for current tab.
          */
         getCurrentTab: function() {
+            var self = this;
+
             if (Object.keys(self.currentTabs).length > 0) {
                 return self.staticUri + self.currentTabs[self.currentTab].template;
             }
