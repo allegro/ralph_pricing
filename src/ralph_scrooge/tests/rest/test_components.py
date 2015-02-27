@@ -9,7 +9,7 @@ import datetime
 import json
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge import models
@@ -186,19 +186,6 @@ class TestComponents(TestCase):
             self.today.year,
             self.today.month,
             self.today.day,
-        ))
-        data = json.loads(resp.content)
-        self.assertEqual(len(data[0]['value']), 2)
-
-    def test_pricing_objects_view_returns_data_from_pricing_objects(self):
-        User.objects.create_superuser('test', 'test@test.test', 'test')
-        client = APIClient()
-        client.login(username='test', password='test')
-        resp = client.get('/scrooge/rest/pricing_objects/{}/{}/{}/{}/'.format(
-            self.se1.service.id,
-            self.se1.environment.id,
-            self.today.strftime('%Y-%m-%d'),
-            self.today.strftime('%Y-%m-%d'),
         ))
         data = json.loads(resp.content)
         self.assertEqual(len(data[0]['value']), 2)

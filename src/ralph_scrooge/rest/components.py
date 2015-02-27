@@ -14,12 +14,9 @@ from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.template.defaultfilters import slugify
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ralph.util.views import jsonify
 from ralph_scrooge.models import (
     DailyPricingObject,
     PricingObjectType,
@@ -31,6 +28,8 @@ class ComponentsContent(APIView):
     A view that returns the contents for 'components' tables.
     """
 
+    default_model = 'ralph_scrooge.models.DailyPricingObject'
+
     def get_types(self):
         """
         Returns Pricing Object Types defined in COMPONENTS_TABLE_SCHEMA.
@@ -39,10 +38,9 @@ class ComponentsContent(APIView):
             name__in=settings.COMPONENTS_TABLE_SCHEMA.keys()
         )
 
-
     def get_daily_pricing_objects(
             self, year, month, day, service, env=None, **kwargs
-        ):
+    ):
         """
         Returns Daily Pricing Objects related with passed service (and
         optionally environment) for a given date.
@@ -61,12 +59,11 @@ class ComponentsContent(APIView):
             query = query.filter(service_environment__environment__id=env)
         return query
 
-
     def get_field(self, model, path):
         """
-        Returns field of model with specified path, separeted by dot. If field does
-        not exist, None is returned.
-    
+        Returns field of model with specified path, separeted by dot.
+        If field does not exist, None is returned.
+
         Example:
         >> self.get_field(
         ...    ralph_scroge.models.DailyPricingObject,
@@ -92,15 +89,15 @@ class ComponentsContent(APIView):
             if len(splited_cell) > 1:
                 field = self.get_field(field, '.'.join(splited_cell[1:]))
         return field
-    
-    
+
     def get_headers(self, model, fields, prefix=''):
         """
         Returns components table schema headers.
         """
         ui_schema = []
         for field_path in fields:
-            # if field_path is list or tuple, then second element is column header
+            # if field_path is list or tuple,
+            # then second element is column header
             if isinstance(field_path, (tuple, list)):
                 ui_schema.append(field_path[1])
             else:
@@ -112,21 +109,15 @@ class ComponentsContent(APIView):
                 else:
                     ui_schema.append(field_path)
         return dict(map(lambda x: (str(x[0]), x[1]), enumerate(ui_schema)))
-    
-    
-    def process_single_type(self, single_type, daily_pricing_objects):
+
+    def process_schema(self, schema):
         """
-        Processing of single Pricing Object Type - returns information about
-        single pricing object type component.
+        Analyzes the schema creating field list and header list
         """
-        values = []
-        # single type name must be in COMPONENTS_TABLE_SCHEMA in regular flow
-        # (function called from components_content)
-        schema = settings.COMPONENTS_TABLE_SCHEMA[single_type.name]
         # get pricing object (sub)model
         app_label, _models, model_name = schema.get(
             'model',
-            'ralph_scrooge.models.DailyPricingObject'
+            self.default_model,
         ).split('.')
         model = get_model(app_label, model_name)
         # parse headers according to 'fields' list in COMPONENTS_TABLE_SCHEMA
@@ -142,13 +133,23 @@ class ComponentsContent(APIView):
             if isinstance(field, (tuple, list)):
                 field = field[0]
             django_fields.append(field.replace('.', '__'))
-    
-        django_fields.append('daily_costs')
+        return django_fields, headers
+
+    def process_single_type(self, single_type, daily_pricing_objects):
+        """
+        Processing of single Pricing Object Type - returns information about
+        single pricing object type component.
+        """
+        values = []
+        # single type name must be in COMPONENTS_TABLE_SCHEMA in regular flow
+        # (function called from components_content)
+        django_fields, headers = self.process_schema(
+            settings.COMPONENTS_TABLE_SCHEMA[single_type.name]
+        )
         for dpo in daily_pricing_objects.filter(
             pricing_object__type=single_type,
         ).values_list(*django_fields):
             value = {str(x[0]): x[1] for x in enumerate(dpo)}
-            self.append_extra(value, dpo)
             values.append(value)
         return {
             "name": single_type.name,
@@ -158,10 +159,6 @@ class ComponentsContent(APIView):
             "schema": headers,
             "color": single_type.color,
         }
-
-    def append_extra(self, value, dpo):
-        """Appends some extra data to every row"""
-
 
     def get(self, request, *args, **kwargs):
         daily_pricing_objects = self.get_daily_pricing_objects(*args, **kwargs)

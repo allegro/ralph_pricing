@@ -23,10 +23,7 @@ from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
 from ralph_scrooge.rest import left_menu
 
-from ralph_scrooge.utils.security import (
-    service_permission,
-    scrooge_permission,
-)
+from ralph_scrooge.utils.security import scrooge_permission
 
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
