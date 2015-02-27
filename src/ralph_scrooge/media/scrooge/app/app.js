@@ -10,6 +10,7 @@ var app = angular.module('app', [
     'scrooge.controller',
     'scrooge.controller.menu',
     'scrooge.controller.component',
+    'scrooge.controller.cost',
     'scrooge.controller.costcard',
     'scrooge.controller.allocationclient',
     'scrooge.controller.allocationadmin',
@@ -39,6 +40,10 @@ app.config(['$routeProvider', '$httpProvider',
             .when('/components/', {
                 templateUrl: '/static/scrooge/partials/components.html',
                 controller: 'componentsCtrl',
+            })
+            .when('/costs/', {
+                templateUrl: '/static/scrooge/partials/costs.html',
+                controller: 'costCtrl',
             })
             .when('/allocation/client/', {
                 templateUrl: '/static/scrooge/partials/allocationclient.html',

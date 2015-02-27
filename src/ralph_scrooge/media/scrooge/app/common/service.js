@@ -77,6 +77,9 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                 'table': false,
             },
         },
+        cost: {
+            'content': []
+        },
         allocationadmin: {},
         allocationclient: {
             serviceExtraCostTypes: false,
@@ -240,6 +243,22 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
         /**
          * Collect data for cost card subpage.
          */
+         getCostData: function () {
+            var url_chunks = [
+                '/scrooge/rest/cost',
+                self.menuStats['service']['current'],
+                self.menuStats['env']['current'],
+                '01-01-0001',
+                '02-02-0002',
+            ];
+            $http({
+                method: 'GET',
+                url: url_chunks.join('/'),
+            })
+            .success(function(data) {
+                self.cost.content = data;
+            });
+        },
         getCostCardData: function () {
             var url_chunks = [
                 '/scrooge/rest/costcard',

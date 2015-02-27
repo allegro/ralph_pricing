@@ -32,6 +32,12 @@ class SubMenu(APIView):
                 'calendarMenu': ['year', 'month'],
                 'leftMenu': ['services', 'teams'],
             },
+            {
+                'name': 'Costs',
+                'href': '#/costs/',
+                'calendarMenu': ['year', 'month'],
+                'leftMenu': ['services', 'teams'],
+            },
             ####################################################
             # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
             # ##################################################
