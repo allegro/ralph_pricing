@@ -1,5 +1,5 @@
 from ralph_scrooge.rest.base import left_menu
-from ralph_scrooge.rest.components import components_content
+from ralph_scrooge.rest.components import ComponentsContent
 from ralph_scrooge.rest.allocationadmin import (
     AllocationAdminContent,
 )
@@ -15,12 +15,18 @@ from ralph_scrooge.rest.cost import (
 )
 
 
+from ralph_scrooge.rest.object_costs import (
+    ObjectCostsContent,
+)
+
+
 __all__ = [
     'AllocationAdminContent',
     'AllocationClientService',
     'AllocationClientPerTeam',
-    'components_content',
+    'ComponentsContent',
     'CostCardContent',
     'CostContent',
     'left_menu',
+    'ObjectCostsContent',
 ]
