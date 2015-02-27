@@ -21,15 +21,9 @@ from ralph_scrooge.views.monthly_costs import MonthlyCosts
 from ralph_scrooge.views.report_services_changes import ServicesChangesReportView  # noqa
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
-from ralph_scrooge.rest import (
-    components_content,
-    left_menu,
-)
+from ralph_scrooge.rest import left_menu
 
-from ralph_scrooge.utils.security import (
-    service_permission,
-    scrooge_permission,
-)
+from ralph_scrooge.utils.security import scrooge_permission
 
 v09_api = Api(api_name='v0.9')
 for r in (PricingServiceUsageResource, ):
@@ -41,10 +35,6 @@ for r in (SyncStatusViewSet, ):
 
 urlpatterns = patterns(
     '',
-    url(
-        r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/?$',  # noqa
-        service_permission(components_content),
-    ),
     url(r'^rest/', include('ralph_scrooge.rest.urls')),
     url(r'^leftmenu/(?P<menu_type>\S+)/$', login_required(left_menu)),
     url(r'^api/', include(v09_api.urls)),
