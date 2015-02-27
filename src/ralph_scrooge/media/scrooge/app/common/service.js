@@ -52,7 +52,7 @@ var allocationHelper = {
     }
 };
 
-scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
+scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS', function ($http, $q, $routeParams, $location, REST_URLS) {
     return {
         staticUri: '/static/scrooge/partials/',
         cancelerDeferers: [],
@@ -232,8 +232,10 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
                             self.allocationadmin[element].rows = [{}];
                         }
                     });
-                    self.currentTabs = self.allocationclient;
-                    self.currentTab = Object.keys(self.allocationadmin)[0];
+                    self.currentTabs = self.allocationadmin;
+                    if (typeof(self.currentTab) === 'undefined') {
+                        self.changeTab(Object.keys(self.allocationadmin)[0]);
+                    }
                 }
             });
         },
@@ -277,17 +279,30 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * send POST (save) request with data.
          */
         saveAllocation: function (tab) {
-            var urlChunks = ['/scrooge/rest/allocationclient'], data = {}, error = false;
-
+            var urlClientChunks = [REST_URLS.ALLOCATION_CLIENT],
+                urlAdminChunks = [REST_URLS.ALLOCATION_ADMIN],
+                data = {},
+                error = false,
+                urlChunks = false;
             // Validators with valid method. Should be move to separated service?
-            var valid_service = function (row) {
-                if (typeof(row.env) === 'undefined') {
+            var valid_env = function (row) {
+                var badEnv = false;
+                if (row.env === false || typeof(row.env) === 'undefined') {
+                    badEnv = true;
+                }
+                var exist = false;
+                self.getEnvs(row.service).forEach(function (env) {
+                    if (env.id === row.env) {
+                        exist = true;
+                    }
+                });
+                if (badEnv || !exist) {
                     error = true;
                     row.errors['env'] = 'Please choose environment.';
                 }
             };
-            var valid_env = function (row) {
-                if (row.service === false) {
+            var valid_service = function (row) {
+                if (row.service === false || typeof(row.service) === 'undefined') {
                     error = true;
                     row.errors['service'] = 'Please choose service.';
                 }
@@ -308,30 +323,66 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
             };
             switch(tab) {
                 case 'serviceDivision':
-                    urlChunks.push(self.menuStats['service']['current']);
-                    urlChunks.push(self.menuStats['env']['current']);
-                    urlChunks.push(self.menuStats['year']['current']);
-                    urlChunks.push(self.menuStats['month']['current']);
-                    urlChunks.push('servicedivision/save/');
+                    urlClientChunks.push(self.menuStats['service']['current']);
+                    urlClientChunks.push(self.menuStats['env']['current']);
+                    urlClientChunks.push(self.menuStats['year']['current']);
+                    urlClientChunks.push(self.menuStats['month']['current']);
+                    urlClientChunks.push('servicedivision/save/');
+                    urlChunks = urlClientChunks;
                     data = {'rows': self.currentTabs.serviceDivision.rows};
                     valid(data.rows, [valid_service, valid_env]);
                     break;
                 case 'serviceExtraCost':
-                    urlChunks.push(self.menuStats['service']['current']);
-                    urlChunks.push(self.menuStats['env']['current']);
-                    urlChunks.push(self.menuStats['year']['current']);
-                    urlChunks.push(self.menuStats['month']['current']);
-                    urlChunks.push('serviceextracost/save/');
+                    urlClientChunks.push(self.menuStats['service']['current']);
+                    urlClientChunks.push(self.menuStats['env']['current']);
+                    urlClientChunks.push(self.menuStats['year']['current']);
+                    urlClientChunks.push(self.menuStats['month']['current']);
+                    urlClientChunks.push('serviceextracost/save/');
+                    urlChunks = urlClientChunks;
                     data = {'rows': self.currentTabs.serviceExtraCost.rows};
                     valid(data.rows, [valid_value]);
                     break;
                 case 'teamDivision':
-                    urlChunks.push(self.menuStats['team']['current']);
-                    urlChunks.push(self.menuStats['year']['current']);
-                    urlChunks.push(self.menuStats['month']['current']);
-                    urlChunks.push('teamdivision/save/');
+                    urlClientChunks.push(self.menuStats['team']['current']);
+                    urlClientChunks.push(self.menuStats['year']['current']);
+                    urlClientChunks.push(self.menuStats['month']['current']);
+                    urlClientChunks.push('teamdivision/save/');
+                    urlChunks = urlClientChunks;
                     data = {'rows': self.currentTabs.teamDivision.rows};
                     valid(data.rows, [valid_service, valid_env]);
+                    break;
+                case 'baseusages':
+                    urlAdminChunks.push(self.menuStats['year']['current']);
+                    urlAdminChunks.push(self.menuStats['month']['current']);
+                    urlAdminChunks.push('baseusages/save/');
+                    urlChunks = urlAdminChunks;
+                    data = {'rows': self.currentTabs.baseusages.rows};
+                    break;
+                case 'dynamicextracosts':
+                    urlAdminChunks.push(self.menuStats['year']['current']);
+                    urlAdminChunks.push(self.menuStats['month']['current']);
+                    urlAdminChunks.push('dynamicextracosts/save/');
+                    urlChunks = urlAdminChunks;
+                    data = {'rows': self.currentTabs.dynamicextracosts.rows};
+                    break;
+                case 'extracostsadmin':
+                    urlAdminChunks.push(self.menuStats['year']['current']);
+                    urlAdminChunks.push(self.menuStats['month']['current']);
+                    urlAdminChunks.push('extracosts/save/');
+                    urlChunks = urlAdminChunks;
+                    data = {'rows': self.currentTabs.extracosts.rows};
+                    data.rows.forEach(function (row) {
+                        if (Object.keys(row.extra_costs[0]).length > 1) {
+                            valid(row.extra_costs, [valid_service, valid_env]);
+                        }
+                    });
+                    break;
+                case 'teamcosts':
+                    urlAdminChunks.push(self.menuStats['year']['current']);
+                    urlAdminChunks.push(self.menuStats['month']['current']);
+                    urlAdminChunks.push('teamcosts/save/');
+                    urlChunks = urlAdminChunks;
+                    data = {'rows': self.currentTabs.teamcosts.rows};
                     break;
             }
             if (error === false) {
@@ -355,6 +406,10 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
         },
         changeTab: function (tab) {
             self.currentTab = tab;
+            $routeParams.tab = tab;
+            var newPath = $location.path().split('/');
+            newPath[3] = tab;
+            $location.path(newPath.join('/'));
         },
         getFirstExistMenu: function () {
             for (var i in self.leftMenus) {
@@ -368,7 +423,8 @@ scrooge.factory('stats', ['$http', '$q', function ($http, $q) {
          * Return url for html template for current tab.
          */
         getCurrentTab: function() {
-            if (Object.keys(self.currentTabs).length > 0) {
+            if (Object.keys(self.currentTabs).length > 0 &&
+                self.currentTab in self.currentTabs) {
                 return self.staticUri + self.currentTabs[self.currentTab].template;
             }
         }

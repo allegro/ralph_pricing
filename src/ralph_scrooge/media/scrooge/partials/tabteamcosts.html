@@ -1,49 +1,45 @@
 <table class="table">
   <thead>
     <tr>
-      <th>Charged service</th>
-      <th>Charged environment</th>
-      <th>Division (%)</th>
+      <th>Team name</th>
+      <th>Cost</th>
       <th></th>
+      <th>Forecast cost</th>
+      <th></th>
+      <th>Members</th>
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="row in stats.currentTabs.teamDivision.rows">
-      <td ng-class="row.errors.service ? 'tab-error' : ''">
-        <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
-        </select>
-        <div>{{row.errors.service}}</div>
-      </td>
-      <td ng-class="row.errors.env ? 'tab-error' : ''">
-        <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
-        </select>
-        <div>{{row.errors.env}}</div>
-      </td>
-      <td class="value-col value-percent-col" ng-class="row.errors.value ? 'tab-error' : ''">
-        <input ng-model="row.value" type="text" class="form-control" value="{{row.value}}" id="{{row.id}}">
-        <label> %</label>
-        <div>{{row.errors.value}}</div>
-      </td>
+    <tr ng-repeat="row in stats.currentTabs.teamcosts.rows">
+      <td>{{ row.team.name }}</td>
       <td class="action-col">
-        <button ng-click="removeRow($index, stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-danger">-</button>
+        <input ng-model="row.cost" type="text" class="form-control">
+      </td>
+      <td><div>PLN</div></td>
+      <td>
+        <input ng-model="row.forecast_cost" type="text" class="form-control">
+      </td>
+      <td><div>PLN</div></td>
+      <td class="action-col">
+        <input ng-model="row.members" type="text" class="form-control">
       </td>
     </tr>
     <tr class="additional-row-header">
       <td></td>
-      <td></td>
-      <td ng-class="getTotal('teamDivision')==100 ? 'green' : 'red'" class="col-xs-1 total">
-        {{getTotal('teamDivision') | number:2}}
-        <div>%</div>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.currentTabs.teamcosts.rows, 'cost') | number:2}}
       </td>
-      <td class="col-xs-1 action-col">
-        <button ng-click="addRow(stats.currentTabs.teamDivision.rows)" type="button" class="btn btn-success">+</button>
+      <td><div>PLN</div></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.currentTabs.teamcosts.rows, 'forecast_cost') | number:2}}
       </td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td class="action-col"><button ng-click="stats.saveAllocation('teamDivision')" class="btn btn-success allocation-save">Save</button></td>
+      <td><div>PLN</div></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.currentTabs.teamcosts.rows, 'members') | number:0}}
+      </td>
     </tr>
   </tbody>
 </table>
+<div class="tab-save-button">
+  <button class="btn btn-success" ng-click="stats.saveAllocation('teamcosts')">Save</button>
+</div>

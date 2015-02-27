@@ -30,6 +30,10 @@ urlpatterns = patterns(
         scrooge_permission(AllocationAdminContent.as_view()),
     ),
     url(
+        r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/?$',  # noqa
+        scrooge_permission(AllocationAdminContent.as_view()),
+    ),
+    url(
         r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         service_permission(AllocationClientService.as_view()),
     ),

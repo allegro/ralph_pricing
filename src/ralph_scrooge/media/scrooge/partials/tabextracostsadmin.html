@@ -1,0 +1,61 @@
+<div class="tab-extra-costs-admin" ng-repeat="extra_cost_type in stats.currentTabs.extracosts.rows">
+  <h2>{{ extra_cost_type.extra_cost_type.name }}</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Charged service</th>
+        <th>Charged environment</th>
+        <th>Cost</th>
+        <th></th>
+        <th>Forecast cost</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="row in extra_cost_type.extra_costs">
+        <td ng-class="row.errors.service ? 'tab-error' : ''">
+          <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
+          </select>
+          <div>{{row.errors.service}}</div>
+        </td>
+        <td ng-class="row.errors.env ? 'tab-error' : ''">
+          <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
+          </select>
+          <div>{{row.errors.env}}</div>
+        </td>
+        <td class="value-col value-percent-col" ng-class="row.errors.value ? 'tab-error' : ''">
+          <input ng-model="row.cost" type="text" class="form-control">
+          <div>{{row.errors.cost}}</div>
+        </td>
+        <td><div>PLN</div></td>
+        <td class="value-col value-percent-col" ng-class="row.errors.value ? 'tab-error' : ''">
+          <input ng-model="row.forecast_cost" type="text" class="form-control">
+          <div>{{row.errors.forecast_cost}}</div>
+        </td>
+        <td><div>PLN</div></td>
+        <td class="action-col">
+          <button ng-click="removeRow($index, extra_cost_type.extra_costs)" type="button" class="btn btn-danger">-</button>
+        </td>
+      </tr>
+      <tr class="additional-row-header">
+        <td></td>
+        <td></td>
+        <td class="allocation-admin-total">
+          {{getTotal(extra_cost_type.extra_costs, 'cost') | number:2}}
+        </td>
+        <td><div>PLN</div></td>
+        <td class="allocation-admin-total">
+          {{getTotal(extra_cost_type.extra_costs, 'forecast_cost') | number:2}}
+        </td>
+        <td><div>PLN</div></td>
+        <td class="col-xs-1 action-col">
+          <button ng-click="addRow(extra_cost_type.extra_costs)" type="button" class="btn btn-success">+</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="tab-save-button">
+  <button class="btn btn-success" ng-click="stats.saveAllocation('extracostsadmin')">Save</button>
+</div>
