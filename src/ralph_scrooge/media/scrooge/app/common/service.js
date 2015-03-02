@@ -130,20 +130,14 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          */
         refreshData: function() {
             var self = this;
-            var force = false;
             var refresh = false;
             Object.keys(self.menuStats).forEach(function (menu) {
                 if (self.menuStats[menu]['current'] != self.menuStats[menu]['change']) {
                     refresh = true;
                     self.menuStats[menu]['current'] = self.menuStats[menu]['change'];
                 }
-                if (menu != 'service' && menu != 'env' && menu != 'team') {
-                    if (self.menuStats[menu]['change'] === null) {
-                        force = true;
-                    }
-                }
             });
-            if (force === false && refresh === true) {
+            if (refresh === true) {
                 self.clearPreviousContent();
                 self.refreshCurrentSubpage();
             }
