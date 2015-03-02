@@ -22,8 +22,8 @@ var app = angular.module('app', [
     'scrooge.filter.menu',
 ]);
 
-app.config(['$routeProvider', '$httpProvider',
-    function($routeProvider, $httpProvider) {
+app.config(['$routeProvider', '$httpProvider', 'STATIC_URL',
+    function($routeProvider, $httpProvider, STATIC_URL) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.interceptors.push(function ($q) {
             return {
@@ -38,7 +38,7 @@ app.config(['$routeProvider', '$httpProvider',
         });
         $routeProvider
             .when('/components/', {
-                templateUrl: '/static/scrooge/partials/components.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/components.html',
                 controller: 'componentsCtrl',
             })
             .when('/costs/', {
@@ -46,7 +46,7 @@ app.config(['$routeProvider', '$httpProvider',
                 controller: 'costCtrl',
             })
             .when('/allocation/client/', {
-                templateUrl: '/static/scrooge/partials/allocationclient.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/allocationclient.html',
                 controller: 'allocationClientCtrl',
             })
             .when('/allocation/client/:tab', {
@@ -54,7 +54,7 @@ app.config(['$routeProvider', '$httpProvider',
                 controller: 'allocationClientCtrl',
             })
             .when('/allocation/admin/', {
-                templateUrl: '/static/scrooge/partials/allocationadmin.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/allocationadmin.html',
                 controller: 'allocationAdminCtrl',
             })
             .when('/allocation/admin/:tab', {
@@ -62,7 +62,7 @@ app.config(['$routeProvider', '$httpProvider',
                 controller: 'allocationAdminCtrl',
             })
             .when('/costcard/', {
-                templateUrl: '/static/scrooge/partials/costcard.html',
+                templateUrl: STATIC_URL + 'scrooge/partials/costcard.html',
                 controller: 'costCardCtrl',
             })
             .otherwise({redirectTo: '/components/'});
@@ -77,6 +77,7 @@ app.run(function($http, $cookies) {
     // });
 });
 
+app.constant('STATIC_URL', '/static/');
 app.constant('REST_URLS', {
     'ALLOCATION_ADMIN': '/scrooge/rest/allocationadmin',
     'ALLOCATION_CLIENT': '/scrooge/rest/allocationclient',
