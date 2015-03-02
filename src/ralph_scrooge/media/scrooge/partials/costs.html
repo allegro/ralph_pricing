@@ -1,9 +1,21 @@
+<div class="categories">
+  <div class="category opacity-animation {{ category.slug }} {{stats.cost.contentStats.table == category.name ? 'active' : ''}}" ng-repeat="category in content">
+    <div class="wrapper" ng-click="stats.cost.contentStats.table = category.name">
+      <div class="name">{{ category.name }}</div>
+      <div class="value">{{ category.value.length }}</div>
+      <i class="fa {{ category.icon_class }}"></i>
+      <div class="link">Show</div>
+    </div>
+  </div>
+</div>
 <div class="relative-container">
-    <table id="table_cost" data-toggle="table" data="{{ stats.cost.content }}" data-pagination="true" data-search="true" data-smart-display="true" data-search-align="left" data-nested-schema="{{stats.cost.content.nested_schema}}" data-click-to-collapse="true">
+  <div ng-show="stats.cost.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content" class="animate-table">
+    <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-smart-display="true" data-search-align="left" data-nested-schema="{{data['nested_schema']}}" data-click-to-collapse="true">
       <thead>
         <tr>
-          <th data-field="{{field_id}}" data-sortable="true" ng-repeat="(field_id, val) in stats.cost.content.schema">{{val}}</th>
+          <th data-field="{{field_id}}" data-sortable="true" ng-repeat="(field_id, val) in data.schema">{{val}}</th>
         </tr>
       </thead>
     </table>
+  </div>
 </div>

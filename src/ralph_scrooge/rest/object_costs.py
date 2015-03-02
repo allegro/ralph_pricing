@@ -11,13 +11,26 @@ from django.db.models import Sum
 from django.template.defaultfilters import slugify
 
 from ralph_scrooge.rest.components import ComponentsContent
-from ralph_scrooge.models import DailyCost, PricingObject, CostDateStatus
+from ralph_scrooge.models import (
+    DailyCost,
+    PricingObject,
+    CostDateStatus,
+    PricingObjectType,
+)
 
 
 class ObjectCostsContent(ComponentsContent):
     """A view returning pricing data per pricing object"""
 
     default_model = 'ralph_scrooge.models.PricingObject'
+
+    def get_types(self):
+        """
+        Returns Pricing Object Types defined in COMPONENTS_TABLE_SCHEMA.
+        """
+        return PricingObjectType.objects.filter(
+            name__in=settings.PRICING_OBJECTS_COSTS_TABLE_SCHEMA.keys()
+        )
 
     def get_daily_pricing_objects(
             self, start_date, end_date, service, env=None
@@ -31,8 +44,10 @@ class ObjectCostsContent(ComponentsContent):
             query = query.filter(
                 daily_pricing_objects__service_environment__environment__id=env
             )
+        query = query.distinct()
         query_daily_cost = DailyCost.objects.filter(
             pricing_object_id__in=query.values_list('id', flat=True),
+            forecast=False,
             date__in=CostDateStatus.objects.filter(
                 accepted=True,
                 date__gte=start_date,

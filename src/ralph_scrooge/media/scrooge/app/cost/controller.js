@@ -14,12 +14,18 @@ scrooge.controller('costCtrl', ['$scope', '$routeParams', 'menuService', 'stats'
     $scope.stats.refreshData();
 
     $scope.$watch('stats.cost.content', function () {
-        if (typeof(stats.cost.content) != 'undefined' && stats.cost.content.length !== 0) {
-            $scope.$evalAsync(function() {
-                $('#table_cost').bootstrapTable({
-                    data: stats.cost.content.value,
+        $scope.days = stats.cost.days;
+        if (typeof(stats.cost.content) != 'undefined') {
+            if (stats.cost.content != $scope.content) {
+                $scope.content = stats.cost.content;
+                stats.cost.content.forEach(function (element, key) {
+                    $scope.$evalAsync(function() {
+                        $('#table_' + key + ' table').bootstrapTable({
+                            data: element.value,
+                        });
+                    });
                 });
-            });
+            }
         }
     });
 }]);
