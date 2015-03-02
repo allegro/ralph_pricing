@@ -6,20 +6,24 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
+import json
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge import models
-from ralph_scrooge.rest import components
+from ralph_scrooge.rest.components import ComponentsContent
 from ralph_scrooge.tests.utils.factory import (
     DailyAssetInfoFactory,
     ServiceEnvironmentFactory,
 )
+from rest_framework.test import APIClient
 
 
 class TestComponents(TestCase):
     def setUp(self):
+        self.components = ComponentsContent()
         self.se1 = ServiceEnvironmentFactory()
         self.se2 = ServiceEnvironmentFactory(
             service=self.se1.service,
@@ -47,7 +51,7 @@ class TestComponents(TestCase):
 
     @override_settings(COMPONENTS_TABLE_SCHEMA={'Asset': {}, 'IP Address': {}})
     def test_get_types(self):
-        result = components._get_types()
+        result = self.components.get_types()
         self.assertEquals(
             set([r.id for r in result]),
             set([
@@ -57,7 +61,7 @@ class TestComponents(TestCase):
         )
 
     def test_get_daily_pricing_objects(self):
-        result = components._get_daily_pricing_objects(
+        result = self.components.get_daily_pricing_objects(
             year=self.today.year,
             month=self.today.month,
             day=self.today.day,
@@ -67,7 +71,7 @@ class TestComponents(TestCase):
         self.assertEquals(result.count(), 2)
 
     def test_get_daily_pricing_objects_without_env(self):
-        result = components._get_daily_pricing_objects(
+        result = self.components.get_daily_pricing_objects(
             year=self.today.year,
             month=self.today.month,
             day=self.today.day,
@@ -77,7 +81,7 @@ class TestComponents(TestCase):
 
     def test_get_field(self):
         path = 'service_environment.service.profit_center.name'
-        result = components._get_field(models.DailyPricingObject, path)
+        result = self.components.get_field(models.DailyPricingObject, path)
         self.assertEquals(
             result,
             models.ProfitCenter._meta.get_field_by_name('name')[0]
@@ -85,7 +89,7 @@ class TestComponents(TestCase):
 
     def test_get_field_one_to_one(self):
         path = 'pricing_object.service_environment.service.name'
-        result = components._get_field(models.DailyAssetInfo, path)
+        result = self.components.get_field(models.DailyAssetInfo, path)
         self.assertEquals(
             result,
             models.Service._meta.get_field_by_name('name')[0]
@@ -93,17 +97,17 @@ class TestComponents(TestCase):
 
     def test_get_field_error(self):
         path = 'service_environment.service.profit_center.name1'
-        result = components._get_field(models.DailyPricingObject, path)
+        result = self.components.get_field(models.DailyPricingObject, path)
         self.assertIsNone(result)
 
     def test_get_field_error_inside(self):
         path = 'service_environment.service1.profit_center.name'
-        result = components._get_field(models.DailyPricingObject, path)
+        result = self.components.get_field(models.DailyPricingObject, path)
         self.assertIsNone(result)
 
     def test_get_headers(self):
         fields = ['id', 'asset_info.sn', 'asset_info.barcode']
-        headers = components._get_headers(models.DailyAssetInfo, fields)
+        headers = self.components.get_headers(models.DailyAssetInfo, fields)
         self.assertEquals(headers, {
             '0': 'Id',
             '1': 'Serial Number',
@@ -112,7 +116,7 @@ class TestComponents(TestCase):
 
     def test_get_headers_with_prefix(self):
         fields = ['id', 'name', 'assetinfo.sn', 'assetinfo.barcode']
-        headers = components._get_headers(
+        headers = self.components.get_headers(
             models.DailyAssetInfo,
             fields,
             prefix='pricing_object',
@@ -126,7 +130,7 @@ class TestComponents(TestCase):
 
     def test_get_headers_with_alias(self):
         fields = ['id', 'name', 'assetinfo.sn', ('assetinfo.barcode', 'Alias')]
-        headers = components._get_headers(
+        headers = self.components.get_headers(
             models.DailyAssetInfo,
             fields,
             prefix='pricing_object',
@@ -151,7 +155,7 @@ class TestComponents(TestCase):
             pk=models.PRICING_OBJECT_TYPES.ASSET.id
         )
         dpo = models.DailyPricingObject.objects.all()
-        result = components.process_single_type(asset_type, dpo)
+        result = self.components.process_single_type(asset_type, dpo)
 
         def get_asset_dict(a):
             return {
@@ -171,3 +175,17 @@ class TestComponents(TestCase):
             },
             'color': asset_type.color,
         })
+
+    def test_api_view_returns_data_from_pricing_objects(self):
+        User.objects.create_superuser('test', 'test@test.test', 'test')
+        client = APIClient()
+        client.login(username='test', password='test')
+        resp = client.get('/scrooge/rest/components/{}/{}/{}/{}/{}/'.format(
+            self.se1.service.id,
+            self.se1.environment.id,
+            self.today.year,
+            self.today.month,
+            self.today.day,
+        ))
+        data = json.loads(resp.content)
+        self.assertEqual(len(data[0]['value']), 2)

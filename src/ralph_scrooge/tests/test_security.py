@@ -68,7 +68,7 @@ class TestSecurity(TestCase):
         self.client.login(username=user, password='12345')
 
     def _get_components(self, se):
-        return self.client.get('/{}/components/{}/{}/2014/10/1/'.format(
+        return self.client.get('/{}/rest/components/{}/{}/2014/10/1/'.format(
             Scrooge.url_prefix,
             se.service.id,
             se.environment.id,
