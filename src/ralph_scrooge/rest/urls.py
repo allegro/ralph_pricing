@@ -27,7 +27,7 @@ from ralph_scrooge.utils.security import (
 urlpatterns = patterns(
     '',
     url(
-        r'^cost/(?P<service>\d+)/(?P<env>\d+)/(?P<start>(\d\d-\d\d-\d\d\d\d))/(?P<end>(\d\d-\d\d-\d\d\d\d))/?$',
+        r'^cost/(?P<service>\d+)/(?P<env>\d+)/(?P<start>(\d{2}-\d{2}-\d{4}))/(?P<end>(\d{2}-\d{2}-\d{4}))/?$',  # noqa
         scrooge_permission(CostContent.as_view()),
     ),
     url(
