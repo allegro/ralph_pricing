@@ -24,11 +24,8 @@ class ObjectCostsContent(ComponentsContent):
     ):
         query = PricingObject.objects.filter(
             daily_pricing_objects__service_environment__service__id=service,
-            daily_pricing_objects__date__in=CostDateStatus.objects.filter(
-                accepted=True,
-                date__gte=start_date,
-                date__lte=end_date
-            ).values_list('date', flat=True),
+            daily_pricing_objects__date__gte=start_date,
+            daily_pricing_objects__date__lte=end_date,
         )
         if env:
             query = query.filter(
@@ -67,19 +64,19 @@ class ObjectCostsContent(ComponentsContent):
             type=single_type,
         ).values_list(*django_fields):
             value = {k: v for k, v in enumerate(po[1:])}
-            value['__costs'] = [
+            value['__nested'] = [
                 {str(k): v for k, v in enumerate(daily_cost[1:])}
                 for daily_cost in daily_costs.get(po[0], [])
             ]
             values.append(value)
         return {
-            "name": single_type.name,
-            "icon_class": single_type.icon_class,
-            "slug": slugify(single_type.name),
-            "value": values,
-            "schema": headers,
-            "cost_schema": {k: v for k, v in enumerate(
+            'name': single_type.name,
+            'icon_class': single_type.icon_class,
+            'slug': slugify(single_type.name),
+            'value': values,
+            'schema': headers,
+            'nested_schema': {k: v for k, v in enumerate(
                 ['Name', 'Value', 'Cost'])
             },
-            "color": single_type.color,
+            'color': single_type.color,
         }

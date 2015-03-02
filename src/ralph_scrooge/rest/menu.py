@@ -29,32 +29,20 @@ class SubMenu(APIView):
             {
                 'name': 'Allocations',
                 'href': '#/allocation/client/',
+                'leftMenu': ['services', 'teams'],
                 'calendarMenu': 'monthly',
-                'leftMenu': ['services', 'teams'],
             },
             {
                 'name': 'Costs',
                 'href': '#/costs/',
+                'leftMenu': ['services', 'teams'],
                 'calendarMenu': 'monthly',
-                'leftMenu': ['services', 'teams'],
-            },
-            {
-                'name': 'Costs',
-                'href': '#/costs/',
-                'calendarMenu': ['year', 'month'],
-                'leftMenu': ['services', 'teams'],
-            },
-            {
-                'name': 'Costs',
-                'href': '#/costs/',
-                'calendarMenu': ['year', 'month'],
-                'leftMenu': ['services', 'teams'],
             },
             {
                 'name': 'Allocations Admin',
                 'href': '#/allocation/admin/',
                 'leftMenu': [],
-                'calendarMenu': ['year', 'month'],
+                'calendarMenu': 'monthly',
             },
         ]
         profile = request.user.get_profile()

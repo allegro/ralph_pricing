@@ -172,6 +172,20 @@
     text-align: left !important;
 }
 
+.fixed-table-body .has-nested {
+
+}
+
+.fixed-table-body .nested table {
+    border: 1px solid #aaa;
+    margin-left: 20px;
+    width: clac(100% - 20px);
+}
+
+.fixed-table-body .hidden {
+  display: none;
+}
+
 /* support bootstrap 2 */
 .fixed-table-body thead th .th-inner {
     box-sizing: border-box;

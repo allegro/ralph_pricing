@@ -93,7 +93,7 @@ class TestPricingObjects(TestCase):
         User.objects.create_superuser('test', 'test@test.test', 'test')
         client = APIClient()
         client.login(username='test', password='test')
-        resp = client.get('/scrooge/rest/pricing_object_costs/{}/{}/{}/{}/'.format(
+        resp = client.get('/scrooge/rest/pricing_object_costs/{}/{}/{}/{}/'.format(  # noqa
             self.se1.service.id,
             self.se1.environment.id,
             self.today.strftime('%Y-%m-%d'),

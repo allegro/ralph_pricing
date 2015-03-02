@@ -1010,6 +1010,13 @@
                 }
             }
 
+            if ('__nested' in item) {
+                if(typeof(style.classes) === 'undefined'){
+                    style.classes = '';
+                }
+                style.classes += ' has-nested';
+            }
+
             html.push('<tr',
                 sprintf(' %s', htmlAttributes.join(' ')),
                 sprintf(' id="%s"', $.isArray(item) ? undefined : item._id),
@@ -1126,7 +1133,9 @@
                     nested_table += '</tr>';
                 }
                 nested_table += '</tbody></table>';
-                html.push(sprintf('<tr class="hidden nested"><td colspan="%s">', this.header.fields.length));
+                html.push(sprintf('<tr class="nested"><td colspan="%s">', this.header.fields.length));
+                // TODO
+                // html.push(sprintf('<tr class="hidden nested"><td colspan="%s">', this.header.fields.length));
                 html.push(nested_table);
                 html.push('</td></tr>');
             }
