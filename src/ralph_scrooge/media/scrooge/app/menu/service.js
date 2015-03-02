@@ -18,15 +18,7 @@ scrooge.factory('menuService', ['stats', function (stats) {
     return {
         changeService: function(service) {
             stats.menuStats['service']['change'] = service.id;
-            var envExist = false;
-            service.value.envs.forEach(function(element) {
-                if (element.env == stats.menuStats['env']['current']) {
-                    envExist = true;
-                }
-            });
-            if (envExist === false) {
-                stats.menuStats['env']['change'] = service.value.envs[0].id;
-            }
+            stats.menuStats['env']['change'] = false;
             stats.refreshData();
         },
         changeEnv: function(env) {
