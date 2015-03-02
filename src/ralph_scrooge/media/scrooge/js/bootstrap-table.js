@@ -1120,7 +1120,7 @@
 
             html.push('</tr>');
             if ('__nested' in item) {
-                var nested_table = '<table><thead><tr>';
+                var nested_table = '<table class="table table-bordered nested"><thead><tr>';
                 for (var s in this.options.nestedSchema) {
                     nested_table += '<th>' + this.options.nestedSchema[s] + '</th>';
                 }
@@ -1169,8 +1169,10 @@
                 if ($tr.next().hasClass('nested')) {
                     if ($tr.next().hasClass('hidden')) {
                         $tr.next().removeClass('hidden');
+                        $tr.removeClass('collapsed');
                     } else {
                         $tr.next().addClass('hidden');
+                        $tr.addClass('collapsed');
                     }
                 }
             }

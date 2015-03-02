@@ -173,13 +173,19 @@
 }
 
 .fixed-table-body .has-nested {
-
+    cursor: pointer;
+}
+.fixed-table-body .has-nested td:first-child:before {
+    content: "- ";
+}
+.fixed-table-body .has-nested.collapsed td:first-child:before {
+    content: "+ ";
 }
 
-.fixed-table-body .nested table {
-    border: 1px solid #aaa;
+.fixed-table-body .nested .table {
     margin-left: 20px;
-    width: clac(100% - 20px);
+    width: calc(100% - 40px);
+    border-bottom: 1px solid #ddd;
 }
 
 .fixed-table-body .hidden {
