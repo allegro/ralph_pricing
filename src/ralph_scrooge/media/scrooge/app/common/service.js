@@ -249,21 +249,25 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          */
          getCostData: function () {
             var self = this;
-            var url_chunks = [
-                '/scrooge/rest/pricing_object_costs',
-                self.menuStats['service']['current'],
-                self.menuStats['env']['current'],
-                '2014-11-01',
-                '2014-11-02',
-            ];
-            $http({
-                method: 'GET',
-                url: url_chunks.join('/'),
-            })
-            .success(function(data) {
-                self.cost.content = data;
-                self.cost.contentStats.table = data[0].name;
-            });
+            if(self.menuStats['startDate']['current'] && self.menuStats['endDate']['current']) {
+                var start = self.menuStats['startDate']['current'];
+                var end = self.menuStats['endDate']['current'];
+                var url_chunks = [
+                    '/scrooge/rest/pricing_object_costs',
+                    self.menuStats['service']['current'],
+                    self.menuStats['env']['current'],
+                    start.getFullYear() + '-' + (start.getMonth() + 1) + '-' + start.getDate(),
+                    end.getFullYear() + '-' + (end.getMonth() + 1) + '-' + end.getDate(),
+                ];
+                $http({
+                    method: 'GET',
+                    url: url_chunks.join('/'),
+                })
+                .success(function(data) {
+                    self.cost.content = data;
+                    self.cost.contentStats.table = data[0].name;
+                });
+            }
         },
         getCostCardData: function () {
             var self = this;

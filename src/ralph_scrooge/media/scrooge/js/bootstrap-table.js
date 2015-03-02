@@ -1014,7 +1014,7 @@
                 if(typeof(style.classes) === 'undefined'){
                     style.classes = '';
                 }
-                style.classes += ' has-nested';
+                style.classes += ' collapsed has-nested';
             }
 
             html.push('<tr',

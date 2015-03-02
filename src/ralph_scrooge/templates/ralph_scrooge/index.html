@@ -74,6 +74,13 @@
                                 end-date="endDate"
                             >
                             </sc-calendar>
+                            <sc-datepicker
+                                ng-show="stats.currentSubMenu.calendarMenu == 'range'"
+                                range
+                                autoclose
+                                selected="date"
+                            >
+                            </sc-datepicker>
                         </div>
                       </div>
                       <div class="col-xs-12 col-md-12 animate-show loading-bar-spinner-container content-container">
