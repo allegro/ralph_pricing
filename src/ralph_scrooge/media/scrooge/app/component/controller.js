@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.component', []);
 
-scrooge.controller('componentsCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
+scrooge.controller('componentsCtrl', ['$scope', '$routeParams', 'menuService', 'stats',  function ($scope, $routeParams, menuService, stats) {
     stats.breadcrumbs = ['service', 'env'];
     if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Components';

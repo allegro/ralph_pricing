@@ -14,6 +14,7 @@ from ralph_scrooge.rest import (
     AllocationClientService,
     AllocationClientPerTeam,
     CostCardContent,
+    CostContent,
 )
 
 from ralph_scrooge.rest.menu import SubMenu
@@ -25,6 +26,10 @@ from ralph_scrooge.utils.security import (
 
 urlpatterns = patterns(
     '',
+    url(
+        r'^cost/(?P<service>\d+)/(?P<env>\d+)/(?P<start>(\d{2}-\d{2}-\d{4}))/(?P<end>(\d{2}-\d{2}-\d{4}))/?$',  # noqa
+        scrooge_permission(CostContent.as_view()),
+    ),
     url(
         r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/?$',
         scrooge_permission(AllocationAdminContent.as_view()),

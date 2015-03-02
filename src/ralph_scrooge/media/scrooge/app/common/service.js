@@ -52,9 +52,9 @@ var allocationHelper = {
     }
 };
 
-scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS', function ($http, $q, $routeParams, $location, REST_URLS) {
+scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_URL', 'REST_URLS', function ($http, $q, $routeParams, $location, STATIC_URL, REST_URLS) {
     return {
-        staticUri: '/static/scrooge/partials/',
+        staticUri: STATIC_URL + 'scrooge/partials/',
         cancelerDeferers: [],
         currentSubMenu: false,
         currentTab: false,
@@ -77,6 +77,9 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
                 'table': false,
             },
         },
+        cost: {
+            'content': []
+        },
         allocationadmin: {},
         allocationclient: {
             serviceExtraCostTypes: false,
@@ -98,7 +101,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * The next step (collect data for current subpage) will base on result of this step.
          */
         init: function() {
-            self = this;
+            var self = this;
             $http({method: 'GET', url: '/scrooge/leftmenu/components/'}).
                 success(function(data) {
                     Object.keys(data['menuStats']).forEach(function (key){
@@ -121,7 +124,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * which is defined for each subpage in the controller.
          */
         refreshData: function() {
-            self = this;
+            var self = this;
             var force = false;
             var refresh = false;
             Object.keys(self.menuStats).forEach(function (menu) {
@@ -165,6 +168,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * Collect data for components subpage.
          */
         getComponentsData: function () {
+            var self = this;
             var url_chunks = [
                 '/scrooge/components',
                 self.menuStats['service']['current'],
@@ -191,6 +195,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * Collect data for allocation client subpage.
          */
         getAllocationClientData: function () {
+            var self = this;
             $http({
                 method: 'GET',
                 url: allocationHelper.getUrl(
@@ -215,6 +220,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * Collect data for allocation admin subpage.
          */
         getAllocationAdminData: function () {
+            var self = this;
             var url_chunks = [
                 '/scrooge/rest/allocationadmin',
                 self.menuStats['year']['current'],
@@ -242,7 +248,25 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
         /**
          * Collect data for cost card subpage.
          */
+         getCostData: function () {
+            var self = this;
+            var url_chunks = [
+                '/scrooge/rest/cost',
+                self.menuStats['service']['current'],
+                self.menuStats['env']['current'],
+                '01-01-0001',
+                '02-02-0002',
+            ];
+            $http({
+                method: 'GET',
+                url: url_chunks.join('/'),
+            })
+            .success(function(data) {
+                self.cost.content = data;
+            });
+        },
         getCostCardData: function () {
+            var self = this;
             var url_chunks = [
                 '/scrooge/rest/costcard',
                 self.menuStats['service']['current'],
@@ -266,6 +290,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * This method just clean old data and make changing subpage more smart and smooth.
          */
         clearPreviousContent: function () {
+            var self = this;
             self.components = {
                 contentStats: {}
             };
@@ -279,6 +304,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * send POST (save) request with data.
          */
         saveAllocation: function (tab) {
+            var self = this;
             var urlClientChunks = [REST_URLS.ALLOCATION_CLIENT],
                 urlAdminChunks = [REST_URLS.ALLOCATION_ADMIN],
                 data = {},
@@ -394,6 +420,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
             }
         },
         getEnvs: function (service_id) {
+            var self = this;
             var envs = [];
             if (Object.keys(self.leftMenus).length > 0) {
                 self.leftMenus['services'].forEach(function (element) {
@@ -405,6 +432,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
             return envs;
         },
         changeTab: function (tab) {
+            var self = this;
             self.currentTab = tab;
             $routeParams.tab = tab;
             var newPath = $location.path().split('/');
@@ -412,6 +440,8 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
             $location.path(newPath.join('/'));
         },
         getFirstExistMenu: function () {
+            var self = this;
+
             for (var i in self.leftMenus) {
                 if (self.inArray(i, self.currentSubMenu.leftMenu) === true) {
                     return i;
@@ -423,6 +453,8 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'REST_URLS
          * Return url for html template for current tab.
          */
         getCurrentTab: function() {
+            var self = this;
+
             if (Object.keys(self.currentTabs).length > 0 &&
                 self.currentTab in self.currentTabs) {
                 return self.staticUri + self.currentTabs[self.currentTab].template;

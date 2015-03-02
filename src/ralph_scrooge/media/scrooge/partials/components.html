@@ -10,7 +10,7 @@
 </div>
 <div class="relative-container">
   <div ng-show="stats.components.contentStats.table == data.name" id="table_{{$index}}" ng-repeat="data in content" class="animate-table">
-    <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-smart-display="true" data-search-align="left">
+    <table data-toggle="table" data="currentData['value']" data-pagination="true" data-search="true" data-smart-display="true" data-search-align="left" data-nested-schema="{{data['nested_schema']}}" data-click-to-collapse="true">
       <thead>
         <tr>
           <th data-field="{{field_id}}" data-sortable="true" ng-repeat="(field_id, val) in data.schema">{{val}}</th>

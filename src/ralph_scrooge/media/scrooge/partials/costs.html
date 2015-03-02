@@ -1,0 +1,9 @@
+<div class="relative-container">
+    <table id="table_cost" data-toggle="table" data="{{ stats.cost.content }}" data-pagination="true" data-search="true" data-smart-display="true" data-search-align="left" data-nested-schema="{{stats.cost.content.nested_schema}}" data-click-to-collapse="true">
+      <thead>
+        <tr>
+          <th data-field="{{field_id}}" data-sortable="true" ng-repeat="(field_id, val) in stats.cost.content.schema">{{val}}</th>
+        </tr>
+      </thead>
+    </table>
+</div>

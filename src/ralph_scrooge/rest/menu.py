@@ -18,17 +18,29 @@ class SubMenu(APIView):
                 'name': 'Components',
                 'href': '#/components/',
                 'leftMenu': ['services'],
-                'calendarMenu': ['year', 'month', 'day'],
+                'calendarMenu': 'daily',
             },
             {
                 'name': 'Cost card',
                 'href': '#/costcard/',
                 'leftMenu': ['services'],
-                'calendarMenu': ['year', 'month'],
+                'calendarMenu': 'monthly',
             },
             {
                 'name': 'Allocations',
                 'href': '#/allocation/client/',
+                'calendarMenu': 'monthly',
+                'leftMenu': ['services', 'teams'],
+            },
+            {
+                'name': 'Costs',
+                'href': '#/costs/',
+                'calendarMenu': 'monthly',
+                'leftMenu': ['services', 'teams'],
+            },
+            {
+                'name': 'Costs',
+                'href': '#/costs/',
                 'calendarMenu': ['year', 'month'],
                 'leftMenu': ['services', 'teams'],
             },
@@ -38,7 +50,6 @@ class SubMenu(APIView):
                 'leftMenu': [],
                 'calendarMenu': ['year', 'month'],
             },
-
         ]
         profile = request.user.get_profile()
         if profile.has_perm(Perm.has_scrooge_access) or profile.is_superuser:
