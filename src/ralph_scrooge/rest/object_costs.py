@@ -49,7 +49,7 @@ class ObjectCostsContent(ComponentsContent):
             pricing_object_id__in=query.values_list('id', flat=True),
             forecast=False,
             date__in=CostDateStatus.objects.filter(
-                accepted=False,
+                accepted=True,
                 date__gte=start_date,
                 date__lte=end_date
             ).values_list('date', flat=True),

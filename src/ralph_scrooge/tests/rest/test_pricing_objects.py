@@ -101,6 +101,6 @@ class TestPricingObjects(TestCase):
         ))
         data = json.loads(resp.content)
         self.assertSetEqual(
-            {Decimal(x['2']) for x in data[0]['value'][0]['__costs']},
+            {Decimal(x['2']) for x in data[0]['value'][0]['__nested']},
             {Decimal('50.0'), Decimal('35.0')}
         )
