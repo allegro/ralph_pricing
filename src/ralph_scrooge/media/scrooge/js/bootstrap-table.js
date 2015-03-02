@@ -1139,8 +1139,6 @@
                 nested_table += '</tbody>';
                 nested_table += '</table>';
                 html.push(sprintf('<tr class="hidden nested"><td colspan="%s">', this.header.fields.length));
-                // TODO
-                // html.push(sprintf('<tr class="hidden nested"><td colspan="%s">', this.header.fields.length));
                 html.push(nested_table);
                 html.push('</td></tr>');
             }
