@@ -2,8 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.costcard', []);
 
-scrooge.controller('costCardCtrl', ['$scope', '$routeParams', 'menuService', 'menuCalendar', 'stats',  function ($scope, $routeParams, menuService, menuCalendar, stats) {
-    // Base configuration
+scrooge.controller('costCardCtrl', ['$scope', '$routeParams', 'menuService', 'stats',  function ($scope, $routeParams, menuService, stats) {    // Base configuration
     stats.breadcrumbs = ['service', 'env'];
     if ($scope.stats.currentSubMenu === false) {
         $scope.stats.currentSubMenu = 'Cost card';
