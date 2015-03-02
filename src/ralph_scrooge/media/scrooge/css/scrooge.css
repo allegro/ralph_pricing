@@ -378,30 +378,33 @@ div.blocked {
     border-radius: 4px;
     text-align: right;
 }
-.allocation-tabs .table tr td {
+.allocation-tabs .allocation-client-table {
+    width: 100%;
+}
+.allocation-tabs .allocation-client-table tr td {
     padding: 1px;
 }
-.allocation-tabs .table tr:nth-last-child(2) td {
+.allocation-tabs .allocation-client-table tr:nth-last-child(2) td {
     padding-bottom: 8px;
 }
-.allocation-tabs .table tr:last-child td {
+.allocation-tabs .allocation-client-table tr:last-child td {
     padding-top: 8px;
 }
-.allocation-tabs .table thead tr th {
+.allocation-tabs .allocation-client-table thead tr th {
     border-top: 1px;
     vertical-align: middle;
     text-align: center;
 }
-.allocation-tabs .table tr:first-child td {
+.allocation-tabs .allocation-client-table tr:first-child td {
     padding-top: 8px;
 }
-.allocation-tabs .table tr:nth-last-child(2) td.total {
+.allocation-tabs .allocation-client-table tr:nth-last-child(2) td.total {
     margin: auto;
     font-size: 18px;
     text-align: right;
     vertical-align: bottom;
 }
-.allocation-tabs .table tr:nth-last-child(2) td.total div {
+.allocation-tabs .allocation-client-table tr:nth-last-child(2) td.total div {
     padding-left: 9px;
     display: inline;
 }
@@ -422,4 +425,36 @@ div.blocked {
 .table tbody tr td.tab-error div {
     padding-left: 2px;
     text-align: center;
+}
+
+.tab-extra-costs-admin, .tab-base-usage-admin {
+    width: 100%;
+}
+
+.tab-extra-costs-admin h2{
+    font-size: 24px;
+}
+
+.allocation-admin-total {
+    text-align: right;
+}
+
+.table th {
+    text-align: center;
+}
+.tab-extra-costs-admin .currency {
+    display: inline;
+}
+
+.tab-base-usage-admin .allocation-admin-total div {
+    display: inline;
+}
+
+.base-usage-row div {
+    display: inline;
+    margin-left: 10px;
+}
+
+.tab-save-button {
+    float: right;
 }

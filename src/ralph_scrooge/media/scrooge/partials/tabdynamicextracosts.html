@@ -1,0 +1,36 @@
+<table class="table">
+    <tr>
+      <th>Extra cost name</th>
+      <th>Cost</th>
+      <th></th>
+      <th>Forecast cost</th>
+      <th></th>
+    </tr>
+    <tr ng-repeat="row in stats.allocationadmin.dynamicextracosts.rows">
+      <td>
+        {{row.dynamic_extra_cost_type.name}}
+      </td>
+      <td>
+        <input ng-model="row.cost" type="text" class="form-control">
+      </td>
+      <td><div>PLN</div></td>
+      <td>
+        <input ng-model="row.forecast_cost" type="text" class="form-control">
+      </td>
+      <td><div>PLN</div></td>
+    </tr>
+    <tr class="additional-row-header">
+      <td></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.allocationadmin.dynamicextracosts.rows, 'cost') | number:2}}
+      </td>
+      <td><div>PLN</div></td>
+      <td class="allocation-admin-total">
+        {{getTotal(stats.allocationadmin.dynamicextracosts.rows, 'forecast_cost') | number:2}}
+      </td>
+      <td><div>PLN</div></td>
+    </tr>
+</table>
+<div class="tab-save-button">
+  <button class="btn btn-success" ng-click="stats.saveAllocation('dynamicextracosts')">Save</button>
+</div>
