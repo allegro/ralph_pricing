@@ -170,7 +170,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
         getComponentsData: function () {
             var self = this;
             var url_chunks = [
-                '/scrooge/components',
+                '/scrooge/rest/components',
                 self.menuStats['service']['current'],
                 self.menuStats['env']['current'],
                 self.menuStats['year']['current'],
