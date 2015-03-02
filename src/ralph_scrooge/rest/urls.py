@@ -61,6 +61,10 @@ urlpatterns = patterns(
         service_permission(ComponentsContent.as_view()),
     ),
     url(
+       r'^components/(?P<service>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/?$',  # noqa
+        service_permission(ComponentsContent.as_view()),
+    ),
+    url(
         r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         service_permission(CostCardContent.as_view()),
     ),
