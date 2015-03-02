@@ -45,6 +45,12 @@ class SubMenu(APIView):
                 'leftMenu': ['services', 'teams'],
             },
             {
+                'name': 'Costs',
+                'href': '#/costs/',
+                'calendarMenu': ['year', 'month'],
+                'leftMenu': ['services', 'teams'],
+            },
+            {
                 'name': 'Allocations Admin',
                 'href': '#/allocation/admin/',
                 'leftMenu': [],
