@@ -1120,26 +1120,33 @@
 
             html.push('</tr>');
             if ('__nested' in item) {
-                var nested_table = '<table class="table table-bordered nested"> ';
-                if (this.options.nestedSchema) {
-                    nested_table += '<thead><tr>';
-                    $.each(this.options.nestedSchema, function (index, value) {
-                        nested_table += '<th>' + value + '</th>';
-                    });
-                    nested_table += '</tr></thead>';
-                }
-                nested_table += '<tbody>';
-                $.each(item['__nested'], function (row_index, row_value) {
-                    nested_table += '<tr>';
-                    $.each(row_value, function (field_index, field_value) {
-                        nested_table += '<td>' + field_value + '</td>';
-                    });
-                    nested_table += '</tr>';
-                });
-                nested_table += '</tbody>';
-                nested_table += '</table>';
                 html.push(sprintf('<tr class="hidden nested"><td colspan="%s">', this.header.fields.length));
-                html.push(nested_table);
+                if (item['__nested'].length === 0) {
+                    html.push('<div>No matching records found</div>');
+                } else {
+                    var nested_table = '<table class="table table-bordered nested">';
+                    if (this.options.nestedSchema) {
+                        nested_table += '<thead><tr>';
+                        $.each(this.options.nestedSchema, function (index, value) {
+                            nested_table += '<th>' + value + '</th>';
+                        });
+                        nested_table += '</tr></thead>';
+                    }
+                    nested_table += '<tbody>';
+                    $.each(item['__nested'], function (row_index, row_value) {
+                        nested_table += '<tr>';
+                        $.each(row_value, function (field_index, field_value) {
+                            nested_table += '<td>' + field_value + '</td>';
+                        });
+                        nested_table += '</tr>';
+                    });
+                    nested_table += '</tbody>';
+                    nested_table += '</table>';
+
+                    // TODO
+                    // html.push(sprintf('<tr class="hidden nested"><td colspan="%s">', this.header.fields.length));
+                    html.push(nested_table);
+                }
                 html.push('</td></tr>');
             }
         }

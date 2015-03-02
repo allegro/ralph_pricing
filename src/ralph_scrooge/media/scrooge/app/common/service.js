@@ -69,8 +69,10 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
             'env': {'current': null, 'change': null},
             'year': {'current': null, 'change': null},
             'month': {'current': null, 'change': null},
-            'leftMenu': {'current': null, 'change': null},
             'day': {'current': null, 'change': null},
+            'startDate': {'current': null, 'change': null},
+            'endDate': {'current': null, 'change': null},
+            'leftMenu': {'current': null, 'change': null},
         },
         components: {
             'contentStats': {

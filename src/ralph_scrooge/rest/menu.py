@@ -36,7 +36,7 @@ class SubMenu(APIView):
                 'name': 'Costs',
                 'href': '#/costs/',
                 'leftMenu': ['services', 'teams'],
-                'calendarMenu': 'monthly',
+                'calendarMenu': 'range',
             },
             {
                 'name': 'Allocations Admin',
