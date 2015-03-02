@@ -78,7 +78,10 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
             },
         },
         cost: {
-            'content': []
+            'content': [],
+            'contentStats': {
+                'table': false,
+            }
         },
         allocationadmin: {},
         allocationclient: {
@@ -251,11 +254,11 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          getCostData: function () {
             var self = this;
             var url_chunks = [
-                '/scrooge/rest/cost',
+                '/scrooge/rest/pricing_object_costs',
                 self.menuStats['service']['current'],
                 self.menuStats['env']['current'],
-                '01-01-0001',
-                '02-02-0002',
+                '2014-11-01',
+                '2014-11-02',
             ];
             $http({
                 method: 'GET',
@@ -263,6 +266,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
             })
             .success(function(data) {
                 self.cost.content = data;
+                self.cost.contentStats.table = data[0].name;
             });
         },
         getCostCardData: function () {
