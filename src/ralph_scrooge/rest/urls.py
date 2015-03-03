@@ -71,6 +71,7 @@ urlpatterns = patterns(
     url(
         r'^pricing_object_costs/(?P<service>\d+)/(?P<env>\d+)/(?P<start_date>[0-9-]+)/(?P<end_date>[0-9-]+)/?$',  # noqa
         service_permission(ObjectCostsContent.as_view()),
+        name='pricing_object_costs'
     ),
     url(
         r'^submenu/?$',

@@ -17,6 +17,7 @@ from ralph_scrooge.models import (
     PricingObject,
     CostDateStatus,
     PricingObjectType,
+    PRICING_OBJECT_TYPES,
 )
 
 
@@ -100,10 +101,13 @@ class ObjectCostsContent(ComponentsContent):
     def _get_rest_of_costs(self, start_date, end_date, service, env=None):
         query_daily_cost = DailyCost.objects.filter(
             Q(pricing_object_id=None) |
-            Q(pricing_object__type_id__in=['255', '254']),  # Dummy and unknown
+            Q(pricing_object__type_id__in=[
+                PRICING_OBJECT_TYPES.UNKNOWN,
+                PRICING_OBJECT_TYPES.DUMMY
+            ]),  # Dummy and unknown
             forecast=False,
             date__in=CostDateStatus.objects.filter(
-                accepted=False,
+                accepted=True,
                 date__gte=start_date,
                 date__lte=end_date
             ).values_list('date', flat=True),
@@ -118,17 +122,13 @@ class ObjectCostsContent(ComponentsContent):
         ).annotate(Sum('value')).annotate(Sum('cost'))
         daily_costs = []
         for cost in query_daily_cost:
-            daily_costs.append({
-                0: cost[0],
-                1: cost[1],
-                2: cost[2]
-            })
+            daily_costs.append({str(k): v for k, v in enumerate(cost)})
         return {
             'name': 'Other',
             'icon_class': 'fa-desktop',
             'slug': 'other',
             'value': daily_costs,
-            'schema': {0: 'Name', 1: 'Value', 2: 'Cost'},
+            'schema': {'0': 'Name', '1': 'Value', '2': 'Cost'},
             'color': '#ff0000',
         }
 

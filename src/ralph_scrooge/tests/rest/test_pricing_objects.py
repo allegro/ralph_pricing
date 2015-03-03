@@ -10,6 +10,7 @@ import json
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from ralph_scrooge.rest.components import ComponentsContent
@@ -93,12 +94,17 @@ class TestPricingObjects(TestCase):
         User.objects.create_superuser('test', 'test@test.test', 'test')
         client = APIClient()
         client.login(username='test', password='test')
-        resp = client.get('/scrooge/rest/pricing_object_costs/{}/{}/{}/{}/'.format(  # noqa
-            self.se1.service.id,
-            self.se1.environment.id,
-            self.today.strftime('%Y-%m-%d'),
-            self.today.strftime('%Y-%m-%d'),
-        ))
+        resp = client.get(
+            reverse(
+                'pricing_object_costs',
+                args=[
+                    self.se1.service.id,
+                    self.se1.environment.id,
+                    self.today.strftime('%Y-%m-%d'),
+                    self.today.strftime('%Y-%m-%d')
+                ]
+            )
+        )
         data = json.loads(resp.content)
         self.assertSetEqual(
             {Decimal(x['2']) for x in data[0]['value'][0]['__nested']},
@@ -106,7 +112,7 @@ class TestPricingObjects(TestCase):
         )
 
     def test_pricing_objects_view_returns_data_for_other_costs(self):
-        DailyCostFactory(
+        daily_cost = DailyCostFactory(
             type=self.ut2,
             pricing_object=None,
             service_environment=self.se1,
@@ -118,12 +124,17 @@ class TestPricingObjects(TestCase):
         User.objects.create_superuser('test', 'test@test.test', 'test')
         client = APIClient()
         client.login(username='test', password='test')
-        resp = client.get('/scrooge/rest/pricing_object_costs/{}/{}/{}/{}/'.format(  # noqa
-            self.se1.service.id,
-            self.se1.environment.id,
-            self.today.strftime('%Y-%m-%d'),
-            self.today.strftime('%Y-%m-%d'),
-        ))
+        resp = client.get(
+            reverse(
+                'pricing_object_costs',
+                args=[
+                    self.se1.service.id,
+                    self.se1.environment.id,
+                    self.today.strftime('%Y-%m-%d'),
+                    self.today.strftime('%Y-%m-%d')
+                ]
+            )
+        )
         data = json.loads(resp.content)
         self.assertEqual(
             data[-1],
@@ -131,7 +142,11 @@ class TestPricingObjects(TestCase):
                 'icon_class': 'fa-desktop',
                 'name': 'Other',
                 'color': '#ff0000',
-                'value': [],
+                'value': [{
+                    '0': daily_cost.type.name,
+                    '1': 99.0,
+                    '2': '99.000000'
+                }],
                 'slug': 'other',
                 'schema': {
                     '1': 'Value',
