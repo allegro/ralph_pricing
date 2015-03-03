@@ -103,7 +103,7 @@ class TestAllocationClient(TestCase):
             json.loads(response.content)['serviceDivision'],
             {
                 "rows": [],
-                "name": "Service Devision",
+                "name": "Service Division",
                 "template": "tabservicedivision.html",
             }
         )
@@ -135,7 +135,7 @@ class TestAllocationClient(TestCase):
                     "env": self.service_environment_2.environment.id,
                     "service": self.service_environment_2.service.id
                 }],
-                "name": "Service Devision",
+                "name": "Service Division",
                 "template": "tabservicedivision.html",
             }
         )
@@ -157,7 +157,7 @@ class TestAllocationClient(TestCase):
             json.loads(response.content)['serviceDivision'],
             {
                 "rows": [],
-                "name": "Service Devision",
+                "name": "Service Division",
                 "template": "tabservicedivision.html",
             }
         )
@@ -203,7 +203,7 @@ class TestAllocationClient(TestCase):
                     "env": service_environment_1.environment.id,
                     "service": service_environment_1.service.id
                 }],
-                "name": "Service Devision",
+                "name": "Service Division",
                 "template": "tabservicedivision.html",
             }
         )
@@ -250,7 +250,7 @@ class TestAllocationClient(TestCase):
                     "env": service_environment_1.environment.id,
                     "service": service_environment_1.service.id
                 }],
-                "name": "Service Devision",
+                "name": "Service Division",
                 "template": "tabservicedivision.html",
             }
         )
@@ -382,7 +382,7 @@ class TestAllocationClient(TestCase):
             json.loads(response.content)['teamDivision'],
             {
                 "rows": [],
-                "name": "Team Devision",
+                "name": "Team Division",
                 "template": "tabteamcosts.html",
             }
         )
@@ -420,7 +420,7 @@ class TestAllocationClient(TestCase):
                     'service': service_environment_2.service.id,
                     'value': float(team_percent_2.percent),
                 }],
-                "name": "Team Devision",
+                "name": "Team Division",
                 "template": "tabteamcosts.html",
             }
         )
@@ -466,7 +466,7 @@ class TestAllocationClient(TestCase):
                         team_division[0].service_environment.environment.id
                     )
                 }],
-                "name": "Team Devision",
+                "name": "Team Division",
                 "template": "tabteamcosts.html",
             }
         )
