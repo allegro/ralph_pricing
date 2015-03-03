@@ -168,27 +168,36 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          */
         getComponentsData: function () {
             var self = this;
-            var url_chunks = [
-                '/scrooge/rest/components',
-                self.menuStats['service']['current'],
-                self.menuStats['env']['current'],
-                self.menuStats['year']['current'],
-                self.menuStats['month']['current'],
-                self.menuStats['day']['current'],
-            ];
-            if (typeof(self.canceler) !== 'undefined') {
-                self.canceler.resolve();
+            if (self.menuStats['service']['current'] &&
+                self.menuStats['year']['current'] &&
+                self.menuStats['month']['current'] &&
+                self.menuStats['day']['current']) {
+                var url_chunks = [
+                    '/scrooge/rest/components',
+                    self.menuStats['service']['current'],
+                ];
+                if (self.menuStats['env']['current']) {
+                    url_chunks.push(self.menuStats['env']['current']);
+                }
+                url_chunks = url_chunks.concat([
+                    self.menuStats['year']['current'],
+                    self.menuStats['month']['current'],
+                    self.menuStats['day']['current'],
+                ]);
+                if (typeof(self.canceler) !== 'undefined') {
+                    self.canceler.resolve();
+                }
+                self.canceler = $q.defer();
+                $http({
+                    method: 'GET',
+                    url: url_chunks.join('/'),
+                    timeout: self.canceler.promise,
+                }).
+                success(function(data) {
+                    self.components.content = data;
+                    self.components.contentStats.table = data[0].name;
+                });
             }
-            self.canceler = $q.defer();
-            $http({
-                method: 'GET',
-                url: url_chunks.join('/'),
-                timeout: self.canceler.promise,
-            }).
-            success(function(data) {
-                self.components.content = data;
-                self.components.contentStats.table = data[0].name;
-            });
         },
         /**
          * Collect data for allocation client subpage.

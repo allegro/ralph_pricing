@@ -104,3 +104,39 @@ class TestPricingObjects(TestCase):
             {Decimal(x['2']) for x in data[0]['value'][0]['__nested']},
             {Decimal('50.0'), Decimal('35.0')}
         )
+
+    def test_pricing_objects_view_returns_data_for_other_costs(self):
+        DailyCostFactory(
+            type=self.ut2,
+            pricing_object=None,
+            service_environment=self.se1,
+            forecast=False,
+            date=self.today,
+            value=99,
+            cost=99,
+        )
+        User.objects.create_superuser('test', 'test@test.test', 'test')
+        client = APIClient()
+        client.login(username='test', password='test')
+        resp = client.get('/scrooge/rest/pricing_object_costs/{}/{}/{}/{}/'.format(  # noqa
+            self.se1.service.id,
+            self.se1.environment.id,
+            self.today.strftime('%Y-%m-%d'),
+            self.today.strftime('%Y-%m-%d'),
+        ))
+        data = json.loads(resp.content)
+        self.assertEqual(
+            data[-1],
+            {
+                'icon_class': 'fa-desktop',
+                'name': 'Other',
+                'color': '#ff0000',
+                'value': [],
+                'slug': 'other',
+                'schema': {
+                    '1': 'Value',
+                    '0': 'Name',
+                    '2': 'Cost'
+                }
+            }
+        )
