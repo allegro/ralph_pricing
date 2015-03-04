@@ -147,12 +147,22 @@ class MonthlyCosts(WorkerJob, Base):
     def _check_subjobs(cls, statuses, start, end, **kwargs):
         """
         Check subjobs (jobs for single day) statuses.
+
+        :param statuses: shared dict with statuses (True/False) for each day
+            between start and end.
+        :type statuses: dict
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
         """
         days = (end - start).days + 1
         step = 100.0 / days
         total_progress = 0
         results = {}
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            # if day is in statuses, it was already calculated - do not check
+            # it again
             if day in statuses:
                 continue
             dcj = DailyCostsJob()
@@ -173,6 +183,15 @@ class MonthlyCosts(WorkerJob, Base):
     def _save_costs(self, data, start, end, forecast):
         """
         Save costs between start and end.
+
+        :param data: list of DailyCost instances
+        :type data: list
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
+        :param forecast: True, if forecast costs
+        :type forecast: bool
         """
         collector = Collector()
         collector.save_period_costs(start, end, forecast, data)
@@ -182,6 +201,14 @@ class MonthlyCosts(WorkerJob, Base):
         """
         Process results from subtask jobs (single day) - create daily costs
         instances.
+
+        :param data: costs per service environments
+        :type data: dict of lists (key: service environment id, value: list of
+            costs of service environment)
+        :param date: date for which process daily results
+        :type date: datetime.date
+        :param forecast: True, if forecast costs
+        :type forecast: bool
         """
         collector = Collector()
         return collector._create_daily_costs(date, data, forecast)

@@ -163,19 +163,6 @@ class Collector(object):
         logger.info('Costs calculated for date {}'.format(date))
         return costs
 
-    def save_costs(self, date, forecast, costs):
-        """
-        Save costs for single date.
-
-        :param costs: costs processed by collector and and plugins
-        """
-        # create daily costs instances
-        daily_costs = self._create_daily_costs(date, costs, forecast)
-        self._delete_daily_costs(date, forecast)
-        self._save_costs(daily_costs)
-        self._update_status(date, forecast)
-        logger.info('Costs saved for date {}'.format(date))
-
     def save_period_costs(self, start, end, forecast, costs):
         """
         Save costs for period of time.
@@ -186,19 +173,6 @@ class Collector(object):
         self._save_costs(costs)
         self._update_status_period(start, end, forecast)
         logger.info('Costs saved for dates {}-{}'.format(start, end))
-
-    def _delete_daily_costs(self, date, forecast):
-        """
-        Delete previously saved costs for single date (including forecast flag)
-        """
-        logger.info('Deleting previously saved costs')
-        cursor = connection.cursor()
-        cursor.execute(
-            "DELETE FROM {} WHERE date=%s and forecast=%s".format(
-                DailyCost._meta.db_table,
-            ),
-            [date, forecast]
-        )
 
     def _delete_daily_period_costs(self, start, end, forecast):
         """

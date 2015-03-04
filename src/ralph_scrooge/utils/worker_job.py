@@ -82,8 +82,7 @@ class WorkerJob(object):
             )
         if self._return_job_meta:
             return progress, data, job.meta
-        else:
-            return progress, data
+        return progress, data
 
     @classmethod
     def _worker_func(cls, **kwargs):
