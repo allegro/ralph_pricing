@@ -12,8 +12,8 @@ import time
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ralph_scrooge.plugins.collect.openstack_ceilometer import (
-    openstack_ceilometer as ceilometer_plugin,
+from ralph_scrooge.plugins.collect.openstack_mysql_ceilometer import (
+    openstack_mysql_ceilometer as ceilometer_mysql_plugin,
     clear_ceilometer_stats,
     DailyTenantNotFoundError,
     get_daily_tenant,
@@ -78,7 +78,7 @@ class TestOpenStackCeilometer(TestCase):
         with self.assertRaises(TenantNotFoundError):
             get_daily_tenant(tenant.tenant_id, self.today)
 
-    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.create_engine')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_mysql_ceilometer.create_engine')  # noqa
     def test_get_ceilometer_usages(self, create_engine_mock):
         from_ts = time.mktime(self.yesterday.timetuple())
         to_ts = time.mktime(self.today.timetuple())
@@ -146,11 +146,11 @@ class TestOpenStackCeilometer(TestCase):
         clear_ceilometer_stats(self.today)
         self.assertEquals(DailyUsage.objects.count(), 10)
 
-    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.get_ceilometer_usages')  # noqa
-    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.clear_ceilometer_stats')  # noqa
-    @mock.patch('ralph_scrooge.plugins.collect.openstack_ceilometer.save_ceilometer_usages')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_mysql_ceilometer.get_ceilometer_usages')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_mysql_ceilometer.clear_ceilometer_stats')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.openstack_mysql_ceilometer.save_ceilometer_usages')  # noqa
     @override_settings(**TEST_SETTINGS_SCROOGE_OPENSTACK_CEILOMETER)
-    def test_ceilometer_plugin(
+    def test_ceilometer_mysql_plugin(
         self,
         save_ceilometer_usages_mock,
         clear_ceilometer_stats_mock,
@@ -162,7 +162,7 @@ class TestOpenStackCeilometer(TestCase):
         warehouse1 = WarehouseFactory(name='WH1')
         warehouse2 = WarehouseFactory(name='WH2')
 
-        result = ceilometer_plugin(self.today)
+        result = ceilometer_mysql_plugin(self.today)
         self.assertEquals(result, (True, 'Ceilometer usages: 6 new, 8 total'))
         clear_ceilometer_stats_mock.assert_called(self.today)
         self.assertEquals(get_ceilometer_usages_mock.call_count, 2)
