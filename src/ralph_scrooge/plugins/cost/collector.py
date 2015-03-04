@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+from collections import defaultdict
 from dateutil import rrule
 
 from django.conf import settings
@@ -129,7 +130,6 @@ class Collector(object):
         date,
         forecast=False,
         delete_verified=False,
-        service_environments=None,
         plugins=None,
     ):
         """
@@ -149,7 +149,6 @@ class Collector(object):
         self._verify_accepted_costs(date, forecast, delete_verified)
         costs = self._collect_costs(
             date=date,
-            service_environments=service_environments,
             forecast=forecast,
             plugins=plugins,
         )
@@ -221,7 +220,6 @@ class Collector(object):
     def _collect_costs(
         self,
         date,
-        service_environments=None,
         forecast=False,
         plugins=None
     ):
@@ -230,22 +228,20 @@ class Collector(object):
         """
         logger.debug("Getting report date")
         old_queries_count = len(connection.queries)
-        data = {se.id: [] for se in service_environments}
+        data = defaultdict(list)
         for i, plugin in enumerate(plugins or self.get_plugins()):
             try:
                 plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
                     'scrooge_costs',
                     plugin.plugin_name,
-                    service_environments=service_environments,
                     date=date,
                     forecast=forecast,
                     type='costs',
                     **{str(k): v for (k, v) in plugin['plugin_kwargs'].items()}
                 )
                 for service_id, service_usage in plugin_report.iteritems():
-                    if service_id in data:
-                        data[service_id].extend(service_usage)
+                    data[service_id].extend(service_usage)
                 plugin_queries_count = (
                     len(connection.queries) - plugin_old_queries_count
                 )
@@ -453,6 +449,7 @@ class Collector(object):
             AttributeDict(
                 name='support',
                 plugin_name='support_plugin',
+                plugin_kwargs={},
             )
         ]
 
