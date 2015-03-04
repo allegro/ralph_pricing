@@ -518,3 +518,13 @@ div.blocked {
 .tab-save-button {
     float: right;
 }
+
+.costcard-error-message {
+    text-align: center;
+    font-size: 18px;
+    color: #aa0000;
+}
+
+.costcard-error-message p {
+    margin-top: 10px;
+}
