@@ -97,12 +97,10 @@ class Collector(object):
         # calculate costs only if were not calculated for some date, unless
         # force_recalculation is True
         dates = self._get_dates(start, end, forecast, force_recalculation)
-        service_environments = self._get_services_environments()
         for day in dates:
             try:
                 self.process(
                     day,
-                    service_environments=service_environments,
                     forecast=forecast,
                     **kwargs
                 )
@@ -148,14 +146,12 @@ class Collector(object):
             forecast,
             date,
         ))
-        if service_environments is None:
-            service_environments = self._get_services_environments()
         self._verify_accepted_costs(date, forecast, delete_verified)
         costs = self._collect_costs(
-            date,
-            service_environments,
-            forecast,
-            plugins,
+            date=date,
+            service_environments=service_environments,
+            forecast=forecast,
+            plugins=plugins,
         )
         daily_costs = self._create_daily_costs(date, costs, forecast)
         with transaction.commit_on_success():
@@ -225,8 +221,8 @@ class Collector(object):
     def _collect_costs(
         self,
         date,
-        service_environments,
-        forecast,
+        service_environments=None,
+        forecast=False,
         plugins=None
     ):
         """
@@ -245,7 +241,7 @@ class Collector(object):
                     date=date,
                     forecast=forecast,
                     type='costs',
-                    **plugin.get('plugin_kwargs', {})
+                    **{str(k): v for (k, v) in plugin['plugin_kwargs'].items()}
                 )
                 for service_id, service_usage in plugin_report.iteritems():
                     if service_id in data:
@@ -307,8 +303,8 @@ class Collector(object):
         services_plugins = cls._get_pricing_services_plugins()
         teams_plugins = cls._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
-                   services_plugins + teams_plugins + support_plugins +
-                   extra_cost_types_plugins + dynamic_extra_cost_types_plugins)
+                   teams_plugins + support_plugins + extra_cost_types_plugins +
+                   dynamic_extra_cost_types_plugins + services_plugins)
         return plugins
 
     @classmethod
@@ -338,7 +334,6 @@ class Collector(object):
                 plugin_name=but.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': but,
-                    'no_price_msg': True,
                 }
             )
             result.append(but_info)
@@ -371,7 +366,6 @@ class Collector(object):
                 plugin_name=rut.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': rut,
-                    'no_price_msg': True,
                 }
             )
             result.append(rut_info)

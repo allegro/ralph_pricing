@@ -22,7 +22,7 @@ from ralph_scrooge.tests.utils.factory import (
 
 
 class SampleCostPlugin(BaseCostPlugin):
-    def costs(self, *args, **kwargs):
+    def _costs(self, *args, **kwargs):
         pass
 
 

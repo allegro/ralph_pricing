@@ -11,6 +11,7 @@ from ralph_scrooge.models import DynamicExtraCost
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import NoPriceCostError
 from ralph_scrooge.plugins.cost.pricing_service import PricingServiceBasePlugin
+from ralph_scrooge.utils.common import memoize
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +22,11 @@ class DynamicExtraCostPlugin(PricingServiceBasePlugin):
         service_costs = self.costs(*args, **kwargs)
         return self._get_total_costs_from_costs(service_costs)
 
-    def costs(
+    @memoize(skip_first=True)
+    def _costs(
         self,
         dynamic_extra_cost_type,
         date,
-        service_environments,
         forecast=False,
         **kwargs
     ):
@@ -43,7 +44,6 @@ class DynamicExtraCostPlugin(PricingServiceBasePlugin):
         return self._distribute_costs(
             date,
             dynamic_extra_cost_type,
-            service_environments,
             costs,
             percentage,
             excluded_services=set(
