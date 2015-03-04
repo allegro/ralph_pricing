@@ -129,7 +129,7 @@ def clear_ceilometer_stats(date):
 
 
 @plugin.register(chain='scrooge', requires=['service', 'tenant'])
-def openstack_ceilometer(today, **kwargs):
+def openstack_mysql_ceilometer(today, **kwargs):
     """
     Pricing plugin for openstack ceilometer.
     """
