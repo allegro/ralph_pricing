@@ -14,6 +14,9 @@ from ralph_scrooge.rest import (
     AllocationClientService,
     AllocationClientPerTeam,
     CostCardContent,
+    CostContent,
+    ComponentsContent,
+    ObjectCostsContent,
 )
 
 from ralph_scrooge.rest.menu import SubMenu
@@ -25,6 +28,10 @@ from ralph_scrooge.utils.security import (
 
 urlpatterns = patterns(
     '',
+    url(
+        r'^cost/(?P<service>\d+)/(?P<env>\d+)/(?P<start>(\d{2}-\d{2}-\d{4}))/(?P<end>(\d{2}-\d{2}-\d{4}))/?$',  # noqa
+        scrooge_permission(CostContent.as_view()),
+    ),
     url(
         r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/?$',
         scrooge_permission(AllocationAdminContent.as_view()),
@@ -50,8 +57,21 @@ urlpatterns = patterns(
         team_permission(AllocationClientPerTeam.as_view()),
     ),
     url(
+        r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/?$',  # noqa
+        service_permission(ComponentsContent.as_view()),
+    ),
+    url(
+        r'^components/(?P<service>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/?$',  # noqa
+        service_permission(ComponentsContent.as_view()),
+    ),
+    url(
         r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         service_permission(CostCardContent.as_view()),
+    ),
+    url(
+        r'^pricing_object_costs/(?P<service>\d+)/(?P<env>\d+)/(?P<start_date>[0-9-]+)/(?P<end_date>[0-9-]+)/?$',  # noqa
+        service_permission(ObjectCostsContent.as_view()),
+        name='pricing_object_costs'
     ),
     url(
         r'^submenu/?$',

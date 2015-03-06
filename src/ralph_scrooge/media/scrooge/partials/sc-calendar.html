@@ -1,0 +1,20 @@
+<div class="date-tabs {{ view }}">
+    <ul class="tab years"  ng-show="showed <= 2">
+        <li ng-class="{active: date.year == year}" ng-repeat="year in years">
+            <a ng-click="changeYear(year)">{{ year }}</a>
+        </li>
+    </ul>
+    <ul class="tab months" ng-show="showed <= 1">
+        <li ng-class="{active: date.month == month}" ng-repeat="month in months">
+            <a ng-click="changeMonth(month)">{{ month | intToMonth }}</a>
+        </li>
+    </ul>
+    <ul class="tab days" ng-show="showed <= 0" ng-class="{disabled: !date.month}">
+        <li ng-class="{active: date.day == day}" ng-repeat="day in days">
+            <a ng-click="changeDay(day)">{{ day }}</a>
+        </li>
+        <li ng-hide="date.month">
+            <div class="message"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Please select month.</div>
+        </li>
+    </ul>
+</div>

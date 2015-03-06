@@ -7,6 +7,7 @@
         <meta charset="utf-8">
         <title>Ralph Scrooge | {% block title %}{% block titlesection %}{{ active_menu.module.label }}{% block titlesubsection %}{% endblock %} - {{ active_submodule|title }}{% endblock %}{% endblock %}</title>
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/datepicker3.css" />
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/bootstrap-table.css" />
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/scrooge.css" />
         <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/loading-bar.css" />
@@ -28,6 +29,7 @@
         <script src="{{ STATIC_URL }}scrooge/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/bootstrap.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/bootstrap-table.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/js/bootstrap-datepicker.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/raven.min.js"></script>
         <script src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
         <!-- Angular scripts -->
@@ -41,6 +43,7 @@
         <script src="{{ STATIC_URL }}scrooge/app/menu/filter.js"></script>
         <script src="{{ STATIC_URL }}scrooge/app/menu/service.js"></script>
         <script src="{{ STATIC_URL }}scrooge/app/component/controller.js"></script>
+        <script src="{{ STATIC_URL }}scrooge/app/cost/controller.js"></script>
         <script src="{{ STATIC_URL }}scrooge/app/costcard/controller.js"></script>
         <script src="{{ STATIC_URL }}scrooge/app/allocationclient/controller.js"></script>
         <script src="{{ STATIC_URL }}scrooge/app/allocationadmin/controller.js"></script>
@@ -63,7 +66,22 @@
                     <div class="breadcrumbs-container" ng-include="'/static/scrooge/partials/breadcrumbs.html'"></div>
                     <div class="row data">
                       <div class="col-xs-12 col-md-12">
-                        <menucalendardirective ng-show="stats.menuReady"></menucalendardirective>
+                        <div ng-controller="menuStatsAdapterCtrl">
+                            <sc-calendar
+                                view="stats.currentSubMenu.calendarMenu"
+                                selected="date"
+                                start-date="startDate"
+                                end-date="endDate"
+                            >
+                            </sc-calendar>
+                            <sc-datepicker
+                                ng-show="stats.currentSubMenu.calendarMenu == 'range'"
+                                range
+                                autoclose
+                                selected="date"
+                            >
+                            </sc-datepicker>
+                        </div>
                       </div>
                       <div class="col-xs-12 col-md-12 animate-show loading-bar-spinner-container content-container">
                         <ng-view></ng-view>
