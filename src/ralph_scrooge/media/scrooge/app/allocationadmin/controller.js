@@ -18,11 +18,14 @@ scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 's
 
     $scope.getTotal = function (extra_costs, cost_type) {
         var total = 0;
-        extra_costs.forEach(function (obj) {
-            if (typeof(obj[cost_type]) !== 'undefined') {
-                total = total + Number(obj[cost_type]);
-            }
-        });
+
+        if (typeof(extra_costs) !== 'undefined' && typeof(extra_costs) !== 'string') {
+            extra_costs.forEach(function (obj) {
+                if (typeof(obj[cost_type]) !== 'undefined') {
+                    total = total + Number(obj[cost_type]);
+                }
+            });
+        }
         return total;
     };
     $scope.addRow = function (costList) {

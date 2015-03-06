@@ -1,4 +1,4 @@
-<div id="table-costcard" class="animate-table" ng-repeat="forceRefresh in forceRefreshDomElement">
+<div ng-if="!stats.costcard.error_message" id="table-costcard" class="animate-table" ng-repeat="forceRefresh in forceRefreshDomElement">
   <table data-toggle="table" data="{{stats.costcard.content}}" data-row-style="rowStyle">
     <thead>
       <tr>
@@ -18,4 +18,7 @@
         return {};
       }
   </script>
+</div>
+<div class="costcard-error-message" ng-if="stats.costcard.error_message">
+  <p>{{ stats.costcard.error_message }}</p>
 </div>
