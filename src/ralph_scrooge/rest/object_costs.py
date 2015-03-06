@@ -7,8 +7,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.template.defaultfilters import slugify
+from rest_framework.response import Response
 
 from ralph_scrooge.rest.components import ComponentsContent
 from ralph_scrooge.models import (
@@ -16,6 +17,7 @@ from ralph_scrooge.models import (
     PricingObject,
     CostDateStatus,
     PricingObjectType,
+    PRICING_OBJECT_TYPES,
 )
 
 
@@ -95,3 +97,49 @@ class ObjectCostsContent(ComponentsContent):
             },
             'color': single_type.color,
         }
+
+    def _get_rest_of_costs(self, start_date, end_date, service, env=None):
+        query_daily_cost = DailyCost.objects.filter(
+            Q(pricing_object_id=None) |
+            Q(pricing_object__type_id__in=[
+                PRICING_OBJECT_TYPES.UNKNOWN,
+                PRICING_OBJECT_TYPES.DUMMY
+            ]),  # Dummy and unknown
+            forecast=False,
+            date__in=CostDateStatus.objects.filter(
+                accepted=True,
+                date__gte=start_date,
+                date__lte=end_date
+            ).values_list('date', flat=True),
+            service_environment__service__id=service
+        )
+        if env:
+            query_daily_cost = query_daily_cost.filter(
+                service_environment__environment_id=env
+            )
+        query_daily_cost = query_daily_cost.values_list(
+            'type__name'
+        ).annotate(Sum('value')).annotate(Sum('cost'))
+        daily_costs = []
+        for cost in query_daily_cost:
+            daily_costs.append({str(k): v for k, v in enumerate(cost)})
+        return {
+            'name': 'Other',
+            'icon_class': 'fa-desktop',
+            'slug': 'other',
+            'value': daily_costs,
+            'schema': {'0': 'Name', '1': 'Value', '2': 'Cost'},
+            'color': '#ff0000',
+        }
+
+    def get(self, request, *args, **kwargs):
+        daily_pricing_objects = self.get_daily_pricing_objects(*args, **kwargs)
+        results = []
+        for single_type in self.get_types():
+            results.append(self.process_single_type(
+                single_type, daily_pricing_objects
+            ))
+        results.append(self._get_rest_of_costs(
+            *args, **kwargs
+        ))
+        return Response(results if results else [])
