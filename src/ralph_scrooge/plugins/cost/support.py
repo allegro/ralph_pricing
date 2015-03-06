@@ -11,7 +11,6 @@ from collections import defaultdict, namedtuple
 from ralph_scrooge.models import ExtraCostType, SupportCost
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import BaseCostPlugin
-from ralph_scrooge.utils.common import memoize
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +35,10 @@ class SupportPlugin(BaseCostPlugin):
     cost model.
     """
 
-    @memoize(skip_first=True)
-    def _costs(
+    def costs(
         self,
         date,
+        service_environments,
         forecast=False,
         *args,
         **kwargs
@@ -68,6 +67,9 @@ class SupportPlugin(BaseCostPlugin):
             end__gte=date,
             start__lte=date,
             pricing_object__daily_pricing_objects__date=date,
+            pricing_object__daily_pricing_objects__service_environment__in=(
+                service_environments
+            )
         ).values_list(
             'pricing_object__daily_pricing_objects__service_environment_id',
             'pricing_object_id',

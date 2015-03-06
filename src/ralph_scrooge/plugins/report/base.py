@@ -46,7 +46,7 @@ class BaseReportPlugin(BasePlugin):
         start,
         end,
         base_usage,
-        service_environments=None,
+        service_environments,
         forecast=False,
         *args,
         **kwargs
@@ -66,18 +66,14 @@ class BaseReportPlugin(BasePlugin):
         """
         logger.debug("Get {} usages".format(base_usage))
 
-        daily_costs_query = DailyCost.objects.filter(
+        daily_costs = DailyCost.objects.filter(
             date__gte=start,
             date__lte=end,
+            service_environment__in=service_environments,
             type=base_usage,
             forecast=forecast,
-        )
-        if service_environments:
-            daily_costs_query = daily_costs_query.filter(
-                service_environment__in=service_environments,
-            )
-        daily_costs = daily_costs_query.values(
-            'service_environment_id'
+        ).values(
+            'service_environment__id'
         ).annotate(
             total_cost=Sum('cost'),
             total_value=Sum('value'),
@@ -86,11 +82,11 @@ class BaseReportPlugin(BasePlugin):
         usages = defaultdict(lambda: defaultdict(list))
         for daily_cost in daily_costs:
             if self.base_usage_cost_symbol:
-                usages[daily_cost['service_environment_id']][
+                usages[daily_cost['service_environment__id']][
                     self.base_usage_cost_symbol.format(base_usage.id)
                 ] = daily_cost['total_cost']
             if self.base_usage_count_symbol:
-                usages[daily_cost['service_environment_id']][
+                usages[daily_cost['service_environment__id']][
                     self.base_usage_count_symbol.format(base_usage.id)
                 ] = daily_cost['total_value']
         return usages

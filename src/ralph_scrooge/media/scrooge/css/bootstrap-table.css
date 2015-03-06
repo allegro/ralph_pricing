@@ -172,6 +172,26 @@
     text-align: left !important;
 }
 
+.fixed-table-body .has-nested {
+    cursor: pointer;
+}
+.fixed-table-body .has-nested td:first-child:before {
+    content: "- ";
+}
+.fixed-table-body .has-nested.collapsed td:first-child:before {
+    content: "+ ";
+}
+
+.fixed-table-body .nested .table {
+    margin-left: 20px;
+    width: calc(100% - 40px);
+    border-bottom: 1px solid #ddd;
+}
+
+.fixed-table-body .hidden {
+  display: none;
+}
+
 /* support bootstrap 2 */
 .fixed-table-body thead th .th-inner {
     box-sizing: border-box;

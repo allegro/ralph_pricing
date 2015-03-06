@@ -49,34 +49,13 @@ class BaseCostPlugin(BasePlugin):
                 return func(*args, **kwargs)
         raise AttributeError()
 
-    def costs(self, service_environments=None, *args, **kwargs):
-        """
-        Return information about costs of some type (ex. team, service)
-        filtered by passed service environments (if passed - otherwise it's
-        simple proxt to _costs method, which should be cached).
-        """
-        costs = self._costs(*args, **kwargs)
-        # filter by service environments if specified
-        if service_environments:
-            se_ids = set([se.id for se in service_environments])
-            costs = {k: v for (k, v) in costs.iteritems() if k in se_ids}
-        return costs
-
     @abc.abstractmethod
-    def _costs(self, *args, **kwargs):
+    def costs(self, *args, **kwargs):
         """
-        Should returns information about costs of some type (ex. team, service)
-        per service environment in format accepted by collector (dictionary,
-        with service_environment id as a key and value is list dictonaries with
-        costs definition. Example of single cost:
-        {
-            'cost': Decimal('100.12'),
-            'value': 300.12,  # usage of resource/type
-            'pricing_object_id': 1234  # optional, but it's preffered to return
-                here dummy pricing object id if concrete is not known
-            'type_id': 11,
-        }
+        Should returns information about costs of usage (ex. team, service) per
+        service environment in format accepted by collector.
         """
+        pass
 
     def total_cost(self, *args, **kwargs):
         """

@@ -12,7 +12,7 @@ from datetime import timedelta
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models import HistoricalService, ServiceEnvironment
+from ralph_scrooge.models import HistoricalService
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.report.base import BaseReportPlugin
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 @register(chain='scrooge_reports')
 class Information(BaseReportPlugin):
-    def costs(self, start, end, service_environments=None, *args, **kwargs):
+    def costs(self, service_environments, start, end, *args, **kwargs):
         """
         Return information about given ventures
 
@@ -52,8 +52,6 @@ class Information(BaseReportPlugin):
         # 4)                        |________|
         # in cases 1 and 2 start has to be between active_from and active_end
         # in cases 3 and 4 active_from has to be between start and end
-        if not service_environments:
-            service_environments = ServiceEnvironment.objects.all()
         services_history = HistoricalService.objects.filter(
             (Q(active_from__lte=start) & Q(active_to__gte=start)) |  # 1-2
             (Q(active_from__gte=start) & Q(active_from__lt=day_after_end)),
@@ -79,15 +77,15 @@ class Information(BaseReportPlugin):
                 'profit_center': ' / '.join([
                     ' - '.join(
                         (pc.name, pc.description or '')
-                    ) for pc in set(profit_centers[
+                    ) for pc in profit_centers[
                         service_environment.service.id
-                    ])
+                    ]
                 ]),
-                'business_line': ' / '.join(set([
+                'business_line': ' / '.join([
                     pc.business_line.name for pc in profit_centers[
                         service_environment.service.id
                     ]
-                ])),
+                ]),
             }
         return info
 

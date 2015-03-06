@@ -78,10 +78,7 @@ class ServicesCostsReport(BasePluginReport):
         """
         logger.debug("Getting report date")
         data = {se.id: {} for se in service_environments}
-        plugins = cls.get_plugins()
-        progress = 0
-        step = 100 / len(plugins)
-        for i, plugin in enumerate(plugins):
+        for i, plugin in enumerate(cls.get_plugins()):
             try:
                 logger.info('Calling plugin {} with base usage {}'.format(
                     plugin.plugin_name,
@@ -90,6 +87,7 @@ class ServicesCostsReport(BasePluginReport):
                 plugin_report = plugin_runner.run(
                     'scrooge_reports',
                     plugin.plugin_name,
+                    service_environments=service_environments,
                     start=start,
                     end=end,
                     forecast=forecast,
@@ -100,8 +98,6 @@ class ServicesCostsReport(BasePluginReport):
                     if service_id in data:
                         data[service_id].update(service_usage)
 
-                progress += step
-                yield progress, {}
             except KeyError:
                 logger.warning(
                     "Usage '{0}' has no usage plugin".format(plugin.name)
@@ -111,7 +107,7 @@ class ServicesCostsReport(BasePluginReport):
                     "Error while generating the report: {0}".format(e)
                 )
                 raise
-        yield 100, data
+        return data
 
     @classmethod
     def get_data(
@@ -132,17 +128,11 @@ class ServicesCostsReport(BasePluginReport):
         """
         logger.info("Generating report from {0} to {1}".format(start, end))
         services_environments = cls._get_services_environments(is_active)
-        for progress, data in cls._get_report_data(
+        data = cls._get_report_data(
             start,
             end,
             is_active,
             forecast,
             services_environments,
-        ):
-            if data:
-                yield progress, cls._prepare_final_report(
-                    data,
-                    services_environments
-                )
-            else:
-                yield progress, []
+        )
+        yield 100, cls._prepare_final_report(data, services_environments)

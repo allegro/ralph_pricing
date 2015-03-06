@@ -187,7 +187,7 @@ class AllocationClientService(APIView):
         try:
             response.update({
                 "serviceDivision": {
-                    "name": "Service Devision",
+                    "name": "Service Division",
                     "template": "tabservicedivision.html",
                     "rows": self._get_service_divison(
                         service,
@@ -290,7 +290,7 @@ class AllocationClientPerTeam(APIView):
         first_day, last_day, days_in_month = get_dates(year, month)
         return Response({
             "teamDivision": {
-                "name": "Team Devision",
+                "name": "Team Division",
                 "template": "tabteamcosts.html",
                 "rows": self._get_team_divison(team, first_day, last_day),
             }

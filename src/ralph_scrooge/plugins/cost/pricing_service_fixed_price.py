@@ -11,8 +11,8 @@ from decimal import Decimal as D
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.plugins.base import register
+from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.plugins.cost.pricing_service import PricingServiceBasePlugin
-from ralph_scrooge.utils.common import memoize
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +28,11 @@ class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
         service_costs = self.costs(*args, **kwargs)
         return self._get_total_costs_from_costs(service_costs)
 
-    @memoize(skip_first=True)
-    def _costs(
+    def costs(
         self,
         pricing_service,
         date,
+        service_environments,
         forecast=False,
         **kwargs
     ):
@@ -45,6 +45,10 @@ class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
             )
         )
         result_dict = defaultdict(dict)
+        # if service_environments are not defined, use all (usefull when
+        # calculating diff between real and calculated costs)
+        if not service_environments:
+            service_environments = Collector._get_services_environments()
         usage_types = pricing_service.usage_types.all()
         for usage_type in usage_types:
             try:
@@ -57,6 +61,7 @@ class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
                     date=date,
                     usage_type=usage_type,
                     forecast=forecast,
+                    service_environments=service_environments,
                 )
                 # store costs in hierarchy service environment / pricing object
                 # and calculate total cost of cloud per pricing object
