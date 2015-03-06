@@ -285,21 +285,29 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
         },
         getCostCardData: function () {
             var self = this;
-            var url_chunks = [
-                '/scrooge/rest/costcard',
-                self.menuStats['service']['current'],
-                self.menuStats['env']['current'],
-                self.menuStats['year']['current'],
-                self.menuStats['month']['current'],
-            ];
-            $http({
-                method: 'GET',
-                url: url_chunks.join('/'),
-                params: {forecast: true} // TEMPORARY!
-            })
-            .success(function(data) {
-                self.costcard.content = data;
-            });
+            if (self.menuStats['service']['current'] &&
+                self.menuStats['year']['current'] &&
+                self.menuStats['month']['current'] &&
+                self.menuStats['env']['current']) {
+                var url_chunks = [
+                    '/scrooge/rest/costcard',
+                    self.menuStats['service']['current'],
+                    self.menuStats['env']['current'],
+                    self.menuStats['year']['current'],
+                    self.menuStats['month']['current'],
+                ];
+                $http({
+                    method: 'GET',
+                    url: url_chunks.join('/'),
+                })
+                .success(function(data) {
+                    if (data && data.status) {
+                        self.costcard.content = data.results;
+                    } else {
+                        self.costcard.error_message = data.message;
+                    }
+                });
+            }
         },
 
         /**

@@ -59,6 +59,16 @@ class CostCardContent(APIView):
             date__lte=last_day,
             **{'forecast_accepted' if forecast else 'accepted': True}
         ).values_list('date', flat=True)
+
+        if len(dates) == 0:
+            return Response({
+                "status": False,
+                "message": _(
+                    'There are no accepted costs for chosen date.'
+                    ' Please choose different date or back later.'
+                )
+            })
+
         monthly_costs = DailyCost.objects.filter(
             date__in=dates,
             service_environment=service_environment,
@@ -84,4 +94,7 @@ class CostCardContent(APIView):
             'cost': round(total, 2),
         })
 
-        return Response(results)
+        return Response({
+            "status": True,
+            "results": results
+        })
