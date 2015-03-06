@@ -6,11 +6,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+import time
 from dateutil import rrule
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.cache import get_cache
+from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
+from rq import get_current_job
 
 from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.views.base import Base
@@ -36,7 +40,7 @@ class MonthlyCosts(WorkerJob, Base):
     queue_name = get_queue_name('scrooge_costs')
     cache_name = get_cache_name('scrooge_costs')
     cache_section = 'scrooge_costs'
-    cache_timeout = 60 * 60 * 24  # 1 hour (max time for plugin to run)
+    cache_timeout = 60 * 60 * 24  # 24 hours (max time for plugin to run)
     cache_final_result_timeout = 60 * 60 * 2  # 2 hours
     cache_all_done_timeout = 60  # 1 minute
     refresh_time = 30
@@ -56,7 +60,10 @@ class MonthlyCosts(WorkerJob, Base):
         if self.form.is_valid():
             if 'recalculate' in self.request.GET:
                 self.got_query = True
-                self.run_jobs(**self.form.cleaned_data)
+                self.progress, self.data = self.run_on_worker(
+                    **self.form.cleaned_data
+                )
+                self.data = self.data or {}
                 if self.progress < 100:
                     messages.warning(self.request, _(
                         "Please wait for costs recalculation."
@@ -72,60 +79,6 @@ class MonthlyCosts(WorkerJob, Base):
                     self.request, _("Cache cleared."),
                 )
         return super(MonthlyCosts, self).get(*args, **kwargs)
-
-    def run_jobs(self, start, end, **kwargs):
-        """
-        Run calculating as separated jobs - each for one day in period.
-
-        :param start: start date
-        :type start: datetime.date
-        :param end: end date
-        :type end: datetime.date
-        :param kwargs: additional params to costs collector
-        """
-        days = (end - start).days + 1
-        self.progress = 0
-        self.data = {}
-        step = 100.0 / days
-        all_done = True
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            progress, result = self.run_on_worker(day=day, **kwargs)
-            if progress == 100 and result:
-                self.progress += step
-                self.data.update(result)
-            else:
-                all_done = False
-        # clear cache if all done
-        if all_done:
-            self.forget_cache(start, end, **kwargs)
-
-    def forget_cache(self, start, end, **kwargs):
-        """
-        Set cache timeout to `cache_all_done_timeout` when all jobs are
-        finished.
-
-        :param start: start date
-        :type start: datetime.date
-        :param end: end date
-        :type end: datetime.date
-        """
-        cache = get_cache(self.cache_name)
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            key = _get_cache_key(self.cache_section, day=day, **kwargs)
-            cached = cache.get(key)
-            cache.set(key, cached, timeout=self.cache_all_done_timeout)
-
-    def clear_cache(self, start, end, **kwargs):
-        """
-        Clear cache for period of time as clearing for one day at once.
-
-        :param start: start date
-        :type start: datetime.date
-        :param end: end date
-        :type end: datetime.date
-        """
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self._clear_cache(day=day, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(MonthlyCosts, self).get_context_data(**kwargs)
@@ -161,15 +114,166 @@ class MonthlyCosts(WorkerJob, Base):
             ))
 
     @classmethod
+    def forget_cache(cls, start, end, **kwargs):
+        """
+        Set cache timeout to `cache_all_done_timeout` when all jobs are
+        finished.
+
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
+        """
+        cache = get_cache(cls.cache_name)
+        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            key = _get_cache_key(cls.cache_section, day=day, **kwargs)
+            cached = cache.get(key)
+            cache.set(key, cached, timeout=cls.cache_all_done_timeout)
+
+    def clear_cache(self, start, end, **kwargs):
+        """
+        Clear cache for period of time as clearing for one day at once.
+
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
+        """
+        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            self._clear_cache(day=day, **kwargs)
+        self._clear_cache(start=start, end=end, **kwargs)
+
+    @classmethod
+    def _check_subjobs(cls, statuses, start, end, **kwargs):
+        """
+        Check subjobs (jobs for single day) statuses.
+
+        :param statuses: shared dict with statuses (True/False) for each day
+            between start and end.
+        :type statuses: dict
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
+        """
+        days = (end - start).days + 1
+        step = 100.0 / days
+        total_progress = 0
+        results = {}
+        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            # if day is in statuses, it was already calculated - do not check
+            # it again
+            if day in statuses:
+                continue
+            dcj = DailyCostsJob()
+            progress, success, result = dcj.run_on_worker(day=day, **kwargs)
+            if progress == 100:
+                progress += step
+                statuses[day] = success
+            if result:
+                results[day] = result['collector_result']
+        # clear cache if all done
+        if len(statuses) == days:
+            cls.forget_cache(start, end, **kwargs)
+            total_progress = 100
+        return total_progress, statuses, results
+
+    @classmethod
+    @transaction.commit_on_success
+    def _save_costs(self, data, start, end, forecast):
+        """
+        Save costs between start and end.
+
+        :param data: list of DailyCost instances
+        :type data: list
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
+        :param forecast: True, if forecast costs
+        :type forecast: bool
+        """
+        collector = Collector()
+        collector.save_period_costs(start, end, forecast, data)
+
+    @classmethod
+    def _process_daily_result(self, data, date, forecast):
+        """
+        Process results from subtask jobs (single day) - create daily costs
+        instances.
+
+        :param data: costs per service environments
+        :type data: dict of lists (key: service environment id, value: list of
+            costs of service environment)
+        :param date: date for which process daily results
+        :type date: datetime.date
+        :param forecast: True, if forecast costs
+        :type forecast: bool
+        """
+        collector = Collector()
+        return collector._create_daily_costs(date, data, forecast)
+
+    @classmethod
+    def run(cls, start, end, forecast=False, **kwargs):
+        """
+        Run collecting costs between start and end.
+
+        It's running as "master" worker, which delegate jobs for single date to
+        subtask workers, collects results from them and process them and at the
+        end it saves all costs to the database.
+        """
+        progress = 0
+        statuses = {}
+        processed_results = []  # list of DailyCost instances for whole period
+        while progress < 100:
+            progress, statuses, results = cls._check_subjobs(
+                statuses,
+                start=start,
+                end=end,
+                forecast=forecast,
+                **kwargs
+            )
+            if results:
+                for day, day_results in results.iteritems():
+                    processed_results.extend(cls._process_daily_result(
+                        day_results,
+                        day,
+                        forecast,
+                    ))
+            if progress < 100:
+                yield progress, statuses
+                time.sleep(settings.SCROOGE_COSTS_MASTER_SLEEP)
+        # save all costs
+        cls._save_costs(processed_results, start, end, forecast)
+        yield 100, statuses
+
+
+class DailyCostsJob(WorkerJob):
+    """
+    Job for single day (running as "subtask")
+    """
+    queue_name = get_queue_name('scrooge_costs')
+    cache_name = get_cache_name('scrooge_costs')
+    cache_section = 'scrooge_costs'
+    cache_timeout = 60 * 60 * 2  # 2 hours (max time for all plugins to run)
+    cache_final_result_timeout = 60 * 60 * 2  # 2 hours
+    _return_job_meta = True
+
+    @classmethod
     def run(cls, day, forecast):
         """
         Run collecting costs for one day.
         """
         collector = Collector()
+        result = {}
         try:
-            collector.process(day, forecast)
+            result = collector.process(day, forecast)
             success = True
         except Exception as e:
             logger.exception(e)
             success = False
-        yield 100, {day: success}
+        job = get_current_job()
+        # save result to job meta to keep log clean
+        job.meta['collector_result'] = result
+        job.save()
+        yield 100, success
