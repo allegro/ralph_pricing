@@ -46,7 +46,7 @@ var allocationHelper = {
                 urlChunks = this.getTeamsUrlChunks(menuStats);
                 break;
             default:
-                throw 'Unknown leftMenu passed to fn getUrl';
+                urlChunks = [];
         }
         return urlChunks.join('/');
     }
@@ -204,25 +204,30 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          */
         getAllocationClientData: function () {
             var self = this;
-            $http({
-                method: 'GET',
-                url: allocationHelper.getUrl(
-                    self.menuStats.leftMenu.current, self.menuStats
-                )
-            })
-            .success(function(data) {
-                if (data) {
-                    Object.keys(data).forEach(function (key) {
-                        self.allocationclient.data = data;
-                        if (data[key].rows.length === 0 || data[key].disabled === true) {
-                            data[key].rows = [{}];
-                        }
-                    });
-                    self.currentTabs = self.allocationclient.data;
-                    var tabs = Object.keys(self.allocationclient.data);
-                    self.currentTab = tabs[tabs.length - 1];
-                }
-            });
+            if (self.menuStats['service']['current'] &&
+                self.menuStats['year']['current'] &&
+                self.menuStats['month']['current'] &&
+                self.menuStats['day']['current']) {
+                $http({
+                    method: 'GET',
+                    url: allocationHelper.getUrl(
+                        self.menuStats.leftMenu.current, self.menuStats
+                    )
+                })
+                .success(function(data) {
+                    if (data) {
+                        Object.keys(data).forEach(function (key) {
+                            self.allocationclient.data = data;
+                            if (data[key].rows.length === 0 || data[key].disabled === true) {
+                                data[key].rows = [{}];
+                            }
+                        });
+                        self.currentTabs = self.allocationclient.data;
+                        var tabs = Object.keys(self.allocationclient.data);
+                        self.currentTab = tabs[tabs.length - 1];
+                    }
+                });
+            }
         },
         /**
          * Collect data for allocation admin subpage.

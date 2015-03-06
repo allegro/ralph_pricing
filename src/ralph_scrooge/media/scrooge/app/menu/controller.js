@@ -59,6 +59,9 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
             $scope.stats.menuStats.leftMenu.current = leftMenu;
             $scope.changeLeftMenu(leftMenu);
         }
+        if ($scope.stats.currentSubMenu.auto_choose_env && !$scope.stats.menuStats['env']['current']) {
+            $scope.stats.menuStats['env']['change'] = stats.getEnvs($scope.stats.menuStats['service']['current'])[0].id;
+        }
     };
 }])
 .controller('menuStatsAdapterCtrl', ['$scope', 'stats', function($scope, stats){
