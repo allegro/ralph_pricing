@@ -6,11 +6,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-from collections import defaultdict
 from dateutil import rrule
 
 from django.conf import settings
 from django.db import connection
+from django.db import transaction
 
 from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
@@ -97,10 +97,12 @@ class Collector(object):
         # calculate costs only if were not calculated for some date, unless
         # force_recalculation is True
         dates = self._get_dates(start, end, forecast, force_recalculation)
+        service_environments = self._get_services_environments()
         for day in dates:
             try:
                 self.process(
                     day,
+                    service_environments=service_environments,
                     forecast=forecast,
                     **kwargs
                 )
@@ -110,10 +112,6 @@ class Collector(object):
                 yield day, False
 
     def _get_dates(self, start, end, forecast, force_recalculation):
-        """
-        Return dates between start and end for which costs were not previously
-        calculated.
-        """
         days = [d.date() for d in rrule.rrule(
             rrule.DAILY,
             dtstart=start,
@@ -133,6 +131,7 @@ class Collector(object):
         date,
         forecast=False,
         delete_verified=False,
+        service_environments=None,
         plugins=None,
     ):
         """
@@ -149,51 +148,37 @@ class Collector(object):
             forecast,
             date,
         ))
+        if service_environments is None:
+            service_environments = self._get_services_environments()
         self._verify_accepted_costs(date, forecast, delete_verified)
         costs = self._collect_costs(
-            date=date,
-            forecast=forecast,
-            plugins=plugins,
+            date,
+            service_environments,
+            forecast,
+            plugins,
         )
-        logger.info('Costs calculated for date {}'.format(date))
-        return costs
+        daily_costs = self._create_daily_costs(date, costs, forecast)
+        with transaction.commit_on_success():
+            self._delete_daily_costs(date, forecast)
+            self._save_costs(date, daily_costs, forecast)
+        logger.info('Costs saved for date {}'.format(date))
 
-    def save_period_costs(self, start, end, forecast, costs):
+    def _delete_daily_costs(self, date, forecast):
         """
-        Save costs for period of time.
-
-        :param costs: list of DailyCost instances
+        Check if there are any verfifed daily costs for given date.
+        If no, delete previously saved costs for given date.
+        If yes,
         """
-        self._delete_daily_period_costs(start, end, forecast)
-        self._save_costs(costs)
-        self._update_status_period(start, end, forecast)
-        logger.info('Costs saved for dates {}-{}'.format(start, end))
-
-    def _delete_daily_period_costs(self, start, end, forecast):
-        """
-        Delete previously saved costs between start and end (including forecast
-        flag).
-        """
-        logger.info('Deleting previously saved costs between {} and {}'.format(
-            start,
-            end,
-        ))
+        logger.info('Deleting previously saved costs')
         cursor = connection.cursor()
-        cursor.execute("""
-            DELETE FROM {}
-            WHERE date>=%s and date<=%s and forecast=%s
-            """.format(
+        cursor.execute(
+            "DELETE FROM {} WHERE date=%s and forecast=%s".format(
                 DailyCost._meta.db_table,
             ),
-            [start, end, forecast]
+            [date, forecast]
         )
 
     def _verify_accepted_costs(self, date, forecast, delete_verified):
-        """
-        Verify if costs were already accepted for passed day. If yes and
-        recalculation isn't forces VerifiedDailyCostsExistsError exception is
-        raised.
-        """
         if not delete_verified and CostDateStatus.objects.filter(
             date=date,
             **{'forecast_accepted' if forecast else 'accepted': True}
@@ -205,7 +190,7 @@ class Collector(object):
         For every service environment in costs create DailyCost instance to
         save it in database.
         """
-        logger.info('Creating daily costs instances for {}'.format(date))
+        logger.info('Creating daily costs instances')
         daily_costs = []
         for service_environment, se_costs in costs.iteritems():
             # use _build_tree directly, to collect DailyCosts for all services
@@ -218,23 +203,16 @@ class Collector(object):
             ))
         return daily_costs
 
-    def _save_costs(self, daily_costs):
+    def _save_costs(self, date, daily_costs, forecast):
         """
-        Save daily_costs in database.
-
-        :param daily_costs: list instances of DailyCost
+        Save daily_costs in database and update status of date costs to
+        calculated.
         """
         logger.info('Saving {} costs'.format(len(daily_costs)))
         DailyCost.objects.bulk_create(
             daily_costs,
             batch_size=settings.DAILY_COST_CREATE_BATCH_SIZE,
         )
-
-    def _update_status(self, date, forecast):
-        """
-        Update status for given date that costs were caculated (including
-        forecast flag).
-        """
         # update status to created
         status, created = CostDateStatus.concurrent_get_or_create(date=date)
         if forecast:
@@ -242,19 +220,13 @@ class Collector(object):
         else:
             status.calculated = True
         status.save()
-
-    def _update_status_period(self, start, end, forecast):
-        """
-        Update status between start and end that costs were caculated
-        (including forecast flag).
-        """
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self._update_status(day, forecast)
+        logger.info('Costs saved')
 
     def _collect_costs(
         self,
         date,
-        forecast=False,
+        service_environments,
+        forecast,
         plugins=None
     ):
         """
@@ -262,20 +234,22 @@ class Collector(object):
         """
         logger.debug("Getting report date")
         old_queries_count = len(connection.queries)
-        data = defaultdict(list)
+        data = {se.id: [] for se in service_environments}
         for i, plugin in enumerate(plugins or self.get_plugins()):
             try:
                 plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run(
                     'scrooge_costs',
                     plugin.plugin_name,
+                    service_environments=service_environments,
                     date=date,
                     forecast=forecast,
                     type='costs',
-                    **{str(k): v for (k, v) in plugin['plugin_kwargs'].items()}
+                    **plugin.get('plugin_kwargs', {})
                 )
                 for service_id, service_usage in plugin_report.iteritems():
-                    data[service_id].extend(service_usage)
+                    if service_id in data:
+                        data[service_id].extend(service_usage)
                 plugin_queries_count = (
                     len(connection.queries) - plugin_old_queries_count
                 )
@@ -333,8 +307,8 @@ class Collector(object):
         services_plugins = cls._get_pricing_services_plugins()
         teams_plugins = cls._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
-                   teams_plugins + support_plugins + extra_cost_types_plugins +
-                   dynamic_extra_cost_types_plugins + services_plugins)
+                   services_plugins + teams_plugins + support_plugins +
+                   extra_cost_types_plugins + dynamic_extra_cost_types_plugins)
         return plugins
 
     @classmethod
@@ -364,6 +338,7 @@ class Collector(object):
                 plugin_name=but.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': but,
+                    'no_price_msg': True,
                 }
             )
             result.append(but_info)
@@ -396,6 +371,7 @@ class Collector(object):
                 plugin_name=rut.get_plugin_name(),
                 plugin_kwargs={
                     'usage_type': rut,
+                    'no_price_msg': True,
                 }
             )
             result.append(rut_info)
@@ -483,7 +459,6 @@ class Collector(object):
             AttributeDict(
                 name='support',
                 plugin_name='support_plugin',
-                plugin_kwargs={},
             )
         ]
 

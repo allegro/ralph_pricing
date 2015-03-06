@@ -56,12 +56,13 @@ class TestPricingServiceFixedPricePluginPlugin(TestCase):
             date,
             usage_type,
             forecast,
+            service_environments,
             *args,
             **kwargs
         ):
             if usage_type == self.service_usage_types[0]:
                 return {
-                    self.service_environments[0].id: [
+                    1: [
                         {
                             'pricing_object_id': 1,
                             'type_id': self.service_usage_types[0].id,
@@ -75,7 +76,7 @@ class TestPricingServiceFixedPricePluginPlugin(TestCase):
                             'value': 200,
                         },
                     ],
-                    self.service_environments[1].id: [
+                    2: [
                         {
                             'pricing_object_id': 3,
                             'type_id': self.service_usage_types[0].id,
@@ -85,7 +86,7 @@ class TestPricingServiceFixedPricePluginPlugin(TestCase):
                     ]
                 }
             return {
-                self.service_environments[0].id: [
+                1: [
                     {
                         'pricing_object_id': 1,
                         'type_id': self.service_usage_types[1].id,
@@ -93,7 +94,7 @@ class TestPricingServiceFixedPricePluginPlugin(TestCase):
                         'value': 300,
                     },
                 ],
-                self.service_environments[1].id: [
+                2: [
                     {
                         'pricing_object_id': 3,
                         'type_id': self.service_usage_types[1].id,
@@ -110,7 +111,7 @@ class TestPricingServiceFixedPricePluginPlugin(TestCase):
             service_environments=self.service_environments,
         )
         self.assertEquals(costs, {
-            self.service_environments[0].id: [
+            1: [
                 {
                     'type_id': self.pricing_service.id,
                     'pricing_object_id': 1,
@@ -144,7 +145,7 @@ class TestPricingServiceFixedPricePluginPlugin(TestCase):
                     ]
                 }
             ],
-            self.service_environments[1].id: [
+            2: [
                 {
                     'type_id': self.pricing_service.id,
                     'pricing_object_id': 3,

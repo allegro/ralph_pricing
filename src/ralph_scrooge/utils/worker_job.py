@@ -29,15 +29,13 @@ class WorkerJob(object):
     queue_name = 'default'
     cache_name = 'default'
     work_timeout = 4 * 60 * 60  # 4 hours
-    cache_timeout = 60 * 60  # 1 hour for result of work in progress
+    cache_timeout = 60  # 1 minute for result of work in progress
     cache_final_result_timeout = 60 * 10  # 10 minutes for final result
     progress_update = 5  # update cache every 5% of progress
-    _return_job_meta = False  # if True return job metadata in _worker_func too
 
-    @classmethod
-    def _clear_cache(cls, **kwargs):
-        cache = get_cache(cls.cache_name)
-        key = _get_cache_key(cls.cache_section, **kwargs)
+    def _clear_cache(self, **kwargs):
+        cache = get_cache(self.cache_name)
+        key = _get_cache_key(self.cache_section, **kwargs)
         cache.set(key, None)
 
     def run_on_worker(self, **kwargs):
@@ -45,14 +43,14 @@ class WorkerJob(object):
         if isinstance(cache, DummyCache):
             # No caching or queues with dummy cache.
             data = self._worker_func(**kwargs)
-            return (100, data, {}) if self._return_job_meta else (100, data)
+            return 100, data
         key = _get_cache_key(self.cache_section, **kwargs)
         cached = cache.get(key)
         if cached is not None:
             progress, job_id, data = cached
-            connection = django_rq.get_connection(self.queue_name)
-            job = Job.fetch(job_id, connection)
             if progress < 100 and job_id is not None:
+                connection = django_rq.get_connection(self.queue_name)
+                job = Job.fetch(job_id, connection)
                 if job.is_finished:
                     data = job.result
                     progress = 100
@@ -80,16 +78,10 @@ class WorkerJob(object):
                 (progress, job.id, data),
                 timeout=self.cache_timeout,
             )
-        if self._return_job_meta:
-            return progress, data, job.meta
         return progress, data
 
     @classmethod
     def _worker_func(cls, **kwargs):
-        """
-        Main method executed on worker, which run user defined worker function,
-        check for progress and store results in cache.
-        """
         cache = get_cache(cls.cache_name)
         key = _get_cache_key(cls.cache_section, **kwargs)
         cached = cache.get(key)

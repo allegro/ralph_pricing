@@ -46,9 +46,43 @@ ADDITIONAL_PRICING_OBJECT_TYPES = {}
 
 SAVE_ONLY_FIRST_DEPTH_COSTS = True
 DAILY_COST_CREATE_BATCH_SIZE = 10000
-SCROOGE_COSTS_MASTER_SLEEP = 1
 
 TESTING = 'test' in sys.argv
+
+PRICING_OBJECTS_COSTS_TABLE_SCHEMA = {
+    'Asset': {
+        'fields': [
+            'id',
+            'name',
+            'assetinfo.sn',
+            'assetinfo.barcode'
+        ],
+        'model': 'ralph_scrooge.models.AssetInfo',
+    },
+    'Virtual': {
+        'fields': [
+            'id',
+            'name',
+            'model.name',
+        ],
+        'model': 'ralph_scrooge.models.VirtualInfo',
+    },
+    'IP Address': {
+        'fields': [
+            'id',
+            'name'
+        ],
+    },
+    'OpenStack Tenant': {
+        'fields': [
+            'id',
+            'name',
+            'tenantinfo.tenant_id',
+            'model.name',
+        ],
+        'model': 'ralph_scrooge.models.TenantInfo',
+    }
+}
 
 COMPONENTS_TABLE_SCHEMA = {
     'Asset': {

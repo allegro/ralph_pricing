@@ -63,16 +63,16 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         :returns: pricing service total costs hierarchy.
         """
         if for_all_service_environments:
-            return self._get_pricing_service_costs(*args, **kwargs)
+            return self._costs(*args, **kwargs)
         else:
             service_costs = self.costs(*args, **kwargs)
             return self._get_total_costs_from_costs(service_costs)
 
-    @memoize(skip_first=True)
-    def _costs(
+    def costs(
         self,
         pricing_service,
         date,
+        service_environments,
         forecast=False,
         **kwargs
     ):
@@ -93,7 +93,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         logger.info("Calculating pricing service costs: {0}".format(
             pricing_service.name,
         ))
-        costs = self._get_pricing_service_costs(
+        costs = self._costs(
             pricing_service=pricing_service,
             date=date,
             forecast=forecast,
@@ -105,6 +105,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         return self._distribute_costs(
             date,
             pricing_service,
+            service_environments,
             costs,
             percentage,
             excluded_services=excluded_services,
@@ -186,6 +187,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         self,
         date,
         pricing_service,
+        service_environments,
         costs_hierarchy,
         service_usage_types,
         excluded_services,
@@ -250,6 +252,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             usages_per_po = self._get_usages_per_pricing_object(
                 usage_type=service_usage_type.usage_type,
                 date=date,
+                service_environments=service_environments,
                 excluded_services=service_excluded,
             ).values_list(
                 'daily_pricing_object__pricing_object',
@@ -273,11 +276,31 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         return result
 
     @memoize(skip_first=True)
+    def _costs(
+        self,
+        pricing_service,
+        date,
+        forecast=False,
+        **kwargs
+    ):
+        """
+        Calculate total cost for pricing service (which is total cost of all
+        pricing object in services associated with this pricing service).
+        """
+        costs = self._get_pricing_service_costs(
+            date,
+            pricing_service,
+            forecast,
+            service_environments=pricing_service.service_environments,
+        )
+        return costs
+
     def _get_pricing_service_costs(
         self,
         date,
         pricing_service,
         forecast,
+        service_environments,
     ):
         """
         Calculates total cost of pricing service (for one day).
@@ -296,6 +319,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         :type pricing_service: ralph_scrooge.models.PricingService
         :param service_environments: List of service_environments for
             which total cost should be calculated
+        :type service_environments: iterable (list)
 
         :rtype dict:
         :returns: hierarchy of pricing service costs (grouped by base usage
@@ -321,7 +345,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 )
             }
         """
-        service_environments = pricing_service.service_environments
         # total cost of base usage types for service_environments providing
         # this pricing_service
         base_usage_types_costs = self._get_service_base_usage_types_cost(
@@ -331,6 +354,12 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             service_environments=service_environments,
         )
         regular_usage_types_costs = self._get_service_regular_usage_types_cost(
+            date,
+            pricing_service,
+            forecast,
+            service_environments=service_environments,
+        )
+        dependent_services_costs = self._get_dependent_services_cost(
             date,
             pricing_service,
             forecast,
@@ -351,12 +380,6 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             forecast,
             service_environments=service_environments,
         )
-        dependent_services_costs = self._get_dependent_services_cost(
-            date,
-            pricing_service,
-            forecast,
-            service_environments=service_environments,
-        )
         diffs_costs = self._get_service_charging_by_diffs(
             pricing_service=pricing_service,
             date=date,
@@ -365,10 +388,10 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         costs = dict(itertools.chain(
             base_usage_types_costs.items(),
             regular_usage_types_costs.items(),
+            dependent_services_costs.items(),
             teams_costs.items(),
             extra_costs.items(),
             dynamic_extra_costs.items(),
-            dependent_services_costs.items(),
         ))
         # apply diff costs (costs with equal key could been already calculated)
         for but_id, (value, children) in diffs_costs.iteritems():
@@ -621,6 +644,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 type='total_cost',
                 pricing_service=ps,
                 for_all_service_environments=True,
+                service_environments=None,
                 **kwargs
             )
             try:

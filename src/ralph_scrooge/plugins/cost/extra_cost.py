@@ -10,8 +10,9 @@ from collections import defaultdict
 
 from ralph_scrooge.models import ExtraCost
 from ralph_scrooge.plugins.base import register
-from ralph_scrooge.plugins.cost.base import BaseCostPlugin
-from ralph_scrooge.utils.common import memoize
+from ralph_scrooge.plugins.cost.base import (
+    BaseCostPlugin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +24,10 @@ class ExtraCostPlugin(BaseCostPlugin):
     cost model.
     """
 
-    @memoize(skip_first=True)
-    def _costs(
+    def costs(
         self,
         date,
+        service_environments,
         extra_cost_type,
         forecast=False,
         *args,
@@ -55,6 +56,7 @@ class ExtraCostPlugin(BaseCostPlugin):
         extra_costs = ExtraCost.objects.filter(
             end__gte=date,
             start__lte=date,
+            service_environment__in=service_environments,
             extra_cost_type=extra_cost_type,
         )
 

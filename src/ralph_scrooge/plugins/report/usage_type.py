@@ -31,21 +31,17 @@ class UsageTypePlugin(BaseReportPlugin):
         start,
         end,
         usage_type,
-        service_environments=None,
+        service_environments,
         *args,
         **kwargs
     ):
-        usages_query = DailyUsage.objects.filter(
+        usages = DailyUsage.objects.filter(
             date__gte=start,
             date__lte=end,
+            service_environment__in=service_environments,
             type=usage_type,
-        )
-        if service_environments:
-            usages_query = usages_query.filter(
-                service_environment__in=service_environments,
-            )
-        usages = usages_query.values(
-            'service_environment_id',
+        ).values(
+            'service_environment__id',
             'date',
         ).annotate(
             total=Sum('value'),
@@ -53,7 +49,7 @@ class UsageTypePlugin(BaseReportPlugin):
 
         result = defaultdict(dict)
         for u in usages:
-            result[u['date']][u['service_environment_id']] = u['total']
+            result[u['date']][u['service_environment__id']] = u['total']
         return result
 
     def usages_schema(self, usage_type, *args, **kwargs):

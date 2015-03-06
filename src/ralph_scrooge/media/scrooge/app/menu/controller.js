@@ -59,5 +59,37 @@ scrooge.controller('SubMenuCtrl', ['$scope', '$location', 'stats', 'SubMenu', fu
             $scope.stats.menuStats.leftMenu.current = leftMenu;
             $scope.changeLeftMenu(leftMenu);
         }
+        if ($scope.stats.currentSubMenu.auto_choose_env && !$scope.stats.menuStats['env']['current']) {
+            $scope.stats.menuStats['env']['change'] = stats.getEnvs($scope.stats.menuStats['service']['current'])[0].id;
+        }
     };
+}])
+.controller('menuStatsAdapterCtrl', ['$scope', 'stats', function($scope, stats){
+    $scope.selected = {};
+    $scope.startDate = new Date();
+    $scope.endDate = new Date();
+    $scope.$watch('date', function(newValue) {
+        var start = newValue ? newValue.start : false;
+        var end = newValue ? newValue.end : false;
+        if (start) {
+            stats.menuStats['year']['change'] = start.getFullYear();
+            stats.menuStats['month']['change'] = start.getMonth() + 1;
+            stats.menuStats['day']['change'] = start.getDate();
+            stats.menuStats['startDate']['change'] = start;
+            stats.refreshData();
+        }
+        if (end) {
+            stats.menuStats['endDate']['change'] = end;
+            stats.refreshData();
+        }
+    }, true);
+    $scope.$watch('stats.dates', function(newValue) {
+        //TODO: change in REST API - min date instead of list of dates
+        if (newValue) {
+            var min_year = Object.keys(newValue)[0];
+            var min_month = Object.keys(newValue[min_year])[0];
+            var min_day = Object.keys(newValue[min_year][min_month])[0];
+            $scope.startDate = new Date(min_year, min_month, min_day);
+        }
+    });
 }]);

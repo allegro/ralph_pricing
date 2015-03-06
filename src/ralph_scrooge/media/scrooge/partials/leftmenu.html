@@ -17,7 +17,7 @@
         <ul class="services">
             <li ng-show="stats.menuStats.leftMenu.current == 'services'" class="env-menu {{stats.menuStats['service']['current'] == service.id ? 'active' : ''}}" ng-repeat="service in stats.leftMenus.services | filter:searchTextMenu">
                 <a class="btn-left-menu" ng-click="menuService.changeService(service)">{{service.name}}</a>
-                <ul class="envs">
+                <ul class="envs" ng-show="stats.currentSubMenu.hide_envs_for_tabs.indexOf(stats.currentTab) === -1">
                     <li ng-repeat="env in service.value.envs" ng-show="stats.menuStats['service']['current'] == service.id" class="{{stats.menuStats['env']['current'] == env.id ? 'active' : ''}}">
                         <a ng-click="menuService.changeEnv(env.id)">{{env.name}}</a>
                     </li>
