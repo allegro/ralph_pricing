@@ -41,6 +41,7 @@ CEILOMETER_SETTINGS = [
     {
         'CEILOMETER_CONNECTION': "mysql://foo:bar@example.com:3307",
         'WAREHOUSE': 'WH2',
+        'USAGE_PREFIX': 'OS_VERSION',
     }
 ]
 TEST_SETTINGS_SCROOGE_OPENSTACK_CEILOMETER = {
@@ -59,6 +60,12 @@ class TestOpenStackCeilometer(TestCase):
         self.assertEquals(usage_type.name, 'openstack.Sample Flavor:test')
         self.assertEquals(usage_type.symbol, 'openstack.sample_flavor.test')
         self.assertFalse(usage_type.show_in_services_report)
+
+    def test_get_usage_type_with_prefix(self):
+        flavor_name = 'Sample Flavor:test'
+        usage_type = get_usage_type(flavor_name, prefix='OS')
+        self.assertEquals(usage_type.name, 'openstack.OS.Sample Flavor:test')
+        self.assertEquals(usage_type.symbol, 'openstack.os.sample_flavor.test')
 
     def test_get_daily_tenant(self):
         daily_tenant = DailyTenantInfoFactory(date=self.today)
@@ -133,6 +140,38 @@ class TestOpenStackCeilometer(TestCase):
         self.assertEquals(daily_tenant2_usage.type, instance1_usage_type)
         self.assertEquals(daily_tenant2_usage.warehouse, warehouse)
 
+    def test_save_ceilometer_usages_with_prefix(self):
+        warehouse = WarehouseFactory()
+        daily_tenant1 = DailyTenantInfoFactory(date=self.today)
+        daily_tenant2 = DailyTenantInfoFactory(date=self.today)
+        daily_tenant3 = DailyTenantInfoFactory.build(date=self.today)
+        # because of prefix, this usage type should not be used
+        instance1_usage_type = get_usage_type('instance1')
+        usages = [
+            (daily_tenant1.tenant_info.tenant_id, 100, 'instance1'),
+            (daily_tenant1.tenant_info.tenant_id, 200, 'instance2'),
+            (daily_tenant2.tenant_info.tenant_id, 300, 'instance1'),
+            (daily_tenant3.tenant_info.tenant_id, 100, 'instance1'),
+        ]
+        self.assertEquals(
+            (3, 4),
+            save_ceilometer_usages(usages, self.today, warehouse, prefix='OS')
+        )
+        daily_tenant2_usage = daily_tenant2.dailyusage_set.all()[:1].get()
+        self.assertEquals(DailyUsage.objects.count(), 3)
+        self.assertEquals(daily_tenant2_usage.date, self.today)
+        self.assertEquals(
+            daily_tenant2_usage.service_environment,
+            daily_tenant2.service_environment
+        )
+        self.assertEquals(
+            daily_tenant2_usage.daily_pricing_object,
+            daily_tenant2.dailypricingobject_ptr
+        )
+        self.assertEquals(daily_tenant2_usage.value, 50)
+        self.assertNotEqual(daily_tenant2_usage.type, instance1_usage_type)
+        self.assertEquals(daily_tenant2_usage.warehouse, warehouse)
+
     def test_clear_ceilometer_stats(self):
         OpenstackDailyUsageTypeFactory.create_batch(
             20,
@@ -175,9 +214,11 @@ class TestOpenStackCeilometer(TestCase):
             SAMPLE_CEILOMETER,
             self.today,
             warehouse1,
+            prefix=None,
         )
         save_ceilometer_usages_mock.assert_any_call(
             SAMPLE_CEILOMETER,
             self.today,
             warehouse2,
+            prefix=CEILOMETER_SETTINGS[1]['USAGE_PREFIX']
         )
