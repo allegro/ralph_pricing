@@ -168,7 +168,7 @@ class MonthlyCosts(WorkerJob, Base):
             dcj = DailyCostsJob()
             progress, success, result = dcj.run_on_worker(day=day, **kwargs)
             if progress == 100:
-                progress += step
+                total_progress += step
                 statuses[day] = success
             if result:
                 results[day] = result['collector_result']
