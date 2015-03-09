@@ -7,6 +7,7 @@ register = template.Library()
 
 @register.inclusion_tag('templatetags/panels_colors.html')
 def panels_colors():
+
     return {
         'colors': [
             {

@@ -14,6 +14,8 @@ from ralph_scrooge.rest import (
     AllocationClientService,
     AllocationClientPerTeam,
     CostCardContent,
+    ComponentsContent,
+    ObjectCostsContent,
 )
 
 from ralph_scrooge.rest.menu import SubMenu
@@ -50,8 +52,21 @@ urlpatterns = patterns(
         team_permission(AllocationClientPerTeam.as_view()),
     ),
     url(
+        r'^components/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/?$',  # noqa
+        service_permission(ComponentsContent.as_view()),
+    ),
+    url(
+        r'^components/(?P<service>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/?$',  # noqa
+        service_permission(ComponentsContent.as_view()),
+    ),
+    url(
         r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         service_permission(CostCardContent.as_view()),
+    ),
+    url(
+        r'^pricing_object_costs/(?P<service>\d+)/(?P<env>\d+)/(?P<start_date>[0-9-]+)/(?P<end_date>[0-9-]+)/?$',  # noqa
+        service_permission(ObjectCostsContent.as_view()),
+        name='pricing_object_costs'
     ),
     url(
         r'^submenu/?$',

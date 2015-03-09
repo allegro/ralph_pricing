@@ -242,6 +242,9 @@ a {
     margin-right: 10px;
     position: relative;
 }
+.content .categories .category:last-child .wrapper {
+    margin-right: 0;
+}
 .content .categories .category .name {
     padding: 10px 10px 0 10px;
     font-size: 25px;
@@ -365,6 +368,7 @@ div.blocked {
 
 .content-container {
     padding-bottom: 45px;
+    margin-top: 10px;
 }
 
 .breadcrumbs-container {
@@ -426,6 +430,60 @@ div.blocked {
     padding-left: 2px;
     text-align: center;
 }
+.date-tabs {
+    margin-bottom: 10px;
+}
+.date-tabs .tab {
+    display: block;
+    list-style: none;
+    margin: 0;
+    padding: 0 10px;
+    clear: both;
+    overflow: hidden;
+}
+.date-tabs .tab li {
+    float: left;
+}
+.date-tabs .tab .message,
+.date-tabs .tab li a {
+    display: block;
+    padding: 6px 8px;
+    margin-top: 8px;
+    color: #fff;
+}
+.date-tabs .tab li.active {
+    border-top: none;
+}
+.date-tabs .tab.years a {
+    color: #9CCC65;
+}
+.date-tabs .tab li a:hover,
+.date-tabs .tab li.active a {
+    color: #004E36;
+}
+.date-tabs .tab.months,
+.date-tabs .tab.years li.active a {
+    background: #9CCC65;
+}
+.date-tabs.monthly .tab.months,
+.date-tabs.monthly .tab.years li.active a {
+    background: #7CB342;
+}
+
+.date-tabs.monthly .tab.days,
+.date-tabs.monthly .tab.months li.active a {
+    background: #fff;
+}
+.date-tabs .tab.days,
+.date-tabs .tab.months li.active a {
+    background: #7CB342;
+}
+.date-tabs .tab.days li.active a {
+    background: #fff;
+}
+.date-tabs .tab li a:hover {
+    text-decoration: none;
+}
 
 .tab-extra-costs-admin, .tab-base-usage-admin {
     width: 100%;
@@ -457,4 +515,14 @@ div.blocked {
 
 .tab-save-button {
     float: right;
+}
+
+.costcard-error-message {
+    text-align: center;
+    font-size: 18px;
+    color: #aa0000;
+}
+
+.costcard-error-message p {
+    margin-top: 10px;
 }

@@ -179,12 +179,11 @@ class Collector(object):
             end,
         ))
         cursor = connection.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM {}
             WHERE date>=%s and date<=%s and forecast=%s
-            """.format(
-                DailyCost._meta.db_table,
-            ),
+            """.format(DailyCost._meta.db_table),
             [start, end, forecast]
         )
 

@@ -18,27 +18,42 @@ class SubMenu(APIView):
                 'name': 'Components',
                 'href': '#/components/',
                 'leftMenu': ['services'],
-                'calendarMenu': ['year', 'month', 'day'],
+                'calendarMenu': 'daily',
+                'auto_choose_env': False,
+                'hide_envs_for_tabs': [],
             },
             {
                 'name': 'Cost card',
                 'href': '#/costcard/',
                 'leftMenu': ['services'],
-                'calendarMenu': ['year', 'month'],
+                'calendarMenu': 'monthly',
+                'auto_choose_env': True,
+                'hide_envs_for_tabs': [],
             },
             {
                 'name': 'Allocations',
                 'href': '#/allocation/client/',
-                'calendarMenu': ['year', 'month'],
                 'leftMenu': ['services', 'teams'],
+                'calendarMenu': 'monthly',
+                'auto_choose_env': True,
+                'hide_envs_for_tabs': ['serviceDivision'],
+            },
+            {
+                'name': 'Costs',
+                'href': '#/costs/',
+                'leftMenu': ['services', 'teams'],
+                'calendarMenu': 'range',
+                'auto_choose_env': True,
+                'hide_envs_for_tabs': [],
             },
             {
                 'name': 'Allocations Admin',
                 'href': '#/allocation/admin/',
                 'leftMenu': [],
-                'calendarMenu': ['year', 'month'],
+                'calendarMenu': 'monthly',
+                'auto_choose_env': True,
+                'hide_envs_for_tabs': [],
             },
-
         ]
         profile = request.user.get_profile()
         if profile.has_perm(Perm.has_scrooge_access) or profile.is_superuser:
