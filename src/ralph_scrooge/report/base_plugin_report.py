@@ -227,6 +227,7 @@ class BasePluginReport(BaseReport):
 
         if field_rules.get('rounding') is not None:
             field_content = round(field_content, field_rules['rounding'])
+            field_content = '{:.{prec}f}'.format(field_content, prec=field_rules['rounding'])
 
         if 'currency' in field_rules and field_rules['currency']:
             field_content = '{0:.2f}'.format(field_content)
