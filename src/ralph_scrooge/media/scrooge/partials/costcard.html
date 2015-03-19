@@ -3,13 +3,24 @@
     <thead>
       <tr>
         <th data-field="name" data-sortable="true">Usage name</th>
-        <th data-field="cost" data-sortable="true" data-formatter="costFormatter">Cost</th>
+        <th data-field="cost" data-halign="center" data-align="right" data-sortable="true" data-formatter="costFormatter">Cost</th>
       </tr>
     </thead>
   </table>
   <script>
       function costFormatter(value, row) {
-        return value + ' PLN';
+        value_list = String(value).split('.');
+        new_value = '';
+        for(var i = value_list[0].length; i > 0; i--) {
+          if (i % 3 === 0) {
+            new_value += ' ';
+          }
+          new_value += value_list[0][value_list[0].length - i];
+        }
+        if (value_list.length === 2) {
+          new_value += '.' + value_list[1];
+        }
+        return new_value + ' PLN';
       }
       function rowStyle(row, index) {
         if (row.name == 'Total') {
