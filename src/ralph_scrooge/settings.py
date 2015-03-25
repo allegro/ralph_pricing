@@ -28,6 +28,7 @@ WARNINGS_LIMIT_FOR_USAGES = 40
 
 # Default collect plugins to run
 COLLECT_PLUGINS = set([
+    'asset_model',
     'asset',
     'business_line',
     'environment',
