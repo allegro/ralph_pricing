@@ -38,6 +38,7 @@ class ServicesUsagesReport(BasePluginReport):
             value = value / float(10 ** usage_type.divide_by)
 
         value = round(value, usage_type.rounding)
+        value = '{:.{prec}f}'.format(value, prec=usage_type.rounding)
         return value
 
     @classmethod
