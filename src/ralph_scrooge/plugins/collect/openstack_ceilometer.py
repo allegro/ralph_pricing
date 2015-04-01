@@ -25,6 +25,7 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 METRIC_TMPL = 'openstack.{}'
+METRIC_WITH_PREFIX_TMPL = 'openstack.{}.{}'
 CEILOMETER_QUERY = """
 select sample.project_id, count(sample.id) as count, meter.name as flavor
 from sample
@@ -52,8 +53,11 @@ class DailyTenantNotFoundError(Exception):
 
 
 @memoize
-def get_usage_type(flavor_name):
-    usage_name = METRIC_TMPL.format(flavor_name)
+def get_usage_type(flavor_name, prefix=None):
+    if prefix:
+        usage_name = METRIC_WITH_PREFIX_TMPL.format(prefix, flavor_name)
+    else:
+        usage_name = METRIC_TMPL.format(flavor_name)
     usage_symbol = usage_name.lower().replace(':', '.').replace(' ', '_')
     return UsageType.objects.get_or_create(
         symbol=usage_symbol,
@@ -92,11 +96,11 @@ def get_ceilometer_usages(date, connection_string):
     return connection.execute(query)
 
 
-def save_ceilometer_usages(usages, date, warehouse):
+def save_ceilometer_usages(usages, date, warehouse, prefix=None):
     new = total = 0
     for tenant_id, value, flavor_name in usages:
         total += 1
-        usage_type = get_usage_type(flavor_name)
+        usage_type = get_usage_type(flavor_name, prefix)
         try:
             daily_tenant = get_daily_tenant(tenant_id, date)
         except TenantNotFoundError:
@@ -147,7 +151,12 @@ def openstack_ceilometer(today, **kwargs):
             ))
             continue
         usages = get_ceilometer_usages(today, site['CEILOMETER_CONNECTION'])
-        site_new, site_total = save_ceilometer_usages(usages, today, warehouse)
+        site_new, site_total = save_ceilometer_usages(
+            usages,
+            today,
+            warehouse,
+            prefix=site.get('USAGE_PREFIX'),
+        )
 
         logger.info(
             '{} new, {} total ceilometer usages saved for {}'.format(
