@@ -46,6 +46,18 @@ class Command(ScroogeBaseCommand):
             help=_('Date to which generate report for'),
         ),
         make_option(
+            '--warehouse',
+            dest='warehouse',
+            default=None,
+            help=_('Warehouse name to filter by'),
+        ),
+        make_option(
+            '--type-prefix',
+            dest='type_prefix',
+            default=None,
+            help=_('OpenStack usage type prefix'),
+        ),
+        make_option(
             '--forecast',
             dest='forecast',
             default=False,
@@ -110,7 +122,9 @@ class Command(ScroogeBaseCommand):
         dates_to_calculate = collector._get_dates(start, end, forecast, False)
         plugins = [pl for pl in collector.get_plugins() if pl.name in plugins]
         for day in dates_to_calculate:
-            collector.process(day, forecast, plugins)
+            costs = collector.process(day, forecast, plugins=plugins)
+            processed = collector._create_daily_costs(day, costs, forecast)
+            collector.save_period_costs(day, day, forecast, processed)
 
     @memoize(skip_first=True)
     def _get_usage_prices(self, type_id, start, end, forecast):
@@ -240,12 +254,16 @@ class Command(ScroogeBaseCommand):
 
         self._calculate_missing_dates(start, end, forecast, plugins)
         filters = {}
-        if self.type == 'ceilometer':
-            filters = {'type__name__startswith': 'openstack.ceilometer'}
+        if 'warehouse' in options and options['warehouse']:
+            filters['warehouse__name'] = options['warehouse']
+        if 'type_prefix' in options and options['type_prefix']:
+            filters['type__name__startswith'] = options['type_prefix']
+        elif self.type == 'ceilometer':
+            filters['type__name__startswith'] = 'openstack.ceilometer'
         elif self.type == 'nova':
-            filters = {'type__name__startswith': 'openstack.nova.'}
+            filters['type__name__startswith'] = 'openstack.nova.'
         elif self.type == 'simple_usage':
-            filters = {'type__name__startswith': 'OpenStack '}
+            filters['type__name__startswith'] = 'OpenStack '
         costs = self.get_costs(start, end, forecast, filters)
         usages = self.get_usages_without_cost(start, end, forecast, filters)
         return costs + usages
