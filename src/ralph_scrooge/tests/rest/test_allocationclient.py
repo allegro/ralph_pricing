@@ -104,7 +104,7 @@ class TestAllocationClient(TestCase):
             {
                 "rows": [],
                 "name": "Service Division",
-                "template": "tabservicedivision.html",
+                "template": "taballocationclientdivision.html",
             }
         )
         # check if get request does not create new usage type
@@ -136,7 +136,7 @@ class TestAllocationClient(TestCase):
                     "service": self.service_environment_2.service.id
                 }],
                 "name": "Service Division",
-                "template": "tabservicedivision.html",
+                "template": "taballocationclientdivision.html",
             }
         )
 
@@ -158,7 +158,7 @@ class TestAllocationClient(TestCase):
             {
                 "rows": [],
                 "name": "Service Division",
-                "template": "tabservicedivision.html",
+                "template": "taballocationclientdivision.html",
             }
         )
         # check if get request does not create new usage type
@@ -204,7 +204,7 @@ class TestAllocationClient(TestCase):
                     "service": service_environment_1.service.id
                 }],
                 "name": "Service Division",
-                "template": "tabservicedivision.html",
+                "template": "taballocationclientdivision.html",
             }
         )
 
@@ -251,7 +251,7 @@ class TestAllocationClient(TestCase):
                     "service": service_environment_1.service.id
                 }],
                 "name": "Service Division",
-                "template": "tabservicedivision.html",
+                "template": "taballocationclientdivision.html",
             }
         )
         # check if this request created new usage type and created
@@ -383,7 +383,7 @@ class TestAllocationClient(TestCase):
             {
                 "rows": [],
                 "name": "Team Division",
-                "template": "tabteamcosts.html",
+                "template": "taballocationclientdivision.html",
             }
         )
 
@@ -421,7 +421,7 @@ class TestAllocationClient(TestCase):
                     'value': float(team_percent_2.percent),
                 }],
                 "name": "Team Division",
-                "template": "tabteamcosts.html",
+                "template": "taballocationclientdivision.html",
             }
         )
 
@@ -467,6 +467,6 @@ class TestAllocationClient(TestCase):
                     )
                 }],
                 "name": "Team Division",
-                "template": "tabteamcosts.html",
+                "template": "taballocationclientdivision.html",
             }
         )
