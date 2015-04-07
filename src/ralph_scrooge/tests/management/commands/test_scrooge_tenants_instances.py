@@ -390,7 +390,7 @@ class TestScroogeTenantsInstances(TestCase):
     def test_get_data_ceilometer(self):
         self._test_get_data(
             'ceilometer',
-            {'type__name__startswith': 'openstack.'}
+            {'type__name__startswith': 'openstack.ceilometer'}
         )
 
     def test_get_data_simple_usage(self):

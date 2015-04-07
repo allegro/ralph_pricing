@@ -64,7 +64,7 @@ class Command(ScroogeBaseCommand):
             '-t',
             dest='type',
             type='choice',
-            choices=['simple_usage', 'ceilometer'],
+            choices=['simple_usage', 'ceilometer', 'nova'],
             default='ceilometer',
             help=_('Type of OpenStack usage'),
         ),
@@ -84,7 +84,7 @@ class Command(ScroogeBaseCommand):
             'OpenStack Tenant',
         ]
         additional = []
-        if self.type == 'ceilometer':
+        if self.type in ('ceilometer', 'nova'):
             additional = [
                 'Flavor',
                 'Total usage',
@@ -175,7 +175,7 @@ class Command(ScroogeBaseCommand):
                 forecast
             )
             total_usage = cost[-2]
-            if self.type == 'ceilometer':
+            if self.type in ('ceilometer', 'nova'):
                 # get average instances in one day
                 avg_day_usage = math.ceil(total_usage / (24.0 * days))
             else:
@@ -227,7 +227,7 @@ class Command(ScroogeBaseCommand):
         for usage in usages:
             u = list(usage)
             # get average instances in one day
-            if self.type == 'ceilometer':
+            if self.type in ('ceilometer', 'nova'):
                 avg_day_usage = math.ceil(u[-1] / (24.0 * days))
             else:
                 avg_day_usage = math.ceil(u[-1] / float(days))
@@ -241,7 +241,9 @@ class Command(ScroogeBaseCommand):
         self._calculate_missing_dates(start, end, forecast, plugins)
         filters = {}
         if self.type == 'ceilometer':
-            filters = {'type__name__startswith': 'openstack.'}
+            filters = {'type__name__startswith': 'openstack.ceilometer'}
+        elif self.type == 'nova':
+            filters = {'type__name__startswith': 'openstack.nova.'}
         elif self.type == 'simple_usage':
             filters = {'type__name__startswith': 'OpenStack '}
         costs = self.get_costs(start, end, forecast, filters)
