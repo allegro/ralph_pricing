@@ -14,7 +14,11 @@ from lck.django.common.models import (
     TimeTrackable,
 )
 
-from ralph_scrooge.models.base import BaseUsage, BaseUsageType
+from ralph_scrooge.models.base import (
+    BaseUsage,
+    BaseUsageManager,
+    BaseUsageType,
+)
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -32,10 +36,6 @@ class TeamBillingType(Choices):
 
 
 class Team(TimeTrackable, EditorTrackable, BaseUsage):
-    show_in_report = db.BooleanField(
-        verbose_name=_("Show team in report"),
-        default=True,
-    )
     show_percent_column = db.BooleanField(
         verbose_name=_("Show percent column in report"),
         default=False,
@@ -54,6 +54,9 @@ class Team(TimeTrackable, EditorTrackable, BaseUsage):
         blank=True,
         null=True,
     )
+
+    objects_admin = db.Manager()
+    objects = BaseUsageManager()
 
     class Meta:
         verbose_name = _("Team")

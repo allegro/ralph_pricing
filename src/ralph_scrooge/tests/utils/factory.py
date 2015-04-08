@@ -278,7 +278,6 @@ class TeamFactory(DjangoModelFactory):
     FACTORY_FOR = models.Team
 
     name = Sequence(lambda n: 'Team %s' % n)
-    show_in_report = True
     show_percent_column = False
     billing_type = models.TeamBillingType.time
 

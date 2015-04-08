@@ -9,7 +9,11 @@ from django.core.exceptions import ValidationError
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models.base import BaseUsage, BaseUsageType
+from ralph_scrooge.models.base import (
+    BaseUsage,
+    BaseUsageManager,
+    BaseUsageType,
+)
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -39,14 +43,6 @@ class UsageType(BaseUsage):
         verbose_name=_("Given value is a cost"),
         default=False,
     )
-    show_in_services_report = db.BooleanField(
-        verbose_name=_("Display usage type in services report"),
-        default=True,
-    )
-    show_in_devices_report = db.BooleanField(
-        verbose_name=_("Display usage type in devices report"),
-        default=False,
-    )
     order = db.IntegerField(
         verbose_name=_("Display order"),
         default=0,
@@ -69,6 +65,9 @@ class UsageType(BaseUsage):
         blank=True,
         null=True,
     )
+
+    objects_admin = db.Manager()
+    objects = BaseUsageManager()
 
     class Meta:
         verbose_name = _("usage type")

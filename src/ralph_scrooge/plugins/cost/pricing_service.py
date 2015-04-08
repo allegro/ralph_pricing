@@ -423,11 +423,14 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         service environments.
         """
         result = {}
-        for usage_type in UsageType.objects.filter(usage_type='BU').exclude(
-                id__in=pricing_service.excluded_base_usage_types.values_list(
-                    'id',
-                    flat=True
-                )):
+        for usage_type in UsageType.objects.filter(
+            usage_type='BU',
+        ).exclude(
+            id__in=pricing_service.excluded_base_usage_types.values_list(
+                'id',
+                flat=True
+            )
+        ):
             usage_type_costs = self._get_usage_type_costs(
                 date,
                 usage_type,
@@ -616,7 +619,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         :rtype dict:
         """
         result = {}
-        for ps in pricing_service.charged_by_diffs.all():
+        for ps in pricing_service.charged_by_diffs.filter(active=True):
             args = dict(
                 type='total_cost',
                 pricing_service=ps,

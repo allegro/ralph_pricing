@@ -121,7 +121,7 @@ class TeamPlugin(BaseCostPlugin):
         """
         Returns all available teams, that should be visible on report
         """
-        return TeamModel.objects.filter(show_in_report=True)
+        return TeamModel.objects.all()
 
     @memoize(skip_first=True)
     def _get_teams_not_distributes_to_others(self):
@@ -129,7 +129,7 @@ class TeamPlugin(BaseCostPlugin):
         Returns all teams that have billing type different than DISTRIBUTE and
         AVERAGE
         """
-        return TeamModel.objects.filter(show_in_report=True).exclude(
+        return TeamModel.objects.exclude(
             billing_type__in=(
                 TeamBillingType.distribute,
                 TeamBillingType.average,
@@ -141,7 +141,7 @@ class TeamPlugin(BaseCostPlugin):
         """
         Returns all teams that have billing type different than AVERAGE
         """
-        return TeamModel.objects.filter(show_in_report=True).exclude(
+        return TeamModel.objects.exclude(
             billing_type=TeamBillingType.average,
         )
 

@@ -9,7 +9,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models.base import BaseUsage, BaseUsageType
+from ralph_scrooge.models.base import (
+    BaseUsage,
+    BaseUsageManager,
+    BaseUsageType,
+)
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
@@ -19,6 +23,9 @@ class ExtraCostType(BaseUsage):
     """
     Contains all type of extra costs like license or call center.
     """
+    objects_admin = db.Manager()
+    objects = BaseUsageManager()
+
     class Meta:
         verbose_name = _("extra cost type")
         verbose_name_plural = _("extra cost types")
@@ -112,6 +119,9 @@ class DynamicExtraCostType(BaseUsage):
         blank=True,
         null=True,
     )
+
+    objects_admin = db.Manager()
+    objects = BaseUsageManager()
 
     class Meta:
         verbose_name = _("Dynamic extra cost")
