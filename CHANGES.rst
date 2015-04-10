@@ -1,50 +1,43 @@
 Change Log
 ----------
 
+3.0.0
+~~~~~
 
-3.0.0-beta2
-~~~~~~~~~~
+Released on April 13, 2015
 
-* Fixed angular routes
+* Project name changed from Ralph Pricing to Ralph Scrooge
 
+* Redesigned architecure comparing to (old) ralph_pricing
+    * Calculation based on services and environments instead of ventures
+    * Base PricingObject model to simplify adding new types of chared objects (ex. Database, Virtual server, Tenant)
+    * Costs are (re)calculated and stored in database
+    * Many performance improvements
 
-3.0.0-beta1
-~~~~~~~~~~
+* New client GUI written in AngularJS
+    * Components: preview of historical objects (server, virtual, database etc) per service for single day
+    * Costs card: summary of service costs in single month
+    * Allocations: add service or team specific costs and manage it's distribution to other services
+    * Costs: detailed costs for each pricing object
 
-* improve collector performance
-* recalculating performance improvement
-* fix for virtual collect plugin - manufacturer uniqueness
-* fix cost card - show only accepted costs & accept forecast param
-* fix gui bugs - components & costcard
-* added tenants instances report
-* Added cost card subpage and make configurable calendar menu
-* Clean old and needless code like tests
+* New charging types:
+    * Dynamic extra costs: specify cost (like Extra cost) and a dynamic way of it's distribution (ex. cores count)
 
+* New collect plugins:
+    * Collecting Database, VIP, Tenant info from Ralph
+    * OpenStack SimpleUsage plugin
+    * OpenStack Ceilometer MongoDB plugin
+    * Support plugins (from Ralph Assets)
 
-3.0.0-beta
-~~~~~~~~~~
-
-* Added components view with permissions mechanism
-* Added saving plugins' result to database
-* Fixed data collecting (e.g. for virtual machines)
-* Report generator fixes
-
-
-3.0.0-alpha1
-~~~~~~~~~~~~
-
-* Serveral fixes related to fine tune version
+* New permissions:
+    * Every (active) Ralph user has access to client part (components, allocation, cost card) for services which he owns
+    * Admin (ralph_scrooge group) has access to whole system
 
 
-3.0.0-alpha
-~~~~~~~~~~~
+2.7.0
+~~~~~
 
-* Servces instead ventures
-* Refactoring archiveture
-* Created 3 types of plugins (collet, cost, report)
-* Cost plugin calculate all cost and write it as pre-generated data to db
-* Report plugin collect pre-generated data and make ready to display
-* Created Pricing object and Pricing service for interal convention policy, this kind of feature is using to make a scrooge more scalable and flexibility.
+* Adjusted ralph_pricing to work in parallel with ralph_scrooge
 
 
 2.6.0
