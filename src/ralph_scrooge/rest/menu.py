@@ -31,6 +31,14 @@ class SubMenu(APIView):
                 'hide_envs_for_tabs': [],
             },
             {
+                'name': 'Components costs',
+                'href': '#/costs/',
+                'leftMenu': ['services'],
+                'calendarMenu': 'range',
+                'auto_choose_env': True,
+                'hide_envs_for_tabs': [],
+            },
+            {
                 'name': 'Allocations',
                 'href': '#/allocation/client/',
                 'leftMenu': ['services', 'teams'],
@@ -38,26 +46,18 @@ class SubMenu(APIView):
                 'auto_choose_env': True,
                 'hide_envs_for_tabs': ['serviceDivision'],
             },
-            {
-                'name': 'Costs',
-                'href': '#/costs/',
-                'leftMenu': ['services', 'teams'],
-                'calendarMenu': 'range',
-                'auto_choose_env': True,
-                'hide_envs_for_tabs': [],
-            },
-            {
-                'name': 'Allocations Admin',
-                'href': '#/allocation/admin/',
-                'leftMenu': [],
-                'calendarMenu': 'monthly',
-                'auto_choose_env': True,
-                'hide_envs_for_tabs': [],
-            },
         ]
         profile = request.user.get_profile()
         if profile.has_perm(Perm.has_scrooge_access) or profile.is_superuser:
             menu.extend([
+                {
+                    'name': 'Allocations admin',
+                    'href': '#/allocation/admin/',
+                    'leftMenu': [],
+                    'calendarMenu': 'monthly',
+                    'auto_choose_env': True,
+                    'hide_envs_for_tabs': [],
+                },
                 {
                     'name': 'Costs report',
                     'href': '/scrooge/services-costs-report',
@@ -75,15 +75,7 @@ class SubMenu(APIView):
                     'href': '/scrooge/services-changes-report',
                 },
                 {
-                    'name': 'Extra Costs',
-                    'href': '/scrooge/extra-costs',
-                },
-                {
-                    'name': 'Usage types',
-                    'href': '/scrooge/usage-types',
-                },
-                {
-                    'name': 'Monthly costs',
+                    'name': 'Costs calculation',
                     'href': '/scrooge/monthly-costs',
                 },
             ])
