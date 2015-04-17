@@ -47,7 +47,10 @@ setup(
         ],
         'scrooge.collect_plugins': [
             'scrooge = ralph_scrooge.plugins.collect',
-        ]
+        ],
+        'ralph.demo_data_module': [
+            'ralph = ralph_scrooge.utils.demo',
+        ],
     },
     classifiers=[
         'Development Status :: 4 - Beta',
