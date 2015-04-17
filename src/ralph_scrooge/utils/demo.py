@@ -213,11 +213,12 @@ class FakedUsageDemo(DemoData):
         for usage_type in usage_types:
             usage_type.is_manually_type = True
             usage_type.save()
-            value = random.randint(2000, 10000)
-            UsagePrice.objects.create(
-                start=month_ago, end=today, cost=value, forecast_cost=value,
-                type=usage_type, warehouse_id=2,
-            )
+            for wh in Warehouse.objects.all():
+                value = random.randint(2000, 10000)
+                UsagePrice.objects.create(
+                    start=month_ago, end=today, cost=value,
+                    forecast_cost=value, type=usage_type, warehouse=wh,
+                )
 
 
 @register
