@@ -30,12 +30,16 @@ WARNINGS_LIMIT_FOR_USAGES = 40
 COLLECT_PLUGINS = set([
     'asset_model',
     'asset',
+    'database',
     'business_line',
     'environment',
     'owner',
     'profit_center',
     'service',
+    'tenant',
     'warehouse',
+    'vip',
+    'virtual',
 ])
 
 UNKNOWN_SERVICES_ENVIRONMENTS = {
@@ -83,7 +87,23 @@ PRICING_OBJECTS_COSTS_TABLE_SCHEMA = {
             'model.name',
         ],
         'model': 'ralph_scrooge.models.TenantInfo',
-    }
+    },
+    'VIP': {
+        'fields': [
+            'id',
+            'name',
+            'model.name',
+        ],
+        'model': 'ralph_scrooge.models.VIPInfo',
+    },
+    'Database': {
+        'fields': [
+            'id',
+            'name',
+            'model.name',
+        ],
+        'model': 'ralph_scrooge.models.DatabaseInfo',
+    },
 }
 
 COMPONENTS_TABLE_SCHEMA = {
@@ -119,5 +139,21 @@ COMPONENTS_TABLE_SCHEMA = {
             'pricing_object.model.name',
         ],
         'model': 'ralph_scrooge.models.DailyTenantInfo',
-    }
+    },
+    'VIP': {
+        'fields': [
+            'pricing_object.id',
+            'pricing_object.name',
+            'pricing_object.model.name',
+        ],
+        'model': 'ralph_scrooge.models.DailyVIPInfo',
+    },
+    'Database': {
+        'fields': [
+            'pricing_object.id',
+            'pricing_object.name',
+            'pricing_object.model.name',
+        ],
+        'model': 'ralph_scrooge.models.DailyDatabaseInfo',
+    },
 }
