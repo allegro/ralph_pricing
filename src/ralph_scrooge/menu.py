@@ -37,34 +37,32 @@ class ScroogeMenu(Menu):
                 href="/scrooge/#/costcard/"
             ),
             MenuItem(
+                _("Components costs"),
+                name='costs',
+                fugue_icon='fugue-arrow-switch',
+                view_name='costs',
+                href="/scrooge/#/costs/"
+            ),
+            MenuItem(
                 _("Allocations"),
                 name='components',
                 fugue_icon='fugue-arrow-switch',
                 view_name='components',
                 href="/scrooge/#/allocation/client/"
             ),
-            ####################################################
-            # [DO NOT REMOVE!] THIS PART IS FOR NEXT FEATURES
-            ####################################################
-            # MenuItem(
-            #     _("Allocations admin"),
-            #     name='components',
-            #     fugue_icon='fugue-arrow-switch',
-            #     view_name='components',
-            #     href="/scrooge/#/allocation/admin/"
-            # ),
+            MenuItem(
+                _("Allocations admin"),
+                name='components',
+                fugue_icon='fugue-arrow-switch',
+                view_name='components',
+                href="/scrooge/#/allocation/admin/"
+            ),
             MenuItem(
                 _("Costs report"),
                 name='services-costs-report',
                 fugue_icon='fugue-store-medium',
                 view_name='services_costs_report',
             ),
-            # MenuItem(
-            #     _("Service details report"),
-            #     name='devices',
-            #     fugue_icon='fugue-wooden-box',
-            #     # view_name='devices',
-            # ),
             MenuItem(
                 _("Usages report"),
                 name='services-usages-report',
@@ -84,22 +82,10 @@ class ScroogeMenu(Menu):
                 view_name='services_changes_report',
             ),
             MenuItem(
-                _("Extra costs"),
-                name='extra-costs',
-                fugue_icon='fugue-money-coin',
-                view_name='extra_costs',
-            ),
-            MenuItem(
-                _("Usage types"),
-                name='usage-types',
-                fugue_icon='fugue-beaker',
-                view_name='usage_types',
-            ),
-            MenuItem(
-                _("Monthly costs"),
-                name='monthly-costs',
+                _("Costs calculation"),
+                name='costs-calculation',
                 fugue_icon='fugue-money-bag',
-                view_name='monthly_costs',
+                view_name='costs_calculation',
             ),
         ]
 
