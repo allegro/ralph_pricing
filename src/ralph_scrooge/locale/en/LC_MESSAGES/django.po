@@ -1,0 +1,993 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-04-21 20:06+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin.py:93 models/base.py:31 models/cost.py:49 models/extra_cost.py:40
+#: models/extra_cost.py:129 models/extra_cost.py:159
+#: models/pricing_object.py:96 models/pricing_object.py:127
+#: models/usage.py:100
+msgid "type"
+msgstr ""
+
+#: admin.py:267
+msgid "Services used to calculate costs of Pricing Service"
+msgstr ""
+
+#: forms.py:90
+msgid "Warehouse missing"
+msgstr ""
+
+#: forms.py:104
+msgid "End date must be later than or equal to the start date."
+msgstr ""
+
+#: forms.py:121
+msgid ""
+"Another cost time interval with the same type (and warehouse/team/"
+"internet_provider) overlaps with this time interval."
+msgstr ""
+
+#: forms.py:236 forms.py:246 forms.py:257
+msgid "Forecast"
+msgstr ""
+
+#: forms.py:250 forms.py:279 models/statement.py:37
+msgid "Show only active"
+msgstr ""
+
+#: forms.py:284
+msgid "Usage types"
+msgstr ""
+
+#: menu.py:26
+msgid "Components"
+msgstr ""
+
+#: menu.py:33
+msgid "Cost card"
+msgstr ""
+
+#: menu.py:40
+msgid "Components costs"
+msgstr ""
+
+#: menu.py:47
+msgid "Allocations"
+msgstr ""
+
+#: menu.py:54
+msgid "Allocations admin"
+msgstr ""
+
+#: menu.py:61
+msgid "Costs report"
+msgstr ""
+
+#: menu.py:67
+msgid "Usages report"
+msgstr ""
+
+#: menu.py:73
+msgid "Collect plugins"
+msgstr ""
+
+#: menu.py:79
+msgid "Services changes report"
+msgstr ""
+
+#: menu.py:85
+msgid "Costs calculation"
+msgstr ""
+
+#: management/commands/scrooge_tenants_instances.py:40
+msgid "Date from which generate report for"
+msgstr ""
+
+#: management/commands/scrooge_tenants_instances.py:46
+msgid "Date to which generate report for"
+msgstr ""
+
+#: management/commands/scrooge_tenants_instances.py:53
+msgid "Set to use forecast prices and costs"
+msgstr ""
+
+#: management/commands/scrooge_tenants_instances.py:61
+msgid "Plugins to calculate missing costs"
+msgstr ""
+
+#: management/commands/scrooge_tenants_instances.py:69
+msgid "Type of OpenStack usage"
+msgstr ""
+
+#: models/base.py:16
+msgid "Usage Type"
+msgstr ""
+
+#: models/base.py:17 models/team.py:59
+msgid "Team"
+msgstr ""
+
+#: models/base.py:18
+msgid "Extra Cost"
+msgstr ""
+
+#: models/base.py:19 models/service.py:279
+msgid "Pricing Service"
+msgstr ""
+
+#: models/base.py:20 models/extra_cost.py:117 models/extra_cost.py:189
+msgid "Dynamic extra cost"
+msgstr ""
+
+#: models/base.py:25 models/service.py:111
+msgid "symbol"
+msgstr ""
+
+#: models/base.py:36
+msgid "Divide by"
+msgstr ""
+
+#: models/base.py:38
+msgid ""
+"Divide value by 10 to the power of entered value. Ex. with divide by = 3 and "
+"value = 1 000 000, presented value is 1 000."
+msgstr ""
+
+#: models/base.py:45
+msgid "Decimal places"
+msgstr ""
+
+#: models/cost.py:34 models/extra_cost.py:209 models/pricing_object.py:185
+msgid "pricing object"
+msgstr ""
+
+#: models/cost.py:41 models/extra_cost.py:88 models/pricing_object.py:146
+#: models/pricing_object.py:192 models/service.py:331 models/team.py:108
+#: models/usage.py:169
+msgid "service environment"
+msgstr ""
+
+#: models/cost.py:57 models/pricing_object.py:236 models/usage.py:132
+#: models/usage.py:185
+msgid "warehouse"
+msgstr ""
+
+#: models/cost.py:59 models/usage.py:177
+msgid "value"
+msgstr ""
+
+#: models/cost.py:64 models/extra_cost.py:44 models/extra_cost.py:165
+#: models/team.py:80 models/usage.py:117
+msgid "cost"
+msgstr ""
+
+#: models/cost.py:67
+msgid "forecast"
+msgstr ""
+
+#: models/cost.py:72 models/cost.py:97 models/pricing_object.py:179
+msgid "date"
+msgstr ""
+
+#: models/cost.py:77 models/pricing_object.py:278
+msgid "daily cost"
+msgstr ""
+
+#: models/cost.py:78
+msgid "daily costs"
+msgstr ""
+
+#: models/cost.py:101
+msgid "calculated"
+msgstr ""
+
+#: models/cost.py:106
+msgid "forecast calculated"
+msgstr ""
+
+#: models/cost.py:111
+msgid "accepted"
+msgstr ""
+
+#: models/cost.py:116
+msgid "forecast accepted"
+msgstr ""
+
+#: models/cost.py:122
+msgid "cost date status"
+msgstr ""
+
+#: models/cost.py:123
+msgid "costs date status"
+msgstr ""
+
+#: models/extra_cost.py:23
+msgid "extra cost type"
+msgstr ""
+
+#: models/extra_cost.py:24
+msgid "extra cost types"
+msgstr ""
+
+#: models/extra_cost.py:52 models/extra_cost.py:173 models/team.py:86
+#: models/usage.py:123
+msgid "forecast cost"
+msgstr ""
+
+#: models/extra_cost.py:55 models/extra_cost.py:176
+msgid "start time"
+msgstr ""
+
+#: models/extra_cost.py:61 models/extra_cost.py:182
+msgid "end time"
+msgstr ""
+
+#: models/extra_cost.py:67 models/pricing_object.py:139 models/usage.py:188
+msgid "Remarks"
+msgstr ""
+
+#: models/extra_cost.py:68 models/pricing_object.py:140 models/usage.py:189
+msgid "Additional information."
+msgstr ""
+
+#: models/extra_cost.py:92
+msgid "Extra cost"
+msgstr ""
+
+#: models/extra_cost.py:93
+msgid "Extra costs"
+msgstr ""
+
+#: models/extra_cost.py:106 models/service.py:179 models/team.py:52
+#: models/usage.py:67
+msgid "Excluded services"
+msgstr ""
+
+#: models/extra_cost.py:109 models/service.py:182
+msgid ""
+"Services excluded from cost distribution (besides usage type excluded "
+"services)"
+msgstr ""
+
+#: models/extra_cost.py:118 models/extra_cost.py:190
+msgid "Dynamic extra costs"
+msgstr ""
+
+#: models/extra_cost.py:134 models/usage.py:74
+msgid "usage type"
+msgstr ""
+
+#: models/extra_cost.py:143 models/service.py:288 models/team.py:111
+msgid "percent"
+msgstr ""
+
+#: models/extra_cost.py:148
+msgid "Dynamic extra cost division"
+msgstr ""
+
+#: models/extra_cost.py:149
+msgid "Dynamic extra cost divisions"
+msgstr ""
+
+#: models/extra_cost.py:203
+msgid "support id"
+msgstr ""
+
+#: models/extra_cost.py:213
+msgid "Support cost"
+msgstr ""
+
+#: models/extra_cost.py:214
+msgid "Support costs"
+msgstr ""
+
+#: models/owner.py:17
+msgid "Technical owner"
+msgstr ""
+
+#: models/owner.py:18
+msgid "Business owner"
+msgstr ""
+
+#: models/owner.py:37 models/service.py:34 models/service.py:52
+#: models/service.py:79 models/service.py:98
+msgid "id from cmdb"
+msgstr ""
+
+#: models/owner.py:41
+msgid "profile"
+msgstr ""
+
+#: models/owner.py:60 models/service.py:322
+msgid "service"
+msgstr ""
+
+#: models/owner.py:66
+msgid "owner"
+msgstr ""
+
+#: models/owner.py:75 models/usage.py:60
+msgid "Type"
+msgstr ""
+
+#: models/owner.py:89
+msgid "team"
+msgstr ""
+
+#: models/owner.py:95
+msgid "manager"
+msgstr ""
+
+#: models/pricing_object.py:26 models/pricing_object.py:119
+#: models/service.py:107
+msgid "name"
+msgstr ""
+
+#: models/pricing_object.py:33
+msgid "color"
+msgstr ""
+
+#: models/pricing_object.py:40
+msgid "icon class"
+msgstr ""
+
+#: models/pricing_object.py:56
+msgid "Asset"
+msgstr ""
+
+#: models/pricing_object.py:57
+msgid "Virtual"
+msgstr ""
+
+#: models/pricing_object.py:58
+msgid "OpenStack Tenant"
+msgstr ""
+
+#: models/pricing_object.py:59
+msgid "IP Address"
+msgstr ""
+
+#: models/pricing_object.py:60
+msgid "VIP"
+msgstr ""
+
+#: models/pricing_object.py:61
+msgid "Database"
+msgstr ""
+
+#: models/pricing_object.py:65
+msgid "-"
+msgstr ""
+
+#: models/pricing_object.py:69
+msgid "Unknown"
+msgstr ""
+
+#: models/pricing_object.py:74
+msgid "model id"
+msgstr ""
+
+#: models/pricing_object.py:79
+msgid "model name"
+msgstr ""
+
+#: models/pricing_object.py:83
+msgid "manufacturer"
+msgstr ""
+
+#: models/pricing_object.py:89
+msgid "category"
+msgstr ""
+
+#: models/pricing_object.py:133
+msgid "model"
+msgstr ""
+
+#: models/pricing_object.py:208
+msgid "serial number"
+msgstr ""
+
+#: models/pricing_object.py:215
+msgid "barcode"
+msgstr ""
+
+#: models/pricing_object.py:222 models/pricing_object.py:349
+msgid "device id"
+msgstr ""
+
+#: models/pricing_object.py:229
+msgid "asset id"
+msgstr ""
+
+#: models/pricing_object.py:257
+msgid "asset details"
+msgstr ""
+
+#: models/pricing_object.py:260
+msgid "Depreciation rate"
+msgstr ""
+
+#: models/pricing_object.py:267
+msgid "Is depreciated"
+msgstr ""
+
+#: models/pricing_object.py:270 models/usage.py:104
+msgid "price"
+msgstr ""
+
+#: models/pricing_object.py:283
+msgid "Daily Asset info"
+msgstr ""
+
+#: models/pricing_object.py:284
+msgid "Daily Assets info"
+msgstr ""
+
+#: models/pricing_object.py:302
+msgid "Ralph device ID"
+msgstr ""
+
+#: models/pricing_object.py:322
+msgid "hypervisor"
+msgstr ""
+
+#: models/pricing_object.py:330
+msgid "virtual details"
+msgstr ""
+
+#: models/pricing_object.py:343
+msgid "OpenStack Tenant ID"
+msgstr ""
+
+#: models/pricing_object.py:371
+msgid "tenant details"
+msgstr ""
+
+#: models/pricing_object.py:377
+msgid "enabled"
+msgstr ""
+
+#: models/pricing_object.py:385
+msgid "Ralph VIP ID"
+msgstr ""
+
+#: models/pricing_object.py:389
+msgid "ip address"
+msgstr ""
+
+#: models/pricing_object.py:391
+msgid "port"
+msgstr ""
+
+#: models/pricing_object.py:397
+msgid "load balancer"
+msgstr ""
+
+#: models/pricing_object.py:420
+msgid "VIP details"
+msgstr ""
+
+#: models/pricing_object.py:425
+msgid "IP details"
+msgstr ""
+
+#: models/pricing_object.py:435
+msgid "Ralph database ID"
+msgstr ""
+
+#: models/pricing_object.py:439 models/pricing_object.py:463
+msgid "parent device"
+msgstr ""
+
+#: models/pricing_object.py:471
+msgid "database details"
+msgstr ""
+
+#: models/service.py:40 models/service.py:58 models/service.py:85
+#: models/service.py:104
+msgid "uid from cmdb"
+msgstr ""
+
+#: models/service.py:66
+msgid "business line"
+msgstr ""
+
+#: models/service.py:122
+msgid "profit center"
+msgstr ""
+
+#: models/service.py:128
+msgid "ownership"
+msgstr ""
+
+#: models/service.py:134
+msgid "environments"
+msgstr ""
+
+#: models/service.py:141 models/service.py:225
+msgid "pricing service"
+msgstr ""
+
+#: models/service.py:144
+msgid "history"
+msgstr ""
+
+#: models/service.py:147
+msgid "Manually Allocate Costs"
+msgstr ""
+
+#: models/service.py:161
+msgid "universal"
+msgstr ""
+
+#: models/service.py:162
+msgid "fixed price"
+msgstr ""
+
+#: models/service.py:167
+msgid "plugin type"
+msgstr ""
+
+#: models/service.py:175 models/usage.py:75
+msgid "usage types"
+msgstr ""
+
+#: models/service.py:196
+msgid "excluded base usage types"
+msgstr ""
+
+#: models/service.py:206
+msgid "regular usage types"
+msgstr ""
+
+#: models/service.py:216
+msgid "charge diff to real costs"
+msgstr ""
+
+#: models/service.py:218
+msgid ""
+"if plugin type different than universal, select pricing service to charge by "
+"difference between costs calculated by plugin and real costs"
+msgstr ""
+
+#: models/service.py:226
+msgid "pricing services"
+msgstr ""
+
+#: models/service.py:274
+msgid "Usage type"
+msgstr ""
+
+#: models/service.py:281 models/team.py:88
+msgid "start"
+msgstr ""
+
+#: models/service.py:282 models/team.py:89
+msgid "end"
+msgstr ""
+
+#: models/service.py:293
+msgid "service usage type"
+msgstr ""
+
+#: models/service.py:294
+msgid "service usage types"
+msgstr ""
+
+#: models/service.py:327
+msgid "environment"
+msgstr ""
+
+#: models/service.py:332
+msgid "service environments"
+msgstr ""
+
+#: models/statement.py:20
+msgid "Report header"
+msgstr ""
+
+#: models/statement.py:26
+msgid "Report data"
+msgstr ""
+
+#: models/statement.py:32
+msgid "Forecast price"
+msgstr ""
+
+#: models/statement.py:42 models/statement.py:43
+msgid "Statement"
+msgstr ""
+
+#: models/sync.py:19
+msgid "plugin name"
+msgstr ""
+
+#: models/sync.py:22
+msgid "status"
+msgstr ""
+
+#: models/sync.py:26
+msgid "remarks"
+msgstr ""
+
+#: models/sync.py:32
+msgid "sync status"
+msgstr ""
+
+#: models/sync.py:33
+msgid "sync statuses"
+msgstr ""
+
+#: models/sync.py:41 views/monthly_costs.py:87
+msgid "Success"
+msgstr ""
+
+#: models/sync.py:41
+msgid "Failed"
+msgstr ""
+
+#: models/team.py:25
+msgid "By time"
+msgstr ""
+
+#: models/team.py:26
+msgid "By assets and cores count"
+msgstr ""
+
+#: models/team.py:27
+msgid "By assets count"
+msgstr ""
+
+#: models/team.py:29
+msgid "Distribute cost to other teams proportionally to members count"
+msgstr ""
+
+#: models/team.py:31
+msgid "Average"
+msgstr ""
+
+#: models/team.py:36
+msgid "Show team in report"
+msgstr ""
+
+#: models/team.py:40
+msgid "Show percent column in report"
+msgstr ""
+
+#: models/team.py:44
+msgid "Billing type"
+msgstr ""
+
+#: models/team.py:60
+msgid "Teams"
+msgstr ""
+
+#: models/team.py:73
+msgid "members count"
+msgstr ""
+
+#: models/team.py:92
+msgid "Team cost"
+msgstr ""
+
+#: models/team.py:93
+msgid "Teams costs"
+msgstr ""
+
+#: models/team.py:103
+msgid "team cost"
+msgstr ""
+
+#: models/team.py:119
+msgid "Team service environment percent"
+msgstr ""
+
+#: models/team.py:120
+msgid "Teams services environments percent"
+msgstr ""
+
+#: models/usage.py:23
+msgid "Average the values over multiple days"
+msgstr ""
+
+#: models/usage.py:27
+msgid "Show percentage of value"
+msgstr ""
+
+#: models/usage.py:31
+msgid "Usage type is by warehouse"
+msgstr ""
+
+#: models/usage.py:35
+msgid "Cost or price for usage is entered manually"
+msgstr ""
+
+#: models/usage.py:39
+msgid "Given value is a cost"
+msgstr ""
+
+#: models/usage.py:43
+msgid "Display usage type in services report"
+msgstr ""
+
+#: models/usage.py:47
+msgid "Display usage type in devices report"
+msgstr ""
+
+#: models/usage.py:51
+msgid "Display order"
+msgstr ""
+
+#: models/usage.py:55
+msgid "Base usage type"
+msgstr ""
+
+#: models/usage.py:56
+msgid "Regular usage type"
+msgstr ""
+
+#: models/usage.py:57
+msgid "Service usage type"
+msgstr ""
+
+#: models/usage.py:110
+msgid "forecast price"
+msgstr ""
+
+#: models/usage.py:136
+msgid "usage price"
+msgstr ""
+
+#: models/usage.py:137
+msgid "usage prices"
+msgstr ""
+
+#: models/usage.py:173
+msgid "Pricing Object"
+msgstr ""
+
+#: models/usage.py:178
+msgid "daily_usages"
+msgstr ""
+
+#: models/usage.py:195
+msgid "daily usage"
+msgstr ""
+
+#: models/usage.py:196
+msgid "daily usages"
+msgstr ""
+
+#: models/warehouse.py:25
+msgid "Show warehouse in report"
+msgstr ""
+
+#: models/warehouse.py:29
+msgid "Warehouse id from assets"
+msgstr ""
+
+#: plugins/report/base.py:102
+#, python-brace-format
+msgid "{0} cost"
+msgstr ""
+
+#: plugins/report/base.py:108 plugins/report/usage_type.py:60
+#, python-brace-format
+msgid "{0} count"
+msgstr ""
+
+#: plugins/report/information.py:138 report/report_services_changes.py:202
+#: tests/report/test_services_changes_report.py:128
+msgid "ID"
+msgstr ""
+
+#: plugins/report/information.py:141 report/report_services_usages.py:209
+msgid "Service"
+msgstr ""
+
+#: plugins/report/information.py:144 report/report_services_usages.py:210
+msgid "Environment"
+msgstr ""
+
+#: plugins/report/information.py:147
+msgid "Profit center"
+msgstr ""
+
+#: plugins/report/information.py:150
+msgid "Business Line"
+msgstr ""
+
+#: plugins/report/information.py:164 report/report_services_changes.py:40
+#: tests/report/test_services_changes_report.py:139
+msgid "Barcode"
+msgstr ""
+
+#: plugins/report/information.py:167 report/report_services_changes.py:41
+#: tests/report/test_services_changes_report.py:140
+msgid "SN"
+msgstr ""
+
+#: plugins/report/information.py:170
+msgid "Device name"
+msgstr ""
+
+#: report/base_plugin_report.py:363
+msgid "Total cost"
+msgstr ""
+
+#: report/report_services_changes.py:42
+#: tests/report/test_services_changes_report.py:141
+msgid "Asset ID"
+msgstr ""
+
+#: report/report_services_changes.py:203
+#: tests/report/test_services_changes_report.py:129
+msgid "Name"
+msgstr ""
+
+#: report/report_services_changes.py:205
+#: tests/report/test_services_changes_report.py:131
+msgid "Change date"
+msgstr ""
+
+#: report/report_services_changes.py:206
+#: tests/report/test_services_changes_report.py:132
+msgid "Service before change"
+msgstr ""
+
+#: report/report_services_changes.py:207
+#: tests/report/test_services_changes_report.py:133
+msgid "Environment before change"
+msgstr ""
+
+#: report/report_services_changes.py:208
+#: tests/report/test_services_changes_report.py:134
+msgid "Service after change"
+msgstr ""
+
+#: report/report_services_changes.py:209
+#: tests/report/test_services_changes_report.py:135
+msgid "Environment after change"
+msgstr ""
+
+#: rest/costcard.py:50
+#, python-brace-format
+msgid "Service {0} or environment {1} does not exist"
+msgstr ""
+
+#: rest/costcard.py:67 tests/rest/test_costcard.py:159
+msgid ""
+"There are no accepted costs for chosen date. Please choose different date or "
+"back later."
+msgstr ""
+
+#: rest/costcard.py:93
+msgid "Total"
+msgstr ""
+
+#: templates/ralph_scrooge/devices.html:6
+msgid ""
+"This report provides info regarding usage and costs of devices for selected "
+"venture within given time frame."
+msgstr ""
+
+#: templates/ralph_scrooge/index.html:97
+msgid "Changes"
+msgstr ""
+
+#: templates/ralph_scrooge/index.html:102
+msgid "Report a bug"
+msgstr ""
+
+#: templates/ralph_scrooge/report_services_costs.html:6
+msgid ""
+"This report provides detailed info regarding costs for all services within "
+"selected time frame."
+msgstr ""
+
+#: templates/ralph_scrooge/report_services_usages.html:6
+msgid ""
+"This report provides info regarding usages of resources for all services "
+"within selected time frame."
+msgstr ""
+
+#: templates/ralph_scrooge/ventures_changes.html:6
+msgid ""
+"This report provides detailed info regarding costs for all ventures within "
+"selected time frame."
+msgstr ""
+
+#: utils/security.py:34
+msgid "You have no access to Scrooge!"
+msgstr ""
+
+#: views/base.py:22
+msgid "You don't have permission to access Scrooge."
+msgstr ""
+
+#: views/base_report.py:110
+msgid "Please wait for the report to finish calculating."
+msgstr ""
+
+#: views/collect_plugins.py:34
+msgid "Collect plugins runner"
+msgstr ""
+
+#: views/collect_plugins.py:35
+msgid "Run collect plugins in period of time."
+msgstr ""
+
+#: views/collect_plugins.py:75
+msgid "Please wait for plugins to finish collecting data."
+msgstr ""
+
+#: views/extra_costs.py:52
+msgid "Extra costs updated."
+msgstr ""
+
+#: views/extra_costs.py:55
+msgid "Please fix the errors."
+msgstr ""
+
+#: views/monthly_costs.py:34
+msgid "Recalculate and accept costs"
+msgstr ""
+
+#: views/monthly_costs.py:36
+msgid "Recalculate and accept costs for selected period of time."
+msgstr ""
+
+#: views/monthly_costs.py:69
+msgid "Please wait for costs recalculation."
+msgstr ""
+
+#: views/monthly_costs.py:72
+msgid "Costs recalculated."
+msgstr ""
+
+#: views/monthly_costs.py:79
+msgid "Cache cleared."
+msgstr ""
+
+#: views/monthly_costs.py:87
+msgid "Date"
+msgstr ""
+
+#: views/monthly_costs.py:106
+msgid "Costs were not calculated for all selected days!"
+msgstr ""
+
+#: views/monthly_costs.py:113
+msgid "Costs were accepted!"
+msgstr ""
+
+#: views/report_services_changes.py:27
+msgid "Services Changes Report"
+msgstr ""
+
+#: views/report_services_costs.py:27
+msgid "Services Costs Report"
+msgstr ""
+
+#: views/report_services_usages.py:28
+msgid "Services Usages Report"
+msgstr ""
+
+#: views/statement.py:47
+msgid "Statement does not exist!"
+msgstr ""
