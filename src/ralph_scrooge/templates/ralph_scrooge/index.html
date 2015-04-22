@@ -1,52 +1,52 @@
 <!DOCTYPE html>
 {% load colors_tags %}
 {% load url from future %}
-{% load i18n bob %}
+{% load i18n bob staticfiles %}
 <html lang="en" ng-app="app">
     <head>
         <meta charset="utf-8">
         <title>Ralph Scrooge | {% block title %}{% block titlesection %}{{ active_menu.module.label }}{% block titlesubsection %}{% endblock %} - {{ active_submodule|title }}{% endblock %}{% endblock %}</title>
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/datepicker3.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/bootstrap-table.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/scrooge.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/loading-bar.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/font-awesome.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/ng-scrollbar.css" />
-        <!-- <link rel="stylesheet" href="{{ STATIC_URL }}scrooge/css/multiple-select.css" /> -->
+        <link rel="stylesheet" href="{% static 'scrooge/css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/datepicker3.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/bootstrap-table.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/scrooge.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/loading-bar.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/font-awesome.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/ng-scrollbar.css' %}" />
+        <!-- <link rel="stylesheet" href="{% static 'scrooge/css/multiple-select.css' %}" /> -->
         <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
          <!-- External scripts -->
         {% panels_colors %}
-        <script src="{{ STATIC_URL }}scrooge/js/jquery.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/jquery.multiple.select.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular.js"></script>
+        <script src="{% static 'scrooge/js/jquery.min.js' %}"></script>
+        <script src="{% static 'scrooge/js/jquery.multiple.select.js' %}"></script>
+        <script src="{% static 'scrooge/js/angular/angular.js' %}"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.17/angular-animate.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-resource.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-route.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/angular/angular-cookies.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/loading-bar.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/ng-scrollbar.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/bootstrap.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/bootstrap-table.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/bootstrap-datepicker.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/raven.min.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/js/scrooge.js"></script>
+        <script src="{% static 'scrooge/js/angular/angular-resource.js' %}"></script>
+        <script src="{% static 'scrooge/js/angular/angular-route.js' %}"></script>
+        <script src="{% static 'scrooge/js/angular/angular-cookies.js' %}"></script>
+        <script src="{% static 'scrooge/js/loading-bar.js' %}"></script>
+        <script src="{% static 'scrooge/js/ng-scrollbar.js' %}"></script>
+        <script src="{% static 'scrooge/js/ui-bootstrap-tpls-0.10.0.min.js' %}"></script>
+        <script src="{% static 'scrooge/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'scrooge/js/bootstrap-table.js' %}"></script>
+        <script src="{% static 'scrooge/js/bootstrap-datepicker.js' %}"></script>
+        <script src="{% static 'scrooge/js/raven.min.js' %}"></script>
+        <script src="{% static 'scrooge/js/scrooge.js' %}"></script>
         <!-- Angular scripts -->
-        <script src="{{ STATIC_URL }}scrooge/app/app.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/common/controller.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/common/directive.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/common/filter.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/common/service.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/menu/controller.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/menu/directive.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/menu/filter.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/menu/service.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/component/controller.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/cost/controller.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/costcard/controller.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/allocationclient/controller.js"></script>
-        <script src="{{ STATIC_URL }}scrooge/app/allocationadmin/controller.js"></script>
+        <script src="{% static 'scrooge/app/app.js' %}"></script>
+        <script src="{% static 'scrooge/app/common/controller.js' %}"></script>
+        <script src="{% static 'scrooge/app/common/directive.js' %}"></script>
+        <script src="{% static 'scrooge/app/common/filter.js' %}"></script>
+        <script src="{% static 'scrooge/app/common/service.js' %}"></script>
+        <script src="{% static 'scrooge/app/menu/controller.js' %}"></script>
+        <script src="{% static 'scrooge/app/menu/directive.js' %}"></script>
+        <script src="{% static 'scrooge/app/menu/filter.js' %}"></script>
+        <script src="{% static 'scrooge/app/menu/service.js' %}"></script>
+        <script src="{% static 'scrooge/app/component/controller.js' %}"></script>
+        <script src="{% static 'scrooge/app/cost/controller.js' %}"></script>
+        <script src="{% static 'scrooge/app/costcard/controller.js' %}"></script>
+        <script src="{% static 'scrooge/app/allocationclient/controller.js' %}"></script>
+        <script src="{% static 'scrooge/app/allocationadmin/controller.js' %}"></script>
     </head>
     <body ng-controller="mainCtrl">
         <div class="body-wrapper">
