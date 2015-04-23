@@ -4,6 +4,7 @@
 import os
 
 TEST_DATABASE_ENGINE = os.environ.get('TEST_DATABASE_ENGINE')
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 if TEST_DATABASE_ENGINE == 'mysql':
     DATABASES = {

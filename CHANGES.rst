@@ -1,6 +1,19 @@
 Change Log
 ----------
 
+3.0.1
+~~~~~
+
+Released on April 23, 2015
+
+* Added versioning to static files.
+* Added database and Virtual IP as default components.
+* Change default settings for collect plugins.
+* Fixes:
+    * Unification of menu items in angular views and old django views.
+    * Removed unnecessary 'Extra costs' and 'Usage types' menu items.
+
+
 3.0.0
 ~~~~~
 
