@@ -195,7 +195,6 @@ class FakedUsageDemo(DemoData):
 
     def generate_data(self, data):
         for vip_info in VIPInfo.objects.all():
-            today = datetime.date.today()
             for delta in xrange(10):
                 faked_today = today - datetime.timedelta(days=delta)
                 daily_pricing = vip_info.get_daily_pricing_object(faked_today)
