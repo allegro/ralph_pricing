@@ -37,6 +37,8 @@ before_script:
   # - psql -c 'create database ralph_test;' -U postgres
 # command to run tests, e.g. python setup.py test
 script:
-  make test-with-coveralls
-after_success:
-  coveralls
+  - make test-with-coveralls
+  # send coveralls before processing cache (ralph packages are removed in
+  # before_cache stage and coveralls in after_success stage cannot find source
+  # files)
+  - if [[ $? -eq 0 ]]; then coveralls; fi
