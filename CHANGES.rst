@@ -1,6 +1,13 @@
 Change Log
 ----------
 
+DEV
+~~~
+
+* [data-migration] changed Scrooge warehouses source to assets datacenters
+  (from assets warehouses)
+
+
 3.0.0
 ~~~~~
 
