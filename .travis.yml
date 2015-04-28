@@ -4,7 +4,7 @@ cache:
   directories:
   - $HOME/virtualenv/
 before_cache:
-  - pip uninstall Django ralph ralph_assets ralph_scrooge django-bob bob-ajax-selects -y
+  - pip uninstall Django ralph ralph_assets django-bob bob-ajax-selects -y
 env:
   matrix:
     - DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=mysql
@@ -28,12 +28,12 @@ install:
   - pip install git+https://github.com/allegro/ralph_assets.git@develop
   - pip install git+https://github.com/allegro/ralph.git@develop --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core --allow-unverified pysphere
   - pip install coveralls
-  - pip install . --use-mirrors
+  - pip install -e . --use-mirrors
 before_install:
   - pip install flake8 --use-mirrors
   - make flake
 before_script:
-  - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;'
+  - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot
   # - psql -c 'create database ralph_test;' -U postgres
 # command to run tests, e.g. python setup.py test
 script:
