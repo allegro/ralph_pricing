@@ -21,7 +21,11 @@ from ralph_scrooge.models._history import (
     IntervalHistoricalRecords,
     ModelDiffMixin,
 )
-from ralph_scrooge.models.base import BaseUsage, BaseUsageType
+from ralph_scrooge.models.base import (
+    BaseUsage,
+    BaseUsageManager,
+    BaseUsageType,
+)
 from ralph_scrooge.models.usage import DailyUsage
 from ralph_scrooge.models.pricing_object import PRICING_OBJECT_TYPES
 
@@ -220,6 +224,9 @@ class PricingService(BaseUsage):
             'real costs'
         )
     )
+
+    objects_admin = db.Manager()
+    objects = BaseUsageManager()
 
     class Meta:
         verbose_name = _("pricing service")

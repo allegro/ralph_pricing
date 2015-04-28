@@ -58,7 +58,6 @@ class TestOpenStackCeilometer(TestCase):
         usage_type = get_usage_type(flavor_name)
         self.assertEquals(usage_type.name, 'openstack.Sample Flavor:test')
         self.assertEquals(usage_type.symbol, 'openstack.sample_flavor.test')
-        self.assertFalse(usage_type.show_in_services_report)
 
     def test_get_daily_tenant(self):
         daily_tenant = DailyTenantInfoFactory(date=self.today)

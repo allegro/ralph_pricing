@@ -20,7 +20,23 @@ class BaseUsageType(Choices):
     dynamic_extra_cost = _("Dynamic extra cost")
 
 
+class BaseUsageManager(db.Manager):
+    def get_query_set(self):
+        return super(BaseUsageManager, self).get_query_set().filter(
+            active=True,
+        )
+
+
 class BaseUsage(Named):
+    active = db.BooleanField(
+        verbose_name=_('active'),
+        default=True,
+        help_text=_(
+            "If inactive, this type won't take part in costs calculation"
+        ),
+        null=False,
+        blank=False,
+    )
     symbol = db.CharField(
         verbose_name=_("symbol"),
         max_length=255,
@@ -45,6 +61,9 @@ class BaseUsage(Named):
         help_text=_("Decimal places"),
         default=0,
     )
+
+    objects_admin = db.Manager()
+    objects = BaseUsageManager()
 
     class Meta:
         app_label = 'ralph_scrooge'

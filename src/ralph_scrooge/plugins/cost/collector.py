@@ -343,7 +343,6 @@ class Collector(object):
         """
         logger.debug("Getting usage types")
         query = UsageType.objects.filter(
-            show_in_services_report=True,
             usage_type='BU',
         )
         if filter_:
@@ -374,7 +373,6 @@ class Collector(object):
         Returns regular usage types which should be visible on report
         """
         query = UsageType.objects.filter(
-            show_in_services_report=True,
             usage_type='RU',
         )
         if filter_:
@@ -430,7 +428,7 @@ class Collector(object):
         """
         Returns teams which should be visible on report
         """
-        return Team.objects.filter(show_in_report=True).order_by('name')
+        return Team.objects.order_by('name')
 
     @classmethod
     def _get_teams_plugins(cls):
@@ -456,7 +454,9 @@ class Collector(object):
         Returns all extra costs (excluding supports)
         """
         # exclude supports (from fixture)
-        return ExtraCostType.objects.exclude(pk=2).order_by('name')
+        return ExtraCostType.objects.exclude(
+            pk=2
+        ).order_by('name')
 
     @classmethod
     def _get_extra_cost_types_plugins(cls):
@@ -491,7 +491,9 @@ class Collector(object):
         """
         Returns all extra costs
         """
-        return DynamicExtraCostType.objects.order_by('name')
+        return DynamicExtraCostType.objects.order_by(
+            'name'
+        )
 
     @classmethod
     def _get_dynamic_extra_cost_types_plugins(cls):

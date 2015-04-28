@@ -86,7 +86,6 @@ class BasePluginReport(BaseReport):
         """
         logger.debug("Getting usage types")
         query = UsageType.objects.filter(
-            show_in_services_report=True,
             usage_type='BU',
         )
         if filter_:
@@ -119,7 +118,6 @@ class BasePluginReport(BaseReport):
         Returns regular usage types which should be visible on report
         """
         query = UsageType.objects.filter(
-            show_in_services_report=True,
             usage_type='RU',
         )
         if filter_:
@@ -178,7 +176,7 @@ class BasePluginReport(BaseReport):
         """
         Returns teams which should be visible on report
         """
-        return Team.objects.filter(show_in_report=True).order_by('name')
+        return Team.objects.order_by('name')
 
     @classmethod
     def _get_teams_plugins(cls):
