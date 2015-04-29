@@ -57,7 +57,7 @@ class BaseCostPlugin(BasePlugin):
         """
         costs = self._costs(*args, **kwargs)
         # filter by service environments if specified
-        if service_environments:
+        if service_environments is not None:
             se_ids = set([se.id for se in service_environments])
             costs = {k: v for (k, v) in costs.iteritems() if k in se_ids}
         return costs
