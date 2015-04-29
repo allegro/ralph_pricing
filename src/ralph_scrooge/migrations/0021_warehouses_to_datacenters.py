@@ -8,7 +8,7 @@ from django.db import models
 from ralph_assets.models_assets import Warehouse
 from ralph_assets.models_dc_assets import DataCenter
 
-WARN_MSG = """
+WARN_MSG = u"""
 This migration does IRREVERSIBLE changes!
 Which means removing warehouses other then these:
 - warehouse with name 'Default',
@@ -41,10 +41,10 @@ class Migration(DataMigration):
             undeleted = orm['ralph_scrooge.warehouse'].objects.filter(
                 name__in=keep_undeleted,
             ) or '-'
-            up_to_delete_names = '\n'.join(
+            up_to_delete_names = u'\n'.join(
                 to_delete.values_list('name', flat=True)
             ) or '-'
-            left_names = '\n'.join(undeleted.values_list('name', flat=True))
+            left_names = u'\n'.join(undeleted.values_list('name', flat=True))
             msg = WARN_MSG.format(
                 to_delete_count=to_delete.count(),
                 up_to_delete_names=up_to_delete_names,
