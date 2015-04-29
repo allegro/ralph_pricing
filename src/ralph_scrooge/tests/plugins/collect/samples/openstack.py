@@ -1,4 +1,4 @@
-SAMPLE_CEILOMETER = [
+SAMPLE_OPENSTACK = [
     ('12345', 123, 'instance:i1'),
     ('12345', 321, 'instance:i2'),
     ('54321', 123, 'instance:i1'),
