@@ -20,7 +20,7 @@ class TestSupportPlugin(TestCase):
         self.start = date(2013, 10, 1)
         self.end = date(2013, 10, 30)
 
-        self.support_type = models.ExtraCostType.objects.get(pk=2)
+        self.support_type = models.ExtraCostType.objects_admin.get(pk=2)
         self.pricing_objects = PricingObjectFactory.create_batch(5)
         self.service_environments = [
             po.service_environment for po in self.pricing_objects

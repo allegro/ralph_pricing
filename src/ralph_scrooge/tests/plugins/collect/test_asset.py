@@ -66,7 +66,7 @@ class TestAssetPlugin(TestCase):
             True,
             'SU',
         )
-        self.assertEqual(usage_type, UsageType.objects.get())
+        self.assertEqual(usage_type, UsageType.objects_admin.get())
         self.assertEqual(usage_type.symbol, 'test_symbol')
         self.assertEqual(usage_type.name, 'test_name')
         self.assertEqual(usage_type.by_warehouse, True)

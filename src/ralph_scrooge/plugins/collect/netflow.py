@@ -274,7 +274,7 @@ def get_usage_type():
     :returns object: Network Bytes usage type
     :rtype object:
     """
-    usage_type, created = UsageType.objects.get_or_create(
+    usage_type, created = UsageType.objects_admin.get_or_create(
         name="Network Bytes",
         symbol='network_bytes',
     )

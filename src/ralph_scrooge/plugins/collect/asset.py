@@ -244,7 +244,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     :returns object: Django orm UsageType object
     :rtype object:
     """
-    usage_type, created = UsageType.objects.get_or_create(
+    usage_type, created = UsageType.objects_admin.get_or_create(
         symbol=symbol,
         defaults=dict(
             name=name,

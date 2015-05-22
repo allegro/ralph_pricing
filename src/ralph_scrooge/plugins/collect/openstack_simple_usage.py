@@ -58,7 +58,7 @@ def clear_openstack_simple_usages(date):
 def get_usage_types():
     usages = {}
     for usage_symbol, usage_name in USAGES:
-        usage_type, created = UsageType.objects.get_or_create(
+        usage_type, created = UsageType.objects_admin.get_or_create(
             symbol=USAGE_SYMBOL_TMPL.format(usage_symbol),
             defaults=dict(
                 name=usage_name,

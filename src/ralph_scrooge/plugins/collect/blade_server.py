@@ -68,7 +68,7 @@ def get_usage_type():
     """
     Returns Blade Server usage type
     """
-    return UsageType.objects.get_or_create(
+    return UsageType.objects_admin.get_or_create(
         symbol='blade_server',
         defaults=dict(
             name='Blade server',
