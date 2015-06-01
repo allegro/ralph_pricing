@@ -33,7 +33,7 @@ setup(
     install_requires=[
         'ralph>=2.3.1',
         'ralph_assets>=2.5.1',
-        'python-ceilometerclient>=1.0.10',
+        'python-ceilometerclient==1.0.10',
         'pymongo>=2.7.2',
         'python-novaclient==2.17.0',
         'django-simple-history',
