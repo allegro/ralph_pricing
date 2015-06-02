@@ -78,9 +78,8 @@ class CostCardContent(APIView):
         ).annotate(
             sum_cost=Sum('cost')
         )
-
-        base_usages = {bu.id: bu.name for bu in BaseUsage.objects.all()}
-
+        # call objects_admin to get not-actvie types too
+        base_usages = {bu.id: bu.name for bu in BaseUsage.objects_admin.all()}
         total = D(0)
         results = []
         for monthly_cost in monthly_costs:
