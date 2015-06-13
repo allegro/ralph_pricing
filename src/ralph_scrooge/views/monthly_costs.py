@@ -27,6 +27,7 @@ from ralph_scrooge.models import CostDateStatus
 logger = logging.getLogger(__name__)
 
 
+# TODO: rename this view to sth more general (ex. CostsRecalculation)
 class MonthlyCosts(WorkerJob, Base):
     template_name = 'ralph_scrooge/monthly_costs.html'
     Form = MonthlyCostsForm
@@ -37,8 +38,8 @@ class MonthlyCosts(WorkerJob, Base):
     )
     initial = None
 
-    queue_name = get_queue_name('scrooge_costs')
-    cache_name = get_cache_name('scrooge_costs')
+    queue_name = get_queue_name('scrooge_costs_master', 'scrooge_costs')
+    cache_name = get_cache_name('scrooge_costs_master', 'scrooge_costs')
     cache_section = 'scrooge_costs'
     cache_timeout = 60 * 60 * 24  # 24 hours (max time for plugin to run)
     cache_final_result_timeout = 60 * 60 * 2  # 2 hours
