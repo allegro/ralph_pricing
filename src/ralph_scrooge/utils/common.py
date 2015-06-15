@@ -52,15 +52,17 @@ class HashableDict(dict):
         return self.__key() == other.__key()
 
 
-def get_cache_name(name):
-    if name in settings.CACHES:
-        return name
+def get_cache_name(*names):
+    for name in names:
+        if name in settings.CACHES:
+            return name
     return 'default'
 
 
-def get_queue_name(name):
-    if name in settings.RQ_QUEUES:
-        return name
+def get_queue_name(*names):
+    for name in names:
+        if name in settings.RQ_QUEUES:
+            return name
     return 'default'
 
 
