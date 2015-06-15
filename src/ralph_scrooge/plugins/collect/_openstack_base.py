@@ -206,6 +206,7 @@ class OpenStackBasePlugin(object):
                 logger.error('Invalid warehouse: {}'.format(
                     site['WAREHOUSE']
                 ))
+                # default warehouse from fixtures
                 warehouse = Warehouse.objects.get(pk=1)
             usages = self.get_usages(today, site['CONNECTION'])
             site_new, site_total = self.save_usages(
