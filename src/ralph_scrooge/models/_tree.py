@@ -5,14 +5,40 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import namedtuple
+
 from django.db import models as db
+from django.db.models.base import ModelBase
+
+from ralph_scrooge.utils.common import AttributeDict
 
 
 class PathFieldNotConfiguredError(Exception):
     pass
 
 
+class MultiPathNodeMeta(ModelBase):
+    def __new__(cls, name, bases, attrs):
+        new_class = super(MultiPathNodeMeta, cls).__new__(
+            cls, name, bases, attrs
+        )
+        # create namedtuple with fields from model
+        # notice that ForeignKeys fields are inserted with '_id' suffix
+        # (ex. user -> user_id)
+        ntpl = namedtuple(
+            name,
+            ['pk'] + [f.attname for f in new_class._meta.fields]
+        )
+        # set defaults to None - this will allow to specify subset of fields
+        # when creating new object
+        ntpl.__new__.__defaults__ = (None,) * (len(ntpl._fields))
+        ntpl._fields_set = set(ntpl._fields)
+        new_class.namedtuple = ntpl
+        return new_class
+
+
 class MultiPathNode(db.Model):
+    __metaclass__ = MultiPathNodeMeta
     _path_link = '/'
     _path_field = None
 
@@ -45,6 +71,19 @@ class MultiPathNode(db.Model):
         l.append(path_field_value)
         return self._path_link.join(map(str, l))
 
+    @classmethod
+    def _parse_path4namedtuple(cls, parent_path, data):
+        """
+        Returns path as join of parent path with value of current object path
+        field value.
+        """
+        path_field_value = data.get(cls._path_field)
+        l = []
+        if parent_path:
+            l.append(parent_path)
+        l.append(path_field_value)
+        return cls._path_link.join(map(str, l))
+
     def add_child(self, **kwargs):
         """
         Adds single child to object (link self as parent).
@@ -65,7 +104,7 @@ class MultiPathNode(db.Model):
         return True
 
     @classmethod
-    def _build_tree(cls, tree, parent=None, **global_params):
+    def _build_tree_djangoobject(cls, tree, parent=None, **global_params):
         """
         Build MultiPath tree Nodes according to tree list
 
@@ -96,3 +135,56 @@ class MultiPathNode(db.Model):
                     child.get('_children', []), newobj, **global_params
                 ))
         return result
+
+    @classmethod
+    def _build_namedtuples(cls, tree, parent=None, **global_params):
+        assert isinstance(tree, (list, tuple))
+        result = []
+        for child in tree:
+            assert isinstance(child, dict)
+            params = dict(
+                [(k, v) for k, v in child.items() if (
+                    k in cls.namedtuple._fields_set
+                )]
+            )
+            params.update(global_params)
+            if cls._are_params_valid(params):
+                params['depth'] = parent.depth + 1 if parent else 0
+                params['path'] = cls._parse_path4namedtuple(
+                    parent.path if parent else '',
+                    params
+                )
+                newobj = cls.namedtuple(**params)
+                result.append(newobj)
+                result.extend(cls._build_namedtuples(
+                    child.get('_children', []), newobj, **global_params
+                ))
+        return result
+
+    @classmethod
+    def _build_attrdict(cls, tree, parent=None, **global_params):
+        assert isinstance(tree, (list, tuple))
+        result = []
+        for child in tree:
+            assert isinstance(child, dict)
+            params = dict(
+                [(k, v) for k, v in child.items() if (
+                    not k.startswith('_') and
+                    k not in ('percent', )
+                )]
+            )
+            params.update(global_params)
+            if cls._are_params_valid(params):
+                params['depth'] = parent.depth + 1 if parent else 0
+                params['path'] = cls._parse_path4namedtuple(
+                    parent.path if parent else '',
+                    params
+                )
+                newobj = AttributeDict(**params)
+                result.append(newobj)
+                result.extend(cls._build_namedtuples(
+                    child.get('_children', []), newobj, **global_params
+                ))
+        return result
+
+    _build_tree = _build_namedtuples  # temporary
