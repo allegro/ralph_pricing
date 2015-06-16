@@ -33,6 +33,11 @@ class MultiPathNodeMeta(ModelBase):
         # when creating new object
         ntpl.__new__.__defaults__ = (None,) * (len(ntpl._fields))
         ntpl._fields_set = set(ntpl._fields)
+        ntpl._foreign_key_mapping = {
+            f.name: f.attname for f in new_class._meta.fields if (
+                isinstance(f, db.ForeignKey)
+            )
+        }
         new_class.namedtuple = ntpl
         return new_class
 
@@ -142,11 +147,13 @@ class MultiPathNode(db.Model):
         result = []
         for child in tree:
             assert isinstance(child, dict)
-            params = dict(
-                [(k, v) for k, v in child.items() if (
-                    k in cls.namedtuple._fields_set
-                )]
-            )
+            params = {}
+            for k, v in child.items():
+                if k in cls.namedtuple._foreign_key_mapping:
+                    k = cls.namedtuple._foreign_key_mapping[k]
+                    v = v.pk  # ForeignKey!
+                if k in cls.namedtuple._fields_set:
+                    params[k] = v
             params.update(global_params)
             if cls._are_params_valid(params):
                 params['depth'] = parent.depth + 1 if parent else 0
