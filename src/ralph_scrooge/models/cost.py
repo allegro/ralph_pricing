@@ -90,7 +90,7 @@ class DailyCost(MultiPathNode):
     @classmethod
     def _are_params_valid(self, params):
         if 'cost' in params:
-            return params['cost'] > 0
+            return params['cost'] != 0
         return True
 
 
