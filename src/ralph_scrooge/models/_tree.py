@@ -120,8 +120,8 @@ class MultiPathNode(db.Model):
     #     Build MultiPath tree Nodes according to tree list
 
     #     :param list tree: list of dicts. dict values will be passed as kwargs
-    #         to new objects. Dict '_children' list value will be used to create
-    #         node children.
+    #         to new objects. Dict '_children' list value will be used to
+    #         create node children.
     #     """
     #     assert isinstance(tree, (list, tuple))
     #     result = []
