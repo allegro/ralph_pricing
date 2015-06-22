@@ -192,6 +192,8 @@ class TestDailyCost(ScroogeTestCase):
         self.po1 = PricingObjectFactory(service_environment=self.se1)
         self.po2 = PricingObjectFactory(service_environment=self.se2)
 
+        self.wh1 = WarehouseFactory()
+
         self.bu1 = ExtraCostTypeFactory()
         self.bu2 = UsageTypeFactory()
         self.bu3 = PricingServiceFactory()
@@ -207,30 +209,35 @@ class TestDailyCost(ScroogeTestCase):
                 'value': 10,
                 'cost': D('100'),
                 'type': self.bu1,
+                'warehouse_id': self.wh1.id,
             },
             {
                 'service_environment': self.se2,
                 'value': 20,
                 'cost': D('200'),
                 'type': self.bu3,
+                'warehouse': None,
                 '_children': [
                     {
                         'service_environment': self.se2,
                         'value': 10,
                         'cost': D('100'),
                         'type': self.bu1,
+                        'warehouse': self.wh1,
                     },
                     {
                         'service_environment': self.se2,
                         'value': 10,
                         'cost': D('100'),
                         'type': self.bu4,
+                        'warehouse': None,
                         '_children': [
                             {
                                 'service_environment': self.se2,
                                 'value': 10,
                                 'cost': D('100'),
                                 'type': self.bu2,
+                                'warehouse': None,
                             }
                         ]
                     }
@@ -241,6 +248,7 @@ class TestDailyCost(ScroogeTestCase):
     def _sample_global_params(self):
         return {
             'date': datetime.date(2014, 10, 11),
+            'forecast': True,
         }
 
     def _sample_tree_flat(self):
@@ -267,23 +275,38 @@ class TestDailyCost(ScroogeTestCase):
         self.assertEquals(len(result), 5)  # all nodes in sample tree
         self.assertEquals(models.DailyCost.objects.count(), 2)
         self.assertEquals(models.DailyCost.objects_tree.count(), 5)
+        self.assertEquals(
+            models.DailyCost.objects_tree.filter(warehouse=self.wh1).count(),
+            2
+        )
 
-        tree_flat = self._sample_tree_flat()
+        # tree_flat = self._sample_tree_flat()
 
         def daily_cost2dict(d):
-            result = {}
+            r = {}
             for attr in [
-                'service_environment', 'value', 'cost', 'type', 'path', 'depth'
+                'service_environment_id', 'value', 'cost', 'type_id', 'path',
+                'depth', 'warehouse_id',
             ]:
-                result[attr] = getattr(d, attr, None)
-            return result
+                r[attr] = getattr(d, attr, None)
+            return r
 
         daily_costs_dicts = map(
             daily_cost2dict,
             models.DailyCost.objects_tree.all()
         )
-        for t in tree_flat:
+        for t in map(daily_cost2dict, result):
             self.assertIn(t, daily_costs_dicts)
+
+    def test_parse_path(self):
+        data = {'type_id': 'abc'}
+        result = models.DailyCost._parse_path('', data)
+        self.assertEqual(result, 'abc')
+
+    def test_parse_path_with_parent(self):
+        data = {'type_id': 'abc'}
+        result = models.DailyCost._parse_path('1/2/3', data)
+        self.assertEqual(result, '1/2/3/abc')
 
 
 class TestModelRepr(ScroogeTestCase):
