@@ -36,13 +36,6 @@ class ServiceEnvironmentDoesNotExistError(Exception):
     pass
 
 
-class WarehouseDoesNotExistError(Exception):
-    """
-    Raise this exception when warehouse does not exist
-    """
-    pass
-
-
 def get_asset_info(service_environment, warehouse, data):
     """
     Update AssetInfo object or create it if not exist.
@@ -181,7 +174,7 @@ def update_assets(data, date, usages):
     try:
         warehouse = Warehouse.objects.get(id_from_assets=data['warehouse_id'])
     except Warehouse.DoesNotExist:
-        raise WarehouseDoesNotExistError()
+        warehouse = Warehouse.objects.get(pk=1)  # Default from fixtures
 
     asset_info, new_created = get_asset_info(
         service_environment,
@@ -342,11 +335,6 @@ def asset(**kwargs):
                     data['environment_id'],
                 )
             )
-            continue
-        except WarehouseDoesNotExistError:
-            logger.error('Warehouse {0} does not exist'.format(
-                data['warehouse_id']
-            ))
             continue
 
     return True, '{0} new, {1} updated, {2} total'.format(new, update, total)
