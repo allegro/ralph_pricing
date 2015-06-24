@@ -164,19 +164,20 @@ class TestAssetPlugin(TestCase):
             )
 
     def test_update_assets_when_warehouse_does_not_exist(self):
-        self.data['warehouse_id'] = WarehouseFactory.build().id_from_assets
-        with self.assertRaises(asset.WarehouseDoesNotExistError):
-            asset.update_assets(
-                self.data,
-                self.date,
-                {
-                    'depreciation': UsageTypeFactory.create(),
-                    'assets_count': UsageTypeFactory.create(),
-                    'cores_count': UsageTypeFactory.create(),
-                    'power_consumption': UsageTypeFactory.create(),
-                    'collocation': UsageTypeFactory.create(),
-                }
-            )
+        self.data['warehouse_id'] = None
+        asset.update_assets(
+            self.data,
+            self.date,
+            {
+                'depreciation': UsageTypeFactory.create(),
+                'assets_count': UsageTypeFactory.create(),
+                'cores_count': UsageTypeFactory.create(),
+                'power_consumption': UsageTypeFactory.create(),
+                'collocation': UsageTypeFactory.create(),
+            }
+        )
+        asset_info = AssetInfo.objects.get()
+        self.assertEqual(asset_info.warehouse_id, 1)  # from fixtures
 
     def test_update_assets_when_environment_does_not_exist(self):
         self.data['environment_id'] = EnvironmentFactory.build().ci_id
