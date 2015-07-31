@@ -16,6 +16,7 @@ from ralph_scrooge.models import (
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     VIPInfo,
+    VirtualInfo,
 )
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError,
@@ -48,7 +49,7 @@ def save_vip_info(ralph_vip, unknown_service_environment):
         )
         service_environment_found = True
     except ServiceEnvironment.DoesNotExist:
-        logger.warning(
+        logger.error(
             'Invalid (or missing) service environment for VIP {}-{}'.format(
                 ralph_vip['device_id'],
                 ralph_vip['name']
@@ -61,6 +62,7 @@ def save_vip_info(ralph_vip, unknown_service_environment):
             vip_id=ralph_vip['vip_id'],
         )
     except VIPInfo.DoesNotExist:
+        # TODO(?): check if there is single PricingObject with given name first
         created = True
         vip_info = VIPInfo(
             vip_id=ralph_vip['vip_id'],
@@ -81,7 +83,13 @@ def save_vip_info(ralph_vip, unknown_service_environment):
     try:
         load_balancer = AssetInfo.objects.get(device_id=ralph_vip['device_id'])
     except AssetInfo.DoesNotExist:
-        load_balancer = None
+        # some load balancers are virtual
+        try:
+            load_balancer = VirtualInfo.objects.get(
+                device_id=ralph_vip['device_id']
+            )
+        except VirtualInfo.DoesNotExist:
+            load_balancer = None
 
     vip_info.model = get_vip_model(ralph_vip)
     vip_info.name = ralph_vip['name']
