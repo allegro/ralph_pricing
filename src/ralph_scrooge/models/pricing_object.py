@@ -10,11 +10,12 @@ from decimal import Decimal as D
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
-from lck.django.choices import Choices
-from lck.django.common.models import (
-    EditorTrackable,
-    TimeTrackable,
-)
+from dj.choices import Choices
+# from lck.django.common.models import (
+#     EditorTrackable,
+#     TimeTrackable,
+# )
+from ralph_scrooge.models.base import TimeTrackable
 
 
 PRICE_DIGITS = 16
@@ -107,7 +108,7 @@ class PricingObjectModel(db.Model):
         return '{} - {}'.format(self.manufacturer, self.name)
 
 
-class PricingObject(TimeTrackable, EditorTrackable):
+class PricingObject(TimeTrackable):
     """
     Pricing object base class. Inherited by specified objects, such as asset,
     ip address, virtual etc.

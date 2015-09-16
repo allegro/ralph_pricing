@@ -30,7 +30,7 @@ class TestOwnerCollectPlugin(TestCase):
     def test_add_owner(self):
         sample_data = SAMPLE_OWNERS[0]
         user = UserFactory()
-        sample_data['profile_id'] = user.profile.id
+        sample_data['profile_id'] = user.id
         self.assertTrue(update_owner(sample_data, self.today))
         owner = Owner.objects.get(cmdb_id=sample_data['id'])
         self._compare_owner(owner, sample_data)
@@ -38,7 +38,7 @@ class TestOwnerCollectPlugin(TestCase):
     def test_update_owner(self):
         sample_data = SAMPLE_OWNERS[0]
         user = UserFactory()
-        sample_data['profile_id'] = user.profile.id
+        sample_data['profile_id'] = user.id
         self.assertTrue(update_owner(sample_data, self.today))
         owner = Owner.objects.get(cmdb_id=sample_data['id'])
         self._compare_owner(owner, sample_data)
@@ -46,7 +46,7 @@ class TestOwnerCollectPlugin(TestCase):
         sample_data2 = SAMPLE_OWNERS[1]
         sample_data2['id'] = sample_data['id']
         user = UserFactory()
-        sample_data2['profile_id'] = user.profile.id
+        sample_data2['profile_id'] = user.id
         self.assertFalse(update_owner(sample_data2, self.today))
         owner = Owner.objects.get(cmdb_id=sample_data2['id'])
         self._compare_owner(owner, sample_data2)

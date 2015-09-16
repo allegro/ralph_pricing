@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import datetime
 import random
 
-import factory
 from django.contrib.auth.models import User
 from factory import (
     fuzzy,
@@ -140,20 +139,11 @@ class UserFactory(DjangoModelFactory):
     last_name = Sequence(lambda n: 'Snow {0}'.format(n))
 
 
-@factory.sequence
-def get_profile(n):
-    """Due to strange logic in lck.django we can't use subfactories to create
-    profiles."""
-    user = UserFactory()
-    user.save()
-    return user.profile
-
-
 class OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
     cmdb_id = Sequence(lambda n: n)
-    profile = get_profile
+    profile = SubFactory(UserFactory)
 
 
 class BusinessLineFactory(DjangoModelFactory):

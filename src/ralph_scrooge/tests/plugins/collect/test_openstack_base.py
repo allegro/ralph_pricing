@@ -210,7 +210,7 @@ class TestOpenStackBasePlugin(TestCase):
             self.today
         )
         self.assertEquals(result, (6, 8))
-        clear_previous_usages_mock.assert_called(self.today)
+        clear_previous_usages_mock.assert_called_with(self.today)
         self.assertEquals(get_usages_mock.call_count, 2)
         get_usages_mock.assert_any_call(
             self.today,

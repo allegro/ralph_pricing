@@ -68,7 +68,7 @@ class TestCardCost(TestCase):
     def test_get_cost_card(self):
         self._init()
         response = self.client.get(
-            '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/'.format(
+            '/rest/costcard/{0}/{1}/{2}/{3}/'.format(
                 self.service.id,
                 self.environment.id,
                 self.year,
@@ -90,7 +90,7 @@ class TestCardCost(TestCase):
     def test_get_cost_card_forecast(self):
         self._init(forecast=True)
         response = self.client.get(
-            '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/?forecast=true'.format(
+            '/rest/costcard/{0}/{1}/{2}/{3}/?forecast=true'.format(
                 self.service.id,
                 self.environment.id,
                 self.year,
@@ -112,7 +112,7 @@ class TestCardCost(TestCase):
     def test_get_when_wrong_service(self):
         self._init()
         response = self.client.get(
-            '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/'.format(
+            '/rest/costcard/{0}/{1}/{2}/{3}/'.format(
                 9999999,
                 self.environment.id,
                 self.year,
@@ -125,7 +125,7 @@ class TestCardCost(TestCase):
     def test_get_when_wrong_environment(self):
         self._init()
         response = self.client.get(
-            '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/'.format(
+            '/rest/costcard/{0}/{1}/{2}/{3}/'.format(
                 self.service.id,
                 99999999,
                 self.year,
@@ -144,7 +144,7 @@ class TestCardCost(TestCase):
             forecast=True,
         )
         response = self.client.get(
-            '/scrooge/rest/costcard/{0}/{1}/{2}/{3}/'.format(
+            '/rest/costcard/{0}/{1}/{2}/{3}/'.format(
                 self.service.id,
                 self.environment.id,
                 self.year,

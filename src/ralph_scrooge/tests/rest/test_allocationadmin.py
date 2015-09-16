@@ -35,7 +35,7 @@ class TestAllocationAdmin(TestCase):
 
     def test_get_allocation_admin_when_there_is_any_data(self):
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -85,7 +85,7 @@ class TestAllocationAdmin(TestCase):
             usage_type='BU',
         )
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -125,7 +125,7 @@ class TestAllocationAdmin(TestCase):
             forecast_cost=forecast_cost
         )
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -154,7 +154,7 @@ class TestAllocationAdmin(TestCase):
             by_warehouse=True,
         )
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -201,7 +201,7 @@ class TestAllocationAdmin(TestCase):
             warehouse=warehouse,
         )
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -229,7 +229,7 @@ class TestAllocationAdmin(TestCase):
     def test_get_team_cost_when_there_is_one_team(self):
         team = factory.TeamFactory()
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -269,7 +269,7 @@ class TestAllocationAdmin(TestCase):
             members_count=members
         )
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -294,7 +294,7 @@ class TestAllocationAdmin(TestCase):
     def test_get_dynamic_extra_cost_when_there_is_one_type(self):
         dynamic_extra_cost_type = factory.DynamicExtraCostTypeFactory()
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -331,7 +331,7 @@ class TestAllocationAdmin(TestCase):
             end=last_day,
         )
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -355,7 +355,7 @@ class TestAllocationAdmin(TestCase):
     def test_get_extra_cost_when_there_is_one_additional_type(self):
         extra_cost_type = factory.ExtraCostTypeFactory()
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -405,7 +405,7 @@ class TestAllocationAdmin(TestCase):
             service_environment=service_environment,
         )
         response = self.client.get(
-            '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
+            '/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
                 self.date.month,
             )
@@ -451,7 +451,7 @@ class TestAllocationAdmin(TestCase):
         self.assertRaises(
             NoUsageTypeError,
             self.client.post,
-            '/scrooge/rest/allocationadmin/{0}/{1}/baseusages/save'.format(
+            '/rest/allocationadmin/{0}/{1}/baseusages/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -480,7 +480,7 @@ class TestAllocationAdmin(TestCase):
             usage_type='BU',
         )
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/baseusages/save'.format(
+            '/rest/allocationadmin/{0}/{1}/baseusages/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -515,7 +515,7 @@ class TestAllocationAdmin(TestCase):
             usage_type='BU',
         )
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/baseusages/save'.format(
+            '/rest/allocationadmin/{0}/{1}/baseusages/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -545,7 +545,7 @@ class TestAllocationAdmin(TestCase):
         self.assertRaises(
             NoExtraCostTypeError,
             self.client.post,
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -566,7 +566,7 @@ class TestAllocationAdmin(TestCase):
         service_environment = factory.ServiceEnvironmentFactory()
 
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -592,7 +592,7 @@ class TestAllocationAdmin(TestCase):
         service_environment = factory.ServiceEnvironmentFactory()
 
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -619,7 +619,7 @@ class TestAllocationAdmin(TestCase):
         service_environment = factory.ServiceEnvironmentFactory()
 
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -645,7 +645,7 @@ class TestAllocationAdmin(TestCase):
         service_environment = factory.ServiceEnvironmentFactory()
 
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -674,7 +674,7 @@ class TestAllocationAdmin(TestCase):
         self.assertRaises(
             ServiceEnvironmentDoesNotExistError,
             self.client.post,
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -702,7 +702,7 @@ class TestAllocationAdmin(TestCase):
         self.assertRaises(
             ServiceEnvironmentDoesNotExistError,
             self.client.post,
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -734,7 +734,7 @@ class TestAllocationAdmin(TestCase):
         service_environment = factory.ServiceEnvironmentFactory()
 
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -778,7 +778,7 @@ class TestAllocationAdmin(TestCase):
             end=last_day,
         )
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -802,7 +802,7 @@ class TestAllocationAdmin(TestCase):
         self.assertRaises(
             NoExtraCostError,
             self.client.post,
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -842,7 +842,7 @@ class TestAllocationAdmin(TestCase):
             end=last_day,
         )
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -873,7 +873,7 @@ class TestAllocationAdmin(TestCase):
         self.assertRaises(
             NoDynamicExtraCostTypeError,
             self.client.post,
-            ('/scrooge/rest/allocationadmin/{0}/{1}/'
+            ('/rest/allocationadmin/{0}/{1}/'
              'dynamicextracosts/save').format(
                 self.date.year,
                 self.date.month,
@@ -903,7 +903,7 @@ class TestAllocationAdmin(TestCase):
         dynamic_extra_cost_type = factory.DynamicExtraCostTypeFactory()
 
         self.client.post(
-            ('/scrooge/rest/allocationadmin/{0}/{1}/'
+            ('/rest/allocationadmin/{0}/{1}/'
              'dynamicextracosts/save').format(
                 self.date.year,
                 self.date.month,
@@ -939,7 +939,7 @@ class TestAllocationAdmin(TestCase):
         self.assertRaises(
             TeamDoesNotExistError,
             self.client.post,
-            '/scrooge/rest/allocationadmin/{0}/{1}/teamcosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/teamcosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),
@@ -968,7 +968,7 @@ class TestAllocationAdmin(TestCase):
         team = factory.TeamFactory()
 
         self.client.post(
-            '/scrooge/rest/allocationadmin/{0}/{1}/teamcosts/save'.format(
+            '/rest/allocationadmin/{0}/{1}/teamcosts/save'.format(
                 self.date.year,
                 self.date.month,
             ),

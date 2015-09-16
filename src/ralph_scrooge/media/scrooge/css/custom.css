@@ -1,0 +1,336 @@
+.main-body {
+    min-height: 40em;
+}
+.main-body.without-submodules{margin-top: 50px;}
+.main-body.with-submodules{margin-top: 85px;}
+.submenu {
+    background-color: #e5e5e5;
+    border-bottom: 5px solid #fff;
+    left:0;
+    margin-top: 35px;
+    padding-top: 10px;
+    position: fixed;
+    right:0;
+    z-index: 1000;
+}
+.submenu .nav.nav-tabs {
+    margin: auto;
+    margin-left: 20px;
+}
+
+.navbar .nav .dropdown-toggle .caret {
+    margin-top: 5px;
+}
+
+.dropdown .caret {
+    margin-left: 4px;
+}
+
+.navbar .brand {
+    margin-left: 0;
+}
+
+.navbar-inner .container {
+    margin: 0;
+    width: 100%;
+}
+
+footer.base {
+    border-top: 1px solid #e5e5e5;
+    color: #777;
+    padding-top: 10px;
+}
+
+footer.base li {
+    list-style: none;
+    float: left;
+    border-right: 1px solid #ccc;
+    margin-right: 5px;
+    padding-right: 5px;
+}
+
+footer.base li:last-child {
+    border-right: 0;
+}
+
+.nav-tabs > .active > a,
+.nav-tabs > .active > a:hover{
+    cursor: pointer;
+}
+
+.navbar-fixed-top .navbar-inner {
+    box-shadow: none;
+}
+
+.browser-min-width{
+    min-width: 1000px;
+}
+table.table-list tr.active > td {
+    background-color: #eee;
+}
+
+ul.side-list > .active:hover > a,
+ul.rack-list > .active:hover > a,
+ul.venture-list > .active:hover > a {
+    background-color: #ddd;
+}
+
+ul.side-list > .active > a,
+ul.rack-list > .active > a,
+ul.venture-list > .active > a {
+    background-color: #eee;
+}
+
+td.currency,
+.currency {
+    text-align: right;
+}
+
+td.count {
+    text-align: center;
+}
+
+.table-properties th > label {
+    font-weight: bold;
+}
+.table-properties th > a.fugue-icon {
+    margin-top: 0;
+}
+
+.table-properties td,
+.table-properties th {
+    vertical-align: middle;
+}
+
+form div.readonly {
+    width: 210px;
+}
+
+.table-properties td.controls > textarea,
+.table-properties td.controls > div.readonly,
+.table-properties td.controls > select,
+.table-properties td.controls > input {
+    margin: auto;
+    width: 160px;
+}
+
+.table-properties td.controls {
+    width: 170px;
+}
+.table-list td {
+    max-width: 20em;
+    overflow: hidden;
+}
+
+.table-list th {
+    white-space: nowrap;
+}
+.table-list th a.fugue-icon {
+    margin: 0;
+    float: right;
+}
+
+.table-list .column-name a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.fugue-icon {
+    margin-top: -6px;
+    margin-bottom: -2px;
+    white-space: nowrap;
+}
+
+.side-nav {
+    padding: 9px 0;
+}
+
+.error-text {
+    color: #B94A48;
+}
+
+td.column-checkbox {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.side-nav .nav-list a {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.disco-console {
+    min-height: 30em;
+    width: 98%;
+}
+
+html .loading {
+    background-image: url('loading.gif');
+    background-repeat: no-repeat;
+    background-position: 50% 50% !important;
+}
+
+.dashboard-form {
+    text-align: center;
+    margin: 20em 4em;
+    width: 100%;
+}
+
+label.required { font-weight: bold }
+
+div.report-tabs div.tabs-right,
+div.report-tabs ul.nav-tabs {
+    width: 100%;
+    float: none;
+    margin: 0;
+}
+
+html a.nolink,
+html .nolink {
+    cursor: text !important;
+}
+
+h3 {
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
+.details-report th{
+    width: 40%;
+}
+
+tr.table-highlight td {
+    font-weight: bold;
+}
+
+.cabinet-rack-view td{
+    min-width: 200px;
+}
+
+.end-date-field {
+    margin-top: -10px !important;
+}
+
+.csv-input {
+    font-family: monospace;
+}
+
+.reports-form-right-line {
+    border-right: 1px solid silver;
+    padding-right: 20px;
+}
+
+.reports-table-component {
+    margin-left: -6px;
+    margin-top: -4px;
+}
+
+.reports-table-component td:nth-child(2) {
+    width: 10%;
+    text-align: center;
+}
+
+.reports-table-component td:nth-child(3),
+.reports-table-component td:nth-child(4) {
+    width: 15%;
+    text-align: right;
+}
+
+img.waiting
+{
+    display: block;
+    margin: 30px auto;
+}
+
+.cmdb_report_filter .datepicker {
+    width: 55px;
+}
+
+.cmdb_report_filter .form_line:first-of-type {
+    padding-top: 0px;
+}
+
+.cmdb_report_filter .form_line {
+    padding-top: 10px;
+}
+
+.choose-asset-form .choose-asset-label {
+    text-align: right;
+    line-height: 22px;
+}
+
+.scan-display-results-for-component {
+    display: inline-block;
+    vertical-align: top;
+    width: 90%;
+    overflow: auto;
+    white-space: pre;
+    padding-bottom: 18px;
+    font-family: Menlo, Consolas, "Courier New", monospace;
+    max-height: 250px;
+}
+
+.diff-select-widget .diff-details {
+    display: none;
+    margin-bottom: 25px;
+}
+.diff-select-widget .diff-prev span {
+    background-color: #f2dede;
+}
+.diff-select-widget .diff-next span {
+    background-color: #dff0d8;
+}
+
+.scan-select-plugins .control-group label {
+    width: 260px;
+    margin-right: 10px;
+}
+
+.beast-info-modal {
+    font-size: 14px;
+    line-height: 26px;
+    width: 700px;
+}
+
+.menu-item-search {
+    margin-right: 10px;
+}
+
+.quickscan {
+    display:none;
+    position: absolute;
+    background-color:
+    white; padding: 20px;
+}
+
+.permission-msg {
+    font-size: 2.5rem;
+    line-height:2.5rem;
+}
+
+
+#report-filters .controls-row {
+    width: 50%;
+    float:left;
+}
+
+#report-filters .controls-row div {
+    margin: 2px 0;
+}
+
+#report-filters .submit-wrapper {
+    clear: left;
+}
+
+#report-filters.form-inline.well label {
+    width: 100px;
+}
+
+.report-changes-cis {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}

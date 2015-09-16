@@ -8,7 +8,8 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph_scrooge.utils import plugin
+from ralph_scrooge.ralph_api import get_vips
 from ralph_scrooge.models import (
     AssetInfo,
     PricingObject,
@@ -157,7 +158,7 @@ def vip(today, **kwargs):
                 )
             )
         else:
-            for ralph_vip in api_scrooge.get_vips(load_balancer_type=vip_type):
+            for ralph_vip in get_vips(load_balancer_type=vip_type):
                 total += 1
                 if update_vip(
                     ralph_vip,

@@ -5,10 +5,21 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.contrib.auth.models import User
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.common.models import TimeTrackable
-from lck.django.choices import Choices
+# from lck.django.common.models import TimeTrackable
+from dj.choices import Choices
+from django.db.models import signals
+from tastypie.models import create_api_key
+
+from ralph_scrooge.models.base import TimeTrackable
+
+
+def api_key(*args, **kwargs):
+    return create_api_key(*args, **kwargs)
+
+signals.post_save.connect(api_key, sender=User)
 
 
 class OwnershipType(Choices):
@@ -30,14 +41,16 @@ class Owner(TimeTrackable):
     objects = OwnerManager()
     objects_raw = db.Manager()
 
+    # TODO: rename to ralph id (or maybe username could used instead)
     cmdb_id = db.IntegerField(
         unique=True,
         null=False,
         blank=False,
         verbose_name=_("id from cmdb"),
     )
+    # TODO: rename to user
     profile = db.OneToOneField(
-        'account.Profile',
+        User,
         verbose_name=_("profile"),
         null=False,
         blank=False,
@@ -45,7 +58,7 @@ class Owner(TimeTrackable):
 
     class Meta:
         app_label = 'ralph_scrooge'
-        ordering = ['profile__nick']
+        ordering = ['profile__username']
 
     def __unicode__(self):
         return ' '.join([

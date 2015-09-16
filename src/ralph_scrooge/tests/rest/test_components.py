@@ -180,7 +180,7 @@ class TestComponents(TestCase):
         User.objects.create_superuser('test', 'test@test.test', 'test')
         client = APIClient()
         client.login(username='test', password='test')
-        resp = client.get('/scrooge/rest/components/{}/{}/{}/{}/{}/'.format(
+        resp = client.get('/rest/components/{}/{}/{}/{}/{}/'.format(
             self.se1.service.id,
             self.se1.environment.id,
             self.today.year,

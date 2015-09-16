@@ -8,7 +8,8 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph_scrooge.utils import plugin
+from ralph_scrooge.ralph_api import get_databases
 from ralph_scrooge.models import (
     AssetInfo,
     DatabaseInfo,
@@ -141,7 +142,7 @@ def database(today, **kwargs):
                 )
             )
         else:
-            for ralph_database in api_scrooge.get_databases(
+            for ralph_database in get_databases(
                 database_type=database_type
             ):
                 total += 1

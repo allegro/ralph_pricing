@@ -7,8 +7,8 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph.util import plugin
-from ralph.util.api_scrooge import get_blade_servers
+from ralph_scrooge.utils import plugin
+from ralph_scrooge.ralph_api import get_blade_servers
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,

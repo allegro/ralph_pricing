@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 {% load colors_tags %}
 {% load url from future %}
-{% load i18n bob staticfiles %}
+{% load i18n  staticfiles %}
 <html lang="en" ng-app="app">
     <head>
         <meta charset="utf-8">
@@ -53,7 +53,6 @@
             <div class="container-fluid">
                 <nav class="row">
                     {% block header %}
-                        {% main_menu_bs3fake main_menu active_module position='fixed' white="true" title='Ralph 2' %}
                     {% endblock %}
                     {{ view }}
                     <sub-menu></sub-menu>

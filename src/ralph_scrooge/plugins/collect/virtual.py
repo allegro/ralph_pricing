@@ -9,7 +9,8 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph_scrooge.utils import plugin
+from ralph_scrooge.ralph_api import get_virtual_usages
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
@@ -232,7 +233,7 @@ def virtual(**kwargs):
         }
         usages = get_or_create_usages(usage_names)
         for service_uid in services:
-            for data in api_scrooge.get_virtual_usages(service_uid):
+            for data in get_virtual_usages(service_uid):
                 total += 1
                 try:
                     update(group_name, data, usages, date)

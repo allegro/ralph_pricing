@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
-from lck.django.common.models import WithConcurrentGetOrCreate
+# from lck.django.common.models import WithConcurrentGetOrCreate
 
 from ralph_scrooge.models._tree import MultiPathNode
 
@@ -94,7 +94,7 @@ class DailyCost(MultiPathNode):
         return True
 
 
-class CostDateStatus(WithConcurrentGetOrCreate, db.Model):
+class CostDateStatus(db.Model):
     date = db.DateField(
         verbose_name=_('date'),
         unique=True,

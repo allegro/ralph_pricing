@@ -1,6 +1,5 @@
 {% extends "ralph_scrooge/base.html" %}
 {% load url from future %}
-{% load icons formats bob %}
 
 {% block extra_headers %}
     {{ block.super }}
@@ -45,22 +44,11 @@
                         </div>
                     {% endfor %}
                     {% block form_buttons %}
-                        <button type="submit" class="btn btn-primary">{% spaceless %}
-                            {% icon 'fugue-calendar-search-result' %}&nbsp;Update
-                            {% endspaceless %}</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
                         <div class="btn-toolbar pull-right">
-                            <button type="submit" class="btn" name="clear">{% spaceless %}
-                                {% icon 'fugue-arrow-circle-double' %}&nbsp;Clear cache
-                                {% endspaceless %}</button>
+                            <button type="submit" class="btn" name="clear">Clear cache</button>
                             {% if allow_csv_download %}
-                            <button type="submit" class="btn" name="format" value="csv">{% spaceless %}
-                                {% icon 'fugue-document-excel-csv' %}&nbsp;Download CSV
-                                {% endspaceless %}</button>
-                            {% endif %}
-                            {% if allow_statement %}
-                                <button type="submit" class="btn" name="format" value="statement">{% spaceless %}
-                                    {% icon 'fugue-clock-history' %}&nbsp;Create Statement
-                                {% endspaceless %}</button>
+                            <button type="submit" class="btn" name="format" value="csv">Download CSV</button>
                             {% endif %}
                         </div>
                     {% endblock %}

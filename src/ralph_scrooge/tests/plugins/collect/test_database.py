@@ -156,7 +156,7 @@ class TestDatabaseCollectPlugin(TestCase):
         with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
             get_unknown_service_environment('DB2')
 
-    @mock.patch('ralph_scrooge.plugins.collect.database.api_scrooge.get_databases')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.database.get_databases')  # noqa
     @mock.patch('ralph_scrooge.plugins.collect.database.update_database')
     @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
     def test_database_plugin(

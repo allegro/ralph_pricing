@@ -11,7 +11,7 @@ from mock import patch, MagicMock
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ralph.util import api_scrooge
+# from ralph_scrooge import ralph_api
 from ralph_scrooge import models
 from ralph_scrooge.plugins.collect import virtual
 from ralph_scrooge.tests.utils.factory import (
@@ -194,7 +194,7 @@ class TestVirtualPlugin(TestCase):
         VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_scrooge,
+        virtual,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(device_id=None)],
     )
@@ -208,7 +208,7 @@ class TestVirtualPlugin(TestCase):
         VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_scrooge,
+        virtual,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
@@ -225,7 +225,7 @@ class TestVirtualPlugin(TestCase):
         VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_scrooge,
+        virtual,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
@@ -243,7 +243,7 @@ class TestVirtualPlugin(TestCase):
         VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_scrooge,
+        virtual,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
@@ -261,7 +261,7 @@ class TestVirtualPlugin(TestCase):
         VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_scrooge,
+        virtual,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
@@ -280,7 +280,7 @@ class TestVirtualPlugin(TestCase):
         VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_scrooge,
+        virtual,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
@@ -300,7 +300,7 @@ class TestVirtualPlugin(TestCase):
         VIRTUAL_SERVICES={'example_group': ['example_service']},
     )
     @patch.object(
-        api_scrooge,
+        virtual,
         'get_virtual_usages',
         lambda *args, **kwargs: [AttributeDict(
             device_id=1,
