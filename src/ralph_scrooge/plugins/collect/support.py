@@ -7,8 +7,8 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph.util import plugin
-from ralph_assets.api_scrooge import get_supports
+from ralph_scrooge.utils import plugin
+from ralph_scrooge.ralph_api import get_supports
 from ralph_scrooge.models import (
     AssetInfo,
     SupportCost,

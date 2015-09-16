@@ -8,7 +8,8 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph_scrooge.utils import plugin
+from ralph_scrooge.ralph_api import get_openstack_tenants
 from ralph_scrooge.models import (
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
@@ -130,7 +131,7 @@ def tenant(today, **kwargs):
         unknown_service_environment = get_unknown_service_environment(
             openstack_model
         )
-        for ralph_tenant in api_scrooge.get_openstack_tenants(openstack_model):
+        for ralph_tenant in get_openstack_tenants(openstack_model):
             total += 1
             if update_tenant(
                 ralph_tenant,

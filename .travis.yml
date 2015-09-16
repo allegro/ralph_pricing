@@ -4,37 +4,54 @@ cache:
   directories:
   - $HOME/virtualenv/
 before_cache:
-  - pip uninstall Django ralph ralph_assets django-bob bob-ajax-selects -y
+  - pip uninstall Django -y
 env:
   matrix:
-    - DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=mysql
-    - DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=sqlite
-    # - DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=postgres
-    - DJANGO_VERSION=1.6.10 TEST_DATABASE_ENGINE=sqlite
+    - DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=mysql
+    - DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=sqlite
+    - DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=postgres
+    - DJANGO_VERSION=1.8.4 TEST_DATABASE_ENGINE=mysql
+    - DJANGO_VERSION=1.8.4 TEST_DATABASE_ENGINE=sqlite
 matrix:
   allow_failures:
-    - env: DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=sqlite
-    # - env: DJANGO_VERSION=1.4.18 TEST_DATABASE_ENGINE=postgres
-    - env: DJANGO_VERSION=1.6.10 TEST_DATABASE_ENGINE=sqlite
+    - python: "2.7"
+      env: DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=sqlite
+    - python: "2.7"
+      env: DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=postgres
+    - python: "2.7"
+      env: DJANGO_VERSION=1.8.4 TEST_DATABASE_ENGINE=mysql
+    - python: "2.7"
+      env: DJANGO_VERSION=1.8.4 TEST_DATABASE_ENGINE=sqlite
+    - python: "3.4"
+      env: DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=mysql
+    - python: "3.4"
+      env: DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=sqlite
+    - python: "3.4"
+      env: DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=postgres
+    - python: "3.4"
+      env: DJANGO_VERSION=1.8.4 TEST_DATABASE_ENGINE=mysql
+    - python: "3.4"
+      env: DJANGO_VERSION=1.8.4 TEST_DATABASE_ENGINE=sqlite
 python:
   - "2.7"
+  - "3.4"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
   - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
-  - pip install https://github.com/chapmanb/python-graph/releases/download/1.8.2/python-graph-core-1.8.2.tar.gz
-  - pip install git+https://github.com/quamilek/bob-ajax-selects.git@develop
-  - pip install git+https://github.com/allegro/django-bob.git@develop
-  - pip install git+https://github.com/zefciu/django-search-forms@develop
-  - pip install git+https://github.com/allegro/ralph_assets.git@develop
-  - pip install git+https://github.com/allegro/ralph.git@develop --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core --allow-unverified pysphere
+  # - pip install https://github.com/chapmanb/python-graph/releases/download/1.8.2/python-graph-core-1.8.2.tar.gz
+  # - pip install git+https://github.com/quamilek/bob-ajax-selects.git@develop
+  # - pip install git+https://github.com/allegro/django-bob.git@develop
+  # - pip install git+https://github.com/zefciu/django-search-forms@develop
+  # - pip install git+https://github.com/allegro/ralph_assets.git@develop
+  # - pip install git+https://github.com/allegro/ralph.git@develop --allow-all-external --allow-unverified ipaddr --allow-unverified postmarkup --allow-unverified python-graph-core --allow-unverified pysphere
   - pip install coveralls
-  - pip install -e . --use-mirrors
+  - pip install -e .
 before_install:
-  - pip install flake8 --use-mirrors
+  - pip install flake8
   - make flake
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot
-  # - psql -c 'create database ralph_test;' -U postgres
+  - psql -c 'create database ralph_test;' -U postgres
 # command to run tests, e.g. python setup.py test
 script:
   make test-with-coveralls

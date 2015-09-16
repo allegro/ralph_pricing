@@ -9,8 +9,8 @@ import logging
 
 from django.conf import settings
 
-from ralph.util.api_scrooge import get_shares
-from ralph.util import plugin
+from ralph_scrooge.ralph_api import get_shares
+from ralph_scrooge.utils import plugin
 from ralph_scrooge.models import (
     DailyUsage,
     AssetInfo,

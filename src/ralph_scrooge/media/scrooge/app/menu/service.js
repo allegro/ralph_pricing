@@ -4,7 +4,7 @@ var scrooge = angular.module('scrooge.service.menu', ['ngResource']);
 
 scrooge.factory('SubMenu', ['$resource', function ($resource) {
     return {
-        'items': $resource('/scrooge/rest/submenu', {}, {
+        'items': $resource('/rest/submenu', {}, {
             get: {
                 method: 'GET',
                 cache: true,

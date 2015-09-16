@@ -1,0 +1,23 @@
+<ul class="nav nav-tabs nav-main bs3fake">
+    <li>
+        <span class="brand"><a href="{{title_url}}">{{ title }}</a></span>
+    </li>
+    {% for item in items %}
+        {% if not item.kwargs.pull_right %}
+        <li class="
+        {% if item.name == selected %}active{% endif %}
+        ">
+            <a href="{{ item.get_href }}">{{ item.label }}</a>
+        </li>
+        {% endif %}
+    {% endfor %}
+    {% for item in items %}
+        {% if item.kwargs.pull_right %}
+        <li class="pull-right
+        {% if item.name == selected %}active{% endif %}
+        ">
+            <a href="{{ item.get_href }}">{{ item.label }}</a>
+        </li>
+        {% endif %}
+    {% endfor %}
+</ul>

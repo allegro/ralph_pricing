@@ -149,7 +149,7 @@ class TestServiceCollectPlugin(TestCase):
         with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
             get_unknown_service_environment('OpenStack M2')
 
-    @mock.patch('ralph_scrooge.plugins.collect.tenant.api_scrooge.get_openstack_tenants')  # noqa
+    @mock.patch('ralph_scrooge.plugins.collect.tenant.get_openstack_tenants')  # noqa
     @mock.patch('ralph_scrooge.plugins.collect.tenant.update_tenant')
     @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
     def test_tenant_plugin(

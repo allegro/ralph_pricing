@@ -1,0 +1,22 @@
+# -*- mode: ruby -*-
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.hostname = "scrooge-dev"
+  config.vm.synced_folder "../", "/home/vagrant/src/scrooge"
+  config.vm.provision :shell, path: "provision.sh", privileged: false
+  config.vm.network "forwarded_port", guest: 8080, host: 8080
+  # config.vm.network "forwarded_port", guest: 19360, host: 1936  # for Sublime Text Anaconda plugin
+  config.vm.provider :virtualbox do |vb|
+    vb.name = "scrooge"
+    vb.memory = 1024
+    vb.cpus = 2
+  end
+end
+
+
+begin
+  load 'Vagrantfile.local'
+rescue LoadError
+  # ignore
+end

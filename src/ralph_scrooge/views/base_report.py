@@ -8,11 +8,11 @@ from __future__ import unicode_literals
 import itertools
 import logging
 
-from bob.csvutil import make_csv_response
 from django.conf import settings
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
+from ralph_scrooge.utils.csvutil import make_csv_response
 from ralph_scrooge.views.base import Base
 
 logger = logging.getLogger(__name__)

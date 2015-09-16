@@ -3,7 +3,7 @@
 var scrooge = angular.module('scrooge.service', ['ngResource']);
 
 var allocationHelper = {
-    'baseUrl': '/scrooge/rest/allocationclient',
+    'baseUrl': '/rest/allocationclient',
     /**
      * Return url for collect team data.
      * @param {object} menuStats - menuStats from stats.menuStats.
@@ -107,7 +107,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          */
         init: function() {
             var self = this;
-            $http({method: 'GET', url: '/scrooge/leftmenu/components/'}).
+            $http({method: 'GET', url: '/leftmenu/components/'}).
                 success(function(data) {
                     Object.keys(data['menuStats']).forEach(function (key){
                         self.menuStats[key] = data['menuStats'][key];
@@ -173,7 +173,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
                 self.menuStats['month']['current'] &&
                 self.menuStats['day']['current']) {
                 var url_chunks = [
-                    '/scrooge/rest/components',
+                    '/rest/components',
                     self.menuStats['service']['current'],
                 ];
                 if (self.menuStats['env']['current']) {
@@ -237,7 +237,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
             if (self.menuStats['year']['current'] &&
                 self.menuStats['month']['current']) {
                 var url_chunks = [
-                    '/scrooge/rest/allocationadmin',
+                    '/rest/allocationadmin',
                     self.menuStats['year']['current'],
                     self.menuStats['month']['current'],
                 ];
@@ -274,7 +274,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
                     var start = self.menuStats['startDate']['current'];
                     var end = self.menuStats['endDate']['current'];
                     var url_chunks = [
-                        '/scrooge/rest/pricing_object_costs',
+                        '/rest/pricing_object_costs',
                         self.menuStats['service']['current'],
                         self.menuStats['env']['current'],
                         start.getFullYear() + '-' + (start.getMonth() + 1) + '-' + start.getDate(),
@@ -298,7 +298,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
                 self.menuStats['month']['current'] &&
                 self.menuStats['env']['current']) {
                 var url_chunks = [
-                    '/scrooge/rest/costcard',
+                    '/rest/costcard',
                     self.menuStats['service']['current'],
                     self.menuStats['env']['current'],
                     self.menuStats['year']['current'],

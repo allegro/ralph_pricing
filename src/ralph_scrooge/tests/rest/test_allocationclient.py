@@ -92,7 +92,7 @@ class TestAllocationClient(TestCase):
         service_environment_base = factory.ServiceEnvironmentFactory()
         usage_types_before_request = models.UsageType.objects.count()
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 service_environment_base.service.id,
                 service_environment_base.environment.id,
                 self.date.year,
@@ -116,7 +116,7 @@ class TestAllocationClient(TestCase):
     def test_get_service_division_when_there_are_two_daily_usages(self):
         self._init_service_division()
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 self.service_environment_base.service.id,
                 self.service_environment_base.environment.id,
                 self.date.year,
@@ -146,7 +146,7 @@ class TestAllocationClient(TestCase):
         self.service_usage_type.save()
         usage_types_before_request = models.UsageType.objects.count()
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 self.service_environment_base.service.id,
                 self.service_environment_base.environment.id,
                 self.date.year,
@@ -171,7 +171,7 @@ class TestAllocationClient(TestCase):
         service_environment_base = factory.ServiceEnvironmentFactory()
         service_environment_1 = factory.ServiceEnvironmentFactory()
         response = self.client.post(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/{4}/save/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/{4}/save/'.format(
                 service_environment_base.service.id,
                 service_environment_base.environment.id,
                 self.date.year,
@@ -188,7 +188,7 @@ class TestAllocationClient(TestCase):
             format='json'
         )
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 service_environment_base.service.id,
                 service_environment_base.environment.id,
                 self.date.year,
@@ -218,7 +218,7 @@ class TestAllocationClient(TestCase):
             models.ServiceUsageTypes.objects.count()
         )
         response = self.client.post(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/{4}/save/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/{4}/save/'.format(
                 self.service_environment_base.service.id,
                 self.service_environment_base.environment.id,
                 self.date.year,
@@ -235,7 +235,7 @@ class TestAllocationClient(TestCase):
             format='json'
         )
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 self.service_environment_base.service.id,
                 self.service_environment_base.environment.id,
                 self.date.year,
@@ -281,7 +281,7 @@ class TestAllocationClient(TestCase):
     def test_get_extra_costs_when_there_is_no_extra_costs(self):
         service_environment_base = factory.ServiceEnvironmentFactory()
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 service_environment_base.service.id,
                 service_environment_base.environment.id,
                 self.date.year,
@@ -302,7 +302,7 @@ class TestAllocationClient(TestCase):
         extra_cost1 = self._create_extra_cost(service_environment_base)
         extra_cost2 = self._create_extra_cost(service_environment_base)
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 service_environment_base.service.id,
                 service_environment_base.environment.id,
                 self.date.year,
@@ -330,7 +330,7 @@ class TestAllocationClient(TestCase):
     def test_save_extra_cost(self):
         service_environment_base = factory.ServiceEnvironmentFactory()
         response = self.client.post(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/{4}/save/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/{4}/save/'.format(
                 service_environment_base.service.id,
                 service_environment_base.environment.id,
                 self.date.year,
@@ -346,7 +346,7 @@ class TestAllocationClient(TestCase):
             format='json'
         )
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/'.format(
                 service_environment_base.service.id,
                 service_environment_base.environment.id,
                 self.date.year,
@@ -372,7 +372,7 @@ class TestAllocationClient(TestCase):
     def test_get_team_division_when_there_is_no_team_divisions(self):
         team_base = factory.TeamFactory()
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/'.format(
                 team_base.id,
                 self.date.year,
                 self.date.month,
@@ -400,7 +400,7 @@ class TestAllocationClient(TestCase):
             team_base
         )
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/'.format(
                 team_base.id,
                 self.date.year,
                 self.date.month,
@@ -429,7 +429,7 @@ class TestAllocationClient(TestCase):
         team_base = factory.TeamFactory()
         service_environment = factory.ServiceEnvironmentFactory()
         response = self.client.post(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/{3}/save/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/{3}/save/'.format(
                 team_base.id,
                 self.date.year,
                 self.date.month,
@@ -445,7 +445,7 @@ class TestAllocationClient(TestCase):
             format='json'
         )
         response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/'.format(
+            '/rest/allocationclient/{0}/{1}/{2}/'.format(
                 team_base.id,
                 self.date.year,
                 self.date.month,

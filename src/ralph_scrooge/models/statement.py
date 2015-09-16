@@ -9,6 +9,7 @@ from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
 
+# TODO: remove this model
 class Statement(db.Model):
     """
     Model contains statements

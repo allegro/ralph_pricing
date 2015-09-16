@@ -196,7 +196,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         service_usages = self._get_sample()
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -210,7 +210,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         del data['pricing_service']
         data['pricing_service_id'] = self.pricing_service.id
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -224,7 +224,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         ps_name = 'invalid_service'
         data['pricing_service'] = ps_name
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -243,7 +243,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         del data['usages'][1]['service_id']
         data['usages'][1]['service'] = service
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -264,7 +264,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         environment = 'invalid_environment'
         data['usages'][1]['environment'] = environment
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -285,7 +285,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         del data['usages'][1]['service_id']
         del data['usages'][1]['service']
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -305,7 +305,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         data = service_usages.to_dict()
         del data['usages'][1]['environment']
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -325,7 +325,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         data = service_usages.to_dict()
         del data['usages'][2]['pricing_object']
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -346,7 +346,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         usage_type_symbol = 'invalid_usage'
         data['usages'][1]['usages'][1]['symbol'] = usage_type_symbol
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -362,7 +362,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         service_usages = self._get_sample()
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -387,7 +387,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         service_usages.usages[2].pricing_object = self.pricing_object2.name
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -414,7 +414,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         service_usages.usages[0].environment = self.service_environment3.environment.name  # noqa
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -439,7 +439,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         service_usages.usages[2].pricing_object = self.pricing_object2.name
         data = service_usages.to_dict()
         resp = self.api_client.post(
-            '/scrooge/api/v0.9/{0}/'.format(self.resource),
+            '/api/v0.9/{0}/'.format(self.resource),
             format='json',
             authentication=self.api_key,
             data=data
@@ -461,7 +461,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
     def test_get_pricing_service_usages(self):
         self._basic_call()
         resp = self.api_client.get(
-            urllib.quote('/scrooge/api/v0.9/{0}/{1}/{2}/'.format(
+            urllib.quote('/api/v0.9/{0}/{1}/{2}/'.format(
                 self.resource,
                 self.pricing_service.id,
                 self.date.strftime('%Y-%m-%d'),

@@ -6,9 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.views.generic import TemplateView
-from ralph.ui.views.common import MenuMixin
-
-from ralph_scrooge.app import Scrooge as app
+from ralph_scrooge.views.base import MenuMixin
 
 
 class BootstrapAngular(MenuMixin, TemplateView):
@@ -17,4 +15,4 @@ class BootstrapAngular(MenuMixin, TemplateView):
     """
     template_name = 'ralph_scrooge/index.html'
     submodule_name = 'scrooge'  # to satisfy MenuMixin, not used in angular
-    module_name = app.module_name
+    module_name = 'ralph_scrooge'

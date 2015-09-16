@@ -10,10 +10,11 @@ from django.contrib import admin
 from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import ugettext_lazy as _
-from lck.django.common.admin import (
-    ForeignKeyAutocompleteInlineMixin,
-    ModelAdmin,
-)
+# from lck.django.common.admin import (
+#     ForeignKeyAutocompleteInlineMixin,
+#     ModelAdmin,
+# )
+from django.contrib.admin import ModelAdmin
 from simple_history.admin import SimpleHistoryAdmin
 
 from ralph_scrooge import models
@@ -49,12 +50,12 @@ class WarehouseAdmin(ModelAdmin):
 # =============================================================================
 class PricingObjectChildInlineBase(admin.StackedInline):
     show_type = None
-    exclude = [
-        f.name for f in models.PricingObject._meta.fields if f.name not in (
-            'id',
-            'cache_version',
-        )
-    ]
+    # exclude = [
+    #     f.name for f in models.PricingObject._meta.fields if f.name not in (
+    #         'id',
+    #         'cache_version',
+    #     )
+    # ]
 
 
 class AssetInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
@@ -74,7 +75,7 @@ class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
 
 class VIPInfoInline(
     UpdateReadonlyMixin,
-    ForeignKeyAutocompleteInlineMixin,
+    # ForeignKeyAutocompleteInlineMixin,
     PricingObjectChildInlineBase
 ):
     model = models.VIPInfo

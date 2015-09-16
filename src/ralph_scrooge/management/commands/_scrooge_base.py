@@ -10,7 +10,7 @@ import logging
 import textwrap
 from optparse import make_option
 
-from bob.csvutil import UnicodeWriter
+from ralph_scrooge.utils.csvutil import UnicodeWriter
 from django.core.management.base import BaseCommand
 
 

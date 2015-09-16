@@ -12,7 +12,7 @@ from collections import defaultdict
 import paramiko
 from django.conf import settings
 
-from ralph.util import plugin
+from ralph_scrooge.utils import plugin
 from ralph_scrooge.models import (
     DailyPricingObject,
     DailyUsage,

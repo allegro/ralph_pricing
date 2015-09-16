@@ -203,7 +203,7 @@ class TestVIPCollectPlugin(TestCase):
         with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
             get_unknown_service_environment('VIP2')
 
-    @mock.patch('ralph_scrooge.plugins.collect.vip.api_scrooge.get_vips')
+    @mock.patch('ralph_scrooge.plugins.collect.vip.get_vips')
     @mock.patch('ralph_scrooge.plugins.collect.vip.update_vip')
     @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
     def test_vip_plugin(

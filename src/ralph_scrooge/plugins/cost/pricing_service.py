@@ -13,7 +13,7 @@ from decimal import Decimal as D
 from django.conf import settings
 from django.db.models import Sum
 
-from ralph.util import plugin as plugin_runner
+from ralph_scrooge.utils import plugin as plugin_runner
 from ralph_scrooge.models import (
     DynamicExtraCostType,
     ExtraCostType,

@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 
-from ralph.util import plugin
+from ralph_scrooge.utils import plugin
 from ralph_scrooge.plugins.collect._openstack_base import OpenStackBasePlugin
 
 

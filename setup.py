@@ -31,24 +31,34 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
-        'ralph>=2.3.1',
-        'ralph_assets>=2.5.1',
+        'dj.choices==0.9.2',
+        'Django==1.4.21',
+        'djangorestframework==2.4.3',
+        'django-nose>=1.3',
+        'django-filter>=0.8',
+        'django-rq==0.8.0',
+        'django-simple-history',
+        'django-tastypie==0.9.16',
+        'factory-boy==2.3.1',
+        'flake8==2.4.1',
+        'ipaddr==2.1.11',
+        'lck.django==0.8.10',  # :( just temporary
+        'mock==1.3.0',
+        'mysqlclient==1.3.6',
+        'paramiko==1.15.2',
         'pymongo>=2.7.2',
         'python-novaclient==2.17.0',
-        'django-simple-history',
-        'djangorestframework==2.4.3',
-        'django-filter>=0.8',
-        'django-nose>=1.3',
+        'SQLAlchemy==1.0.8',
     ],
     entry_points={
-        'django.pluggable_app': [
-            'scrooge = ralph_scrooge.app:Scrooge',
-        ],
         'scrooge.collect_plugins': [
             'scrooge = ralph_scrooge.plugins.collect',
         ],
-        'ralph.demo_data_module': [
-            'ralph = ralph_scrooge.utils.demo',
+        'scrooge.demo_data_module': [
+            'scrooge = ralph_scrooge.utils.demo',
+        ],
+        'console_scripts': [
+            'scrooge = ralph_scrooge.__main__:dev',
         ],
     },
     classifiers=[

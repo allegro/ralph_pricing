@@ -9,8 +9,9 @@ import datetime
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
-from ralph.ui.widgets import DateWidget
 from ralph_scrooge.models import (
     ExtraCost,
     Service,
@@ -22,6 +23,19 @@ from ralph_scrooge.management.commands.scrooge_sync import (
     get_collect_plugins_names,
 )
 from ralph_scrooge.utils.common import ranges_overlap
+
+
+class DateWidget(forms.DateInput):
+
+    def render(self, name, value='', attrs=None, choices=()):
+        if value is None:
+            value = ''
+        attr_class = escape(self.attrs.get('class', ''))
+        attr_placeholder = escape(self.attrs.get('placeholder', ''))
+        output = ('<input type="text" name="%s" class="datepicker %s" '
+                  'placeholder="%s" value="%s" data-date-format="yyyy-mm-dd">')
+        return mark_safe(output % (escape(name), attr_class,
+                                   attr_placeholder, escape(value or '')))
 
 
 class ExtraCostForm(forms.ModelForm):

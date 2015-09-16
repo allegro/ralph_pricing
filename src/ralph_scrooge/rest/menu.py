@@ -8,8 +8,6 @@ from __future__ import unicode_literals
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ralph.account.models import Perm
-
 
 class SubMenu(APIView):
     def get(self, request, format=None):
@@ -47,8 +45,7 @@ class SubMenu(APIView):
                 'hide_envs_for_tabs': ['serviceDivision'],
             },
         ]
-        profile = request.user.get_profile()
-        if profile.has_perm(Perm.has_scrooge_access) or profile.is_superuser:
+        if request.user.is_staff or request.user.is_superuser:
             menu.extend([
                 {
                     'name': 'Allocations admin',
@@ -60,23 +57,23 @@ class SubMenu(APIView):
                 },
                 {
                     'name': 'Costs report',
-                    'href': '/scrooge/services-costs-report',
+                    'href': '/services-costs-report',
                 },
                 {
                     'name': 'Usages report',
-                    'href': '/scrooge/services-usages-report',
+                    'href': '/services-usages-report',
                 },
                 {
                     'name': 'Collect plugins',
-                    'href': '/scrooge/collect-plugins',
+                    'href': '/collect-plugins',
                 },
                 {
                     'name': 'Services changes report',
-                    'href': '/scrooge/services-changes-report',
+                    'href': '/services-changes-report',
                 },
                 {
                     'name': 'Costs calculation',
-                    'href': '/scrooge/monthly-costs',
+                    'href': '/monthly-costs',
                 },
             ])
         return Response(menu)

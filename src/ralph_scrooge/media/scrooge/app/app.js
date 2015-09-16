@@ -79,6 +79,6 @@ app.run(function($http, $cookies) {
 
 app.constant('STATIC_URL', '/static/');
 app.constant('REST_URLS', {
-    'ALLOCATION_ADMIN': '/scrooge/rest/allocationadmin',
-    'ALLOCATION_CLIENT': '/scrooge/rest/allocationclient',
+    'ALLOCATION_ADMIN': '/rest/allocationadmin',
+    'ALLOCATION_CLIENT': '/rest/allocationclient',
 });
