@@ -154,7 +154,12 @@ class OpenStackBasePlugin(object):
         Save usages for single date into DB.
         """
         new = total = 0
-        for tenant_id, value, metric_name in usages:
+        for usage in usages:
+            if len(usage) == 3:
+                tenant_id, value, metric_name = usage
+                remarks = ''
+            else:
+                tenant_id, value, metric_name, remarks = usage
             total += 1
             usage_type = self.get_usage_type(metric_name, prefix)
             try:
@@ -169,6 +174,7 @@ class OpenStackBasePlugin(object):
                 value=value,
                 type=usage_type,
                 warehouse=warehouse,
+                remarks=remarks,
             )
             new += 1
         return new, total
