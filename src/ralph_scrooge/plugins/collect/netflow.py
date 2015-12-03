@@ -25,6 +25,13 @@ from ralph_scrooge.models import (
 
 logger = logging.getLogger(__name__)
 
+# there is no K option becouse KB is wrote like a bytes by nfdump
+BYTES_FACTORS = {
+    'M': 2**20,
+    'G': 2**30,
+    'T': 2**40,
+}
+
 
 class UnknowDataFormatError(Exception):
     """
@@ -161,14 +168,12 @@ def extract_ip_and_bytes(row, input_output, class_addresses):
     """
     def unification(bytes_string):
         bytes_list = bytes_string.split(' ')
-        # there is no K option becouse KB is wrote like a bytes by nfdump
+
         if len(bytes_list) == 1:
             return int(bytes_list[0])
-        elif bytes_list[1] == 'M':
-            return int(float(bytes_list[0]) * 1048576)
-        elif bytes_list[1] == 'G':
-            return int(float(bytes_list[0]) * 1073741824)
-        else:
+        try:
+            return int(float(bytes_list[0]) * BYTES_FACTORS[bytes_list[1]])
+        except KeyError:
             raise UnknowDataFormatError(
                 'Data cannot be unificated. Unknow field format'
                 ' \'{0} {1}\''.format(
