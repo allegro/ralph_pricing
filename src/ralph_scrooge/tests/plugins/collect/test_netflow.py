@@ -150,6 +150,17 @@ class TestNetwork(TestCase):
         )
 
     @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
+    def test_extract_ip_and_bytes_when_bytes_string_is_terabytes_format(self):
+        self.assertEqual(
+            netflow.extract_ip_and_bytes(
+                '10.10.10.10 | 20.20.20.20 | 80 | 443 | tcp | 1 T',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
+            )[-1],
+            1099511627776
+        )
+
+    @override_settings(NFSEN_CLASS_ADDRESS=['10.10.10.10'])
     def test_extract_ip_and_bytes_when_bytes_string_is_incorrect_format(self):
         self.assertRaises(
             netflow.UnknowDataFormatError,

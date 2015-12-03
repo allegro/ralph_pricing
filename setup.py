@@ -35,7 +35,7 @@ setup(
         'ralph_assets>=2.5.1',
         'pymongo>=2.7.2',
         'python-novaclient==2.17.0',
-        'django-simple-history',
+        'django-simple-history==1.6.3',
         'djangorestframework==2.4.3',
         'django-filter>=0.8',
         'django-nose>=1.3',
