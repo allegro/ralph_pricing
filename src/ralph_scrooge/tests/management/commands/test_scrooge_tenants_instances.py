@@ -135,9 +135,9 @@ class TestScroogeTenantsInstances(TestCase):
             calls.append(mock.call(
                 day,
                 True,
-                plugins[:2],
+                plugins=plugins[:2],
             ))
-        process_mock.assert_has_calls(calls)
+        process_mock.assert_has_calls(calls, any_order=True)
 
     def _set_usage_prices(self):
         self.usage_price1 = UsagePriceFactory(
