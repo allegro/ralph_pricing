@@ -180,7 +180,7 @@ def get_or_create_usages(usage_names):
     :returns dict: Dict with usage types
     :rtype dict:
     """
-    cpu_usage, created = UsageType.objects.get_or_create(
+    cpu_usage, created = UsageType.objects_admin.get_or_create(
         symbol=usage_names['virtual_cores'].replace(' ', '_').lower(),
         defaults=dict(
             name=usage_names['virtual_cores'],
@@ -189,7 +189,7 @@ def get_or_create_usages(usage_names):
     )
     cpu_usage.save()
 
-    memory_usage, created = UsageType.objects.get_or_create(
+    memory_usage, created = UsageType.objects_admin.get_or_create(
         symbol=usage_names['virtual_memory'].replace(' ', '_').lower(),
         defaults=dict(
             name=usage_names['virtual_memory'],
@@ -198,7 +198,7 @@ def get_or_create_usages(usage_names):
     )
     memory_usage.save()
 
-    disk_usage, created = UsageType.objects.get_or_create(
+    disk_usage, created = UsageType.objects_admin.get_or_create(
         symbol=usage_names['virtual_disk'].replace(' ', '_').lower(),
         defaults=dict(
             name=usage_names['virtual_disk'],

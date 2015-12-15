@@ -248,7 +248,10 @@ class TestNetwork(TestCase):
         )
 
     def test_get_usages_type(self):
-        self.assertEqual(netflow.get_usage_type(), UsageType.objects.get())
+        self.assertEqual(
+            netflow.get_usage_type(),
+            UsageType.objects_admin.get()
+        )
 
     @override_settings(UNKNOWN_SERVICES={'netflow': 1})
     def test_update(self):

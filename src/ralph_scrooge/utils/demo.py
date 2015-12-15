@@ -86,8 +86,8 @@ class ExtraCostTypeDemo(DemoData):
 
     def generate_data(self, data):
         return {
-            'support': ExtraCostType.objects.get(name='Support'),
-            'other': ExtraCostType.objects.get(name='Other'),
+            'support': ExtraCostType.objects_admin.get(name='Support'),
+            'other': ExtraCostType.objects_admin.get(name='Other'),
             'maintenance': ExtraCostTypeFactory(name='Maintenance'),
         }
 
@@ -119,7 +119,7 @@ class DynamicExtraCostDemo(DemoData):
         insurance = DynamicExtraCostTypeFactory(name='Insurance')
         DynamicExtraCostDivision.objects.create(
             dynamic_extra_cost_type=insurance,
-            usage_type=UsageType.objects.get(name='Depreciation'),
+            usage_type=UsageType.objects_admin.get(name='Depreciation'),
             percent=100,
         )
         DynamicExtraCost.objects.create(

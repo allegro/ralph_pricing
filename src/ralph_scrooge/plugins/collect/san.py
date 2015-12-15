@@ -68,7 +68,7 @@ def get_usage_type():
     """
     Returns SAN usage type
     """
-    return UsageType.objects.get_or_create(
+    return UsageType.objects_admin.get_or_create(
         symbol='san',
         defaults=dict(
             name='SAN',

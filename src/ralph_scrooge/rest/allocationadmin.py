@@ -209,7 +209,7 @@ class AllocationAdminContent(APIView):
     def _save_base_usages(self, start, end, post_data):
         for row in post_data['rows']:
             try:
-                usage_type = UsageType.objects.get(id=row['type']['id'])
+                usage_type = UsageType.objects_admin.get(id=row['type']['id'])
             except UsageType.DoesNotExist:
                 raise NoUsageTypeError(
                     'No usage type with id {0}'.format(row['type']['id'])
@@ -233,7 +233,7 @@ class AllocationAdminContent(APIView):
     def _save_extra_costs(self, start, end, post_data):
         for row in post_data['rows']:
             try:
-                extra_cost_type = ExtraCostType.objects.get(
+                extra_cost_type = ExtraCostType.objects_admin.get(
                     id=row['extra_cost_type']['id'],
                 )
             except ExtraCostType.DoesNotExist:
@@ -288,9 +288,10 @@ class AllocationAdminContent(APIView):
     def _save_dynamic_extra_costs(self, start, end, post_data):
         for row in post_data['rows']:
             try:
-                dynamic_extra_cost_type = DynamicExtraCostType.objects.get(
-                    id=row['dynamic_extra_cost_type']['id'],
-                )
+                dynamic_extra_cost_type =\
+                    DynamicExtraCostType.objects_admin.get(
+                        id=row['dynamic_extra_cost_type']['id'],
+                    )
             except DynamicExtraCostType.DoesNotExist:
                 raise NoDynamicExtraCostTypeError(
                     'No dynamic extra cost type with id {0}'.format(

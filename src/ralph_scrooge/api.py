@@ -313,7 +313,7 @@ class PricingServiceUsageResource(Resource):
         elif pricing_service_usages.pricing_service:
             ps_params['name'] = pricing_service_usages.pricing_service
         try:
-            PricingService.objects.get(**ps_params)
+            PricingService.objects_admin.get(**ps_params)
         except PricingService.DoesNotExist:
             raise ImmediateHttpResponse(response=http.HttpBadRequest(
                 "Invalid pricing service name ({}) or id ({})".format(
@@ -360,7 +360,7 @@ class PricingServiceUsageResource(Resource):
                     try:
                         usage_type = usage_types.get(
                             usage.symbol,
-                            UsageType.objects.get(symbol=usage.symbol)
+                            UsageType.objects_admin.get(symbol=usage.symbol)
                         )
                         daily_pricing_object = (
                             pricing_object.get_daily_pricing_object(
@@ -464,7 +464,7 @@ class PricingServiceUsageResource(Resource):
         Returns usages of pricing service (on date) for GET API
         """
         try:
-            pricing_service = PricingService.objects.get(
+            pricing_service = PricingService.objects_admin.get(
                 id=pricing_service_id,
             )
         except PricingService.DoesNotExist:

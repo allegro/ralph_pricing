@@ -48,7 +48,9 @@ class AllocationClientService(APIView):
     ):
         service = Service.objects.get(id=service)
         try:
-            pricing_service = PricingService.objects.get(services=service)
+            pricing_service = PricingService.objects.get(
+                services=service
+            )
         except PricingService.DoesNotExist:
             if not create_if_not_exist:
                 return None
@@ -147,7 +149,7 @@ class AllocationClientService(APIView):
                 environment__id=env,
 
             ),
-            extra_cost_type=1  # ExtraCostType.objects.get(name="other")
+            extra_cost_type=1  # ExtraCostType.objects_admin.get(name="other")
         )
         rows = []
         for extra_cost in extra_costs:

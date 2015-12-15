@@ -75,7 +75,7 @@ class TestAllocationClient(TestCase):
             start=self.date,
             end=self.date + datetime.timedelta(days=30),
             service_environment=service_environment,
-            extra_cost_type=models.ExtraCostType.objects.get(id=1),
+            extra_cost_type=models.ExtraCostType.objects_admin.get(id=1),
         )
 
     def _create_team_division(self, service_environment, team):

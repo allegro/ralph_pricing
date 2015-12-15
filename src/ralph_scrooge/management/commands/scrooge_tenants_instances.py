@@ -117,7 +117,7 @@ class Command(ScroogeBaseCommand):
         """
         Return usage type and it's prices between start and end.
         """
-        usage_type = UsageType.objects.get(pk=type_id)
+        usage_type = UsageType.objects_admin.get(pk=type_id)
         prices = []
         for price in usage_type.usageprice_set.filter(
             start__lte=end,

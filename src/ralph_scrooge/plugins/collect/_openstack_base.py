@@ -81,7 +81,7 @@ class OpenStackBasePlugin(object):
         else:
             usage_name = self.metric_tmpl.format(metric_name)
         usage_symbol = usage_name.lower().replace(':', '.').replace(' ', '_')
-        return UsageType.objects.get_or_create(
+        return UsageType.objects_admin.get_or_create(
             symbol=usage_symbol,
             defaults=dict(
                 name=usage_name,
@@ -212,7 +212,8 @@ class OpenStackBasePlugin(object):
                 logger.error('Invalid warehouse: {}'.format(
                     site['WAREHOUSE']
                 ))
-                continue
+                # default warehouse from fixtures
+                warehouse = Warehouse.objects.get(pk=1)
             usages = self.get_usages(today, site['CONNECTION'])
             site_new, site_total = self.save_usages(
                 usages,

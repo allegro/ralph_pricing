@@ -42,7 +42,7 @@ class CeilometerMongoPlugin(CeilometerMysqlPlugin):
             {
                 "$match": {
                     "timestamp": {"$gt": date_from, "$lt": date_to},
-                    "counter_type": "cumulative"
+                    "counter_type": "cumulative",
                 }
             },
             {
@@ -52,18 +52,17 @@ class CeilometerMongoPlugin(CeilometerMysqlPlugin):
                         "counter_name": "$counter_name"
                     },
                     "counter_max": {"$max": "$counter_volume"},
-                    "counter_min": {"$min": "$counter_volume"}
+                    "counter_min": {"$min": "$counter_volume"},
                 }
             },
             {
                 "$project": {
-                    "_id": {
-                        "project_id": 1,
-                        "counter_name": 1
-                    },
+                    "_id": 0,
+                    "tenant_id": "$_id.project_id",
+                    "metric_name": "$_id.counter_name",
                     "value": {
                         "$subtract": ["$counter_max", "$counter_min"]
-                    }
+                    },
                 }
             },
         ])
@@ -71,7 +70,7 @@ class CeilometerMongoPlugin(CeilometerMysqlPlugin):
             {
                 "$match": {
                     "timestamp": {"$gt": date_from, "$lt": date_to},
-                    "counter_type": "gauge"
+                    "counter_type": "gauge",
                 }
             },
             {
@@ -80,13 +79,15 @@ class CeilometerMongoPlugin(CeilometerMysqlPlugin):
                         "project_id": "$project_id",
                         "counter_name": "$counter_name"
                     },
-                    "total": {"$sum": "$counter_volume"}
+                    "total": {"$sum": "$counter_volume"},
                 }
             },
             {
                 "$project": {
-                    "_id": {"project_id": 1, "counter_name": 1},
-                    "value": {"$divide": ["$total", 144]}
+                    "_id": 0,
+                    "tenant_id": "$_id.project_id",
+                    "metric_name": "$_id.counter_name",
+                    "value": {"$divide": ["$total", 144]},
                     # 24 * 6 (openstack saves data every ~10 minutes)
                 }
             },
@@ -95,7 +96,7 @@ class CeilometerMongoPlugin(CeilometerMysqlPlugin):
             {
                 "$match": {
                     "timestamp": {"$gt": date_from, "$lt": date_to},
-                    "counter_type": "delta"
+                    "counter_type": "delta",
                 }
             },
             {
@@ -104,12 +105,30 @@ class CeilometerMongoPlugin(CeilometerMysqlPlugin):
                         "project_id": "$project_id",
                         "counter_name": "$counter_name"
                     },
-                    "value": {"$sum": "$counter_volume"}
+                    "value": {"$sum": "$counter_volume"},
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "tenant_id": "$_id.project_id",
+                    "metric_name": "$_id.counter_name",
+                    "value": 1,
                 }
             },
         ])
 
-        return chain(cumulative_data, gauge_data, delta_data)
+        return list(chain.from_iterable(map(
+            lambda data: [
+                    (
+                        x['tenant_id'],
+                        x['value'],
+                        x['metric_name']
+                    )
+                    for x in data['result']
+                    ],
+            [cumulative_data, gauge_data, delta_data])
+            ))
 
 
 @plugin.register(chain='scrooge', requires=['service', 'tenant'])

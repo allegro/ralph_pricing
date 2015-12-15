@@ -71,7 +71,7 @@ def get_usage(usage_name):
     """
     Returns usage type for specific shares
     """
-    usage_type, created = UsageType.objects.get_or_create(
+    usage_type, created = UsageType.objects_admin.get_or_create(
         symbol=usage_name.replace(' ', '_').lower(),
         defaults=dict(
             name=usage_name,
