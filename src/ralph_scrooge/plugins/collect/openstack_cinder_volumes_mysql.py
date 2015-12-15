@@ -41,6 +41,7 @@ class CinderVolumesPlugin(OpenStackBasePlugin):
             ), '{to_ts}') as DATETIME),
             CAST(GREATEST(volumes.created_at, '{from_ts}') as DATETIME)
         )) * volumes.size / (60.0 * 60) AS 'usage',
+        volumes.size,
         volumes.host AS 'volume_host',
         volume_types.name AS 'metric_name'
     FROM
@@ -54,8 +55,8 @@ class CinderVolumesPlugin(OpenStackBasePlugin):
     def get_usages(self, *args, **kwargs):
         result = super(CinderVolumesPlugin, self).get_usages(*args, **kwargs)
         for (
-            volume_id, volume_display_name, tenant_id, value, volume_host,
-            volume_type_name
+            volume_id, volume_display_name, tenant_id, volume_size, value,
+            volume_host, volume_type_name
         ) in result:
             # Volume type is fetched from volume_types table or from hostname
             # of volumes.host if volume type is NULL
@@ -68,7 +69,8 @@ class CinderVolumesPlugin(OpenStackBasePlugin):
                 )
                 continue
             if volume_type_name in settings.OPENSTACK_CINDER_VOLUMES_DONT_CHARGE_FOR_SIZE:  # noqa
-                value = 1.0
+                # get only working hours (24 for full-working-day)
+                value = value / volume_size
             yield (
                 tenant_id,
                 value,

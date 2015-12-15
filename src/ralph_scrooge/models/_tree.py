@@ -113,6 +113,8 @@ class MultiPathNode(db.Model):
                     parent.path if parent else '',
                     params
                 )
+                if params.get('value') is None:
+                    params['value'] = 0
                 newobj = cls.namedtuple(**params)
                 result.append(newobj)
                 result.extend(cls._build_tree(
