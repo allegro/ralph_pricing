@@ -37,7 +37,7 @@ setup(
         'python-novaclient==2.17.0',
         'django-simple-history==1.6.3',
         'djangorestframework==2.4.3',
-        'django-filter>=0.8',
+        'django-filter==0.11',
         'django-nose>=1.3',
     ],
     entry_points={
