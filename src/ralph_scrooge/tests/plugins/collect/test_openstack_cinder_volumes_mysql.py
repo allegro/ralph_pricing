@@ -69,8 +69,8 @@ class TestOpenStackCinderVolumesMysqlUsage(TestCase):
     ):
         self._mock_sql_query(
             create_engine_mock,
-            [('111', '/vol/1', '321', 10, 10, '123@SSD-2', 'SSD-1')]
+            [('111', '/vol/1', '321', 240, 10, '123@SSD-2', 'SSD-1')]
         )
         result = [x for x in self.plugin.get_usages(self.today, 'mysql')]
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0], ('321', 1, 'SSD-1', '111: /vol/1'))
+        self.assertEqual(result[0], ('321', 24, 'SSD-1', '111: /vol/1'))
