@@ -55,7 +55,7 @@ class CinderVolumesPlugin(OpenStackBasePlugin):
     def get_usages(self, *args, **kwargs):
         result = super(CinderVolumesPlugin, self).get_usages(*args, **kwargs)
         for (
-            volume_id, volume_display_name, tenant_id, volume_size, value,
+            volume_id, volume_display_name, tenant_id, value, volume_size,
             volume_host, volume_type_name
         ) in result:
             # Volume type is fetched from volume_types table or from hostname
