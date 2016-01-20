@@ -15,12 +15,14 @@
     <tbody>
       <tr ng-repeat="row in extra_cost_type.extra_costs">
         <td ng-class="row.errors.service ? 'tab-error' : ''">
-          <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
+          <div ng-if="row._empty !== true">{{stats.getServiceName(row.service)}}</div>
+          <select ng-if="row._empty === true" ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
           </select>
           <div>{{row.errors.service}}</div>
         </td>
         <td ng-class="row.errors.env ? 'tab-error' : ''">
-          <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
+          <div ng-if="row._empty !== true">{{stats.getEnvName(row.env)}}</div>
+          <select ng-if="row._empty === true" ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
           </select>
           <div>{{row.errors.env}}</div>
         </td>

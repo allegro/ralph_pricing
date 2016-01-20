@@ -66,13 +66,13 @@ class TestAllocationAdmin(TestCase):
                             'id': 1,
                             'name': 'Other'
                         },
-                        'extra_costs': [{}]
+                        'extra_costs': []
                     }, {
                         'extra_cost_type': {
                             'id': 2,
                             'name': 'Support'
                         },
-                        'extra_costs': [{}]
+                        'extra_costs': []
                     }],
                     'template': 'tabextracostsadmin.html'
                 },
@@ -369,19 +369,19 @@ class TestAllocationAdmin(TestCase):
                         'id': 1,
                         'name': 'Other'
                     },
-                    'extra_costs': [{}]
+                    'extra_costs': []
                 }, {
                     'extra_cost_type': {
                         'id': 2,
                         'name': 'Support'
                     },
-                    'extra_costs': [{}]
+                    'extra_costs': []
                 }, {
                     'extra_cost_type': {
                         'id': extra_cost_type.id,
                         'name': extra_cost_type.name
                     },
-                    'extra_costs': [{}]
+                    'extra_costs': []
                 }],
                 'template': 'tabextracostsadmin.html'
             }
@@ -419,13 +419,13 @@ class TestAllocationAdmin(TestCase):
                         'id': 1,
                         'name': 'Other'
                     },
-                    'extra_costs': [{}]
+                    'extra_costs': []
                 }, {
                     'extra_cost_type': {
                         'id': 2,
                         'name': 'Support'
                     },
-                    'extra_costs': [{}]
+                    'extra_costs': []
                 }, {
                     'extra_cost_type': {
                         'id': extra_cost_type.id,
@@ -866,6 +866,57 @@ class TestAllocationAdmin(TestCase):
         extra_cost = models.ExtraCost.objects.all()[0]
         self.assertEquals(extra_cost.cost, cost)
         self.assertEquals(extra_cost.forecast_cost, forecast_cost)
+
+    def test_update_extra_cost_with_deletion(self):
+        cost = 100.0
+        forecast_cost = 200.0
+        first_day, last_day, days_in_month = get_dates(
+            self.date.year,
+            self.date.month,
+        )
+        extra_cost_type = factory.ExtraCostTypeFactory()
+        service_environment = factory.ServiceEnvironmentFactory()
+        service_environment_2 = factory.ServiceEnvironmentFactory()
+        extra_cost = models.ExtraCost.objects.create(
+            cost=50.0,
+            forecast_cost=50.0,
+            service_environment=service_environment,
+            extra_cost_type=extra_cost_type,
+            start=first_day,
+            end=last_day,
+        )
+        models.ExtraCost.objects.create(
+            cost=50.0,
+            forecast_cost=50.0,
+            service_environment=service_environment_2,
+            extra_cost_type=extra_cost_type,
+            start=first_day,
+            end=last_day,
+        )
+        self.client.post(
+            '/scrooge/rest/allocationadmin/{0}/{1}/extracosts/save'.format(
+                self.date.year,
+                self.date.month,
+            ),
+            {
+                'rows': [{
+                    'extra_cost_type': {
+                        'id': extra_cost_type.id,
+                        'name': extra_cost_type.name
+                    },
+                    'extra_costs': [{
+                        'id': extra_cost.id,
+                        'cost': cost,
+                        'forecast_cost': forecast_cost,
+                        'service': service_environment.service_id,
+                        'env': service_environment.environment_id,
+                    }]
+                }]
+            },
+            format='json'
+        )
+        self.assertEqual(models.ExtraCost.objects.count(), 1)
+        self.assertEqual(models.ExtraCost.objects.all()[0].id, extra_cost.id)
 
     def test_save_dynamic_extra_cost_when_there_is_wrong_type(self):
         dynamic_extra_cost_type = factory.DynamicExtraCostTypeFactory()

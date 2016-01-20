@@ -8,11 +8,12 @@ scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 's
     }
     stats.breadcrumbs = ['tab'];
     if ($scope.stats.currentSubMenu === false) {
-        $scope.stats.currentSubMenu = 'Allocations Admin';
+        $scope.stats.currentSubMenu = 'Allocations admin';
     }
     stats.refreshCurrentSubpage = function () {
         stats.getAllocationAdminData();
     };
+
     $scope.stats.menuStats.subpage.change = 'allocationadmin';
     $scope.stats.refreshData();
 
@@ -29,11 +30,9 @@ scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 's
         return total;
     };
     $scope.addRow = function (costList) {
-        costList.push({'service': false, 'env': false, 'cost': 0, 'forecast_cost': 0});
+        costList.push({'service': false, 'env': false, 'cost': 0, 'forecast_cost': 0, '_empty': true});
     };
     $scope.removeRow = function (index, currentList) {
-        if (currentList.length >= 2) {
-            currentList.splice(index, 1);
-        }
+        currentList.splice(index, 1);
     };
 }]);
