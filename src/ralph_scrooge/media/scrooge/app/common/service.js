@@ -61,6 +61,8 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
         currentTabs: {},
         menuReady: false,
         leftMenus: {},
+        services: {},
+        envs: {},
         subMenus: {},
         menuStats: {
             'subpage': {'current': null, 'change': null},
@@ -113,10 +115,20 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
                         self.menuStats[key] = data['menuStats'][key];
                     });
                     self.leftMenus = data['menus'];
+                    self.parseServices(data['menus']['services']);
                     self.dates = data['dates'];
                     self.menuStats.leftMenu['change'] = Object.keys(self.leftMenus)[0];
                     self.refreshData();
                 });
+        },
+        parseServices: function(services){
+            var self = this;
+            services.forEach(function (service) {
+                self.services[service.id] = service;
+                service.value.envs.forEach(function (env) {
+                    self.envs[env.id] = env;
+                });
+            });
         },
         isLeapYear: function (year) {
             return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
@@ -218,9 +230,6 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
                     if (data) {
                         Object.keys(data).forEach(function (key) {
                             self.allocationclient.data = data;
-                            if (data[key].rows.length === 0 || data[key].disabled === true) {
-                                data[key].rows = [{}];
-                            }
                         });
                         self.currentTabs = self.allocationclient.data;
                         var tabs = Object.keys(self.allocationclient.data);
@@ -432,9 +441,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
                     urlChunks = urlAdminChunks;
                     data = {'rows': self.currentTabs.extracosts.rows};
                     data.rows.forEach(function (row) {
-                        if (Object.keys(row.extra_costs[0]).length > 1) {
-                            valid(row.extra_costs, [valid_service, valid_env]);
-                        }
+                        valid(row.extra_costs, [valid_service, valid_env]);
                     });
                     break;
                 case 'teamcosts':
@@ -454,16 +461,16 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
             }
         },
         getEnvs: function (service_id) {
-            var self = this;
-            var envs = [];
-            if (Object.keys(self.leftMenus).length > 0) {
-                self.leftMenus['services'].forEach(function (element) {
-                    if (element.id == service_id) {
-                        envs = element.value.envs;
-                    }
-                });
-            }
-            return envs;
+            var envs = this.services[service_id];
+            return (envs === undefined) ? [] : envs.value.envs;
+        },
+        getServiceName: function (service_id) {
+            var service = this.services[service_id];
+            return (service === undefined) ? "" : service.name;
+        },
+        getEnvName: function (env_id) {
+            var env = this.envs[env_id];
+            return (env === undefined) ? "" : env.name;
         },
         changeTab: function (tab) {
             var self = this;

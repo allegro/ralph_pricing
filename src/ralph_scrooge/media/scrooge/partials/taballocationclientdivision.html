@@ -10,13 +10,15 @@
   <tbody>
     <tr ng-repeat="row in stats.currentTabs[stats.currentTab].rows">
       <td ng-class="row.errors.service ? 'tab-error' : ''">
-        <select ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
+        <select ng-if="row._empty === true" ng-model="row.service" class="form-control" ng-options="service.id as service.name for service in stats.leftMenus.services">
         </select>
+        <div ng-if="row._empty !== true">{{stats.getServiceName(row.service)}}</div>
         <div>{{row.errors.service}}</div>
       </td>
       <td ng-class="row.errors.env ? 'tab-error' : ''">
-        <select ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
+        <select ng-if="row._empty === true" ng-model="row.env" class="form-control" ng-options="env.id as env.name for env in stats.getEnvs(row.service)">
         </select>
+        <div ng-if="row._empty !== true">{{stats.getEnvName(row.env)}}</div>
         <div>{{row.errors.env}}</div>
       </td>
       <td class="value-col value-percent-col" ng-class="row.errors.value ? 'tab-error' : ''">

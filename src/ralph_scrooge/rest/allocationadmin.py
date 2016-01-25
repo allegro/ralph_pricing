@@ -69,8 +69,6 @@ class AllocationAdminContent(APIView):
                     'service': extra_cost.service_environment.service_id,
                     'env': extra_cost.service_environment.environment_id
                 })
-            if len(extra_costs) == 0:
-                extra_costs = [{}]
             rows.append({
                 'extra_cost_type': {
                     'id': extra_cost_type.id,
@@ -231,6 +229,7 @@ class AllocationAdminContent(APIView):
             usage_price.save()
 
     def _save_extra_costs(self, start, end, post_data):
+        saved_costs = []
         for row in post_data['rows']:
             try:
                 extra_cost_type = ExtraCostType.objects_admin.get(
@@ -284,6 +283,11 @@ class AllocationAdminContent(APIView):
                             cost=ec_row['cost'],
                             forecast_cost=ec_row['forecast_cost']
                         )
+                    saved_costs.append(extra_cost.id)
+        # delete extra costs that were missing in the form
+        ExtraCost.objects.filter(start=start, end=end).exclude(
+            pk__in=saved_costs
+        ).delete()
 
     def _save_dynamic_extra_costs(self, start, end, post_data):
         for row in post_data['rows']:

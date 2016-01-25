@@ -22,7 +22,7 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
      * @param {list} costList - List of dicts with row data.
      */
     $scope.addRow = function (costList) {
-        costList.push({'service': false, 'value': 0});
+        costList.push({'service': false, 'value': 0, '_empty': true});
     };
 
     /**
@@ -31,9 +31,7 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
      * @param {list} currentList - List of dicts with row data.
      */
     $scope.removeRow = function (index, currentList) {
-        if (currentList.length >= 2) {
-            currentList.splice(index, 1);
-        }
+        currentList.splice(index, 1);
     };
 
     /**
