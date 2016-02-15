@@ -46,6 +46,7 @@ COLLECT_PLUGINS = set([
     'virtual',
 ])
 
+SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE = False
 UNKNOWN_SERVICES_ENVIRONMENTS = {
     'tenant': {},
     'netflow': (None, None),

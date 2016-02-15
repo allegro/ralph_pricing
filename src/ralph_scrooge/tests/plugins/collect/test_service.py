@@ -148,7 +148,7 @@ class TestServiceCollectPlugin(TestCase):
         def sample_update_service(data, date, default_profit_center):
             return data['ci_id'] % 2 == 0
 
-        def sample_get_services():
+        def sample_get_services(only_calculated_in_scrooge=False):
             for owner in SAMPLE_SERVICES:
                 yield owner
 
