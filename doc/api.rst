@@ -1,7 +1,7 @@
 ===
 API
 ===
-To improve work and communication with Scrooge, we have prepared api. Currently, there is only push api which can be used to push usages data by services. In the future, we are planning to create pull api for generating report data only for a single venture/service. To communicate with API, use JSON as a message format and REST API for maintenance of communication standards.
+To improve work and communication with Scrooge, we have prepared the API. Currently, there is only push API which can be used to push usages of data by different services. In the future, we are planning to create pull API for example to generate report data. To communicate with API, use JSON as a message format and REST API for maintenance of communication standards.
 
 
 Push API
@@ -13,20 +13,19 @@ Push API
 General description
 -------------------
 
-Every service can upload data to Scrooge with the use of its resources
-(e.g. requests count, transfer, etc.) by ventures. To upload data to Scrooge, some preconditions must be satisfied:
+Every pricing service [#]_ can upload data to Scrooge with the use of its resources
+(e.g. requests count, transfer, etc.) by services. To upload data to Scrooge, some preconditions must be satisfied:
 
 * usage type(s) used by service must be added to Scrooge
-* service has to be added to Scrooge
-* usage type(s) must be connected with the service
+* service has to be added to Scrooge (usually synchronized from Ralph)
+* pricing service has to be added to Scrooge
+* usage type(s) must be connected with the pricing service
 
-A unique symbol has to be provided for every service in Scrooge, which is later used to identify the service through API. Venture and usage type(s) are also identified using these symbols
+A unique symbol has to be provided for every usage type in Scrooge, which is later used to identify it in request processing.
 
-The unit of resource usage doesn't matter (e.g. in the case of transferring kB, MB, GB) - the most important thing is to keep the unit of every usage the same
-(even abstract) – after all, the cost of service is distributed to ventures proportionally to their usages (of resources).
+The unit of resource usage doesn't matter (e.g. in the case of transferring kB, MB, GB) - the most important thing is to keep the unit of every usage the same (even abstract) – after all, the cost of service is distributed to other services proportionally to their usages (of resources).
 
-If a service has more than one usage type, it is necessary to provide their percentage division in the period of time (e.g. transfer – 30%, requests count
-– 70%, which means that 30% of the total cost of service is distributed proportionally to the transfer usage and 70% proportionally to the requests count).
+If the pricing service has more than one usage type, it is necessary to provide their percentage division in the period of time (e.g. transfer – 30%, requests count – 70%, which means that 30% of the total cost of pricing service is distributed proportionally to the transfer usage and 70% proportionally to the requests count).
 
 
 -------------------------
@@ -41,24 +40,21 @@ User Guide (step-by-step)
 
 2. Scrooge Admin part
 
-  a. Create Usage Type(s) (one or more) that reflect(s) resources used by service (RALPH_URL/admin/ralph_scrooge/usagetype/add/). Every service usage type must have a unique symbol.
+  a. Create Usage Type(s) (one or more) that reflect(s) resources used by pricing service (``RALPH_URL/admin/ralph_scrooge/usagetype/add/``). Every service usage type must have a unique symbol.
 
     * Leave "Show usage type in report" checked.
     * Type: select "Service usage type".
 
-  b. Create Service (RALPH_URL/admin/ralph_scrooge/service/add/). Every service must have a unique symbol that will be used later to identify the service in the API message. Possible options for service:
+  b. Create Pricing Service (``RALPH_URL/admin/ralph_scrooge/pricingservice/add/``). Possible options for pricing service:
+
+    * Plugin type – use ``universal``, if pricing service costs should be allocated proportionally to usage types (total real cost of pricing service will be divided into other services). Use ``fixed price`` if you'll provide price for every unit of usage type used by this pricing service (like AWS billing, where you are charged fixed price by every hour of working instance; notice that sum of this cost could be different than real pricing service cost).
+    * Services – select services which total cost will be summed up to pricing service cost (usually it should be 1:1 mapping)
+    * Service usage types – select usage type(s) created in the previous step. Notice that only usage types with the “Service usage type” are presented here. If you only have one usage type for your service, select it and type 100 in its percentage field.
 
 
-    * Base usage types – base usage types that will be used to calculate the cost of service (if you don't know what to select, select all).
-    * Dependency –this field is used to select dependent services (a part of dependent service cost (cost of dependent service that is generated by current service ventures) will be included in the total service cost)
-    * Use universal plugin – if your service does not have a dedicated plugin, keep this option checked.
-    * Ventures – ventures that provide a service (ventures with physical or virtual machines that are used by the service)
-    * Service usage types – here, you have to select usage types created in the previous step. Notice that only usage types with the “Service usage type” are presented here. If you only have one usage type for your service, select it and type 100 inits percentage field.
+3. API usage
 
-
-3. API usage part
-
-  Send a JSON message to API endpoint (RALPH_URL/scrooge/api/v0.9/serviceusages/) with data in the format described in the “Technical description” section.
+  Send a JSON message to API endpoint (``RALPH_URL/scrooge/api/v0.9/pricingserviceusages/``) using POST method with data in the format described in the “Technical description” section.
 
 
 .. _technical-label:
@@ -73,72 +69,77 @@ API definition
 ::
 
   {
-    "service": "<service_symbol>",
+    "pricing_service": "<pricing service name or id>",
     "date": "<date>",
-    "overwrite": "<delete_all_previous|values_only|no>",
-    "venture_usages": [
-      {
-        "venture": "<venture_symbol>",
-        "usages": [
-          {
-            "symbol": "<usage_type_1_symbol>",
-            "value": <usage1>
-          },
-          ...
-        ]
-      },
-      ...
+    "overwrite: "no|values_only|delete_all_previous",
+    "usages": [
+        {
+            "service": "<service name or id>",
+            "pricing_object": "<pricing_object_name>",
+            "usages": [
+                {
+                    "symbol": "<usage_type_1_symbol>",
+                    "value": <usage1>
+                },
+                ...
+            ]
+        },
+        ...
     ]
   }
+
+
+Notice that you could either provide charged service here (it will be charged directly) or pricing object (ex. hostname or IP address) - the service (assigned to this pricing object) will be charged implicitly here.
 
 
 Example::
 
   {
-    "service": "service_symbol",
-    "date": "2111-11-11",
-    "overwrite": "delete_all_previous",
-    "venture_usages": [
-      {
-        "venture": "venture1",
-        "usages": [
+      "pricing_service": "pricing_service1",
+      "date": "2013-10-10",
+      "usages": [
           {
-            "symbol": "requests",
-            "value": 123
+              "service": "service1",
+              "environment": "env1",
+              "usages": [
+                  {
+                      "symbol": "requests",
+                      "value": 123
+                  },
+                  {
+                      "symbol": "transfer",
+                      "value": 321
+                  }
+              ]
           },
           {
-            "symbol": "transfer",
-            "value": 321
-          }
-        ]
-      },
-      {
-        "venture": "venture2",
-        "usages": [
-          {
-            "symbol": "requests",
-            "value": 543
+              "pricing_object": "pricing_object1",
+              "usages": [
+                  {
+                      "symbol": "requests",
+                      "value": 543
+                  },
+                  {
+                      "symbol": "transfer",
+                      "value": 565
+                  }
+              ]
           },
           {
-            "symbol": "transfer",
-            "value": 565
+              "service_id": 123,
+              "environment": "env2",
+              "usages": [
+                  {
+                      "symbol": "requests",
+                      "value": 788
+                  },
+                  {
+                      "symbol": "transfer",
+                      "value": 234
+                  }
+              ]
           }
-        ]
-      },
-      {
-        "venture": "venture3",
-        "usages": [
-          {
-            "symbol": "requests",
-            "value": 788
-          },
-          {
-            "symbol": "transfer",
-            "value": 234
-          }
-        ]
-      }
-    ]
+      ]
   }
 
 """""""""""""
@@ -151,7 +152,7 @@ Communication with Scrooge API takes place using the HTTP protocol. Data should 
 Overwriting previous values
 """""""""""""""""""""""""""
 
-API provides a way to define how to treat previous service usages values uploaded for a given date (e.g. when data is sent twice for a given date). The possible actions (overwrite) is:
+API provides a way to define how to treat previous service usages values uploaded for a given date (e.g. when data is sent twice for a given date). The possible actions (overwrite) are:
 
 * ``delete_all_previous`` - all previous usages for a given date are removed before inserting new data
 
@@ -173,7 +174,7 @@ Possible responses (HTTP codes)
 
 201 - everything ok, data saved properly.
 
-400 - invalid symbol (venture, usage type or service).
+400 - invalid symbol or name (ex. usage type or service) - there will be provided detailed information about invalid data.
 
 401 - authorization/authentication error.
 
@@ -183,4 +184,7 @@ Possible responses (HTTP codes)
 Pull API
 ~~~~~~~~
 
-Coming soon...
+You could validate if your usages are properly saved calling ``<pricing_service_name>/<date(YYYY-MM-DD)>`` endpoint of Scrooge API (``RALPH_URL/scrooge/api/v0.9/pricingserviceusages/<pricing_service_name>/<date(YYYY-MM-DD)>``) with GET method.
+
+
+.. [#] Pricing Service is financial extension to regular service. It contains information about methods of service costs allocation, services excluded from charging etc.
