@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 
+from django.conf import settings
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
@@ -93,7 +94,9 @@ def service(today, **kwargs):
     """
     new_services = total = 0
     default_profit_center = ProfitCenter.objects.get(pk=1)
-    for data in get_services():
+    for data in get_services(
+        settings.SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE
+    ):
         if update_service(data, today, default_profit_center):
             new_services += 1
         total += 1
