@@ -74,7 +74,7 @@ API definition
     "overwrite: "no|values_only|delete_all_previous",
     "usages": [
         {
-            "service": "<service name or id>",
+            "service": "<service name or uid or id>",
             "pricing_object": "<pricing_object_name>",
             "usages": [
                 {
@@ -127,6 +127,20 @@ Example::
           },
           {
               "service_id": 123,
+              "environment": "env2",
+              "usages": [
+                  {
+                      "symbol": "requests",
+                      "value": 788
+                  },
+                  {
+                      "symbol": "transfer",
+                      "value": 234
+                  }
+              ]
+          },
+          {
+              "service_uid": "sc-123",
               "environment": "env2",
               "usages": [
                   {

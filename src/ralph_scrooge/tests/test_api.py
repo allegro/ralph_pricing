@@ -95,6 +95,14 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                     ]
                 ),
                 UsagesObject(
+                    service_uid=self.service_environment3.service.uid,
+                    environment=self.service_environment3.environment.name,
+                    usages=[
+                        UsageObject(symbol=self.usage_type1.symbol, value=111),
+                        UsageObject(symbol=self.usage_type2.symbol, value=22),
+                    ]
+                ),
+                UsagesObject(
                     pricing_object=self.pricing_object1.name,
                     usages=[
                         UsageObject(symbol=self.usage_type1.symbol, value=3.3),
@@ -108,7 +116,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         return pricing_service_usages
 
     def _compare_sample_usages(self):
-        self.assertEquals(DailyUsage.objects.count(), 6)
+        self.assertEquals(DailyUsage.objects.count(), 8)
 
         daily_usage_1 = DailyUsage.objects.order_by('id')[0]
         self.assertEquals(
@@ -122,11 +130,20 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         daily_usage_2 = DailyUsage.objects.order_by('id')[5]
         self.assertEquals(
             daily_usage_2.service_environment,
-            self.pricing_object1.service_environment
+            self.service_environment3
         )
         self.assertEquals(daily_usage_2.date, self.date)
         self.assertEquals(daily_usage_2.type, self.usage_type2)
-        self.assertEquals(daily_usage_2.value, 44)
+        self.assertEquals(daily_usage_2.value, 22)
+
+        daily_usage_3 = DailyUsage.objects.order_by('id')[7]
+        self.assertEquals(
+            daily_usage_3.service_environment,
+            self.pricing_object1.service_environment
+        )
+        self.assertEquals(daily_usage_3.date, self.date)
+        self.assertEquals(daily_usage_3.type, self.usage_type2)
+        self.assertEquals(daily_usage_3.value, 44)
 
     def test_save_usages(self):
         pricing_service_usages = self._get_sample()
