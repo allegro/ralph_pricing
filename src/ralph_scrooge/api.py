@@ -362,7 +362,7 @@ class PricingServiceUsageResource(Resource):
                         if usages.service_id:
                             se_params['service_id'] = usages.service_id
                         elif usages.service_uid:
-                            se_params['service__uid'] = usages.service__uid
+                            se_params['service__ci_uid'] = usages.service_uid
                         else:
                             se_params['service__name'] = usages.service
                         service_environment = ServiceEnvironment.objects.get(
