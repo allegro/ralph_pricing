@@ -47,6 +47,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         self.service_environment1 = ServiceEnvironmentFactory()
         self.service_environment2 = ServiceEnvironmentFactory()
         self.service_environment3 = ServiceEnvironmentFactory()
+        self.service_environment4 = ServiceEnvironmentFactory()
         self.pricing_object1 = PricingObjectFactory()
         self.pricing_object2 = PricingObjectFactory()
 
@@ -95,6 +96,13 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                     ]
                 ),
                 UsagesObject(
+                    pricing_object=self.pricing_object1.name,
+                    usages=[
+                        UsageObject(symbol=self.usage_type1.symbol, value=3.3),
+                        UsageObject(symbol=self.usage_type2.symbol, value=44),
+                    ]
+                ),
+                UsagesObject(
                     service_uid=self.service_environment3.service.ci_uid,
                     environment=self.service_environment3.environment.name,
                     usages=[
@@ -102,13 +110,6 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                         UsageObject(symbol=self.usage_type2.symbol, value=22),
                     ]
                 ),
-                UsagesObject(
-                    pricing_object=self.pricing_object1.name,
-                    usages=[
-                        UsageObject(symbol=self.usage_type1.symbol, value=3.3),
-                        UsageObject(symbol=self.usage_type2.symbol, value=44),
-                    ]
-                )
             ]
         )
         if overwrite is not None:
@@ -127,7 +128,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         self.assertEquals(daily_usage_1.type, self.usage_type1)
         self.assertEquals(daily_usage_1.value, 123)
 
-        daily_usage_2 = DailyUsage.objects.order_by('id')[5]
+        daily_usage_2 = DailyUsage.objects.order_by('id')[7]
         self.assertEquals(
             daily_usage_2.service_environment,
             self.service_environment3
@@ -136,7 +137,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         self.assertEquals(daily_usage_2.type, self.usage_type2)
         self.assertEquals(daily_usage_2.value, 22)
 
-        daily_usage_3 = DailyUsage.objects.order_by('id')[7]
+        daily_usage_3 = DailyUsage.objects.order_by('id')[5]
         self.assertEquals(
             daily_usage_3.service_environment,
             self.pricing_object1.service_environment
@@ -161,6 +162,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                 {
                     'service': self.service_environment1.service.name,
                     'service_id': None,
+                    'service_uid': None,
                     'environment': self.service_environment1.environment.name,
                     'pricing_object': None,
                     'usages': [
@@ -177,6 +179,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                 {
                     'service': None,
                     'service_id': self.service_environment2.service.id,
+                    'service_uid': None,
                     'environment': self.service_environment2.environment.name,
                     'pricing_object': None,
                     'usages': [
@@ -193,6 +196,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                 {
                     'service': None,
                     'service_id': None,
+                    'service_uid': None,
                     'environment': None,
                     'pricing_object': self.pricing_object1.name,
                     'usages': [
@@ -203,6 +207,23 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                         {
                             'symbol': self.usage_type2.symbol,
                             'value': 44,
+                        },
+                    ]
+                },
+                {
+                    'service': None,
+                    'service_id': None,
+                    'service_uid': self.service_environment3.service.ci_uid,
+                    'environment': self.service_environment3.environment.name,
+                    'pricing_object': None,
+                    'usages': [
+                        {
+                            'symbol': self.usage_type1.symbol,
+                            'value': 111,
+                        },
+                        {
+                            'symbol': self.usage_type2.symbol,
+                            'value': 22,
                         },
                     ]
                 },
@@ -393,6 +414,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
             self.service_environment1.id: 123.0,
             self.service_environment2.id: 321,
             self.pricing_object1.service_environment.id: 3.3,
+            self.service_environment3.id: 111,
         })
 
     def test_overwrite_values_only(self):
@@ -419,6 +441,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
             self.service_environment2.id: 321,
             self.pricing_object1.service_environment.id: 3.3,
             self.pricing_object2.service_environment.id: 3.3,
+            self.service_environment3.id: 111,
         })
 
     def test_overwrite_delete_all_previous(self):
@@ -427,8 +450,8 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         service_usages = self._get_sample(
             overwrite='delete_all_previous'
         )
-        service_usages.usages[0].service = self.service_environment3.service.name  # noqa
-        service_usages.usages[0].environment = self.service_environment3.environment.name  # noqa
+        service_usages.usages[0].service = self.service_environment4.service.name  # noqa
+        service_usages.usages[0].environment = self.service_environment4.environment.name  # noqa
         data = service_usages.to_dict()
         resp = self.api_client.post(
             '/scrooge/api/v0.9/{0}/'.format(self.resource),
@@ -442,9 +465,10 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
             'value',
         )
         self.assertEquals(dict(usages), {
-            self.service_environment3.id: 123.0,
+            self.service_environment4.id: 123.0,
             self.service_environment2.id: 321,
             self.pricing_object1.service_environment.id: 3.3,
+            self.service_environment3.id: 111,
         })
 
     def test_not_overwriting(self):
@@ -466,14 +490,18 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
             'service_environment',
             'value',
         )
-        self.assertEquals(set(usages), set([
+        self.assertItemsEqual(usages, [
+            # first pass
             (self.service_environment1.id, 123.0),
             (self.service_environment2.id, 321),
             (self.pricing_object1.service_environment.id, 3.3),
+            (self.service_environment3.id, 111),
+            # second pass
             (self.service_environment1.id, 123.0),
             (self.service_environment2.id, 321),
             (self.pricing_object2.service_environment.id, 3.3),
-        ]))
+            (self.service_environment3.id, 111),
+        ])
 
     def test_get_pricing_service_usages(self):
         self._basic_call()
