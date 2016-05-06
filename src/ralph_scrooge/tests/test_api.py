@@ -95,7 +95,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
                     ]
                 ),
                 UsagesObject(
-                    service_uid=self.service_environment3.service.uid,
+                    service_uid=self.service_environment3.service.ci_uid,
                     environment=self.service_environment3.environment.name,
                     usages=[
                         UsageObject(symbol=self.usage_type1.symbol, value=111),
