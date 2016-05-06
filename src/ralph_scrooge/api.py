@@ -69,6 +69,7 @@ class UsagesObject(object):
     """
     service = None
     service_id = None
+    service_uid = None
     environment = None
     pricing_object = None
     usages = []  # list of UsageObject
@@ -77,6 +78,7 @@ class UsagesObject(object):
         self,
         service=None,
         service_id=None,
+        service_uid=None,
         environment=None,
         pricing_object=None,
         usages=None,
@@ -84,6 +86,7 @@ class UsagesObject(object):
     ):
         self.service = service
         self.service_id = service_id
+        self.service_uid = service_uid
         self.environment = environment
         self.pricing_object = pricing_object
         self.usages = usages or []
@@ -92,7 +95,10 @@ class UsagesObject(object):
         data = {
             'usages': [u.to_dict(exclude_empty) for u in self.usages],
         }
-        for f in ('service', 'service_id', 'environment', 'pricing_object'):
+        for f in (
+            'service', 'service_id', 'service_uid', 'environment',
+            'pricing_object'
+        ):
             v = getattr(self, f)
             if (exclude_empty and v) or not exclude_empty:
                 data[f] = v
@@ -146,6 +152,7 @@ class UsageResource(Resource):
 class UsagesResource(Resource):
     service = fields.CharField(attribute='service', null=True)  # name
     service_id = fields.CharField(attribute='service_id', null=True)  # id
+    service_uid = fields.CharField(attribute='service_uid', null=True)  # uid
     environment = fields.CharField(attribute='environment', null=True)  # name
     pricing_object = fields.CharField(attribute='pricing_object', null=True)
     usages = fields.ToManyField(UsageResource, 'usages', null=True)
@@ -173,7 +180,7 @@ class PricingServiceUsageResource(Resource):
         "overwrite: "no|values_only|delete_all_previous",
         "usages": [
             {
-                "service": "<service name or id>",
+                "service": "<service name or uid or id>",
                 "pricing_object": "<pricing_object_name>",
                 "usages": [
                     {
@@ -222,7 +229,7 @@ class PricingServiceUsageResource(Resource):
                 ]
             },
             {
-                "service_id": 123,
+                "service_uid": 'sc-123',
                 "environment": "env2",
                 "usages": [
                     {
@@ -338,24 +345,30 @@ class PricingServiceUsageResource(Resource):
                     pricing_object = PricingObject.objects.get(
                         name=usages.pricing_object,
                     )
-                elif usages.service_id and usages.environment:
-                    service_environment = ServiceEnvironment.objects.get(
-                        service__id=usages.service_id,
-                        environment__name=usages.environment,
-                    )
-                    pricing_object = service_environment.dummy_pricing_object
-                elif usages.service and usages.environment:
-                    service_environment = ServiceEnvironment.objects.get(
-                        service__name=usages.service,
-                        environment__name=usages.environment,
-                    )
-                    pricing_object = service_environment.dummy_pricing_object
                 else:
-                    raise ImmediateHttpResponse(response=http.HttpBadRequest((
-                        "Pricing Object (Host, IP etc) or Service and "
-                        "Environment has to be provided"
-                    )))
-
+                    if not usages.environment or not any([
+                        usages.service_id, usages.service, usages.service_uid
+                    ]):
+                        raise ImmediateHttpResponse(
+                            response=http.HttpBadRequest((
+                                "Pricing Object (Host, IP etc) or Service and "
+                                "Environment has to be provided"
+                            ))
+                        )
+                    else:
+                        se_params = {
+                            'environment__name': usages.environment,
+                        }
+                        if usages.service_id:
+                            se_params['service_id'] = usages.service_id
+                        elif usages.service_uid:
+                            se_params['service__ci_uid'] = usages.service_uid
+                        else:
+                            se_params['service__name'] = usages.service
+                        service_environment = ServiceEnvironment.objects.get(
+                            **se_params
+                        )
+                        pricing_object = service_environment.dummy_pricing_object  # noqa
                 for usage in usages.usages:
                     try:
                         usage_type = usage_types.get(
