@@ -5,6 +5,7 @@ SSH_NFSEN_CREDENTIALS = {}
 NFSEN_CHANNELS = []
 NFSEN_CLASS_ADDRESS = []
 NFSEN_FILES_PATH = ''
+NFSEN_MIN_VALUE = 0
 
 # Virtual Usages plugin default config
 VIRTUAL_SERVICES = {}

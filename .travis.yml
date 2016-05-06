@@ -22,6 +22,7 @@ python:
 install:
   - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
   - pip install https://github.com/chapmanb/python-graph/releases/download/1.8.2/python-graph-core-1.8.2.tar.gz
+  - pip install --find-links=https://pypi.python.org/pypi/pysphere pysphere==0.1.8
   - pip install git+https://github.com/quamilek/bob-ajax-selects.git@develop
   - pip install git+https://github.com/allegro/django-bob.git@develop
   - pip install git+https://github.com/zefciu/django-search-forms@develop

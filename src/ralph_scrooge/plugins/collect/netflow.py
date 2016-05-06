@@ -310,8 +310,12 @@ def update(
     """
     logger.debug('Saving usages as a daily usages per service')
     new = updated = total = 0
-
     for ip, value in _group_by_ip(network_usages).iteritems():
+        if value < settings.NFSEN_MIN_VALUE:
+            logger.info('Skipping {} for IP {} (lower than min value)'.format(
+                value, ip
+            ))
+            continue
         total += 1
         pricing_object, created = PricingObject.objects.get_or_create(
             name=ip,

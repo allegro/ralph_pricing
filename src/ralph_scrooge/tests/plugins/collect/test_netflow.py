@@ -253,7 +253,7 @@ class TestNetwork(TestCase):
             UsageType.objects_admin.get()
         )
 
-    @override_settings(UNKNOWN_SERVICES={'netflow': 1})
+    @override_settings(UNKNOWN_SERVICES={'netflow': 1}, NFSEN_MIN_VALUE=10)
     def test_update(self):
         service_environment = ServiceEnvironmentFactory()
         pricing_object = PricingObjectFactory.create(
@@ -267,7 +267,7 @@ class TestNetwork(TestCase):
         )
         self.assertEqual(
             netflow.update(
-                {('8.8.8.8', '80'): 30},
+                {('8.8.8.8', '80'): 30, ('1.2.3.4', '443'): 5},
                 netflow.get_usage_type(),
                 service_environment,
                 date(year=2014, month=1, day=1),
