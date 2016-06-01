@@ -311,7 +311,7 @@ class TestPricingServiceUsagesApi(ScroogeTestCaseMixin, ResourceTestCase):
         self.assertEquals(
             resp.content,
             'Invalid service or environment name ({} / {})'.format(
-                data['usages'][1]['service'],
+                data['usages'][1]['service_id'],
                 environment
             )
         )

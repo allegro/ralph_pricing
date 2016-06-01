@@ -410,7 +410,7 @@ class PricingServiceUsageResource(Resource):
             except ServiceEnvironment.DoesNotExist:
                 raise ImmediateHttpResponse(response=http.HttpBadRequest(
                     "Invalid service or environment name ({} / {})".format(
-                        usages.service,
+                        usages.service or usages.service_id or usages.service_uid,  # noqa
                         usages.environment,
                     )
                 ))
