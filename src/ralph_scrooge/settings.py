@@ -1,5 +1,9 @@
 import sys
 
+# XXX New settings for plugins (temporary/WiP)
+RALPH3_API_TOKEN = ''
+RALPH3_API_BASE_URL = ''
+
 # NFSEN (network) plugin default config
 SSH_NFSEN_CREDENTIALS = {}
 NFSEN_CHANNELS = []
