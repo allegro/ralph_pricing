@@ -20,8 +20,8 @@ def get_from_ralph(endpoint, logger):
     resp = requests.get(url, headers=headers)  # XXX pagination..?
     if resp.status_code >= 400:
         msg = ("Got unexpected response from Ralph while accessing "
-            "'{}'. Status code: {}. Content: '{}'."
-            .format(url, resp.status_code, resp.content))
+               "'{}'. Status code: {}. Content: '{}'."
+               .format(url, resp.status_code, resp.content))
         logger.error(msg)
         return []
     else:
