@@ -9,10 +9,15 @@ from django.conf import settings
 import requests
 
 
-def get_from_ralph(endpoint, logger):
-    url = "{}/{}/".format(
-        settings.RALPH3_API_BASE_URL.strip("/"), endpoint
-    )
+def get_from_ralph(endpoint, logger, query=None):
+    if query is None:
+        url = "{}/{}/".format(
+            settings.RALPH3_API_BASE_URL.strip("/"), endpoint
+        )
+    else:
+        url = "{}/{}/?{}".format(
+            settings.RALPH3_API_BASE_URL.strip("/"), endpoint, query
+        )
     headers = {
         "Authorization": "Token {}".format(settings.RALPH3_API_TOKEN),
         "Accept": "application/json",

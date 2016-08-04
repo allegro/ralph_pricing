@@ -97,7 +97,9 @@ def service_environment(**kwargs):
     new_service_envs = total_service_envs = 0
 
     if settings.SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE:
-        services_from_ralph = get_from_ralph("environments", logger)  # XXX filter by active
+        services_from_ralph = get_from_ralph(
+            "environments", logger, query="active=True"
+        )
     else:
         services_from_ralph = get_from_ralph("environments", logger)
     default_profit_center = ProfitCenter.objects.get(pk=1)
