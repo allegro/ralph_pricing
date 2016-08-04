@@ -38,9 +38,13 @@ def update_service(service_from_ralph, default_profit_center):
     service.name = service_from_ralph['name']
     service.symbol = service_from_ralph['uid']  # XXX confirm that symbol == uid
     if service_from_ralph['profit_center'] is not None:
-        service.profit_center = ProfitCenter.objects.get(
-            ci_id=service_from_ralph['profit_center']['id']
-        )
+        try:
+            service.profit_center = ProfitCenter.objects.get(
+                ci_id=service_from_ralph['profit_center']['id']
+            )
+        except ProfitCenter.DoesNotExist:
+            # XXX is this OK..?
+            service.profit_center = default_profit_center
     else:
         service.profit_center = default_profit_center
     service.save()
@@ -55,14 +59,23 @@ def _update_owners(service, service_from_ralph):
         ('business_owners', OwnershipType.business),
     )
 
+    def get_unique(owner_dicts):
+        unique_usernames = []
+        unique_dicts = []
+        for owner_dict in owner_dicts:
+            if owner_dict['username'] is not in unique_usernames:
+                unique_usernames.append(owner_dict['username'])
+                unique_dicts.append(owner_dict)
+        return unique_dicts
+
     def delete_obsolete_owners():
-        to_delete = previous_owners - current_owners
+        to_delete = previous_owners_objs - current_owners_dicts  # XXX finish this
         service.serviceownership_set.filter(
             owner__cmdb_id__in=to_delete
         ).delete()
 
     def add_new_owners():
-        to_add = current_owners - previous_owners
+        to_add = current_owners_dicts - previous_owners_objs  # XXX finish this
         ServiceOwnership.objects.bulk_create([
             ServiceOwnership(
                 service=service,
@@ -72,8 +85,8 @@ def _update_owners(service, service_from_ralph):
         ])
 
     for owner_type in owner_types:
-        current_owners = set(service_from_ralph[owner_type[0]])
-        previous_owners = set(service.serviceownership_set.filter(
+        current_owners_dicts = get_unique(service_from_ralph[owner_type[0]])
+        previous_owners_objs = set(service.serviceownership_set.filter(
             type=owner_type[1]
         ).values_list('owner__cmdb_id', flat=True))
         delete_obsolete_owners()
@@ -98,10 +111,10 @@ def service_environment(**kwargs):
 
     if settings.SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE:
         services_from_ralph = get_from_ralph(
-            "environments", logger, query="active=True"
+            "services", logger, query="active=True"
         )
     else:
-        services_from_ralph = get_from_ralph("environments", logger)
+        services_from_ralph = get_from_ralph("services", logger)
     default_profit_center = ProfitCenter.objects.get(pk=1)
 
     # services
