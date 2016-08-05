@@ -12,28 +12,23 @@ from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
-from ralph_assets.api_scrooge import get_assets
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
     DailyUsage,
-    PricingObjectModel,
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     UsagePrice,
     UsageType,
     Warehouse,
 )
+from ralph_scrooge.plugins.collect._exceptions import (
+    ServiceEnvironmentDoesNotExistError,
+)
+from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
 logger = logging.getLogger(__name__)
-
-
-class ServiceEnvironmentDoesNotExistError(Exception):
-    """
-    Raise this exception when service does not exist
-    """
-    pass
 
 
 def get_asset_info(service_environment, warehouse, data):
@@ -48,31 +43,27 @@ def get_asset_info(service_environment, warehouse, data):
     """
     created = False
     try:
-        asset_info = AssetInfo.objects.get(asset_id=data['asset_id'])
+        asset_info = AssetInfo.objects.get(asset_id=data['id'])
     except AssetInfo.DoesNotExist:
         asset_info = AssetInfo(
-            asset_id=data['asset_id'],
+            asset_id=data['id'],
             type_id=PRICING_OBJECT_TYPES.ASSET,
         )
         created = True
-    asset_info.model = PricingObjectModel.objects.get(
-        model_id=data['model_id'],
-        type=PRICING_OBJECT_TYPES.ASSET,
-    )
     asset_info.service_environment = service_environment
-    asset_info.name = data['asset_name']
+    asset_info.name = data['hostname']
     asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
-    asset_info.device_id = data['device_id']
+    asset_info.device_id = data['id']
     try:
         asset_info.save()
     except IntegrityError:
         # check for duplicates on SN, barcode and device_id, null them and save
         # again
-        for field in ['sn', 'barcode', 'device_id']:
+        for field in ['sn', 'barcode', 'device_id']:  # XXX device_id is id in data, so we cannot use this name for both
             assets = AssetInfo.objects.filter(**{field: data[field]}).exclude(
-                asset_id=data['asset_id'],
+                asset_id=data['id'],
             )
             for asset in assets:
                 logger.error('Duplicated {} ({}) on assets {} and {}'.format(
@@ -111,7 +102,7 @@ def get_daily_asset_info(asset_info, date, data):
     # set defaults if daily asset was not created
     daily_asset_info.service_environment = asset_info.service_environment
     daily_asset_info.depreciation_rate = data['depreciation_rate']
-    daily_asset_info.is_depreciated = data['is_depreciated']
+    # daily_asset_info.is_depreciated = data['is_depreciated']  # XXX we doesn't have such field in R3's API
     daily_asset_info.price = data['price'] or 0
     daily_asset_info.save()
     return daily_asset_info
@@ -165,14 +156,17 @@ def update_assets(data, date, usages):
     """
     try:
         service_environment = ServiceEnvironment.objects.get(
-            service__ci_id=data['service_id'],
-            environment__ci_id=data['environment_id'],
+            # XXX same situation as with tenant plugin:
+            # - should we get service env by service_id && env_id..?
+            # - what if service env will be empty?
+            id=data['service_env']['id']
         )
     except ServiceEnvironment.DoesNotExist:
         raise ServiceEnvironmentDoesNotExistError()
 
     try:
-        warehouse = Warehouse.objects.get(id_from_assets=data['warehouse_id'])
+        dc_id = data['rack']['server_room']['data_center']['id']  # XXX OK?
+        warehouse = Warehouse.objects.get(id_from_assets=dc_id)
     except Warehouse.DoesNotExist:
         warehouse = Warehouse.objects.get(pk=1)  # Default from fixtures
 
@@ -205,21 +199,21 @@ def update_assets(data, date, usages):
         daily_asset_info,
         warehouse,
         usages['cores_count'],
-        data['cores_count'],
+        data['cores_count'],  # XXX data['model'][cores_count']
         date,
     )
     update_usage(
         daily_asset_info,
         warehouse,
         usages['power_consumption'],
-        data['power_consumption'],
+        data['power_consumption'],  # XXX data['model']['power_consumption']
         date,
     )
     update_usage(
         daily_asset_info,
         warehouse,
         usages['collocation'],
-        data['collocation'],
+        data['collocation'],  # XXX no such field
         date,
     )
     return new_created
@@ -320,21 +314,25 @@ def asset(**kwargs):
     }
 
     new = update = total = 0
-    for data in get_assets(date):
+    for data in get_from_ralph("data-center-assets", logger): # XXX - what about date parameter, i.e. get_assets(date)..?
         total += 1
         try:
             if update_assets(data, date, usages):
                 new += 1
             else:
                 update += 1
-        except ServiceEnvironmentDoesNotExistError:
+        except ServiceEnvironmentDoesNotExistError:  # XXX ?
             logger.error(
                 'Asset {}: Service environment {} - {} does not exist'.format(
-                    data['asset_id'],
-                    data['service_id'],
-                    data['environment_id'],
+                    data['id'],
+                    # XXX don't have these fields
+                    # data['service_id'],
+                    # data['environment_id'],
+                    # using these instead:
+                    data['service_env']['service'],
+                    data['service_env']['environment'],
                 )
             )
             continue
 
-    return True, '{0} new, {1} updated, {2} total'.format(new, update, total)
+    return True, '{0} new, {1} updated, {2} total'.format(new, update, total)  # XXX
