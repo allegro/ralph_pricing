@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 def update_service(service_from_ralph, default_profit_center):
     created = False
     try:
-        # XXX doesn't have get_or_create method..?
         service = Service.objects.get(ci_id=service_from_ralph['id'])
     except Service.DoesNotExist:
         service = Service(ci_id=service_from_ralph['id'])
@@ -43,7 +42,7 @@ def update_service(service_from_ralph, default_profit_center):
                 ci_id=service_from_ralph['profit_center']['id']
             )
         except ProfitCenter.DoesNotExist:
-            # XXX is this OK..?
+            # XXX is this try/except necessary..?
             service.profit_center = default_profit_center
     else:
         service.profit_center = default_profit_center
@@ -52,45 +51,41 @@ def update_service(service_from_ralph, default_profit_center):
     return created
 
 
-def _update_owners(service, service_from_ralph):
+def _delete_obsolete_owners(current, previous, service):
+    to_delete = previous - current
+    service.serviceownership_set.filter(
+        owner__profile__user__username__in=to_delete
+    ).delete()
 
+
+def _add_new_owners(current, previous, service, owner_type):
+    to_add = current - previous
+    ownerships = []
+    for owner in Owner.objects.filter(profile__user__username__in=to_add):
+        so = ServiceOwnership(
+            service=service,
+            type=owner_type[1],
+            owner=owner
+        )
+        ownerships.append(so)
+    ServiceOwnership.objects.bulk_create(ownerships)
+
+
+def _update_owners(service, service_from_ralph):
     owner_types = (
         ('technical_owners', OwnershipType.technical),
         ('business_owners', OwnershipType.business),
     )
-
-    def get_unique(owner_dicts):
-        unique_usernames = []
-        unique_dicts = []
-        for owner_dict in owner_dicts:
-            if owner_dict['username'] is not in unique_usernames:
-                unique_usernames.append(owner_dict['username'])
-                unique_dicts.append(owner_dict)
-        return unique_dicts
-
-    def delete_obsolete_owners():
-        to_delete = previous_owners_objs - current_owners_dicts  # XXX finish this
-        service.serviceownership_set.filter(
-            owner__cmdb_id__in=to_delete
-        ).delete()
-
-    def add_new_owners():
-        to_add = current_owners_dicts - previous_owners_objs  # XXX finish this
-        ServiceOwnership.objects.bulk_create([
-            ServiceOwnership(
-                service=service,
-                type=owner_type[1],
-                owner=owner
-            ) for owner in Owner.objects.filter(cmdb_id__in=to_add)
-        ])
-
     for owner_type in owner_types:
-        current_owners_dicts = get_unique(service_from_ralph[owner_type[0]])
-        previous_owners_objs = set(service.serviceownership_set.filter(
+        # We get dicts from Ralph's API vs. objects from Scrooge's DB.
+        current = set([
+            owner['username'] for owner in service_from_ralph[owner_type[0]]
+        ])
+        previous = set(service.serviceownership_set.filter(
             type=owner_type[1]
-        ).values_list('owner__cmdb_id', flat=True))
-        delete_obsolete_owners()
-        add_new_owners()
+        ).values_list('owner__profile__user__username', flat=True))
+        _delete_obsolete_owners(current, previous, service)
+        _add_new_owners(current, previous, service, owner_type)
 
 
 @commit_on_success
@@ -132,11 +127,12 @@ def service_environment(**kwargs):
 
     # service environments
     for service in services_from_ralph:
-        for environment_id in service.get('environments', []):
-            environment = Environment.objects.get(ci_id=environment_id)
+        service_obj = Service.objects.get(ci_id=service['id'])
+        for env in service.get('environments', []):
+            env_obj = Environment.objects.get(ci_id=env['id'])
             _, created = ServiceEnvironment.objects.get_or_create(
-                service=service,
-                environment=environment,
+                service=service_obj,
+                environment=env_obj,
             )
             if created:
                 new_service_envs += 1
