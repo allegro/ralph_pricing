@@ -59,17 +59,21 @@ def get_asset_info(service_environment, warehouse, data):
     try:
         asset_info.save()
     except IntegrityError:
-        # check for duplicates on SN, barcode and device_id, null them and save
-        # again
-        for field in ['sn', 'barcode', 'device_id']:  # XXX device_id is id in data, so we cannot use this name for both
-            assets = AssetInfo.objects.filter(**{field: data[field]}).exclude(
+        # check for duplicates on SN, barcode and id, null them and save again
+        for field in ['sn', 'barcode', 'device_id']:
+            # XXX device_id is id in data, so we cannot use this name for both
+            if field == 'device_id':
+                data_field = 'id'
+            else:
+                data_field = field
+            assets = AssetInfo.objects.filter(**{field: data[data_field]}).exclude(
                 asset_id=data['id'],
             )
             for asset in assets:
                 logger.error('Duplicated {} ({}) on assets {} and {}'.format(
                     field,
-                    data[field],
-                    data['asset_id'],
+                    data[data_field],
+                    data['id'],
                     asset.asset_id,
                 ))
                 setattr(asset, field, None)
@@ -165,7 +169,7 @@ def update_assets(data, date, usages):
         raise ServiceEnvironmentDoesNotExistError()
 
     try:
-        dc_id = data['rack']['server_room']['data_center']['id']  # XXX OK?
+        dc_id = data['rack']['server_room']['data_center']['id']
         warehouse = Warehouse.objects.get(id_from_assets=dc_id)
     except Warehouse.DoesNotExist:
         warehouse = Warehouse.objects.get(pk=1)  # Default from fixtures
@@ -213,7 +217,7 @@ def update_assets(data, date, usages):
         daily_asset_info,
         warehouse,
         usages['collocation'],
-        data['collocation'],  # XXX no such field
+        data['model']['height_of_device'],
         date,
     )
     return new_created
@@ -314,25 +318,27 @@ def asset(**kwargs):
     }
 
     new = update = total = 0
-    for data in get_from_ralph("data-center-assets", logger): # XXX - what about date parameter, i.e. get_assets(date)..?
+    for data in get_from_ralph("data-center-assets", logger):  # XXX - what about date parameter, i.e. get_assets(date)..?
         total += 1
         try:
             if update_assets(data, date, usages):
                 new += 1
             else:
                 update += 1
-        except ServiceEnvironmentDoesNotExistError:  # XXX ?
+        except ServiceEnvironmentDoesNotExistError:
             logger.error(
                 'Asset {}: Service environment {} - {} does not exist'.format(
                     data['id'],
-                    # XXX don't have these fields
-                    # data['service_id'],
-                    # data['environment_id'],
-                    # using these instead:
+                    # XXX we don't have these fields here:
+                    #     data['service_id'],
+                    #     data['environment_id'],
+                    # ...will be using these instead:
                     data['service_env']['service'],
                     data['service_env']['environment'],
                 )
             )
             continue
 
-    return True, '{0} new, {1} updated, {2} total'.format(new, update, total)  # XXX
+    return True, '{} new assets, {} updated, {} total'.format(
+        new, update, total
+    )
