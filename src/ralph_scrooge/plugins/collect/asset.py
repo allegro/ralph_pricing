@@ -6,8 +6,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+from datetime import datetime
 from decimal import Decimal as D
 
+from dateutil.relativedelta import relativedelta
 from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
@@ -84,6 +86,30 @@ def get_asset_info(service_environment, warehouse, data):
     return asset_info, created
 
 
+def _is_deprecated(data, date):
+
+    def get_deprecation_months(data):
+        return int(
+            (1 / (float(data['depreciation_rate']) / 100) * 12)
+            if data['depreciation_rate'] else 0
+        )
+
+    def d(date):
+        return datetime.strptime(date, "%Y-%m-%d").date()
+
+    date = date or datetime.date.today()
+    # XXX should be deprecation
+    if data['force_depreciation'] or not data['invoice_date']:
+        return True
+    if data['depreciation_end_date']:
+        deprecation_date = d(data['depreciation_end_date'])
+    else:
+        deprecation_date = d(data['invoice_date']) + relativedelta(
+            months=get_deprecation_months(data),
+        )
+    return deprecation_date < date
+
+
 def get_daily_asset_info(asset_info, date, data):
     """
     Get or create daily asset info
@@ -106,7 +132,7 @@ def get_daily_asset_info(asset_info, date, data):
     # set defaults if daily asset was not created
     daily_asset_info.service_environment = asset_info.service_environment
     daily_asset_info.depreciation_rate = data['depreciation_rate']
-    # daily_asset_info.is_depreciated = data['is_depreciated']  # XXX we doesn't have such field in R3's API
+    daily_asset_info.is_depreciated = _is_deprecated(data, date)
     daily_asset_info.price = data['price'] or 0
     daily_asset_info.save()
     return daily_asset_info
@@ -318,7 +344,16 @@ def asset(**kwargs):
     }
 
     new = update = total = 0
-    for data in get_from_ralph("data-center-assets", logger):  # XXX - what about date parameter, i.e. get_assets(date)..?
+    data_combined = []
+    for query in [
+            "invoice_date__isnull=True",
+            "invoice_date__lt={}".format(date.isoformat()),
+    ]:
+        data_combined.extend(
+            get_from_ralph("data-center-assets", logger, query=query)
+        )
+    # XXX what about porting logic from get_assets here..?
+    for data in data_combined:
         total += 1
         try:
             if update_assets(data, date, usages):
