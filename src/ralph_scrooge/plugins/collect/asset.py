@@ -199,14 +199,14 @@ def update_assets(data, date, usages):
         daily_asset_info,
         warehouse,
         usages['cores_count'],
-        data['cores_count'],  # XXX data['model'][cores_count']
+        data['model']['cores_count'],
         date,
     )
     update_usage(
         daily_asset_info,
         warehouse,
         usages['power_consumption'],
-        data['power_consumption'],  # XXX data['model']['power_consumption']
+        data['model']['power_consumption'],
         date,
     )
     update_usage(
