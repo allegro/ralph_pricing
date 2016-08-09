@@ -159,9 +159,8 @@ class OwnerFactory(DjangoModelFactory):
 class BusinessLineFactory(DjangoModelFactory):
     FACTORY_FOR = models.BusinessLine
 
-    name = Sequence(lambda n: 'Business Line%s' % n)
     ci_id = Sequence(lambda n: n)
-    ci_uid = Sequence(lambda n: n)
+    name = Sequence(lambda n: 'Business Line%s' % n)
 
 
 class ProfitCenterFactory(DjangoModelFactory):
