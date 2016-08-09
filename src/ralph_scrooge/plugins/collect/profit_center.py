@@ -9,7 +9,11 @@ import logging
 
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin  # XXX to be replaced later..?
+# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
+# which won't be tied to Ralph.
+from ralph.util import plugin
+# TODO(xor-xor): BusinessLine should be renamed to BusinessSegment (this also
+# applies to other occurrences of this name in this plugin).
 from ralph_scrooge.models import BusinessLine, ProfitCenter
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 

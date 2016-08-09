@@ -8,10 +8,15 @@ import logging
 
 from django.conf import settings
 
+# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
+# which won't be tied to Ralph.
 from ralph.util import plugin
 from ralph_scrooge.models import (
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
+    # TODO(xor-xor): TenantInfo should be renamed to CloudProjectInfo.
+    # This also applies to every occurrence of word 'tenant' in this plugin
+    # (i.e., 'tenant' -> 'cloud_project').
     TenantInfo,
 )
 from ralph_scrooge.plugins.collect._exceptions import (
@@ -24,19 +29,24 @@ logger = logging.getLogger(__name__)
 
 def save_tenant_info(ralph_tenant, unknown_service_env):
     created = False
-    try:
-        service_environment = ServiceEnvironment.objects.get(
-            # XXX should we get service env by service_id && env_id..?
-            id=ralph_tenant['service_env']['id']  # XXX what if service env will be empty?
+    if ralph_tenant.get('service_env') is None:
+        # XXX Do we want to differentiate this message from the one caused by
+        # ServiceEnvironment.DoesNotExist..? If yes - how..?
+        msg = (
+            'Invalid (or missing) service environment for project {}'
+            .format(ralph_tenant['name'])
         )
-    except ServiceEnvironment.DoesNotExist:
-        logger.warning(
-            'Invalid (or missing) service environment for project {}'.format(
-                ralph_tenant['name']
-            )
-        )
+        logger.warning(msg)
         service_environment = unknown_service_env
-
+    else:
+        try:
+            service_environment = ServiceEnvironment.objects.get(
+                environment__name=ralph_tenant['service_env']['environment'],
+                service__symbol=ralph_tenant['service_env']['service_uid']
+            )
+        except ServiceEnvironment.DoesNotExist:
+            logger.warning(msg)
+            service_environment = unknown_service_env
     try:
         tenant_info = TenantInfo.objects.get(
             tenant_id=ralph_tenant['id'],
@@ -88,9 +98,8 @@ def get_unknown_service_env():
     return unknown_service_env
 
 
-# XXX rename tenant to project..?
 @plugin.register(chain='scrooge', requires=['service'])
-def tenant(today, **kwargs):
+def cloud_project(today, **kwargs):
     new = total = 0
     try:
         unknown_service_env = get_unknown_service_env()

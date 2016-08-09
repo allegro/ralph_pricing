@@ -35,15 +35,11 @@ def update_service(service_from_ralph, default_profit_center):
         service = Service(ci_id=service_from_ralph['id'])
         created = True
     service.name = service_from_ralph['name']
-    service.symbol = service_from_ralph['uid']  # XXX confirm that symbol == uid
+    service.symbol = service_from_ralph['uid']
     if service_from_ralph['profit_center'] is not None:
-        try:
-            service.profit_center = ProfitCenter.objects.get(
-                ci_id=service_from_ralph['profit_center']['id']
-            )
-        except ProfitCenter.DoesNotExist:
-            # XXX is this try/except necessary..?
-            service.profit_center = default_profit_center
+        service.profit_center = ProfitCenter.objects.get(
+            ci_id=service_from_ralph['profit_center']['id']
+        )
     else:
         service.profit_center = default_profit_center
     service.save()

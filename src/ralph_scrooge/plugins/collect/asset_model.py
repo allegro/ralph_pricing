@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 
 import logging
 
+# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
+# which won't be tied to Ralph.
 from ralph.util import plugin
 from ralph_scrooge.models import (
     PricingObjectModel,
@@ -20,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def update_asset_model(model):
     pom, created = PricingObjectModel.objects.get_or_create(
-        model_id=model['id'],  # XXX is this enough..? (i.e. matching by id)
+        model_id=model['id'],
         type_id=PRICING_OBJECT_TYPES.ASSET,
     )
     pom.name = model['name']

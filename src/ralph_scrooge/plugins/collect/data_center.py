@@ -7,8 +7,12 @@ from __future__ import unicode_literals
 
 import logging
 
+# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
+# which won't be tied to Ralph.
 from ralph.util import plugin
-from ralph_scrooge.models import Warehouse  # XXX rename to DataCenter
+# TODO(xor-xor): Warehouse should be renamed to DataCenter (this also
+# applies to other occurrences of this name in this plugin).
+from ralph_scrooge.models import Warehouse
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
@@ -16,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 def update_data_centers(dc_from_ralph):
-    dc, created = Warehouse.objects.get_or_create(
+    warehouse, created = Warehouse.objects.get_or_create(
         id_from_assets=dc_from_ralph['id']
     )
-    dc.name = dc_from_ralph['name']
-    dc.save()
+    warehouse.name = dc_from_ralph['name']
+    warehouse.save()
     return created
 
 

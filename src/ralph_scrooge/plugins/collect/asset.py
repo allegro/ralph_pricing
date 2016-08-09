@@ -62,19 +62,14 @@ def get_asset_info(service_environment, warehouse, data):
         asset_info.save()
     except IntegrityError:
         # check for duplicates on SN, barcode and id, null them and save again
-        for field in ['sn', 'barcode', 'device_id']:
-            # XXX device_id is id in data, so we cannot use this name for both
-            if field == 'device_id':
-                data_field = 'id'
-            else:
-                data_field = field
-            assets = AssetInfo.objects.filter(**{field: data[data_field]}).exclude(
+        for field in ['sn', 'barcode']:
+            assets = AssetInfo.objects.filter(**{field: data[field]}).exclude(
                 asset_id=data['id'],
             )
             for asset in assets:
                 logger.error('Duplicated {} ({}) on assets {} and {}'.format(
                     field,
-                    data[data_field],
+                    data[field],
                     data['id'],
                     asset.asset_id,
                 ))
@@ -86,9 +81,13 @@ def get_asset_info(service_environment, warehouse, data):
     return asset_info, created
 
 
-def _is_deprecated(data, date):
+# TODO(xor-xor): Since there's such method on DataCenterAsset model in Ralph,
+# we need to think about exposing it as some "special" endpoint in API. But by
+# that time, we will use this function below (copied from ralph_assets, with
+# slight modifications, but the logic is exactly the same).
+def _is_depreciated(data, date):
 
-    def get_deprecation_months(data):
+    def get_depreciation_months(data):
         return int(
             (1 / (float(data['depreciation_rate']) / 100) * 12)
             if data['depreciation_rate'] else 0
@@ -98,16 +97,15 @@ def _is_deprecated(data, date):
         return datetime.strptime(date, "%Y-%m-%d").date()
 
     date = date or datetime.date.today()
-    # XXX should be deprecation
     if data['force_depreciation'] or not data['invoice_date']:
         return True
     if data['depreciation_end_date']:
-        deprecation_date = d(data['depreciation_end_date'])
+        depreciation_date = d(data['depreciation_end_date'])
     else:
-        deprecation_date = d(data['invoice_date']) + relativedelta(
-            months=get_deprecation_months(data),
+        depreciation_date = d(data['invoice_date']) + relativedelta(
+            months=get_depreciation_months(data),
         )
-    return deprecation_date < date
+    return depreciation_date < date
 
 
 def get_daily_asset_info(asset_info, date, data):
@@ -132,7 +130,7 @@ def get_daily_asset_info(asset_info, date, data):
     # set defaults if daily asset was not created
     daily_asset_info.service_environment = asset_info.service_environment
     daily_asset_info.depreciation_rate = data['depreciation_rate']
-    daily_asset_info.is_depreciated = _is_deprecated(data, date)
+    daily_asset_info.is_depreciated = _is_depreciated(data, date)
     daily_asset_info.price = data['price'] or 0
     daily_asset_info.save()
     return daily_asset_info
@@ -167,6 +165,7 @@ def update_usage(daily_asset_info, warehouse, usage_type, value, date):
     usage.save()
 
 
+# TODO(xor-xor): Rename 'data' to some more descriptive variable name.
 @commit_on_success
 def update_assets(data, date, usages):
     """
@@ -184,21 +183,29 @@ def update_assets(data, date, usages):
                     create or update
     :rtype tuple:
     """
+    if data.get('service_env') is None:
+        logger.warning(
+            'Missing service environment for DataCenterAsset {}'
+            .format(data['id'])
+        )
+        # XXX ...and then, what should we do here..? (see also cloud_project
+        # plugin)
     try:
         service_environment = ServiceEnvironment.objects.get(
-            # XXX same situation as with tenant plugin:
-            # - should we get service env by service_id && env_id..?
-            # - what if service env will be empty?
-            id=data['service_env']['id']
+            environment__name=data['service_env']['environment'],
+            service__symbol=data['service_env']['service_uid']
         )
     except ServiceEnvironment.DoesNotExist:
         raise ServiceEnvironmentDoesNotExistError()
 
+    if data.get('rack') is None:
+        pass
+        # XXX What should we do in such case..?
     try:
         dc_id = data['rack']['server_room']['data_center']['id']
         warehouse = Warehouse.objects.get(id_from_assets=dc_id)
     except Warehouse.DoesNotExist:
-        warehouse = Warehouse.objects.get(pk=1)  # Default from fixtures
+        warehouse = Warehouse.objects.get(pk=1)  # Default one from fixtures
 
     asset_info, new_created = get_asset_info(
         service_environment,
@@ -352,7 +359,7 @@ def asset(**kwargs):
         data_combined.extend(
             get_from_ralph("data-center-assets", logger, query=query)
         )
-    # XXX what about porting logic from get_assets here..?
+    data_combined = _preprocess_data(data_combined)
     for data in data_combined:
         total += 1
         try:
@@ -361,19 +368,38 @@ def asset(**kwargs):
             else:
                 update += 1
         except ServiceEnvironmentDoesNotExistError:
-            logger.error(
-                'Asset {}: Service environment {} - {} does not exist'.format(
+            msg = (
+                'DataCenterAsset {}: Service environment {} - {} ({}) does '
+                'not exist'.format(
                     data['id'],
-                    # XXX we don't have these fields here:
-                    #     data['service_id'],
-                    #     data['environment_id'],
-                    # ...will be using these instead:
                     data['service_env']['service'],
                     data['service_env']['environment'],
+                    data['service_env']['service_uid'],
                 )
             )
+            logger.error(msg)
             continue
 
     return True, '{} new assets, {} updated, {} total'.format(
         new, update, total
     )
+
+
+# Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
+def _preprocess_data(data):
+    preprocessed = []
+    for asset in data:
+        if asset.get('service_env') is None:
+            logger.error(
+                "DataCenterAsset {} has no service environment"
+                .format(asset['id'])
+            )
+            continue
+        if asset['status'] == 'liquidated':
+            logger.info(
+                "Skipping DataCenterAsset {} - it's liquidated"
+                .format(asset['id'])
+            )
+            continue
+        preprocessed.append(asset)
+    return preprocessed
