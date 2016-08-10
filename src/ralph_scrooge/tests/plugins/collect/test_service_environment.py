@@ -24,10 +24,10 @@ from ralph_scrooge.tests.utils.factory import (
     OwnerFactory,
     ServiceFactory,
 )
-from ralph_scrooge.tests.plugins.collect.samples.environment import (
+from ralph_scrooge.tests.plugins.collect.samples.service_environment import (
     SAMPLE_ENVIRONMENTS,
+    SAMPLE_SERVICES,
 )
-from ralph_scrooge.tests.plugins.collect.samples.service import SAMPLE_SERVICES
 
 
 class TestServiceEnvironmentCollectPlugin(TestCase):
