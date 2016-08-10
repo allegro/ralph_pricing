@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -30,22 +31,22 @@ logger = logging.getLogger(__name__)
 def save_tenant_info(ralph_tenant, unknown_service_env):
     created = False
     if ralph_tenant.get('service_env') is None:
-        # XXX Do we want to differentiate this message from the one caused by
-        # ServiceEnvironment.DoesNotExist..? If yes - how..?
-        msg = (
-            'Invalid (or missing) service environment for project {}'
-            .format(ralph_tenant['name'])
+        logger.warning(
+            'Invalid (or missing) service environment in Ralph '
+            'for project {}'.format(ralph_tenant['name'])
         )
-        logger.warning(msg)
         service_environment = unknown_service_env
     else:
         try:
             service_environment = ServiceEnvironment.objects.get(
                 environment__name=ralph_tenant['service_env']['environment'],
-                service__symbol=ralph_tenant['service_env']['service_uid']
+                service__ci_uid=ralph_tenant['service_env']['service_uid']
             )
         except ServiceEnvironment.DoesNotExist:
-            logger.warning(msg)
+            logger.warning(
+                'Invalid (or missing) service environment in Scrooge '
+                'for project {}'.format(ralph_tenant['name'])
+            )
             service_environment = unknown_service_env
     try:
         tenant_info = TenantInfo.objects.get(
@@ -98,6 +99,12 @@ def get_unknown_service_env():
     return unknown_service_env
 
 
+def get_cloud_provider_id(logger):
+    for provider in get_from_ralph("cloud-providers", logger):
+        if provider['name'].lower() == "openstack":
+            return provider['id']
+
+
 @plugin.register(chain='scrooge', requires=['service'])
 def cloud_project(today, **kwargs):
     new = total = 0
@@ -108,9 +115,7 @@ def cloud_project(today, **kwargs):
         logger.error(msg)
         return (False, msg)
 
-    for provider in get_from_ralph("cloud-providers", logger):
-        if provider['name'].lower() == "openstack":
-            provider_id = provider['id']
+    provider_id = get_cloud_provider_id(logger)
     if provider_id is None:
         msg = "Can't find cloud provider for OpenStack in Ralph"
         logger.error(msg)

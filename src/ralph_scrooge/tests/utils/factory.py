@@ -36,9 +36,11 @@ class ServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.Service
 
     name = Sequence(lambda n: 'Service%s' % n)
-    symbol = Sequence(lambda n: 'service_%s' % n)
+    # TODO(xor-xor): Check if 'ci_id' field is still needed anywhere.
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
+    # TODO(xor-xor): Check if 'symbol' field is still needed anywhere.
+    symbol = Sequence(lambda n: 'uid-{}'.format(n))
 
 
 class EnvironmentFactory(DjangoModelFactory):
