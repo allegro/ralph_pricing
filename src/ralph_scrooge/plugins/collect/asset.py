@@ -200,11 +200,13 @@ def update_assets(data, date, usages):
 
     if data.get('rack') is None:
         pass
-        # XXX What should we do in such case..?
+        # XXX What should we do in such case..? And what about server_room and
+        # data_center (added TypeError to the except clause as a temporary
+        # workaround)..?
     try:
         dc_id = data['rack']['server_room']['data_center']['id']
         warehouse = Warehouse.objects.get(id_from_assets=dc_id)
-    except Warehouse.DoesNotExist:
+    except TypeError, Warehouse.DoesNotExist:
         warehouse = Warehouse.objects.get(pk=1)  # Default one from fixtures
 
     asset_info, new_created = get_asset_info(
