@@ -12,6 +12,8 @@ import factory
 from django.contrib.auth.models import User
 from factory import (
     fuzzy,
+    Iterator,
+    LazyAttribute,
     Sequence,
     SubFactory,
 )
@@ -134,10 +136,19 @@ class DailyVirtualInfoFactory(DailyPricingObjectFactory):
 
 
 class UserFactory(DjangoModelFactory):
+    # TODO(xor-xor): This factory shouldn't be used to create more than
+    # 6 users, otherwise you'll get an IntegrityError. But this will be
+    # ironed-out once we switch to Ralph 3 exclusively.
     FACTORY_FOR = User
-    username = Sequence(lambda n: 'user_{0}'.format(n))
-    first_name = Sequence(lambda n: 'John {0}'.format(n))
-    last_name = Sequence(lambda n: 'Snow {0}'.format(n))
+    first_name = Iterator([
+        'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
+    ])
+    last_name = Iterator([
+        'Smith', 'Wilson', 'Thomas', 'Roberts', 'Johnson', 'Williams',
+    ])
+    username = LazyAttribute(
+        lambda u: '{}_{}'.format(u.first_name, u.last_name).lower()
+    )
 
 
 @factory.sequence
