@@ -9,17 +9,28 @@ from copy import deepcopy
 
 from django.test import TestCase
 
-from ralph_scrooge.models import ProfitCenter, Service, OwnershipType
-from ralph_scrooge.plugins.collect.service_environment import update_service
+from ralph_scrooge.models import (
+    Environment,
+    OwnershipType,
+    ProfitCenter,
+    Service,
+)
+from ralph_scrooge.plugins.collect.service_environment import (
+    update_service,
+    update_environment,
+)
 from ralph_scrooge.tests.utils.factory import (
     ProfitCenterFactory,
     OwnerFactory,
     ServiceFactory,
 )
+from ralph_scrooge.tests.plugins.collect.samples.environment import (
+    SAMPLE_ENVIRONMENTS,
+)
 from ralph_scrooge.tests.plugins.collect.samples.service import SAMPLE_SERVICES
 
 
-class TestServiceCollectPlugin(TestCase):
+class TestServiceEnvironmentCollectPlugin(TestCase):
     def setUp(self):
         self.data = deepcopy(SAMPLE_SERVICES[0])
         self.default_profit_center = ProfitCenter(pk=1)
@@ -129,6 +140,30 @@ class TestServiceCollectPlugin(TestCase):
         created, service = self._create_and_test_service(self.data)
         self.assertFalse(created)
         self.assertEquals(Service.objects.count(), 1)
+
+    def _compare_environments(self, environment, sample_data):
+        self.assertEquals(environment.name, sample_data['name'])
+        self.assertEquals(environment.ci_id, sample_data['id'])
+
+    def test_add_environment(self):
+        sample_data = SAMPLE_ENVIRONMENTS[0]
+        self.assertTrue(update_environment(sample_data))
+        environment = Environment.objects.get(ci_id=sample_data['id'])
+        self._compare_environments(environment, sample_data)
+
+    def test_update_environment(self):
+        sample_data = SAMPLE_ENVIRONMENTS[0]
+        self.assertTrue(update_environment(sample_data))
+        environment = Environment.objects.get(ci_id=sample_data['id'])
+        self._compare_environments(environment, sample_data)
+
+        sample_data2 = SAMPLE_ENVIRONMENTS[1]
+        sample_data2['id'] = sample_data['id']
+        self.assertFalse(update_environment(sample_data2))
+        environment = Environment.objects.get(
+            ci_id=sample_data2['id']
+        )
+        self._compare_environments(environment, sample_data2)
 
     # TODO(xor-xor): Consider re-adding 'test_batch_update' test which has been
     # removed due to 'service' and 'environment' plugins being merged into one.

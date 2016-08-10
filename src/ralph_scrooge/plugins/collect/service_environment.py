@@ -114,26 +114,25 @@ def service_environment(**kwargs):
             new_services += 1
         total_services += 1
 
-    # XXX temporarily commented out
-    # # envs
-    # for env in get_from_ralph("environments", logger):
-    #     created = update_environment(env)
-    #     if created:
-    #         new_envs += 1
-    #     total_envs += 1
+    # envs
+    for env in get_from_ralph("environments", logger):
+        created = update_environment(env)
+        if created:
+            new_envs += 1
+        total_envs += 1
 
-    # # service environments
-    # for service in services_from_ralph:
-    #     service_obj = Service.objects.get(ci_id=service['id'])
-    #     for env in service.get('environments', []):
-    #         env_obj = Environment.objects.get(ci_id=env['id'])
-    #         _, created = ServiceEnvironment.objects.get_or_create(
-    #             service=service_obj,
-    #             environment=env_obj,
-    #         )
-    #         if created:
-    #             new_service_envs += 1
-    #         total_service_envs += 1
+    # service environments
+    for service in services_from_ralph:
+        service_obj = Service.objects.get(ci_id=service['id'])
+        for env in service.get('environments', []):
+            env_obj = Environment.objects.get(ci_id=env['id'])
+            _, created = ServiceEnvironment.objects.get_or_create(
+                service=service_obj,
+                environment=env_obj,
+            )
+            if created:
+                new_service_envs += 1
+            total_service_envs += 1
 
     msg = ("; ".join([
         '{} new service(s), {} updated, {} total'.format(
@@ -141,17 +140,16 @@ def service_environment(**kwargs):
             total_services - new_services,
             total_services,
         ),
-        # XXX temporarily commented out
-        # '{} new environment(s), {} updated, {} total'.format(
-        #     new_envs,
-        #     total_envs - new_envs,
-        #     total_envs,
-        # ),
-        # '{} new service environment(s), {} updated, {} total'.format(
-        #     new_service_envs,
-        #     total_service_envs - new_service_envs,
-        #     total_service_envs,
-        # ),
+        '{} new environment(s), {} updated, {} total'.format(
+            new_envs,
+            total_envs - new_envs,
+            total_envs,
+        ),
+        '{} new service environment(s), {} updated, {} total'.format(
+            new_service_envs,
+            total_service_envs - new_service_envs,
+            total_service_envs,
+        ),
     ]))
 
     return True, msg
