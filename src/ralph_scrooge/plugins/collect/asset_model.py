@@ -7,51 +7,41 @@ from __future__ import unicode_literals
 
 import logging
 
+# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
+# which won't be tied to Ralph.
 from ralph.util import plugin
-from ralph_assets.api_scrooge import get_models
 from ralph_scrooge.models import (
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
 )
+from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
 logger = logging.getLogger(__name__)
 
 
-def update_asset_model(data):
-    """
-    Update information about asset model
-
-    :param dict data: dict with information about single asset model
-    :returns boolean: True, if asset model was created
-    :rtype boolean:
-    """
-    model, created = PricingObjectModel.objects.get_or_create(
-        model_id=data['model_id'],
+def update_asset_model(model):
+    pom, created = PricingObjectModel.objects.get_or_create(
+        model_id=model['id'],
         type_id=PRICING_OBJECT_TYPES.ASSET,
     )
-    model.name = data['name']
-    model.manufacturer = data['manufacturer']
-    model.category = data['category']
-    model.save()
+    pom.name = model['name']
+    pom.manufacturer = model['manufacturer']['name']
+    pom.category = model['category']['name']
+    pom.save()
     return created
 
 
 @plugin.register(chain='scrooge')
 def asset_model(**kwargs):
-    """
-    Get all information about assets models
-
-    :returns tuple: result status, message
-    """
     new = total = 0
-    for model in get_models():
-        total += 1
-        if update_asset_model(model):
+    for model in get_from_ralph("assetmodels", logger):
+        created = update_asset_model(model)
+        if created:
             new += 1
-
-    return True, 'Asset models: {0} new, {1} updated, {2} total'.format(
+        total += 1
+    return True, '{} new asset models, {} updated, {} total'.format(
         new,
-        total-new,
+        total - new,
         total,
     )

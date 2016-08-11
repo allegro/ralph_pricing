@@ -1,5 +1,9 @@
 import sys
 
+# XXX New settings for plugins (temporary/WiP)
+RALPH3_API_TOKEN = ''
+RALPH3_API_BASE_URL = ''
+
 # NFSEN (network) plugin default config
 SSH_NFSEN_CREDENTIALS = {}
 NFSEN_CHANNELS = []
@@ -49,7 +53,7 @@ COLLECT_PLUGINS = set([
 
 SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE = False
 UNKNOWN_SERVICES_ENVIRONMENTS = {
-    'tenant': {},
+    'tenant': (None, None),
     'netflow': (None, None),
 }
 

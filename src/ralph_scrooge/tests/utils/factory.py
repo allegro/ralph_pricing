@@ -12,6 +12,8 @@ import factory
 from django.contrib.auth.models import User
 from factory import (
     fuzzy,
+    Iterator,
+    LazyAttribute,
     Sequence,
     SubFactory,
 )
@@ -34,9 +36,11 @@ class ServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.Service
 
     name = Sequence(lambda n: 'Service%s' % n)
-    symbol = Sequence(lambda n: 'service_%s' % n)
+    # TODO(xor-xor): Check if 'ci_id' field is still needed anywhere.
     ci_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
+    # TODO(xor-xor): Check if 'symbol' field is still needed anywhere.
+    symbol = Sequence(lambda n: 'uid-{}'.format(n))
 
 
 class EnvironmentFactory(DjangoModelFactory):
@@ -134,10 +138,19 @@ class DailyVirtualInfoFactory(DailyPricingObjectFactory):
 
 
 class UserFactory(DjangoModelFactory):
+    # TODO(xor-xor): This factory shouldn't be used to create more than
+    # 6 users, otherwise you'll get an IntegrityError. But this will be
+    # ironed-out once we switch to Ralph 3 exclusively.
     FACTORY_FOR = User
-    username = Sequence(lambda n: 'user_{0}'.format(n))
-    first_name = Sequence(lambda n: 'John {0}'.format(n))
-    last_name = Sequence(lambda n: 'Snow {0}'.format(n))
+    first_name = Iterator([
+        'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
+    ])
+    last_name = Iterator([
+        'Smith', 'Wilson', 'Thomas', 'Roberts', 'Johnson', 'Williams',
+    ])
+    username = LazyAttribute(
+        lambda u: '{}_{}'.format(u.first_name, u.last_name).lower()
+    )
 
 
 @factory.sequence
@@ -159,9 +172,8 @@ class OwnerFactory(DjangoModelFactory):
 class BusinessLineFactory(DjangoModelFactory):
     FACTORY_FOR = models.BusinessLine
 
-    name = Sequence(lambda n: 'Business Line%s' % n)
     ci_id = Sequence(lambda n: n)
-    ci_uid = Sequence(lambda n: n)
+    name = Sequence(lambda n: 'Business Line%s' % n)
 
 
 class ProfitCenterFactory(DjangoModelFactory):
