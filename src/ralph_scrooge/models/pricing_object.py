@@ -75,6 +75,11 @@ class PricingObjectModel(db.Model):
         null=True,
         blank=True,
     )
+    ralph3_model_id = db.IntegerField(
+        verbose_name=_("model id (Ralph 3)"),
+        null=True,
+        blank=True,
+    )
     name = db.CharField(
         verbose_name=_("model name"),
         max_length=100,
@@ -228,8 +233,14 @@ class AssetInfo(PricingObject):
     asset_id = db.IntegerField(
         verbose_name=_("asset id"),
         unique=True,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+    )
+    ralph3_asset_id = db.IntegerField(
+        verbose_name=_("asset id (Ralph 3)"),
+        unique=True,
+        null=True,
+        blank=True,
     )
     warehouse = db.ForeignKey(
         'Warehouse',
@@ -337,10 +348,18 @@ class DailyVirtualInfo(DailyPricingObject):
 class TenantInfo(PricingObject):
     tenant_id = db.CharField(
         max_length=100,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         db_index=True,
         verbose_name=_("OpenStack Tenant ID"),
+        unique=True,
+    )
+    ralph3_tenant_id = db.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name=_("OpenStack Tenant ID (Ralph 3)"),
         unique=True,
     )
     device_id = db.IntegerField(
