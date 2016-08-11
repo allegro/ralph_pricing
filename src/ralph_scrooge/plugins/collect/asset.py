@@ -37,9 +37,9 @@ def get_asset_info(service_environment, warehouse, data):
     """
     Update AssetInfo object or create it if not exist.
 
-    :param object service: Django orm Service object
-    :param object warehouse: Django orm Warehouse object
-    :param dict data: Data from assets API
+    :param object service_environment: Django ORM ServiceEnvironment object
+    :param object warehouse: Django ORM Warehouse object
+    :param dict data: Data from Ralph 3 REST API
     :returns list: AssetInfo PricingObject and status
     :rtype:
     """
@@ -75,7 +75,6 @@ def get_asset_info(service_environment, warehouse, data):
                 ))
                 setattr(asset, field, None)
                 asset.save()
-        # save new asset again
         asset_info.save()
 
     return asset_info, created
@@ -112,11 +111,10 @@ def get_daily_asset_info(asset_info, date, data):
     """
     Get or create daily asset info
 
-    :param object asset_info: Django orm AssetInfo object
-    :param object daily_pricing_object: Django orm DailyPricingObject object
+    :param object asset_info: Django ORM AssetInfo object
     :param object date: datetime
     :param dict data: Data from assets API
-    :returns list: Django orm DailyAssetInfo object
+    :returns list: Django ORM DailyAssetInfo object
     :rtype:
     """
     daily_asset_info, created = DailyAssetInfo.objects.get_or_create(
@@ -140,12 +138,11 @@ def update_usage(daily_asset_info, warehouse, usage_type, value, date):
     """
     Updates (or creates) usage of given usage_type for device.
 
-    :param object service: Django orm Service object
-    :param object pricing_object: Django orm PricingObject object
-    :param object usage_type: Django orm UsageType object
-    :param object value: value from asset api for given usage type
+    :param object daily_asset_info: Django ORM DailyAssetInfo object
+    :param object warehouse: Django ORM Warehouse object
+    :param object usage_type: Django ORM UsageType object
+    :param object value: value from asset api for given usage type  # XXX what?
     :param object date: datetime
-    :param object warehouse: Django orm Warehouse object
     """
     defaults = dict(
         service_environment=daily_asset_info.service_environment,
@@ -176,9 +173,11 @@ def update_assets(data, date, usages):
 
     Only assets with assigned device and warehouse are processed!
 
-    :param object date: datetime
+    XXX is this still a valid description..?
+
     :param dict data: Data from assets API
-    :param dict usages: Dict with usage types from Django orm UsageType
+    :param object date: datetime
+    :param dict usages: Dict with usage types from Django ORM UsageType
     :returns tuple: Success for this update and information about
                     create or update
     :rtype tuple:
@@ -267,7 +266,8 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     :param boolean by_warehouse: Flag by_warehouse
     :param boolean by_cost: Flag by_cost
     :param boolean average: Flag average
-    :returns object: Django orm UsageType object
+    XXX describe param 'type'
+    :returns object: Django ORM UsageType object
     :rtype object:
     """
     usage_type, created = UsageType.objects_admin.get_or_create(
