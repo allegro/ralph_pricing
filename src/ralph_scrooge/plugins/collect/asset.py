@@ -193,7 +193,7 @@ def update_assets(data, date, usages):
     try:
         service_environment = ServiceEnvironment.objects.get(
             environment__name=data['service_env']['environment'],
-            service__symbol=data['service_env']['service_uid']
+            service__ci_uid=data['service_env']['service_uid']
         )
     except ServiceEnvironment.DoesNotExist:
         raise ServiceEnvironmentDoesNotExistError()
@@ -206,10 +206,10 @@ def update_assets(data, date, usages):
     try:
         dc_id = data['rack']['server_room']['data_center']['id']
         warehouse = Warehouse.objects.get(id_from_assets=dc_id)
-    except TypeError, Warehouse.DoesNotExist:
+    except (TypeError, Warehouse.DoesNotExist):
         warehouse = Warehouse.objects.get(pk=1)  # Default one from fixtures
 
-    asset_info, new_created = get_asset_info(
+    asset_info, asset_info_created = get_asset_info(
         service_environment,
         warehouse,
         data,
@@ -255,7 +255,7 @@ def update_assets(data, date, usages):
         data['model']['height_of_device'],
         date,
     )
-    return new_created
+    return asset_info_created
 
 
 def get_usage(symbol, name, by_warehouse, by_cost, average, type):
@@ -353,19 +353,17 @@ def asset(**kwargs):
     }
 
     new = update = total = 0
-    data_combined = []
-    for query in [
-            "invoice_date__isnull=True",
-            "invoice_date__lt={}".format(date.isoformat()),
-    ]:
-        data_combined.extend(
-            get_from_ralph("data-center-assets", logger, query=query)
-        )
-    data_combined = _preprocess_data(data_combined)
+    queries = (
+        "invoice_date__isnull=True",
+        "invoice_date__lt={}".format(date.isoformat()),
+    )
+    data_combined = get_combined_data(queries)
+    data_combined = preprocess_data(data_combined)
     for data in data_combined:
         total += 1
         try:
-            if update_assets(data, date, usages):
+            created = update_assets(data, date, usages)
+            if created:
                 new += 1
             else:
                 update += 1
@@ -386,9 +384,16 @@ def asset(**kwargs):
         new, update, total
     )
 
+def get_combined_data(queries):
+    data_combined = []
+    for query in queries:
+        data_combined.extend(
+            get_from_ralph("data-center-assets", logger, query=query)
+        )
+    return data_combined
 
 # Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
-def _preprocess_data(data):
+def preprocess_data(data):
     preprocessed = []
     for asset in data:
         if asset.get('service_env') is None:
