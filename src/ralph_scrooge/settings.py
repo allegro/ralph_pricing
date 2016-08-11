@@ -1,5 +1,9 @@
 import sys
 
+# Settings for Ralph3-based plugins
+RALPH3_API_TOKEN = ''
+RALPH3_API_BASE_URL = ''
+
 # NFSEN (network) plugin default config
 SSH_NFSEN_CREDENTIALS = {}
 NFSEN_CHANNELS = []
