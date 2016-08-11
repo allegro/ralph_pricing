@@ -384,6 +384,7 @@ def asset(**kwargs):
         new, update, total
     )
 
+
 def get_combined_data(queries):
     data_combined = []
     for query in queries:
@@ -391,6 +392,7 @@ def get_combined_data(queries):
             get_from_ralph("data-center-assets", logger, query=query)
         )
     return data_combined
+
 
 # Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
 def preprocess_data(data):
