@@ -28,6 +28,7 @@ class WarehouseFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Name_{0}'.format(n))
     id_from_assets = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
 
 
 class ServiceFactory(DjangoModelFactory):
@@ -36,6 +37,7 @@ class ServiceFactory(DjangoModelFactory):
     name = Sequence(lambda n: 'Service%s' % n)
     symbol = Sequence(lambda n: 'service_%s' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
@@ -44,6 +46,7 @@ class EnvironmentFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Environment%s' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
@@ -79,6 +82,7 @@ class PricingObjectModelFactory(DjangoModelFactory):
 
     type_id = 1
     model_id = Sequence(lambda n: n)
+    ralph3_model_id = Sequence(lambda n: n)
     name = Sequence(lambda n: 'Model %s' % n)
 
 
@@ -106,6 +110,7 @@ class AssetInfoFactory(PricingObjectFactory):
     sn = Sequence(lambda n: n)
     barcode = Sequence(lambda n: n)
     asset_id = Sequence(lambda n: n)
+    ralph3_asset_id = Sequence(lambda n: n)
     warehouse = SubFactory(WarehouseFactory)
 
 
@@ -161,6 +166,7 @@ class BusinessLineFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Business Line%s' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
 
 
@@ -170,6 +176,7 @@ class ProfitCenterFactory(DjangoModelFactory):
     name = Sequence(lambda n: 'Profit Center%s' % n)
     description = Sequence(lambda n: 'Profit Center%s description' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
     business_line = SubFactory(BusinessLineFactory)
 
@@ -178,6 +185,7 @@ class TenantInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.TenantInfo
 
     tenant_id = Sequence(lambda n: n)
+    ralph3_tenant_id = Sequence(lambda n: n)
 
 
 class DailyTenantInfoFactory(DailyPricingObjectFactory):
