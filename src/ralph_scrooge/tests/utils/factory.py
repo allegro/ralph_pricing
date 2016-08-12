@@ -12,6 +12,8 @@ import factory
 from django.contrib.auth.models import User
 from factory import (
     fuzzy,
+    Iterator,
+    LazyAttribute,
     Sequence,
     SubFactory,
 )
@@ -28,6 +30,7 @@ class WarehouseFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Name_{0}'.format(n))
     id_from_assets = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
 
 
 class ServiceFactory(DjangoModelFactory):
@@ -36,6 +39,7 @@ class ServiceFactory(DjangoModelFactory):
     name = Sequence(lambda n: 'Service%s' % n)
     symbol = Sequence(lambda n: 'service_%s' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
@@ -44,6 +48,7 @@ class EnvironmentFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'Environment%s' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
@@ -79,6 +84,7 @@ class PricingObjectModelFactory(DjangoModelFactory):
 
     type_id = 1
     model_id = Sequence(lambda n: n)
+    ralph3_model_id = Sequence(lambda n: n)
     name = Sequence(lambda n: 'Model %s' % n)
 
 
@@ -106,6 +112,7 @@ class AssetInfoFactory(PricingObjectFactory):
     sn = Sequence(lambda n: n)
     barcode = Sequence(lambda n: n)
     asset_id = Sequence(lambda n: n)
+    ralph3_asset_id = Sequence(lambda n: n)
     warehouse = SubFactory(WarehouseFactory)
 
 
@@ -140,11 +147,36 @@ class UserFactory(DjangoModelFactory):
     last_name = Sequence(lambda n: 'Snow {0}'.format(n))
 
 
+class Ralph3UserFactory(DjangoModelFactory):
+    # TODO(xor-xor): This factory shouldn't be used to create more than
+    # 6 users, otherwise you'll get an IntegrityError. But this will be
+    # ironed-out once we switch to Ralph 3 exclusively.
+    FACTORY_FOR = User
+    first_name = Iterator([
+        'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
+    ])
+    last_name = Iterator([
+        'Smith', 'Wilson', 'Thomas', 'Roberts', 'Johnson', 'Williams',
+    ])
+    username = LazyAttribute(
+        lambda u: '{}_{}'.format(u.first_name, u.last_name).lower()
+    )
+
+
 @factory.sequence
 def get_profile(n):
     """Due to strange logic in lck.django we can't use subfactories to create
     profiles."""
     user = UserFactory()
+    user.save()
+    return user.profile
+
+
+@factory.sequence
+def get_ralph3_profile(n):
+    """Due to strange logic in lck.django we can't use subfactories to create
+    profiles."""
+    user = Ralph3UserFactory()
     user.save()
     return user.profile
 
@@ -156,11 +188,19 @@ class OwnerFactory(DjangoModelFactory):
     profile = get_profile
 
 
+class Ralph3OwnerFactory(DjangoModelFactory):
+    FACTORY_FOR = models.Owner
+
+    cmdb_id = Sequence(lambda n: n)
+    profile = get_ralph3_profile
+
+
 class BusinessLineFactory(DjangoModelFactory):
     FACTORY_FOR = models.BusinessLine
 
     name = Sequence(lambda n: 'Business Line%s' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
 
 
@@ -170,6 +210,7 @@ class ProfitCenterFactory(DjangoModelFactory):
     name = Sequence(lambda n: 'Profit Center%s' % n)
     description = Sequence(lambda n: 'Profit Center%s description' % n)
     ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
     business_line = SubFactory(BusinessLineFactory)
 
@@ -178,6 +219,7 @@ class TenantInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.TenantInfo
 
     tenant_id = Sequence(lambda n: n)
+    ralph3_tenant_id = Sequence(lambda n: n)
 
 
 class DailyTenantInfoFactory(DailyPricingObjectFactory):

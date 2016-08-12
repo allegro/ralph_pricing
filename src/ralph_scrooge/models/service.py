@@ -33,9 +33,15 @@ from ralph_scrooge.models.pricing_object import PRICING_OBJECT_TYPES
 class BusinessLine(Named.NonUnique):
     ci_id = db.IntegerField(
         unique=True,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         verbose_name=_("id from cmdb"),
+    )
+    ralph3_id = db.IntegerField(
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name=_("id from Ralph 3"),
     )
     ci_uid = db.CharField(
         null=True,
@@ -51,9 +57,15 @@ class BusinessLine(Named.NonUnique):
 class ProfitCenter(Named.NonUnique):
     ci_id = db.IntegerField(
         unique=True,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         verbose_name=_("id from cmdb"),
+    )
+    ralph3_id = db.IntegerField(
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name=_("id from Ralph 3"),
     )
     ci_uid = db.CharField(
         null=True,
@@ -78,9 +90,15 @@ class ProfitCenter(Named.NonUnique):
 class Environment(Named.NonUnique):
     ci_id = db.IntegerField(
         unique=True,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         verbose_name=_("id from cmdb"),
+    )
+    ralph3_id = db.IntegerField(
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name=_("id from Ralph 3"),
     )
     ci_uid = db.CharField(
         null=True,
@@ -97,9 +115,15 @@ class Environment(Named.NonUnique):
 class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
     ci_id = db.IntegerField(
         unique=True,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         verbose_name=_("id from cmdb"),
+    )
+    ralph3_id = db.IntegerField(
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name=_("id from Ralph 3"),
     )
     ci_uid = db.CharField(
         null=True,
