@@ -9,4 +9,7 @@ class UnknownServiceEnvironmentNotConfiguredError(Exception):
 
 
 class ServiceEnvironmentDoesNotExistError(Exception):
+    """
+    Raise this exception when service does not exist
+    """
     pass
