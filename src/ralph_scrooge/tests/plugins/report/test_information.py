@@ -37,7 +37,7 @@ class TestInformationPlugin(TestCase):
         self.service_environment1.service.save()
         self.maxDiff = None
 
-    @skip("(xor-xor) Skipped due to problems with ralph3_profit_center plugin")
+    @skip("(xor-xor) Skipped due to problems with ralph3_* plugins")
     def test_costs(self):
         result = Information(
             service_environments=self.service_environments,
