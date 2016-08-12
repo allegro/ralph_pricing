@@ -12,6 +12,8 @@ import factory
 from django.contrib.auth.models import User
 from factory import (
     fuzzy,
+    Iterator,
+    LazyAttribute,
     Sequence,
     SubFactory,
 )
@@ -145,6 +147,22 @@ class UserFactory(DjangoModelFactory):
     last_name = Sequence(lambda n: 'Snow {0}'.format(n))
 
 
+class Ralph3UserFactory(DjangoModelFactory):
+    # TODO(xor-xor): This factory shouldn't be used to create more than
+    # 6 users, otherwise you'll get an IntegrityError. But this will be
+    # ironed-out once we switch to Ralph 3 exclusively.
+    FACTORY_FOR = User
+    first_name = Iterator([
+        'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
+    ])
+    last_name = Iterator([
+        'Smith', 'Wilson', 'Thomas', 'Roberts', 'Johnson', 'Williams',
+    ])
+    username = LazyAttribute(
+        lambda u: '{}_{}'.format(u.first_name, u.last_name).lower()
+    )
+
+
 @factory.sequence
 def get_profile(n):
     """Due to strange logic in lck.django we can't use subfactories to create
@@ -154,11 +172,27 @@ def get_profile(n):
     return user.profile
 
 
+@factory.sequence
+def get_ralph3_profile(n):
+    """Due to strange logic in lck.django we can't use subfactories to create
+    profiles."""
+    user = Ralph3UserFactory()
+    user.save()
+    return user.profile
+
+
 class OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
     cmdb_id = Sequence(lambda n: n)
     profile = get_profile
+
+
+class Ralph3OwnerFactory(DjangoModelFactory):
+    FACTORY_FOR = models.Owner
+
+    cmdb_id = Sequence(lambda n: n)
+    profile = get_ralph3_profile
 
 
 class BusinessLineFactory(DjangoModelFactory):
