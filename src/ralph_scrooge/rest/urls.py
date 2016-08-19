@@ -16,6 +16,7 @@ from ralph_scrooge.rest import (
     CostCardContent,
     ComponentsContent,
     ObjectCostsContent,
+    MonthlyCosts,
     ServicesCostsReportContent,
     UsagesReportContent,
 )
@@ -64,6 +65,10 @@ urlpatterns = patterns(
     url(
         r'^costcard/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         service_permission(CostCardContent.as_view()),
+    ),
+    url(
+        r'^monthly_costs/?$',
+        scrooge_permission(MonthlyCosts.as_view()),
     ),
     url(
         r'^pricing_object_costs/(?P<service>\d+)/(?P<env>\d+)/(?P<start_date>[0-9-]+)/(?P<end_date>[0-9-]+)/?$',  # noqa

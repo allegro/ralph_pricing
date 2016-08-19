@@ -70,18 +70,6 @@ class ScroogeMenu(Menu):
                 view_name='services_usages_report',
             ),
             MenuItem(
-                _("Collect plugins"),
-                name='collect-plugins',
-                fugue_icon='fugue-calendar-day',
-                view_name='collect_plugins',
-            ),
-            MenuItem(
-                _("Services changes report"),
-                name='services-changes-report',
-                fugue_icon='fugue-arrow-switch',
-                view_name='services_changes_report',
-            ),
-            MenuItem(
                 _("Costs calculation"),
                 name='costs-calculation',
                 fugue_icon='fugue-money-bag',
