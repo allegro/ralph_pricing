@@ -1,4 +1,85 @@
 import sys
+from lck.django import current_dir_support
+
+execfile(current_dir_support)
+
+DEBUG = True
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+
+SITE_ID = 1
+USE_I18N = True
+USE_L10N = True
+MEDIA_URL = '/u/'
+STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
+STATICFILES_DIRS = (
+    CURRENT_DIR + 'media',
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'lck.django.common.middleware.ForceLanguageCodeMiddleware',
+)
+
+TEMPLATE_DIRS = (CURRENT_DIR + "templates",)
+
+INSTALLED_APPS = [
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.admin',
+    'django_rq',
+    'south',
+    'rest_framework',
+    'ajax_select',
+    'bob',
+    'ralph_scrooge'
+]
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.contrib.messages.context_processors.messages',
+)
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ralph',
+        'USER': 'ralph',
+        'PASSWORD': 'ralph',
+        'HOST': '',
+        'PORT': '',
+        'OPTIONS': dict(
+        ),
+    },
+}
+
+ROOT_URLCONF = 'ralph_scrooge.urls'
 
 # NFSEN (network) plugin default config
 SSH_NFSEN_CREDENTIALS = {}
@@ -46,6 +127,17 @@ COLLECT_PLUGINS = set([
     'vip',
     'virtual',
 ])
+
+RQ_QUEUE_LIST = ('reports_pricing',)
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+    },
+}
+for queue in RQ_QUEUE_LIST:
+     RQ_QUEUES[queue] = dict(RQ_QUEUES['default'])
 
 SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE = False
 UNKNOWN_SERVICES_ENVIRONMENTS = {

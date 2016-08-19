@@ -8,10 +8,8 @@ from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
 
-from ralph.app import RalphModule
 
-
-class Scrooge(RalphModule):
+class Scrooge(object):
     """Scrooge main application. The 'ralph_scrooge' name is retained
     internally for historical reasons, while we try to use 'scrooge' as
     displayed name."""

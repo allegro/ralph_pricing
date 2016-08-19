@@ -36,12 +36,6 @@ class Owner(TimeTrackable):
         blank=False,
         verbose_name=_("id from cmdb"),
     )
-    profile = db.OneToOneField(
-        'account.Profile',
-        verbose_name=_("profile"),
-        null=False,
-        blank=False,
-    )
 
     class Meta:
         app_label = 'ralph_scrooge'

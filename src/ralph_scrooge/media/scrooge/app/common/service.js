@@ -109,7 +109,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          */
         init: function() {
             var self = this;
-            $http({method: 'GET', url: '/scrooge/leftmenu/components/'}).
+            $http({method: 'GET', url: '/leftmenu/components/'}).
                 success(function(data) {
                     Object.keys(data['menuStats']).forEach(function (key){
                         self.menuStats[key] = data['menuStats'][key];
@@ -185,7 +185,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
                 self.menuStats['month']['current'] &&
                 self.menuStats['day']['current']) {
                 var url_chunks = [
-                    '/scrooge/rest/components',
+                    '/rest/components',
                     self.menuStats['service']['current'],
                 ];
                 if (self.menuStats['env']['current']) {
