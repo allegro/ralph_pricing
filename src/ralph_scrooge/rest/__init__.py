@@ -13,7 +13,10 @@ from ralph_scrooge.rest.costcard import (
 from ralph_scrooge.rest.object_costs import (
     ObjectCostsContent,
 )
-
+from ralph_scrooge.rest.reports import (
+    ServicesCostsReportContent,
+    UsagesReportContent
+)
 
 __all__ = [
     'AllocationAdminContent',
@@ -23,4 +26,6 @@ __all__ = [
     'CostCardContent',
     'left_menu',
     'ObjectCostsContent',
+    'ServicesCostsReportContent',
+    'UsagesReportContent',
 ]

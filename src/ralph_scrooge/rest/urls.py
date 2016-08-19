@@ -16,6 +16,8 @@ from ralph_scrooge.rest import (
     CostCardContent,
     ComponentsContent,
     ObjectCostsContent,
+    ServicesCostsReportContent,
+    UsagesReportContent,
 )
 
 from ralph_scrooge.rest.menu import SubMenu
@@ -72,5 +74,15 @@ urlpatterns = patterns(
         r'^submenu/?$',
         login_required(SubMenu.as_view()),
         name='submenu'
+    ),
+    url(
+        r'^usages_report/?$',
+        scrooge_permission(UsagesReportContent.as_view()),
+        name='usages_report_rest'
+    ),
+    url(
+        r'^services_costs_report/?$',
+        scrooge_permission(ServicesCostsReportContent.as_view()),
+        name='services_costs_report_rest'
     ),
 )
