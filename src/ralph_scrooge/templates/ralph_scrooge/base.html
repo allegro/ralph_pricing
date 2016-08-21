@@ -1,27 +1,49 @@
-{% extends 'ui/base.html' %}
-{% load bob icons staticfiles %}
-
-{% block styles %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% static 'scrooge/css/scrooge.css' %}">
-{% endblock %}
-
-{% block scripts %}
-    {{ block.super }}
-    <script type="text/javascript" src="{% static 'scrooge/js/table_fixed_header.js' %}"></script>
-    <script type="text/javascript" src="{% static 'scrooge/js/scrooge.js' %}"></script>
-{% endblock %}
-
-{% block contentarea %}
-    <div class="content">
-        {% block content %}{% endblock %}
+{% load bob icons i18n staticfiles %}
+{% load url from future %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Scrooge | {% block title %}{% block titlesection %}{{ active_menu.module.label }}{% block titlesubsection %}{% endblock %} - {{ active_submodule|title }}{% endblock %}{% endblock %}</title>
+        <link rel="stylesheet" href="{% static 'scrooge/css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/bootstrap-table.css' %}" />
+        <link rel="stylesheet" href="{% static 'scrooge/css/scrooge.css' %}">
+        <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+        <script src="{% static 'scrooge/js/jquery.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'scrooge/js/table_fixed_header.js' %}"></script>
+        <script type="text/javascript" src="{% static 'scrooge/js/scrooge.js' %}"></script>
+        {% block extra_headers %}
+        {% endblock %}
+    </head>
+    <body>
+    <div class="body-wrapper">
+        <div class="container-fluid">
+            <nav class="row">
+                <ul class="nav nav-tabs nav-main bs3fake">
+                    <li>
+                        <span class="brand"><a href="/">Ralph 2</a></span>
+                    </li>
+                </ul>
+                <ul class="nav navbar-fixed-top nav-tabs nav-submenu">
+                {% for item in menu %}
+                    <li class="{% if item.name == active_menu %}active{% endif %}">
+                        <a href="{% if not item.kwargs.href %} {% url item.kwargs.view_name %}{% else %}{{ item.kwargs.href }}{% endif %}">
+                            {{ item.label }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            </nav>
+        </div>
+        <div class="row content">
+            <div class="title col-xs-12 col-md-12">
+                <h1>{{ title }} ></h1>
+            </div>
+            {% block contentarea %}
+            {% endblock %}
+        </div>
     </div>
-{% endblock %}
-
-{% block sidebar %}
-    {% if sidebar_items %}
-        {% sidebar_menu sidebar_items sidebar_selected %}
-    {% endif %}
-    {% block sidebar_search %}
-    {% endblock %}
-{% endblock %}
+    
+    </body>
+</html>

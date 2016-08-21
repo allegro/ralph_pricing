@@ -6,12 +6,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.views.generic import TemplateView
-from ralph.ui.views.common import MenuMixin
 
 from ralph_scrooge.app import Scrooge as app
 
 
-class BootstrapAngular(MenuMixin, TemplateView):
+class BootstrapAngular(TemplateView):
     """
     Initial view for bootstrap angularjs
     """

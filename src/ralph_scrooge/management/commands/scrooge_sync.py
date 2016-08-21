@@ -13,7 +13,7 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from ralph.util import plugin
+from ralph_scrooge.utils import plugin
 
 from ralph_scrooge.models import SyncStatus
 
@@ -40,6 +40,7 @@ def _load_plugins():
 
 def get_collect_plugins_names():
     _load_plugins()
+    return []  # TODO 
     return sorted([name for name in plugin.BY_NAME['scrooge'].keys()
                    if name in settings.COLLECT_PLUGINS])
 

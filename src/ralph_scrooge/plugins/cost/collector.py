@@ -12,7 +12,7 @@ from dateutil import rrule
 from django.conf import settings
 from django.db import connection
 
-from ralph.util import plugin as plugin_runner
+from ralph_scrooge.utils import plugin as plugin_runner
 from ralph_scrooge.models import (
     CostDateStatus,
     DailyCost,

@@ -31,14 +31,24 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
-        'ralph>=2.3.1',
-        'ralph_assets>=2.5.1',
+        'django==1.4.21',
         'pymongo>=2.7.2',
         'python-novaclient==2.17.0',
         'django-simple-history==1.6.3',
         'djangorestframework==2.4.3',
         'django-filter==0.11',
+        'django-bob==1.12.0',
         'django-nose>=1.3',
+        'South==0.7.6',
+        'djangorestframework==2.4.3',
+        'django-rq==0.4.5',
+        'bob-ajax-selects==1.6.1',
+        'MySQL-python==1.2.3',
+        'rq>=0.3.7',
+        'rq-scheduler==0.3.6',
+        'lck.django==0.8.10',
+        'django-tastypie==0.9.16',
+        'SQLAlchemy==0.7.8',
     ],
     entry_points={
         'django.pluggable_app': [
@@ -47,9 +57,9 @@ setup(
         'scrooge.collect_plugins': [
             'scrooge = ralph_scrooge.plugins.collect',
         ],
-        'ralph.demo_data_module': [
-            'ralph = ralph_scrooge.utils.demo',
-        ],
+        'console_scripts': [
+            'ralph-scrooge = ralph_scrooge.__main__:main',
+        ]
     },
     classifiers=[
         'Development Status :: 4 - Beta',

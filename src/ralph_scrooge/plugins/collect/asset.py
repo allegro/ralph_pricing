@@ -11,7 +11,7 @@ from decimal import Decimal as D
 from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
+from ralph_scrooge.utils import plugin
 from ralph_assets.api_scrooge import get_assets
 from ralph_scrooge.models import (
     AssetInfo,

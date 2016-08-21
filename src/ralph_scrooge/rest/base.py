@@ -12,8 +12,7 @@ from datetime import date, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ralph.util.views import jsonify
-from ralph.account.models import Perm
+from ralph_scrooge.utils.views import jsonify
 
 from ralph_scrooge.models import (
     ServiceEnvironment,
@@ -31,10 +30,7 @@ def left_menu(request, *args, **kwargs):
     ).order_by(
         "service__name",
     )
-    if not (
-        request.user.is_superuser or
-        request.user.profile.has_perm(Perm.has_scrooge_access)
-    ):
+    if not request.user.is_superuser:
         service_environments = service_environments.filter(
             service__serviceownership__owner__profile__user=request.user,
         )

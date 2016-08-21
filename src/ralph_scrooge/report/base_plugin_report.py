@@ -11,7 +11,7 @@ from decimal import Decimal as D
 from ralph_scrooge.utils.common import memoize
 from django.utils.translation import ugettext_lazy as _
 
-from ralph.util import plugin as plugin_runner
+from ralph_scrooge.utils import plugin as plugin_runner
 from ralph_scrooge.models import (
     DynamicExtraCostType,
     ExtraCostType,
