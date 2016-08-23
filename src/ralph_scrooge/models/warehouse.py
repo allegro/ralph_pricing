@@ -27,8 +27,14 @@ class Warehouse(TimeTrackable, EditorTrackable, Named,
     )
     id_from_assets = db.IntegerField(
         verbose_name=_("Warehouse id from assets"),
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+        unique=True,
+    )
+    ralph3_id = db.IntegerField(
+        verbose_name=_("Warehouse id from assets (Ralph 3)"),
+        null=True,
+        blank=True,
         unique=True,
     )
 
