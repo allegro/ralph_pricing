@@ -42,7 +42,7 @@ class MonthlyCosts(WorkerJob, Base):
     cache_name = get_cache_name('scrooge_costs_master', 'scrooge_costs')
     cache_section = 'scrooge_costs'
     cache_timeout = 60 * 60 * 24  # 24 hours (max time for plugin to run)
-    cache_final_result_timeout = 60 * 60 * 2  # 2 hours
+    cache_final_result_timeout = 5 * 60  # 2 hours
     cache_all_done_timeout = 60  # 1 minute
     refresh_time = 30
 
@@ -167,7 +167,9 @@ class MonthlyCosts(WorkerJob, Base):
             if day in statuses:
                 continue
             dcj = DailyCostsJob()
-            progress, success, result = dcj.run_on_worker(day=day, **kwargs)
+            progress, success, job, result = dcj.run_on_worker(
+                day=day, **kwargs
+            )
             if progress == 100:
                 total_progress += step
                 statuses[day] = success

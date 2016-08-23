@@ -1,0 +1,54 @@
+<div class="container-fluid">
+  <nav class="row">
+    <ul class="nav nav-tabs nav-main bs3fake">
+      <li>
+        <span class="brand">
+          <a href="/">Ralph 2</a>
+        </span>
+      </li>
+      <li class="active">
+        <a href="/scrooge/">Scrooge</a>
+      </li>
+      <li class="pull-right">
+        <a href="{{ logoutUrl }}">Logout</a>
+      </li>
+      <li class="pull-right">
+        <a href="#">{{ username }}</a>
+      </li>
+    </ul>
+    <ul *ngIf="subMenus" class="nav navbar-fixed-top nav-tabs nav-submenu">
+      <li *ngFor="let subMenu of subMenus" class="cos">
+        <a href="{{ subMenu[0] }}">
+          {{ subMenu[1] }}
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
+<div class="container-fluid container-fluid-main">
+  <div class="row row-main" style="position:relative;">
+    <div class="content col-xs-12">
+      <div class="row data">
+        <div class="col-xs-12 col-md-12 animate-show loading-bar-spinner-container content-container">
+
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="footer">
+  <div class="row">
+    <ul class="col-md-8 list-inline pull-left">
+      <li>Ralph</li>
+      <li><a href="{{ changelogUrl }}">Changes</a></li>
+    </ul>
+    <ul class="col-md-4 list-inline pull-right">
+      <li>
+        <a href="{{ bugtrackerUrl }}">
+          <i class="fa fa-bug"></i> Report a bug
+        </a>
+      </li>
+    </ul>
+  </div>
+</footer>

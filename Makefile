@@ -17,3 +17,7 @@ flake:
 
 runserver:
 	ralph runserver
+
+install_ui:
+	npm install
+	gulp

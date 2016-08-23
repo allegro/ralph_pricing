@@ -16,7 +16,7 @@ class SubMenu(APIView):
         menu = [
             {
                 'name': 'Components',
-                'href': '#/components/',
+                'href': '/scrooge/#/components/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'daily',
                 'auto_choose_env': False,
@@ -24,7 +24,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Cost card',
-                'href': '#/costcard/',
+                'href': '/scrooge/#/costcard/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'monthly',
                 'auto_choose_env': True,
@@ -32,7 +32,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Components costs',
-                'href': '#/costs/',
+                'href': '/scrooge/#/costs/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'range',
                 'auto_choose_env': True,
@@ -40,7 +40,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Allocations',
-                'href': '#/allocation/client/',
+                'href': '/scrooge/#/allocation/client/',
                 'leftMenu': ['services', 'teams'],
                 'calendarMenu': 'monthly',
                 'auto_choose_env': True,
@@ -67,8 +67,8 @@ class SubMenu(APIView):
                     'href': '/scrooge/services-usages-report',
                 },
                 {
-                    'name': 'Costs calculation',
-                    'href': '/scrooge/monthly-costs',
+                    'name': 'Monthly costs',
+                    'href': '/scrooge/ui/#/monthly-costs',
                 },
             ])
         return Response(menu)

@@ -1,0 +1,92 @@
+{% load colors_tags %}
+{% load url from future %}
+{% load i18n bob staticfiles %}
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Ralph Scrooge | {% block title %}{% block titlesection %}{{ active_menu.module.label }}{% block titlesubsection %}{% endblock %} - {{ active_submodule|title }}{% endblock %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static "scrooge/css/bootstrap.min.css" %}" />
+    <link rel="stylesheet" href="{% static "scrooge/css/datepicker3.css" %}" />
+    <link rel="stylesheet" href="{% static "scrooge/css/bootstrap-table.css" %}" />
+    <link rel="stylesheet" href="{% static "scrooge/css/scrooge.css" %}" />
+    <link rel="stylesheet" href="{% static "scrooge/css/loading-bar.css" %}" />
+    <link rel="stylesheet" href="{% static "scrooge/css/font-awesome.css" %}" />
+    <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
+    {% panels_colors %}
+    <script src="{% static "scrooge/js/jquery.min.js" %}"></script>
+    <script src="{% static "scrooge/js/jquery.multiple.select.js" %}"></script>
+    <script src="{% static "scrooge/js/bootstrap-datepicker.js" %}"></script>
+    <script src="{% static "scrooge/lib/es6-shim/es6-shim.min.js" %}"></script>
+    <script src="{% static "scrooge/lib/zone.js/dist/zone.min.js" %}?main=browser"></script>
+    <script src="{% static "scrooge/lib/reflect-metadata/Reflect.js" %}"></script>
+    <script src="{% static "scrooge/lib/systemjs/dist/system.js" %}"></script>
+  <script>
+    // START SYSTEMJS CONFIGURATION
+    (function (global) {
+      var map = {
+        'rxjs': '{{ STATIC_URL }}scrooge/lib/rxjs',
+      };
+
+      //packages tells the System loader how to load when no filename and/or no extension
+      var packages = {
+        'rxjs': {defaultExtension: 'js'},
+        '{{ STATIC_URL }}scrooge/dist': {defaultExtension: 'js'}
+      };
+
+      var PackageNames = [
+        'common',
+        'form',
+        'compiler',
+        'core',
+        'http',
+        'platform-browser',
+        'platform-browser-dynamic',
+        'router-deprecated',
+        'upgrade',
+      ];
+
+      // Add map entries for each angular package
+      PackageNames.forEach(function (pkgName) {
+        map['@angular/' + pkgName] = '{{ STATIC_URL }}scrooge/lib/@angular/' + pkgName;
+      });
+
+      // Add package entries for angular packages
+      PackageNames.forEach(function (pkgName) {
+          packages['@angular/' + pkgName] = {main: pkgName + '.umd.js', defaultExtension: 'js'};
+      });
+
+      var config = {
+          map: map,
+          packages: packages,
+      };
+      if (global.filterSystemConfig) {
+        global.filterSystemConfig(config);
+      }
+      System.config(config);
+    })(this);
+    // END SYSTEMJS CONFIGURATION
+
+    var globalConfig  = {
+      "username": "{{ user.username }}",
+      "userId": "{{ user.pk }}",
+      "debug": {% if settings.DEBUG %}true{% else %}false{% endif %},
+      "subMenuUrl": "{% url 'submenu' %}",
+      "changelogUrl": "{{ CHANGELOG_URL }}",
+      "bugtrackerUrl": "{{ BUGTRACKER_URL }}",
+      "logoutUrl": "{% url 'logout' %}",
+      "app.component.template": "{% static 'scrooge/appts/app.component.html' %}",
+      "monthly-cost.component.template": "{% static 'scrooge/appts/monthly-costs/monthly-costs.component.html' %}",
+      "horizontal-calendar.component.template": "{% static 'scrooge/appts/horizontal-calendar/horizontal-calendar.component.html' %}",
+      "monhtlyCostsAPIUrl": "{% url 'monhtly-costs' %}",
+      "acceptMonhtyCostsAPIUrl": "{% url 'accept-monhtly-costs' %}"
+    }
+    System.import('{% static "scrooge/dist/main.js" %}').then(null, console.error.bind(console));
+  </script>
+  </head>
+  <body>
+    <div class="body-wrapper">
+      <scrooge-app></scrooge-app>
+    </div>
+  </body>
+</html>

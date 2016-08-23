@@ -22,74 +22,84 @@ from rest_framework.response import Response
 from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.utils.common import get_cache_name, get_queue_name
 from ralph_scrooge.utils.worker_job import WorkerJob, _get_cache_key
-from ralph_scrooge.forms import MonthlyCostsForm
 from ralph_scrooge.models import CostDateStatus
+from ralph_scrooge.rest.serializers import MonthlyCostsSerializer
 
 
 logger = logging.getLogger(__name__)
 
 
+class AcceptMonthlyCosts(APIView):
+
+    def post(self, request, *args, **kwargs):
+        result = {'status': 'failed', 'message': ''}
+        serializer = MonthlyCostsSerializer(data=request.DATA)
+        if serializer.is_valid():
+            start = serializer.data['start']
+            end = serializer.data['end']
+            forecast = bool(serializer.data['forecast'])
+            calculated_costs = CostDateStatus.objects.filter(
+                date__gte=start,
+                date__lte=end,
+                forecast_calculated=forecast
+            )
+            days = (end - start).days + 1
+            if len(calculated_costs) != days:
+                result['message'] = _(
+                    'Costs were not calculated for all selected days!'
+                )
+            else:
+                calculated_costs.update(**{
+                    'forecast_accepted' if forecast else 'accepted': True,
+                })
+                result['message'] = _('Costs were accepted!')
+                result['status'] = 'ok'
+        return Response(result)
+
+
 class MonthlyCosts(APIView, WorkerJob):
 
-    Form = MonthlyCostsForm
+    _return_job_meta = True
+    cache_all_done_timeout = 60
 
     def __init__(self, *args, **kwargs):
         self.progress = 0
         self.got_query = False
         self.data = {}
-        self.form = None
 
-    def get(self, *args, **kwargs):
-        if self.request.GET:
-            self.form = self.Form(self.request.GET)
-        else:
-            self.form = self.Form()
-
-        if self.form.is_valid():
-            result = {}
-            if 'recalculate' in self.request.GET:
-                self.got_query = True
-                self.progress, self.data = self.run_on_worker(
-                    **self.form.cleaned_data
+    def post(self, request, *args, **kwargs):
+        """Recalculate costs."""
+        serializer = MonthlyCostsSerializer(data=request.DATA)
+        if serializer.is_valid():
+            if serializer.data["start"] > serializer.data["end"]:
+                return Response(
+                    {'message': 'End date can not be less than start date.'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-                self.data = self.data or {}
-                if self.progress < 100:
-                    result['result'] = _(
-                        'Please wait for costs recalculation.'
-                    )
-                else:
-                    result['result'] = _('Costs recalculated.')
-                    result['data'] = sorted(
-                        self.data.items(), key=lambda k: k[0]
-                    )
-            elif 'accept_costs' in self.request.GET:
-                result['result'] = self.accept_costs(**self.form.cleaned_data)
-            elif 'clear' in self.request.GET:
-                self.progress = 0
-                self.clear_cache(**self.form.cleaned_data)
-                result['result'] = _('Cache cleared.')
-
-            return Response(result)
-        else:
-            return Response(
-                {'errors': self.form.errors},
-                status=status.HTTP_400_BAD_REQUEST
+            result = {}
+            self.got_query = True
+            self.progress, self.data, job, meta = self.run_on_worker(
+                **serializer.data
             )
+            result['job_id'] = job.id
+            result['message'] = _(
+                'Please wait for costs recalculation.'
+            )
+            return Response(result, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def accept_costs(self, start, end, forecast):
-        calculated_costs = CostDateStatus.objects.filter(
-            date__gte=start,
-            date__lte=end,
-            **{'forecast_calculated' if forecast else 'calculated': True}
-        )
-        days = (end - start).days + 1
-        if len(calculated_costs) != days:
-            return _('Costs were not calculated for all selected days!')
-        else:
-            calculated_costs.update(**{
-                'forecast_accepted' if forecast else 'accepted': True,
-            })
-            return _('Costs were accepted!')
+    def get(self, request, job_id, *args, **kwargs):
+        job = self.get_rq_job(job_id)
+        status = 'running'
+        data = {}
+        if job.is_finished:
+            data = sorted(job.result.items(), key=lambda k: k[0]),
+            data = [(str(i[0].date()), i[1]) for i in data[0]]
+            status = 'finished'
+        elif job.is_failed:
+            status = 'failed'
+
+        return Response({'status': status, 'data': data})
 
     @classmethod
     def forget_cache(cls, start, end, **kwargs):
@@ -213,7 +223,9 @@ class MonthlyCosts(APIView, WorkerJob):
             if day in statuses:
                 continue
             dcj = DailyCostsJob()
-            progress, success, result = dcj.run_on_worker(day=day, **kwargs)
+            progress, success, job, result = dcj.run_on_worker(
+                day=day, **kwargs
+            )
             if progress == 100:
                 total_progress += step
                 statuses[day] = success

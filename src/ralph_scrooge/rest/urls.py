@@ -10,6 +10,7 @@ from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required
 
 from ralph_scrooge.rest import (
+    AcceptMonthlyCosts,
     AllocationAdminContent,
     AllocationClientService,
     AllocationClientPerTeam,
@@ -69,6 +70,17 @@ urlpatterns = patterns(
     url(
         r'^monthly_costs/?$',
         scrooge_permission(MonthlyCosts.as_view()),
+        name="monhtly-costs",
+    ),
+    url(
+        r'^monthly_costs/(?P<job_id>[\w\-]+)?$',
+        scrooge_permission(MonthlyCosts.as_view()),
+        name="monhtly-costs",
+    ),
+     url(
+        r'^accept_monthly_costs/?$',
+        scrooge_permission(AcceptMonthlyCosts.as_view()),
+        name="accept-monhtly-costs",
     ),
     url(
         r'^pricing_object_costs/(?P<service>\d+)/(?P<env>\d+)/(?P<start_date>[0-9-]+)/(?P<end_date>[0-9-]+)/?$',  # noqa
