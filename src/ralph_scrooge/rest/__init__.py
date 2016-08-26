@@ -17,6 +17,7 @@ from ralph_scrooge.rest.reports import (
     ServicesCostsReportContent,
     UsagesReportContent
 )
+from ralph_scrooge.rest.monthly_costs import MonthlyCosts
 
 __all__ = [
     'AllocationAdminContent',
@@ -28,4 +29,5 @@ __all__ = [
     'ObjectCostsContent',
     'ServicesCostsReportContent',
     'UsagesReportContent',
+    'MonthlyCosts'
 ]

@@ -67,14 +67,6 @@ class SubMenu(APIView):
                     'href': '/scrooge/services-usages-report',
                 },
                 {
-                    'name': 'Collect plugins',
-                    'href': '/scrooge/collect-plugins',
-                },
-                {
-                    'name': 'Services changes report',
-                    'href': '/scrooge/services-changes-report',
-                },
-                {
                     'name': 'Costs calculation',
                     'href': '/scrooge/monthly-costs',
                 },
