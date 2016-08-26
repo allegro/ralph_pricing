@@ -26,7 +26,9 @@ def update_asset_model(model):
         type_id=PRICING_OBJECT_TYPES.ASSET,
     )
     pom.name = model['name']
-    pom.manufacturer = model['manufacturer']['name'] if model['manufacturer'] else None
+    pom.manufacturer = (
+        model['manufacturer']['name'] if model['manufacturer'] else None
+    )
     pom.category = model['category']['name'] if model['category'] else None
     pom.save()
     return created

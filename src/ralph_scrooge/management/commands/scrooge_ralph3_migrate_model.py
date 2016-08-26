@@ -66,7 +66,9 @@ class Command(BaseCommand):
             mapping = csv.reader(f, delimiter=b';')
             for ralph2_id, ralph3_id in mapping:
                 try:
-                    obj = model._default_manager.get(**{ralph2_field: ralph2_id})
+                    obj = model._default_manager.get(
+                        **{ralph2_field: ralph2_id}
+                    )
                 except model.DoesNotExist:
                     logger.warning('{} with {}={} not found'.format(
                         options['model'], ralph2_field, ralph2_id
