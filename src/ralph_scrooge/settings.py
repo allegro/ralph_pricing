@@ -54,6 +54,7 @@ COLLECT_PLUGINS = set([
 SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE = False
 UNKNOWN_SERVICES_ENVIRONMENTS = {
     'tenant': {},
+    'ralph3_tenant': (None, None),
     'netflow': (None, None),
 }
 

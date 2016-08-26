@@ -6,3 +6,7 @@ class UnknownServiceEnvironmentNotConfiguredError(Exception):
     Raised when unknown service-environment is not configured for plugin.
     """
     pass
+
+
+class ServiceEnvironmentDoesNotExistError(Exception):
+    pass
