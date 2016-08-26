@@ -45,9 +45,10 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
         """
         General method to check if created/updated service match passed data
         """
-        created = update_service(data, self.default_profit_center)
+        created, saved_service = update_service(
+            data, self.default_profit_center
+        )
 
-        saved_service = Service.objects.get(ralph3_id=data['id'])
         self.assertEquals(saved_service.name, data['name'])
         self.assertEquals(saved_service.symbol, data['uid'])
 

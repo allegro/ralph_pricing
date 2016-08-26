@@ -11,7 +11,7 @@ from django.test import TestCase
 
 from ralph_scrooge.models import BusinessLine, ProfitCenter
 from ralph_scrooge.plugins.collect.ralph3_profit_center import (
-    profit_center as profit_center_plugin,
+    ralph3_profit_center as profit_center_plugin,
     update_profit_center
 )
 from ralph_scrooge.tests.plugins.collect.samples.ralph3_profit_center import (

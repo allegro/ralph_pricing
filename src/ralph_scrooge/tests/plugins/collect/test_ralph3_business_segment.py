@@ -11,7 +11,7 @@ from django.test import TestCase
 
 from ralph_scrooge.models import BusinessLine
 from ralph_scrooge.plugins.collect.ralph3_business_segment import (
-    business_segment as business_segment_plugin,
+    ralph3_business_segment as business_segment_plugin,
     update_business_segment
 )
 from ralph_scrooge.tests.plugins.collect.samples.ralph3_business_segment import (  # noqa
