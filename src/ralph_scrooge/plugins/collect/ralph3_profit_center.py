@@ -31,6 +31,9 @@ def update_profit_center(pc, default_business_line):
         business_line = default_business_line
     profit_center, created = ProfitCenter.objects.get_or_create(
         ralph3_id=pc['id'],
+        defaults=dict(
+            name=pc['name'],
+        )
     )
     profit_center.name = pc['name']
     profit_center.description = pc['description']
@@ -40,7 +43,7 @@ def update_profit_center(pc, default_business_line):
 
 
 @plugin.register(chain='scrooge', requires=['business_segment'])
-def profit_center(**kwargs):
+def ralph3_profit_center(**kwargs):
     new_pc = total = 0
     default_business_line = BusinessLine.objects.get(pk=1)
     for pc in get_from_ralph("profit-centers", logger):

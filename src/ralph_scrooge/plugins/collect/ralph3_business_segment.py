@@ -25,6 +25,9 @@ logger = logging.getLogger(__name__)
 def update_business_segment(bl):
     business_line, created = BusinessLine.objects.get_or_create(
         ralph3_id=bl['id'],
+        defaults=dict(
+            name=bl['name'],
+        )
     )
     business_line.name = bl['name']
     business_line.save()
@@ -32,7 +35,7 @@ def update_business_segment(bl):
 
 
 @plugin.register(chain='scrooge', requires=[])
-def business_segment(**kwargs):
+def ralph3_business_segment(**kwargs):
     new_bl = total = 0
     for bl in get_from_ralph("business-segments", logger):
         created = update_business_segment(bl)

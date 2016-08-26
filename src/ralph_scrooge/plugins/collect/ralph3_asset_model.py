@@ -26,16 +26,17 @@ def update_asset_model(model):
         type_id=PRICING_OBJECT_TYPES.ASSET,
     )
     pom.name = model['name']
-    pom.manufacturer = model['manufacturer']['name']
-    pom.category = model['category']['name']
+    pom.manufacturer = model['manufacturer']['name'] if model['manufacturer'] else None
+    pom.category = model['category']['name'] if model['category'] else None
     pom.save()
     return created
 
 
 @plugin.register(chain='scrooge')
-def asset_model(**kwargs):
+def ralph3_asset_model(**kwargs):
     new = total = 0
-    for model in get_from_ralph("assetmodels", logger):
+    # fetch only data center models
+    for model in get_from_ralph("assetmodels", logger, query="type=2"):
         created = update_asset_model(model)
         if created:
             new += 1

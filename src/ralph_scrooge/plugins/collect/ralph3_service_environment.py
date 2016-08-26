@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.conf import settings
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
@@ -30,10 +29,11 @@ logger = logging.getLogger(__name__)
 def update_service(service_from_ralph, default_profit_center):
     created = False
     try:
-        service = Service.objects.get(ralph3_id=service_from_ralph['id'])
+        service = Service.objects.get(ci_uid=service_from_ralph['uid'])
     except Service.DoesNotExist:
-        service = Service(ralph3_id=service_from_ralph['id'])
+        service = Service(ci_uid=service_from_ralph['uid'])
         created = True
+    service.ralph3_id = service_from_ralph['id']
     service.name = service_from_ralph['name']
     service.symbol = service_from_ralph['uid']
     if service_from_ralph['profit_center'] is not None:
@@ -44,7 +44,7 @@ def update_service(service_from_ralph, default_profit_center):
         service.profit_center = default_profit_center
     service.save()
     _update_owners(service, service_from_ralph)
-    return created
+    return created, service
 
 
 def _delete_obsolete_owners(current, previous, service):
@@ -88,6 +88,9 @@ def _update_owners(service, service_from_ralph):
 def update_environment(env_from_ralph):
     env, created = Environment.objects.get_or_create(
         ralph3_id=env_from_ralph['id'],
+        defaults=dict(
+            name=env_from_ralph['name']
+        )
     )
     env.name = env_from_ralph['name']
     env.save()
@@ -95,24 +98,12 @@ def update_environment(env_from_ralph):
 
 
 @plugin.register(chain='scrooge', requires=[])
-def service_environment(**kwargs):
+def ralph3_service_environment(**kwargs):
     new_services = total_services = 0
     new_envs = total_envs = 0
     new_service_envs = total_service_envs = 0
 
-    if settings.SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE:
-        services_from_ralph = get_from_ralph(
-            "services", logger, query="active=True"
-        )
-    else:
-        services_from_ralph = get_from_ralph("services", logger)
-    default_profit_center = ProfitCenter.objects.get(pk=1)
-
-    # services
-    for service in services_from_ralph:
-        if update_service(service, default_profit_center):
-            new_services += 1
-        total_services += 1
+    default_profit_center = ProfitCenter.objects.get(pk=1)  # from fixtures
 
     # envs
     for env in get_from_ralph("environments", logger):
@@ -121,9 +112,15 @@ def service_environment(**kwargs):
             new_envs += 1
         total_envs += 1
 
-    # service environments
-    for service in services_from_ralph:
-        service_obj = Service.objects.get(ralph3_id=service['id'])
+    # services
+    for service in get_from_ralph(
+        "services", logger, query="active=True"
+    ):
+        created, service_obj = update_service(service, default_profit_center)
+        if created:
+            new_services += 1
+        total_services += 1
+
         for env in service.get('environments', []):
             env_obj = Environment.objects.get(ralph3_id=env['id'])
             _, created = ServiceEnvironment.objects.get_or_create(

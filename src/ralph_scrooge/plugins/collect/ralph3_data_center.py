@@ -21,7 +21,10 @@ logger = logging.getLogger(__name__)
 
 def update_data_centers(dc_from_ralph):
     warehouse, created = Warehouse.objects.get_or_create(
-        ralph3_id=dc_from_ralph['id']
+        ralph3_id=dc_from_ralph['id'],
+        defaults=dict(
+            name=dc_from_ralph['name'],
+        )
     )
     warehouse.name = dc_from_ralph['name']
     warehouse.save()
@@ -29,7 +32,7 @@ def update_data_centers(dc_from_ralph):
 
 
 @plugin.register(chain='scrooge')
-def data_center(**kwargs):
+def ralph3_data_center(**kwargs):
     new = total = 0
     for dc in get_from_ralph("data-centers", logger):
         total += 1
