@@ -60,7 +60,7 @@ class TestServiceCollectPlugin(TestCase):
         self.assertEquals(tenant_info.name, sample_tenant['name'])
         self.assertEquals(tenant_info.remarks, sample_tenant['remarks'])
         self.assertEquals(tenant_info.type_id, PRICING_OBJECT_TYPES.TENANT)
-        self.assertEquals(tenant_info.tenant_id, sample_tenant['tenant_id'])
+        self.assertEquals(tenant_info.tenant_id, sample_tenant['project_id'])
 
     def test_save_tenant_info(self):
         sample_tenant = self._get_sample_tenant()
