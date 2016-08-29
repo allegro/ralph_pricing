@@ -33,7 +33,10 @@ def save_tenant_info(ralph_tenant, unknown_service_env):
     if ralph_tenant.get('service_env') is None:
         logger.warning(
             'Invalid (or missing) service environment in Ralph '
-            'for project {}'.format(ralph_tenant['name'])
+            'for project {} ({})'.format(
+                ralph_tenant['name'],
+                ralph_tenant['project_id']
+            )
         )
         service_environment = unknown_service_env
     else:
@@ -60,6 +63,7 @@ def save_tenant_info(ralph_tenant, unknown_service_env):
         )
     tenant_info.name = ralph_tenant['name']
     tenant_info.remarks = ralph_tenant['remarks']
+    tenant_info.tenant_id = ralph_tenant['project_id']
     tenant_info.service_environment = service_environment
     tenant_info.save()
     return created, tenant_info
@@ -106,7 +110,7 @@ def get_cloud_provider_id(logger):
 
 
 @plugin.register(chain='scrooge', requires=['service'])
-def cloud_project(today, **kwargs):
+def ralph3_cloud_project(today, **kwargs):
     new = total = 0
     try:
         unknown_service_env = get_unknown_service_env()
