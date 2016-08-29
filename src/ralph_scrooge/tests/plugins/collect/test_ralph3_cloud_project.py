@@ -50,7 +50,7 @@ class TestServiceCollectPlugin(TestCase):
                 'environment': self.service_environment.environment.name,
                 'service_uid': self.service_environment.service.ci_uid,
             },
-            'tenant_id': '0149ab43b0494cd2812f75479832fa39',
+            'project_id': '0149ab43b0494cd2812f75479832fa39',
             'name': 'sample_tenant',
             'remarks': 'qwerty',
         }
