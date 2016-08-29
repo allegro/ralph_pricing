@@ -16,7 +16,7 @@ from ralph_scrooge.plugins.collect.ralph3_cloud_project import (
     get_unknown_service_env,
     save_tenant_info,
     save_daily_tenant_info,
-    cloud_project as cloud_project_plugin,
+    ralph3_cloud_project as cloud_project_plugin,
     UnknownServiceEnvironmentNotConfiguredError,
 )
 
