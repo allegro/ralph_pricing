@@ -10,13 +10,13 @@ from datetime import datetime
 from decimal import Decimal as D
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
 from ralph.util import plugin
 from ralph_scrooge.models import (
     AssetInfo,
-    DailyAssetInfo,
     DailyUsage,
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
@@ -25,10 +25,9 @@ from ralph_scrooge.models import (
     Warehouse,
 )
 from ralph_scrooge.plugins.collect._exceptions import (
-    ServiceEnvironmentDoesNotExistError,
+    UnknownServiceEnvironmentNotConfiguredError
 )
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
-
 
 logger = logging.getLogger(__name__)
 
@@ -57,12 +56,13 @@ def get_asset_info(service_environment, warehouse, data):
     asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
-    asset_info.device_id = data['id']
     try:
         asset_info.save()
     except IntegrityError:
         # check for duplicates on SN, barcode and id, null them and save again
         for field in ['sn', 'barcode']:
+            if data[field] is None:
+                continue
             assets = AssetInfo.objects.filter(**{field: data[field]}).exclude(
                 ralph3_asset_id=data['id'],
             )
@@ -87,9 +87,10 @@ def get_asset_info(service_environment, warehouse, data):
 def _is_depreciated(data, date):
 
     def get_depreciation_months(data):
+        depreciation_rate = float(data['depreciation_rate'])
         return int(
-            (1 / (float(data['depreciation_rate']) / 100) * 12)
-            if data['depreciation_rate'] else 0
+            (1 / (depreciation_rate / 100) * 12)
+            if depreciation_rate else 0
         )
 
     def d(date):
@@ -117,16 +118,7 @@ def get_daily_asset_info(asset_info, date, data):
     :returns list: Django ORM DailyAssetInfo object
     :rtype:
     """
-    daily_asset_info, created = DailyAssetInfo.objects.get_or_create(
-        pricing_object=asset_info,
-        asset_info=asset_info,
-        date=date,
-        defaults=dict(
-            service_environment=asset_info.service_environment,
-        ),
-    )
-    # set defaults if daily asset was not created
-    daily_asset_info.service_environment = asset_info.service_environment
+    daily_asset_info = asset_info.get_daily_pricing_object(date)
     daily_asset_info.depreciation_rate = data['depreciation_rate']
     daily_asset_info.is_depreciated = _is_depreciated(data, date)
     daily_asset_info.price = data['price'] or 0
@@ -164,7 +156,7 @@ def update_usage(daily_asset_info, warehouse, usage_type, value, date):
 
 # TODO(xor-xor): Rename 'data' to some more descriptive variable name.
 @commit_on_success
-def update_assets(data, date, usages):
+def update_asset(data, date, usages, unknown_service_env):
     """
     Updates single asset.
 
@@ -182,32 +174,39 @@ def update_assets(data, date, usages):
                     create or update
     :rtype tuple:
     """
+    dc_asset_repr = data['__str__']
     if data.get('service_env') is None:
+        service_environment = unknown_service_env
         logger.warning(
-            'Missing service environment for DataCenterAsset {}'
-            .format(data['id'])
+            'Missing service environment for DC Asset {}'.format(dc_asset_repr)
         )
-        # XXX ...and then, what should we do here..? (see also cloud_project
-        # plugin)
-    try:
-        service_environment = ServiceEnvironment.objects.get(
-            environment__name=data['service_env']['environment'],
-            service__ci_uid=data['service_env']['service_uid']
-        )
-    except ServiceEnvironment.DoesNotExist:
-        raise ServiceEnvironmentDoesNotExistError()
+    else:
+        try:
+            service_environment = ServiceEnvironment.objects.get(
+                environment__name=data['service_env']['environment'],
+                service__ci_uid=data['service_env']['service_uid']
+            )
+        except ServiceEnvironment.DoesNotExist:
+            service_environment = unknown_service_env
+            logger.warning(
+                'Invalid service environment for DC Asset {}: {} - {}'.format(
+                    dc_asset_repr, data['service_env']['service_uid'],
+                    data['service_env']['environment']
+                )
+            )
 
     if data.get('rack') is None:
-        pass
-        # XXX What should we do in such case..? And what about server_room and
-        # data_center (added TypeError to the except clause as a temporary
-        # workaround)..?
-    try:
-        dc_id = data['rack']['server_room']['data_center']['id']
-        warehouse = Warehouse.objects.get(ralph3_id=dc_id)
-    except (TypeError, Warehouse.DoesNotExist):
         warehouse = Warehouse.objects.get(pk=1)  # Default one from fixtures
-
+        logger.warning('Missing rack for DC Asset {}'.format(dc_asset_repr))
+    else:
+        try:
+            dc_id = data['rack']['server_room']['data_center']['id']
+            warehouse = Warehouse.objects.get(ralph3_id=dc_id)
+        except Warehouse.DoesNotExist:
+            warehouse = Warehouse.objects.get(pk=1)  # Default one from fixtures
+            logger.warning('Invalid data center for {}: {}'.format(
+                dc_asset_repr, data['rack']['server_room']['data_center']['id']
+            ))
     asset_info, asset_info_created = get_asset_info(
         service_environment,
         warehouse,
@@ -254,6 +253,7 @@ def update_assets(data, date, usages):
         data['model']['height_of_device'],
         date,
     )
+    logger.info('Successfully saved {}'.format(dc_asset_repr))
     return asset_info_created
 
 
@@ -284,11 +284,33 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     return usage_type
 
 
+def get_unknown_service_env():
+    service_uid, env_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
+        'ralph3_tenant', (None, None)
+    )
+    unknown_service_env = None
+    if service_uid:
+        try:
+            unknown_service_env = ServiceEnvironment.objects.get(
+                service__ci_uid=service_uid,
+                environment__name=env_name,
+            )
+        except ServiceEnvironment.DoesNotExist:
+            pass
+    if not unknown_service_env:
+        raise UnknownServiceEnvironmentNotConfiguredError()
+    return unknown_service_env
+
+
 @plugin.register(
     chain='scrooge',
-    requires=['service', 'environment', 'warehouse', 'asset_model']
+    requires=[
+        'ralph3_service_environment',
+        'ralph3_data_center',
+        'ralph3_asset_model'
+    ]
 )
-def asset(**kwargs):
+def ralph3_asset(**kwargs):
     """
     Updates assets and usages
 
@@ -315,6 +337,13 @@ def asset(**kwargs):
     usage_price.price = D('1')
     usage_price.forecast_price = D('1')
     usage_price.save()
+
+    try:
+        unknown_service_env = get_unknown_service_env()
+    except UnknownServiceEnvironmentNotConfiguredError:
+        msg = 'Unknown service environment not configured for "asset"'
+        logger.error(msg)
+        return (False, msg)
 
     usages = {
         'depreciation': depreciation_usage,
@@ -357,28 +386,13 @@ def asset(**kwargs):
         "invoice_date__isnull=True",
         "invoice_date__lt={}".format(date.isoformat()),
     )
-    data_combined = get_combined_data(queries)
-    data_combined = preprocess_data(data_combined)
-    for data in data_combined:
+    for data in get_combined_data(queries):
         total += 1
-        try:
-            created = update_assets(data, date, usages)
-            if created:
-                new += 1
-            else:
-                update += 1
-        except ServiceEnvironmentDoesNotExistError:
-            msg = (
-                'DataCenterAsset {}: Service environment {} - {} ({}) does '
-                'not exist'.format(
-                    data['id'],
-                    data['service_env']['service'],
-                    data['service_env']['environment'],
-                    data['service_env']['service_uid'],
-                )
-            )
-            logger.error(msg)
-            continue
+        created = update_asset(data, date, usages, unknown_service_env)
+        if created:
+            new += 1
+        else:
+            update += 1
 
     return True, '{} new assets, {} updated, {} total'.format(
         new, update, total
@@ -386,29 +400,18 @@ def asset(**kwargs):
 
 
 def get_combined_data(queries):
-    data_combined = []
     for query in queries:
-        data_combined.extend(
-            get_from_ralph("data-center-assets", logger, query=query)
-        )
-    return data_combined
+        for asset in get_from_ralph("data-center-assets", logger, query=query):
+            if validate_asset(asset):
+                yield asset
 
 
 # Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
-def preprocess_data(data):
-    preprocessed = []
-    for asset in data:
-        if asset.get('service_env') is None:
-            logger.error(
-                "DataCenterAsset {} has no service environment"
-                .format(asset['id'])
-            )
-            continue
-        if asset['status'] == 'liquidated':
-            logger.info(
-                "Skipping DataCenterAsset {} - it's liquidated"
-                .format(asset['id'])
-            )
-            continue
-        preprocessed.append(asset)
-    return preprocessed
+def validate_asset(asset):
+    if asset['status'] == 'liquidated':
+        logger.info(
+            "Skipping DataCenterAsset {} - it's liquidated"
+            .format(asset['__str__'])
+        )
+        return False
+    return True

@@ -15,9 +15,10 @@ from django.core.management.base import BaseCommand
 from django.db.transaction import commit_on_success
 
 from ralph_scrooge.models import (
-    PricingObjectModel,
+    AssetInfo,
     BusinessLine,
     Environment,
+    PricingObjectModel,
     ProfitCenter,
     TenantInfo,
     Warehouse,
@@ -33,6 +34,7 @@ MODEL_MAPPING = {
     'Environment': (Environment, 'ci_id', 'ralph3_id'),
     'ProfitCenter': (ProfitCenter, 'ci_id', 'ralph3_id'),
     'TenantInfo': (TenantInfo, 'tenant_id', 'ralph3_tenant_id'),
+    'DataCenterAsset': (AssetInfo, 'asset_id', 'ralph3_asset_id'),
 }
 
 
