@@ -109,7 +109,7 @@ def get_cloud_provider_id(logger):
             return provider['id']
 
 
-@plugin.register(chain='scrooge', requires=['service'])
+@plugin.register(chain='scrooge', requires=['ralph3_service_environment'])
 def ralph3_cloud_project(today, **kwargs):
     new = total = 0
     try:
