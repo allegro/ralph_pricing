@@ -89,9 +89,19 @@ def run_plugins(today, plugins, run_only=False):
                 try:
                     _run_plugin(name, today)
                     done.add(name)
+                    # TODO (mkurek): remove it after migration to Ralph3 is
+                    # completed
+                    # mark some Ralph2-related plugins as done to allow
+                    # dependent plugins to run properly (they will run only
+                    # if their precondition on other plugins is completed)
+                    done.update(
+                        settings.RALPH3_COLLECT_PLUGINS_MAPPING.get(name, [])
+                    )
                     yield name, True
                 except PluginError:
                     yield name, False
+            else:
+                logger.debug('{} not on plugin list. Skipping..'.format(name))
 
         # save not executed plugins
         for p in set(plugins) - tried:

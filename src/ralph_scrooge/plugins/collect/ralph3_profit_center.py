@@ -42,7 +42,7 @@ def update_profit_center(pc, default_business_line):
     return created
 
 
-@plugin.register(chain='scrooge', requires=['business_segment'])
+@plugin.register(chain='scrooge', requires=['ralph3_business_segment'])
 def ralph3_profit_center(**kwargs):
     new_pc = total = 0
     default_business_line = BusinessLine.objects.get(pk=1)

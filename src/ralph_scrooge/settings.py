@@ -50,6 +50,14 @@ COLLECT_PLUGINS = set([
     'vip',
     'virtual',
 ])
+RALPH3_COLLECT_PLUGINS_MAPPING = {
+    'ralph3_service_environment': ['service', 'environment'],
+    'ralph3_profit_center': ['profit_center'],
+    'ralph3_data_center': ['warehouse'],
+    'ralph3_business_segment': ['business_line'],
+    'ralph3_asset_model': ['asset_model'],
+    'ralph3_asset': ['asset'],
+}
 
 SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE = False
 UNKNOWN_SERVICES_ENVIRONMENTS = {
