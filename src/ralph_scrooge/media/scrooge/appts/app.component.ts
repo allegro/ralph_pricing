@@ -4,6 +4,7 @@ import { ROUTER_DIRECTIVES, Route, Router, RouteConfig } from "@angular/router-d
 import { ConfigService } from "./config.service";
 import { HttpClient } from "./http-client";
 import { MonthlyCostsComponent } from "./monthly-costs/monthly-costs.component";
+import { UsagesReportComponent } from "./usages-report/usages-report.component";
 
 
 @Component({
@@ -13,6 +14,7 @@ import { MonthlyCostsComponent } from "./monthly-costs/monthly-costs.component";
 })
  @RouteConfig([
   { path: "/monthly-costs", name: "MonhtlyCosts", component: MonthlyCostsComponent },
+  { path: "/usages-report", name: "UsagesReport", component: UsagesReportComponent },
 ])
 export class AppComponent implements OnInit {
 

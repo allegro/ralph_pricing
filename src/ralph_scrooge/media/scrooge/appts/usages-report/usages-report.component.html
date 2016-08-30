@@ -1,0 +1,31 @@
+<div class="well well-sm">
+  <h4>Services Usages Report</h4>
+  This report provides info regarding usages of resources for all services within selected time frame.
+</div>
+<div class="well well-sm">
+  <div class="row">
+    <div class="col-md-12">
+      <horizontal-calendar [dates]="dates" (notify)="onNotify($event)"></horizontal-calendar>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+      <input type="text" #startDatePicker [(ngModel)]="dates.startDate" autocomplete="off" placeholder="Start date" />
+      <input type="text" #endDatePicker [(ngModel)]="dates.endDate" autocomplete="off" placeholder="End date" />
+    </div>
+    <div class="col-md-2">
+      Show only active <input type="checkbox" [(ngModel)]="onlyActive" />
+    </div>
+    <div class="col-md-4">
+      Usage types
+      <select (change)="setSelectedType($event)" multiple>
+        <option *ngFor="let item of types" [value]="item[0]">{{ item[1] }}</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="button" class="btn btn-primary" (click)="onClickDownload()">
+        Download CSV
+      </button>
+    </div>
+  </div>
+</div>

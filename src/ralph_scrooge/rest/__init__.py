@@ -18,6 +18,8 @@ from ralph_scrooge.rest.reports import (
     UsagesReportContent
 )
 from ralph_scrooge.rest.monthly_costs import AcceptMonthlyCosts, MonthlyCosts
+from ralph_scrooge.rest.usagetypes import UsageTypesViewSet
+
 
 __all__ = [
     'AcceptMonthlyCosts',
@@ -30,5 +32,6 @@ __all__ = [
     'ObjectCostsContent',
     'ServicesCostsReportContent',
     'UsagesReportContent',
+    'UsageTypesViewSet',
     'MonthlyCosts'
 ]

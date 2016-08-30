@@ -64,7 +64,7 @@ class SubMenu(APIView):
                 },
                 {
                     'name': 'Usages report',
-                    'href': '/scrooge/services-usages-report',
+                    'href': '/scrooge/ui/#/usages-report',
                 },
                 {
                     'name': 'Monthly costs',

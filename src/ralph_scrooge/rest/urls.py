@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns, url, include
 from django.contrib.auth.decorators import login_required
 
 from ralph_scrooge.rest import (
@@ -21,7 +21,7 @@ from ralph_scrooge.rest import (
     ServicesCostsReportContent,
     UsagesReportContent,
 )
-
+from ralph_scrooge.rest.router import urlpatterns as router_urlpatterns
 from ralph_scrooge.rest.menu import SubMenu
 from ralph_scrooge.utils.security import (
     scrooge_permission,
@@ -31,6 +31,7 @@ from ralph_scrooge.utils.security import (
 
 urlpatterns = patterns(
     '',
+    url(r'^', include(router_urlpatterns)),  # TODO Permissions?
     url(
         r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/?$',
         scrooge_permission(AllocationAdminContent.as_view()),
@@ -77,7 +78,7 @@ urlpatterns = patterns(
         scrooge_permission(MonthlyCosts.as_view()),
         name="monhtly-costs",
     ),
-     url(
+    url(
         r'^accept_monthly_costs/?$',
         scrooge_permission(AcceptMonthlyCosts.as_view()),
         name="accept-monhtly-costs",
