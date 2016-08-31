@@ -64,6 +64,7 @@ UNKNOWN_SERVICES_ENVIRONMENTS = {
     'tenant': {},
     'ralph3_tenant': (None, None),
     'netflow': (None, None),
+    'asset': (None, None),
 }
 
 ADDITIONAL_PRICING_OBJECT_TYPES = {}
