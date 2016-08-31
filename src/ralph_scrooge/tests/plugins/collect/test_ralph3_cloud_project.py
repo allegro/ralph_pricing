@@ -37,10 +37,7 @@ class TestServiceCollectPlugin(TestCase):
     def setUp(self):
         ServiceEnvironmentFactory.reset_sequence()
         self.service_environment = ServiceEnvironmentFactory()
-        self.unknown_service_environment = ServiceEnvironmentFactory(
-            service__ci_uid=UNKNOWN_SERVICE_ENVIRONMENT[0],
-            environment__name=UNKNOWN_SERVICE_ENVIRONMENT[1],
-        )
+        self.unknown_service_environment = ServiceEnvironmentFactory()
         self.today = datetime.date(2014, 7, 1)
 
     def _get_sample_tenant(self):
