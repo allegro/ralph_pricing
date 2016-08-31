@@ -407,12 +407,12 @@ def get_combined_data(queries):
     """
     for query in queries:
         for asset in get_from_ralph("data-center-assets", logger, query=query):
-            if validate_asset(asset):
+            if should_be_handled_by_scrooge(asset):
                 yield asset
 
 
 # Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
-def validate_asset(asset):
+def should_be_handled_by_scrooge(asset):
     """
     Check if asset should be handled by Scrooge.
 
