@@ -195,7 +195,11 @@ def update_asset(data, date, usages, unknown_service_env):
                 )
             )
 
-    if data.get('rack') is None:
+    if (
+        data.get('rack') is None or
+        data['rack'].get('server_room') is None or
+        data['rack']['server_room'].get('data_center') is None
+    ):
         warehouse = Warehouse.objects.get(pk=1)  # Default one from fixtures
         logger.warning('Missing rack for DC Asset {}'.format(dc_asset_repr))
     else:
@@ -286,7 +290,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
 
 def get_unknown_service_env():
     service_uid, env_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
-        'ralph3_tenant', (None, None)
+        'ralph3_asset', (None, None)
     )
     unknown_service_env = None
     if service_uid:

@@ -9,6 +9,7 @@ import datetime
 import mock
 
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from ralph_scrooge.models import (
     AssetInfo,
@@ -30,17 +31,31 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
+UNKNOWN_SERVICE_ENVIRONMENT = ('os-1', 'env1')
+TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS = dict(
+    UNKNOWN_SERVICES_ENVIRONMENTS={
+        'ralph3_asset': UNKNOWN_SERVICE_ENVIRONMENT
+    },
+)
+
+
+@override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
 class TestAssetPlugin(TestCase):
     def setUp(self):
         ServiceFactory.reset_sequence()
         EnvironmentFactory.reset_sequence()
         ServiceEnvironmentFactory.reset_sequence()
         self.service_environment = ServiceEnvironmentFactory()
+        self.unknown_service_environment = ServiceEnvironmentFactory(
+            service__ci_uid=UNKNOWN_SERVICE_ENVIRONMENT[0],
+            environment__name=UNKNOWN_SERVICE_ENVIRONMENT[1],
+        )
         self.date = datetime.date.today()
         self.warehouse = WarehouseFactory.create()
         self.value = 100
         self.data = {
             'id': 1,
+            '__str__': 'data center asset: s12345.mydc.net (BC: Barcode / SN: SerialNumber)',  # noqa
             'sn': 'SerialNumber',
             'barcode': 'Barcode',
             'hostname': 'host1',
@@ -156,7 +171,7 @@ class TestAssetPlugin(TestCase):
             1
         )
 
-    def test_a_update_assets_when_service_does_not_exist(self):
+    def test_a_update_asset_when_service_does_not_exist(self):
         self.data['service_env']['service_uid'] = 'uid-xxx'
         self.usages = {
             'depreciation': UsageTypeFactory.create(),
@@ -165,10 +180,15 @@ class TestAssetPlugin(TestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
-            asset.update_assets(self.data, self.date, self.usages)
+        asset.update_asset(
+            self.data, self.date, self.usages, self.unknown_service_environment
+        )
+        asset_info = AssetInfo.objects.get()
+        self.assertEqual(
+            asset_info.service_environment, self.unknown_service_environment
+        )
 
-    def test_update_assets_when_warehouse_does_not_exist(self):
+    def test_update_asset_when_warehouse_does_not_exist(self):
         self.data['rack']['server_room']['data_center'] = None
         self.usages = {
             'depreciation': UsageTypeFactory.create(),
@@ -177,11 +197,28 @@ class TestAssetPlugin(TestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        asset.update_assets(self.data, self.date, self.usages)
+        asset.update_asset(
+            self.data, self.date, self.usages, self.unknown_service_environment
+        )
         asset_info = AssetInfo.objects.get()
         self.assertEqual(asset_info.warehouse_id, 1)  # from fixtures
 
-    def test_update_assets_when_environment_does_not_exist(self):
+    def test_update_asset_when_rack_empty(self):
+        self.data['rack'] = None
+        self.usages = {
+            'depreciation': UsageTypeFactory.create(),
+            'assets_count': UsageTypeFactory.create(),
+            'cores_count': UsageTypeFactory.create(),
+            'power_consumption': UsageTypeFactory.create(),
+            'collocation': UsageTypeFactory.create(),
+        }
+        asset.update_asset(
+            self.data, self.date, self.usages, self.unknown_service_environment
+        )
+        asset_info = AssetInfo.objects.get()
+        self.assertEqual(asset_info.warehouse_id, 1)  # from fixtures
+
+    def test_update_asset_when_environment_does_not_exist(self):
         self.data['service_env']['environment'] = 'Non-ExistentEnv'
         self.usages = {
             'depreciation': UsageTypeFactory.create(),
@@ -190,10 +227,15 @@ class TestAssetPlugin(TestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        with self.assertRaises(asset.ServiceEnvironmentDoesNotExistError):
-            asset.update_assets(self.data, self.date, self.usages)
+        asset.update_asset(
+            self.data, self.date, self.usages, self.unknown_service_environment
+        )
+        asset_info = AssetInfo.objects.get()
+        self.assertEqual(
+            asset_info.service_environment, self.unknown_service_environment
+        )
 
-    def test_update_assets(self):
+    def test_update_asset(self):
         self.usages = {
             'depreciation': UsageTypeFactory.create(),
             'assets_count': UsageTypeFactory.create(),
@@ -201,7 +243,12 @@ class TestAssetPlugin(TestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        self.assertTrue(asset.update_assets(self.data, self.date, self.usages))
+        self.assertTrue(
+            asset.update_asset(
+                self.data, self.date, self.usages,
+                self.unknown_service_environment
+            )
+        )
         self.assertEqual(
             DailyUsage.objects.all().count(),
             5,
@@ -216,7 +263,7 @@ class TestAssetPlugin(TestCase):
         )
         self.assertEqual(
             PricingObject.objects.all().count(),
-            2,  # 1 dummy for service environment, 1 regular
+            3,  # 2 dummy for service environment, 1 regular
         )
         self.assertEqual(
             DailyPricingObject.objects.all().count(),
@@ -232,7 +279,7 @@ class TestAssetPlugin(TestCase):
         data = [self.data]
         get_combined_data_mock.side_effect = sample_get_combined_data
         self.assertEqual(
-            asset.asset(today=self.date),
+            asset.ralph3_asset(today=self.date),
             (True, u'1 new assets, 0 updated, 1 total')
         )
 
@@ -245,24 +292,10 @@ class TestAssetPlugin(TestCase):
         data = [self.data]
         get_combined_data_mock.side_effect = sample_get_combined_data
         self.assertEqual(
-            asset.asset(today=self.date),
+            asset.ralph3_asset(today=self.date),
             (True, u'1 new assets, 0 updated, 1 total')
         )
         self.assertEqual(
-            asset.asset(today=self.date),
+            asset.ralph3_asset(today=self.date),
             (True, u'0 new assets, 1 updated, 1 total')
-        )
-
-    @mock.patch('ralph_scrooge.plugins.collect.ralph3_asset.get_combined_data')
-    def test_assets_when_no_effect(self, get_combined_data_mock):
-        self.data['service_env']['service_uid'] = ServiceFactory.build().ci_uid
-
-        def sample_get_combined_data(queries):
-            return data
-
-        data = [self.data]
-        get_combined_data_mock.side_effect = sample_get_combined_data
-        self.assertEqual(
-            asset.asset(today=self.date),
-            (True, u'0 new assets, 0 updated, 1 total')
         )

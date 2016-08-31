@@ -38,7 +38,7 @@ class TestServiceCollectPlugin(TestCase):
         ServiceEnvironmentFactory.reset_sequence()
         self.service_environment = ServiceEnvironmentFactory()
         self.unknown_service_environment = ServiceEnvironmentFactory(
-            service__name=UNKNOWN_SERVICE_ENVIRONMENT[0],
+            service__ci_uid=UNKNOWN_SERVICE_ENVIRONMENT[0],
             environment__name=UNKNOWN_SERVICE_ENVIRONMENT[1],
         )
         self.today = datetime.date(2014, 7, 1)
