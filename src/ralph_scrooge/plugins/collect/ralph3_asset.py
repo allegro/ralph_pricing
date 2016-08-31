@@ -203,7 +203,7 @@ def update_asset(data, date, usages, unknown_service_env):
             dc_id = data['rack']['server_room']['data_center']['id']
             warehouse = Warehouse.objects.get(ralph3_id=dc_id)
         except Warehouse.DoesNotExist:
-            warehouse = Warehouse.objects.get(pk=1)  # Default one from fixtures
+            warehouse = Warehouse.objects.get(pk=1)  # Default from fixtures
             logger.warning('Invalid data center for {}: {}'.format(
                 dc_asset_repr, data['rack']['server_room']['data_center']['id']
             ))
