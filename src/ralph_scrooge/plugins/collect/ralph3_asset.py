@@ -160,19 +160,16 @@ def update_asset(data, date, usages, unknown_service_env):
     """
     Updates single asset.
 
-    Creates asset (Device object for backward compatibility) if not exists,
-    then creates daily snapshot of this device.
+    Creates asset if not exists, then creates its daily snapshot.
 
-    Only assets with assigned device and warehouse are processed!
-
-    XXX is this still a valid description..?
+    When asset has no service-env, unknown is used.
+    When asset has no data center assigned, default (from fixtures) is used.
 
     :param dict data: Data from assets API
     :param object date: datetime
     :param dict usages: Dict with usage types from Django ORM UsageType
-    :returns tuple: Success for this update and information about
-                    create or update
-    :rtype tuple:
+    :returns: True, if asset info was created, else False
+    :rtype boolean:
     """
     dc_asset_repr = data['__str__']
     if data.get('service_env') is None:
@@ -270,7 +267,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     :param boolean by_warehouse: Flag by_warehouse
     :param boolean by_cost: Flag by_cost
     :param boolean average: Flag average
-    XXX describe param 'type'
+    :param str type: Type of UsageType (see UsageType.TYPE_CHOICES for details)
     :returns object: Django ORM UsageType object
     :rtype object:
     """
@@ -404,6 +401,10 @@ def ralph3_asset(**kwargs):
 
 
 def get_combined_data(queries):
+    """
+    Generates (chain) data from multiple queries to Ralph3. Each row is
+    validated (if Scrooge should handle this asset or not).
+    """
     for query in queries:
         for asset in get_from_ralph("data-center-assets", logger, query=query):
             if validate_asset(asset):
@@ -412,10 +413,16 @@ def get_combined_data(queries):
 
 # Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
 def validate_asset(asset):
+    """
+    Check if asset should be handled by Scrooge.
+
+    Returns True if it should, False otherwise.
+    """
     if asset['status'] == 'liquidated':
         logger.info(
-            "Skipping DataCenterAsset {} - it's liquidated"
-            .format(asset['__str__'])
+            "Skipping DataCenterAsset {} - it's liquidated".format(
+                asset['__str__']
+            )
         )
         return False
     return True
