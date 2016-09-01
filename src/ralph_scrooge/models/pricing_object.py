@@ -310,7 +310,10 @@ class DailyAssetInfo(DailyPricingObject):
 
 
 class VirtualInfo(PricingObject):
-    device_id = db.IntegerField(unique=True, verbose_name=_("Ralph device ID"))
+    device_id = db.IntegerField(
+        unique=True, null=True, verbose_name=_("Ralph device ID")
+    )
+    ralph3_id = db.IntegerField(unique=True, null=True, blank=True)
 
     class Meta:
         app_label = 'ralph_scrooge'

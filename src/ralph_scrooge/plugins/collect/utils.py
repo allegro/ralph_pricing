@@ -12,6 +12,7 @@ import requests
 # TODO(xor-xor): Add tests for this function once responses lib will
 # incorporate this bugfix: https://github.com/getsentry/responses/pull/109
 # (or come up with some other tool to mock Ralph).
+# TODO(mkurek): change query from string to dict
 def get_from_ralph(endpoint, logger, query=None, limit=100):
     """Performs a GET request on Ralph's API endpoint, with optional query in
     form of 'key1=value1&key1=value2' and limit defaults to 100 (and since
