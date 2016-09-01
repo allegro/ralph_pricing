@@ -32,6 +32,9 @@ VIP_TYPES = []
 # Database
 DATABASE_TYPES = []
 
+# Blade server
+RALPH3_BLADE_SERVER_CATEGORY_ID = None
+
 # Pricing statistics default config
 WARNINGS_LIMIT_FOR_USAGES = 40
 
@@ -64,7 +67,7 @@ UNKNOWN_SERVICES_ENVIRONMENTS = {
     'tenant': {},
     'ralph3_tenant': (None, None),
     'netflow': (None, None),
-    'asset': (None, None),
+    'ralph3_asset': (None, None),
 }
 
 ADDITIONAL_PRICING_OBJECT_TYPES = {}
