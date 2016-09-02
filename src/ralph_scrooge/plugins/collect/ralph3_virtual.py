@@ -88,7 +88,8 @@ def update_virtual_info(group_name, data, date, service_environment):
         try:
             hypervisor = DailyAssetInfo.objects.get(
                 asset_info__ralph3_asset_id=(
-                    # TODO: use id field instead of url
+                    # TODO: use id field instead of url (need to implement it
+                    # in Ralph3)
                     data['hypervisor']['url'].rstrip('/').rpartition('/')[2]
                 ),
                 date=date,
