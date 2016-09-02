@@ -60,6 +60,10 @@ def update_blade_server(data, date, usage_type):
         return update_usage(
             daily_asset_info,
             date,
+            # we store 1 for each blade server so we're charing each blade
+            # server equally here (no matter what resources it have), so
+            # basically each service is charged proportionally to the count
+            # of blade servers they have
             1,
             usage_type,
         )
