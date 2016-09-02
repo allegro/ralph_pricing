@@ -57,6 +57,7 @@ RALPH3_COLLECT_PLUGINS_MAPPING = {
     'ralph3_business_segment': ['business_line'],
     'ralph3_asset_model': ['asset_model'],
     'ralph3_asset': ['asset'],
+    'ralph3_cloud_project': ['tenant'],
 }
 
 SYNC_SERVICES_ONLY_CALCULATED_IN_SCROOGE = False
