@@ -1,31 +1,30 @@
 import { Injectable } from "@angular/core";
 import { URLSearchParams, Response } from "@angular/http";
 import { Observable } from "rxjs/Observable";
-import { ConfigService } from "../config.service";
-import { HttpClient } from "../http-client";
+import { HttpClient } from "./http-client";
+import { ConfigService } from "./config.service";
 
 import "rxjs/add/operator/catch";
 import "rxjs/add/operator/map";
 
-
 @Injectable()
-export class UsagesReportService {
-
-  private url: string = ConfigService.get("usagesReportAPIUrl");
+export class ReportService{
 
   constructor(
     private http: HttpClient
   ) { }
+
+  getCSV(url: string, params: URLSearchParams): Observable<JSON> {
+    return this.http.get(url, params).map(
+      this.extractSingleData
+    ).catch(this.handleError);
+  }
 
   getTypes(): Observable<JSON> {
     let url: string = ConfigService.get("usageTypeAPIUrl");
     return this.http.get(url).map(this.extractSingleData).catch(
       this.handleError
     );
-  }
-
-  getCSV(params: URLSearchParams): Observable<Response> {
-    return this.http.get(this.url, params).catch(this.handleError);
   }
 
   private extractSingleData(res: Response) {

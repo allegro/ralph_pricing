@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row padding">
   <div class="col-md-4">
     <div class="btn-group btn-group-sm" role="group" *ngIf="years">
       <button *ngFor="let year of years" type="button" (click)="onClickYear(year)" class="btn {{ activeYear == year ? 'btn-success' : 'btn-default' }}">{{ year }}</button>

@@ -1,6 +1,6 @@
 <div class="well well-sm">
-  <h4>Services Usages Report</h4>
-  This report provides info regarding usages of resources for all services within selected time frame.
+  <h4>Services Costs Report</h4>
+  This report provides detailed info regarding costs for all services within selected time frame.
 </div>
 <div class="well well-sm">
   <form class="form-inline">
@@ -10,11 +10,15 @@
         <input type="text" #startDatePicker [(ngModel)]="dates.startDate" autocomplete="off" placeholder="Start date" />
         <input type="text" #endDatePicker [(ngModel)]="dates.endDate" autocomplete="off" placeholder="End date" />
       </div>
-      <div class="col-md-6">
-        Usage types
-        <select (change)="setSelectedType($event)" multiple>
-          <option *ngFor="let item of types" [value]="item[0]">{{ item[1] }}</option>
-        </select>
+      <div class="col-md-3">
+        <label>
+          <input type="checkbox" [(ngModel)]="forecast" /> Forecast
+        </label>
+      </div>
+      <div class="col-md-3">
+        <label>
+          <input type="checkbox" [(ngModel)]="onlyActive" /> Show only active
+        </label>
       </div>
       <div class="col-md-2">
         <button type="button" class="btn btn-primary" (click)="onClickDownload()">

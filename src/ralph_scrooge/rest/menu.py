@@ -52,7 +52,7 @@ class SubMenu(APIView):
             menu.extend([
                 {
                     'name': 'Allocations admin',
-                    'href': '#/allocation/admin/',
+                    'href': '/scrooge/#/allocation/admin/',
                     'leftMenu': [],
                     'calendarMenu': 'monthly',
                     'auto_choose_env': True,
@@ -60,7 +60,7 @@ class SubMenu(APIView):
                 },
                 {
                     'name': 'Costs report',
-                    'href': '/scrooge/services-costs-report',
+                    'href': '/scrooge/ui/#/costs-report',
                 },
                 {
                     'name': 'Usages report',

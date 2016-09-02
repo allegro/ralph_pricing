@@ -61,19 +61,19 @@ class ScroogeMenu(Menu):
                 _("Costs report"),
                 name='services-costs-report',
                 fugue_icon='fugue-store-medium',
-                view_name='services_costs_report',
+                href='/scrooge/ui/#/costs-report',
             ),
             MenuItem(
                 _("Usages report"),
                 name='services-usages-report',
                 fugue_icon='fugue-calendar-day',
-                view_name='services_usages_report',
+                href='/scrooge/ui/#/usages-report'
             ),
             MenuItem(
-                _("Costs calculation"),
-                name='costs-calculation',
+                _("Monthly costs"),
+                name='monthly-costs',
                 fugue_icon='fugue-money-bag',
-                view_name='costs_calculation',
+                href='/scrooge/ui/#/monthly-costs'
             ),
         ]
 

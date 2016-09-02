@@ -79,11 +79,12 @@
       "monthly-cost.component.template": "{% static 'scrooge/appts/monthly-costs/monthly-costs.component.html' %}",
       "horizontal-calendar.component.template": "{% static 'scrooge/appts/horizontal-calendar/horizontal-calendar.component.html' %}",
       "usages-report.component.template": "{% static 'scrooge/appts/usages-report/usages-report.component.html' %}",
+      "costs-report.component.template": "{% static 'scrooge/appts/costs-report/costs-report.component.html' %}",
       "monhtlyCostsAPIUrl": "{% url 'monhtly-costs' %}",
       "usageTypeAPIUrl": "{% url 'usagetype-list' %}",
       "acceptMonhtyCostsAPIUrl": "{% url 'accept-monhtly-costs' %}",
       "usagesReportAPIUrl": "{% url 'usages_report_rest' %}",
-      "serviceCostsReportAPIUrl": "{% url 'services_costs_report_rest' %}"
+      "costsReportAPIUrl": "{% url 'services_costs_report_rest' %}"
     }
     System.import('{% static "scrooge/dist/main.js" %}').then(null, console.error.bind(console));
   </script>

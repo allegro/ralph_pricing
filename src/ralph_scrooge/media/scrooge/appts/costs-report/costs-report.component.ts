@@ -12,18 +12,18 @@ declare var $: any;
 
 
 @Component({
-  templateUrl: ConfigService.get("usages-report.component.template"),
+  templateUrl: ConfigService.get("costs-report.component.template"),
   providers: [HTTP_PROVIDERS, ReportService],
   directives: [FORM_DIRECTIVES, HorizontalCalendarComponent, FlashComponent],
 })
-export class UsagesReportComponent implements AfterViewInit {
+export class CostsReportComponent implements AfterViewInit {
 
   private refreshTimeOut: number = 5000;
   public dates: {[key: string]: string} = {startdDate: "", endDate: ""};
-  public selectTypes: string[] = [];
-  public types: Array<{0: number; 1: string}> = [];
   @ViewChild("startDatePicker") startDatePicker;
   @ViewChild("endDatePicker") endDatePicker;
+  public onlyActive: boolean = false;
+  public forecast: boolean = false;
   public progress: string = "";
 
   constructor(
@@ -39,16 +39,6 @@ export class UsagesReportComponent implements AfterViewInit {
     };
     $(this.startDatePicker.nativeElement).datepicker(dateParams);
     $(this.endDatePicker.nativeElement).datepicker(dateParams);
-
-    this.reportService.getTypes().subscribe(
-      json => {
-        this.types = [];
-        for (let item in json) {
-          let type: any = json[item];
-          this.types.push([type["id"], type["name"]]);
-        }
-      }
-    );
   }
 
   onNotify(event: Event) {
@@ -58,29 +48,20 @@ export class UsagesReportComponent implements AfterViewInit {
     }
   }
 
-  setSelectedType(event: any) {
-    this.selectTypes = [];
-    for (var i in event.target.selectedOptions){
-      if (event.target.selectedOptions[i].label){
-        this.selectTypes.push(event.target.selectedOptions[i].value);
-      }
-    }
-  }
-
   getCSVFile() {
     let params: URLSearchParams = new URLSearchParams();
     params.set("start", $(this.startDatePicker.nativeElement).val());
     params.set("end", $(this.endDatePicker.nativeElement).val());
-    for (let item of this.selectTypes) {
-      params.append("usage_types", String(item));
-    }
-    let url: string = ConfigService.get("usagesReportAPIUrl");
+    params.set("forecast", (this.forecast) ? "1" : "0");
+    params.set("is_active", (this.forecast) ? "1" : "0");
+
+    let url: string = ConfigService.get("costsReportAPIUrl");
     this.reportService.getCSV(url, params).subscribe(
       json => {
         this.progress = `${json["progress"]}%`;
         if (json["finished"]) {
           params.set("report_format", "csv");
-          let url: string = `${ConfigService.get("usagesReportAPIUrl")}/?${params.toString()}`;
+          let url: string = `${ConfigService.get("costsReportAPIUrl")}/?${params.toString()}`;
           this.flashService.addMessage(
             ["success", "File generated."]
           );

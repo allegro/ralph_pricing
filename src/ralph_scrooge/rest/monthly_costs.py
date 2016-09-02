@@ -60,7 +60,15 @@ class AcceptMonthlyCosts(APIView):
 class MonthlyCosts(APIView, WorkerJob):
 
     _return_job_meta = True
-    cache_all_done_timeout = 60
+    queue_name = get_queue_name('scrooge_costs_master', 'scrooge_costs')
+    cache_name = get_cache_name('scrooge_costs_master', 'scrooge_costs')
+    cache_section = 'scrooge_costs'
+    cache_timeout = 60 * 60 * 24  # 24 hours (max time for plugin to run)
+    # cache for main (master) job result
+    cache_final_result_timeout = 60  # 1 minute
+    # cache for partial results for each day when every job is done (costs
+    # for each day are recalculated)
+    cache_all_done_timeout = 60  # 1 minute
 
     def __init__(self, *args, **kwargs):
         self.progress = 0
@@ -90,16 +98,19 @@ class MonthlyCosts(APIView, WorkerJob):
 
     def get(self, request, job_id, *args, **kwargs):
         job = self.get_rq_job(job_id)
+        progress, data, job, meta = self.run_on_worker(
+            **job.kwargs
+        )
         status = 'running'
-        data = {}
+        data = data or {}
+        data = sorted(data.items(), key=lambda k: k[0]),
+        data = [(str(i[0].date()), i[1]) for i in data[0]]
         if job.is_finished:
-            data = sorted(job.result.items(), key=lambda k: k[0]),
-            data = [(str(i[0].date()), i[1]) for i in data[0]]
             status = 'finished'
         elif job.is_failed:
             status = 'failed'
 
-        return Response({'status': status, 'data': data})
+        return Response({'status': status, 'data': data, 'progress': progress})
 
     @classmethod
     def forget_cache(cls, start, end, **kwargs):
@@ -117,19 +128,6 @@ class MonthlyCosts(APIView, WorkerJob):
             key = _get_cache_key(cls.cache_section, day=day, **kwargs)
             cached = cache.get(key)
             cache.set(key, cached, timeout=cls.cache_all_done_timeout)
-
-    def clear_cache(self, start, end, **kwargs):
-        """
-        Clear cache for period of time as clearing for one day at once.
-
-        :param start: start date
-        :type start: datetime.date
-        :param end: end date
-        :type end: datetime.date
-        """
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self._clear_cache(day=day, **kwargs)
-        self._clear_cache(start=start, end=end, **kwargs)
 
     @classmethod
     @transaction.commit_on_success
@@ -221,6 +219,7 @@ class MonthlyCosts(APIView, WorkerJob):
             # if day is in statuses, it was already calculated - do not check
             # it again
             if day in statuses:
+                total_progress += step
                 continue
             dcj = DailyCostsJob()
             progress, success, job, result = dcj.run_on_worker(

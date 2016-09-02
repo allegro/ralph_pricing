@@ -10,6 +10,7 @@ import { daysInMonth } from "../utils";
   templateUrl: ConfigService.get("horizontal-calendar.component.template"),
   providers: [HTTP_PROVIDERS],
   directives: [FORM_DIRECTIVES],
+  styles: [".padding { padding-bottom:5px; }"]
 })
 export class HorizontalCalendarComponent implements OnInit {
 

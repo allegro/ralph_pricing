@@ -20,12 +20,13 @@ declare var $: any;
 })
 export class MonthlyCostsComponent implements AfterViewInit {
 
-  private refreshTimeOut: number = 30000;
+  private refreshTimeOut: number = 5000;
   public dates: {[key: string]: string} = {startdDate: "", endDate: ""};
   public forecast: boolean;
   public results: Array<{0: string; 1: string}> = [];
   @ViewChild("startDatePicker") startDatePicker;
   @ViewChild("endDatePicker") endDatePicker;
+  public progress: string = "";
 
   constructor(
     private monthlyCostsService: MonthlyCostsService,
@@ -53,6 +54,7 @@ export class MonthlyCostsComponent implements AfterViewInit {
     if (jobId) {
       this.monthlyCostsService.getJobInfo(jobId).subscribe(
         (json) => {
+          this.progress = `${json["progress"]}%`;
           if (json["status"] === "finished" && json["data"]) {
             this.results = json["data"];
             this.flashService.addMessage(
@@ -80,6 +82,7 @@ export class MonthlyCostsComponent implements AfterViewInit {
 
   onClickRecalculate() {
     let params: Object = this.getParams();
+    this.progress = "0%";
     this.monthlyCostsService.recalculate(params).subscribe(
       json => {
         this.results = [];

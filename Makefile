@@ -20,4 +20,4 @@ runserver:
 
 install_ui:
 	npm install
-	gulp
+	./node_modules/.bin/gulp

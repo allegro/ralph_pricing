@@ -17,8 +17,8 @@
       </li>
     </ul>
     <ul *ngIf="subMenus" class="nav navbar-fixed-top nav-tabs nav-submenu">
-      <li *ngFor="let subMenu of subMenus" class="cos">
-        <a href="{{ subMenu[0] }}">
+      <li *ngFor="let subMenu of subMenus" [class.active]="activeMenu == subMenu[0]">
+        <a (click)="onClickMenu(subMenu[0])">
           {{ subMenu[1] }}
         </a>
       </li>
@@ -30,7 +30,6 @@
     <div class="content col-xs-12">
       <div class="row data">
         <div class="col-xs-12 col-md-12 animate-show loading-bar-spinner-container content-container">
-
           <router-outlet></router-outlet>
         </div>
       </div>
