@@ -10,7 +10,7 @@ import re
 
 from ralph_scrooge.utils.common import memoize
 
-from ralph.util import plugin
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.models import Warehouse
 
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')

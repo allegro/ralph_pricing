@@ -21,7 +21,7 @@ from itertools import chain
 from django.conf import settings
 from pymongo import MongoClient
 
-from ralph.util import plugin
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.plugins.collect.openstack_ceilometer_mysql import (
     CeilometerMysqlPlugin,
 )

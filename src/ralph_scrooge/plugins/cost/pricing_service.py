@@ -13,13 +13,13 @@ from decimal import Decimal as D
 from django.conf import settings
 from django.db.models import Sum
 
-from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
     DynamicExtraCostType,
     ExtraCostType,
     Team,
     UsageType,
 )
+from ralph_scrooge.plugins import plugin as plugin_runner
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 from ralph_scrooge.utils.common import memoize

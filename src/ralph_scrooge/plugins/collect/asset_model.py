@@ -7,12 +7,12 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph.util import plugin
 from ralph_assets.api_scrooge import get_models
 from ralph_scrooge.models import (
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
 )
+from ralph_scrooge.plugins import plugin
 
 
 logger = logging.getLogger(__name__)

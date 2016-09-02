@@ -8,7 +8,7 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph.util import api_scrooge
 from ralph_scrooge.models import (
     AssetInfo,
     DatabaseInfo,
@@ -16,7 +16,7 @@ from ralph_scrooge.models import (
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
 )
-
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError,
 )

@@ -9,9 +9,9 @@ import logging
 
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph.util.api_scrooge import get_profit_centers
 from ralph_scrooge.models import BusinessLine, ProfitCenter
+from ralph_scrooge.plugins import plugin
 
 
 logger = logging.getLogger(__name__)

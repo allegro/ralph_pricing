@@ -9,7 +9,7 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph.util import api_scrooge
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
@@ -20,6 +20,7 @@ from ralph_scrooge.models import (
     UsageType,
     VirtualInfo,
 )
+from ralph_scrooge.plugins import plugin
 
 
 logger = logging.getLogger(__name__)

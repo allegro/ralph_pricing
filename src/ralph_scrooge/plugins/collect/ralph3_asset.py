@@ -14,7 +14,6 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     AssetInfo,
     DailyUsage,
@@ -24,6 +23,7 @@ from ralph_scrooge.models import (
     UsageType,
     Warehouse,
 )
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError
 )

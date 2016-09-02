@@ -12,7 +12,6 @@ from collections import defaultdict
 import paramiko
 from django.conf import settings
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     DailyPricingObject,
     DailyUsage,
@@ -21,6 +20,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     UsageType,
 )
+from ralph_scrooge.plugins import plugin
 
 
 logger = logging.getLogger(__name__)

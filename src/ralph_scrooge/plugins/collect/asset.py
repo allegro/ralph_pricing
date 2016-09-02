@@ -11,7 +11,6 @@ from decimal import Decimal as D
 from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph_assets.api_scrooge import get_assets
 from ralph_scrooge.models import (
     AssetInfo,
@@ -24,6 +23,7 @@ from ralph_scrooge.models import (
     UsageType,
     Warehouse,
 )
+from ralph_scrooge.plugins import plugin
 
 
 logger = logging.getLogger(__name__)

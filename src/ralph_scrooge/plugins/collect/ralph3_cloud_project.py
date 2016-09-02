@@ -9,9 +9,6 @@ import logging
 
 from django.conf import settings
 
-# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
-# which won't be tied to Ralph.
-from ralph.util import plugin
 from ralph_scrooge.models import (
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
@@ -20,6 +17,7 @@ from ralph_scrooge.models import (
     # (i.e., 'tenant' -> 'cloud_project').
     TenantInfo,
 )
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError,
 )

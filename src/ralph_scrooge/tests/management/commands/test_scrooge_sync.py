@@ -12,7 +12,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ralph.util import plugin
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.management.commands import scrooge_sync
 
 

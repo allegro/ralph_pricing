@@ -9,7 +9,6 @@ import logging
 
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     Environment,
     ProfitCenter,
@@ -19,6 +18,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     ServiceOwnership,
 )
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 

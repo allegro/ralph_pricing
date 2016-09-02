@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph.util import plugin
 from ralph.util.api_scrooge import get_fc_cards
 from ralph_scrooge.models import (
     AssetInfo,
@@ -15,6 +14,7 @@ from ralph_scrooge.models import (
     DailyUsage,
     UsageType,
 )
+from ralph_scrooge.plugins import plugin
 
 logger = logging.getLogger(__name__)
 

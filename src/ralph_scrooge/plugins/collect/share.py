@@ -10,12 +10,12 @@ import logging
 from django.conf import settings
 
 from ralph.util.api_scrooge import get_shares
-from ralph.util import plugin
 from ralph_scrooge.models import (
     DailyUsage,
     AssetInfo,
     UsageType,
 )
+from ralph_scrooge.plugins import plugin
 
 
 logger = logging.getLogger(__name__)

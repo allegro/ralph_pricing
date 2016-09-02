@@ -10,7 +10,6 @@ import logging
 from django.conf import settings
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph.util.api_scrooge import get_services
 from ralph_scrooge.models import (
     Environment,
@@ -21,6 +20,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     ServiceOwnership,
 )
+from ralph_scrooge.plugins import plugin
 
 
 logger = logging.getLogger(__name__)

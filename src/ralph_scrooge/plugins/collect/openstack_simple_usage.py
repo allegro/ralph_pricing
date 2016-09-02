@@ -10,8 +10,8 @@ import logging
 from django.conf import settings
 from novaclient.v1_1 import client as nova_client
 
-from ralph.util import plugin
 from ralph_scrooge.models import DailyUsage, TenantInfo, UsageType, Warehouse
+from ralph_scrooge.plugins import plugin
 
 logger = logging.getLogger(__name__)
 

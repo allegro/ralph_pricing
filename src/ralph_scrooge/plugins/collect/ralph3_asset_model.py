@@ -7,13 +7,11 @@ from __future__ import unicode_literals
 
 import logging
 
-# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
-# which won't be tied to Ralph.
-from ralph.util import plugin
 from ralph_scrooge.models import (
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
 )
+from ralph_scrooge.plugins import plugin
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
