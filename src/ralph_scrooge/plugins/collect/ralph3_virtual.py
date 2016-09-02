@@ -41,8 +41,8 @@ def update_virtual_usage(
     :param DailyVirtualInfo daily_virtual_info: daily virtual info
     :param ServiceEnvironment service_environment: ServiceEnvironment object
     :param UsageType usage_type: UsageType object
-    :param dict data: Dict with data from ralph
-    :param float value: resources used
+    :param datetime.date date: processing date
+    :param float value: used resources (ex. cores count, memory size etc)
     """
     usage, usage_created = DailyUsage.objects.get_or_create(
         date=date,
@@ -63,7 +63,10 @@ def get_or_create_model(group_name, data):
     Returns appropriate Pricing Object Model for group_name and Ralph device
     model.
     """
-    # TODO(mkurek): use update_or_create
+    if not data['type']:
+        logger.warning('Type not set for VM {}'.format(data['__str__']))
+        return None
+    # TODO(mkurek): use update_or_create after migration to Django>=1.7
     model = PricingObjectModel.objects.get_or_create(
         model_id=data['type']['id'],
         type_id=PRICING_OBJECT_TYPES.VIRTUAL,
@@ -112,10 +115,7 @@ def update_virtual_info(group_name, data, date, service_environment):
         created = True
     virtual_info.service_environment = service_environment
     virtual_info.name = data['hostname']
-    if data['type']:
-        virtual_info.model = get_or_create_model(group_name, data)
-    else:
-        logger.warning('Type not set for VM {}'.format(data['__str__']))
+    virtual_info.model = get_or_create_model(group_name, data)
     virtual_info.save()
     daily_virtual_info = virtual_info.get_daily_pricing_object(date)
     daily_virtual_info.hypervisor = hypervisor
@@ -228,7 +228,7 @@ def get_unknown_service_env(group_name):
     return unknown_service_env
 
 
-# virtual usages requires assets plugin to get proper devices
+# virtual usages requires assets plugin to get hypervisors
 @plugin.register(chain='scrooge', requires=['ralph3_asset'])
 def ralph3_virtual(**kwargs):
     """Updates the virtual usages from Ralph."""
