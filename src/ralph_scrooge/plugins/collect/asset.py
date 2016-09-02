@@ -168,12 +168,15 @@ def update_assets(data, date, usages):
             service__ci_id=data['service_id'],
             environment__ci_id=data['environment_id'],
         )
-    except ServiceEnvironment.DoesNotExist:
+    except (
+        ServiceEnvironment.DoesNotExist,
+        ServiceEnvironment.MultipleObjectsReturned
+    ):
         raise ServiceEnvironmentDoesNotExistError()
 
     try:
         warehouse = Warehouse.objects.get(id_from_assets=data['warehouse_id'])
-    except Warehouse.DoesNotExist:
+    except (Warehouse.DoesNotExist, Warehouse.MultipleObjectsReturned):
         warehouse = Warehouse.objects.get(pk=1)  # Default from fixtures
 
     asset_info, new_created = get_asset_info(
