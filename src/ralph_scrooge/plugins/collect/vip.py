@@ -48,7 +48,10 @@ def save_vip_info(ralph_vip, unknown_service_environment):
             environment__ci_id=ralph_vip['environment_id'],
         )
         service_environment_found = True
-    except ServiceEnvironment.DoesNotExist:
+    except (
+        ServiceEnvironment.DoesNotExist,
+        ServiceEnvironment.MultipleObjectsReturned
+    ):
         logger.error(
             'Invalid (or missing) service environment for VIP {}-{}'.format(
                 ralph_vip['device_id'],

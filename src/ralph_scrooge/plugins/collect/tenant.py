@@ -42,7 +42,10 @@ def save_tenant_info(ralph_tenant, unknown_service_environment):
             service__ci_id=ralph_tenant['service_id'],
             environment__ci_id=ralph_tenant['environment_id'],
         )
-    except ServiceEnvironment.DoesNotExist:
+    except (
+        ServiceEnvironment.DoesNotExist,
+        ServiceEnvironment.MultipleObjectsReturned
+    ):
         logger.warning(
             'Invalid (or missing) service environment for tenant {}-{}'.format(
                 ralph_tenant['device_id'],
