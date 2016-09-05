@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework import routers
 from tastypie.api import Api
 
+import ralph_scrooge.plugins.subscribers  # XXX
 from ralph_scrooge.api import PricingServiceUsageResource, SyncStatusViewSet
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
@@ -24,7 +25,7 @@ from ralph_scrooge.views.monthly_costs import MonthlyCosts
 from ralph_scrooge.views.report_services_changes import ServicesChangesReportView  # noqa
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
-
+from ralph_scrooge.rest import left_menu
 from ralph_scrooge.utils.security import scrooge_permission
 
 v09_api = Api(api_name='v0.9')
@@ -129,4 +130,9 @@ urlpatterns = patterns(
         scrooge_permission(CollectPlugins.as_view()),
         name='collect_plugins',
     ),
+)
+
+urlpatterns += patterns(
+    '',
+    url(r'^hermes/', include('pyhermes.apps.django.urls'))
 )
