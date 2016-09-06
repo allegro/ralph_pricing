@@ -96,7 +96,7 @@ def make_csv_response(data=[], filename='export.csv', encoding='cp1250'):
     ...    ['CAR', 'COLOR'],
     ...    ['Ford', 'Red'],
     ...    ['BMW', 'Black'],
-    ...]
+    ... ]
     >>> response = make_csv_response(data=rows, filename='myfile.csv')
     """
 
