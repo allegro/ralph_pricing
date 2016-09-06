@@ -82,7 +82,9 @@ def run_plugins(today, plugins, run_only=False):
             yield name, False
     else:
         while True:
-            to_run = plugin_runner.get_possible_plugins('scrooge', done) - tried
+            to_run = (
+                plugin_runner.get_possible_plugins('scrooge', done) - tried
+            )
             if not to_run:
                 break
             name = plugin_runner.highest_priority('scrooge', to_run)
