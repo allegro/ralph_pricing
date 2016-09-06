@@ -52,10 +52,9 @@ def validate_vip_event_data(data):
     if not name:
         err = 'missing name'
         errors.append(err)
-    try:
-        IPAddress(address=ip).clean_fields()
-    except (TypeError, ValidationError):
-        err = 'invalid IP address "{}"'.format(ip)
+    if not ip:
+        err = 'missing IP address'
+        # unlike in Ralph3, we don't check if such address is valid!
         errors.append(err)
     if not port or port < 1024 or port > 49151:
         err = 'invalid port "{}"'.format(port)
