@@ -10,8 +10,9 @@ import logging
 import textwrap
 from optparse import make_option
 
-from bob.csvutil import UnicodeWriter
 from django.core.management.base import BaseCommand
+
+from ralph_scrooge.csvutil import UnicodeWriter
 
 
 logger = logging.getLogger(__name__)
