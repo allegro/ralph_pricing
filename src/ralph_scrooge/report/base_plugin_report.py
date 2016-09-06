@@ -19,7 +19,7 @@ from ralph_scrooge.models import (
     Team,
     UsageType,
 )
-from ralph_scrooge.plugins import plugin as plugin_runner
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.plugins import report  # noqa
 from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.report.base_report import BaseReport

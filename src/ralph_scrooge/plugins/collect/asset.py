@@ -23,7 +23,7 @@ from ralph_scrooge.models import (
     UsageType,
     Warehouse,
 )
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -251,7 +251,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     return usage_type
 
 
-@plugin.register(
+@plugin_runner.register(
     chain='scrooge',
     requires=['service', 'environment', 'warehouse', 'asset_model']
 )

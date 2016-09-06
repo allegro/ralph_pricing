@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._openstack_base import OpenStackBasePlugin
 
 
@@ -41,7 +41,7 @@ class CeilometerMysqlPlugin(OpenStackBasePlugin):
     """
 
 
-@plugin.register(chain='scrooge', requires=['service', 'tenant'])
+@plugin_runner.register(chain='scrooge', requires=['service', 'tenant'])
 def openstack_ceilometer_mysql(today, **kwargs):
     ceilometer = CeilometerMysqlPlugin()
     new, total = ceilometer.run_plugin(

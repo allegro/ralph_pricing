@@ -20,7 +20,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     ServiceOwnership,
 )
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ def update_service(data, date, default_profit_center):
     return created
 
 
-@plugin.register(chain='scrooge', requires=['profit_center', 'owner'])
+@plugin_runner.register(chain='scrooge', requires=['profit_center', 'owner'])
 def service(today, **kwargs):
     """
     Updates Services from CMDB

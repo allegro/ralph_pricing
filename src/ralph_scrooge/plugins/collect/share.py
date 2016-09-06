@@ -15,7 +15,7 @@ from ralph_scrooge.models import (
     AssetInfo,
     UsageType,
 )
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ def get_usage(usage_name):
     return usage_type
 
 
-@plugin.register(chain='scrooge', requires=['asset', 'virtual'])
+@plugin_runner.register(chain='scrooge', requires=['asset', 'virtual'])
 def share(**kwargs):
     """Updates the disk share usages from Ralph."""
 

@@ -10,7 +10,7 @@ import logging
 # TODO(xor-xor): Warehouse should be renamed to DataCenter (this also
 # applies to other occurrences of this name in this plugin).
 from ralph_scrooge.models import Warehouse
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
@@ -29,7 +29,7 @@ def update_data_centers(dc_from_ralph):
     return created
 
 
-@plugin.register(chain='scrooge')
+@plugin_runner.register(chain='scrooge')
 def ralph3_data_center(**kwargs):
     new = total = 0
     for dc in get_from_ralph("data-centers", logger):

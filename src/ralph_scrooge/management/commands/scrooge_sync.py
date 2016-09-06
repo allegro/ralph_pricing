@@ -15,7 +15,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from ralph_scrooge.models import SyncStatus
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -40,8 +40,10 @@ def _load_plugins():
 
 def get_collect_plugins_names():
     _load_plugins()
-    return sorted([name for name in plugin.BY_NAME['scrooge'].keys()
-                   if name in settings.COLLECT_PLUGINS])
+    return sorted([
+        name for name in plugin_runner.PLUGINS_BY_NAME['scrooge'].keys()
+        if name in settings.COLLECT_PLUGINS
+    ])
 
 
 def _run_plugin(name, today):
@@ -49,7 +51,7 @@ def _run_plugin(name, today):
     success, message = False, None
     sync_status = SyncStatus.objects.get_or_create(plugin=name, date=today)[0]
     try:
-        success, message = plugin.run(
+        success, message = plugin_runner.run(
             'scrooge',
             name,
             today=today,
@@ -80,10 +82,10 @@ def run_plugins(today, plugins, run_only=False):
             yield name, False
     else:
         while True:
-            to_run = plugin.next('scrooge', done) - tried
+            to_run = plugin_runner.get_possible_plugins('scrooge', done) - tried
             if not to_run:
                 break
-            name = plugin.highest_priority('scrooge', to_run)
+            name = plugin_runner.highest_priority('scrooge', to_run)
             tried.add(name)
             if name in plugins:
                 try:

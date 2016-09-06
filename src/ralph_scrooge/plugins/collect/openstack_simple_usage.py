@@ -11,7 +11,7 @@ from django.conf import settings
 from novaclient.v1_1 import client as nova_client
 
 from ralph_scrooge.models import DailyUsage, TenantInfo, UsageType, Warehouse
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ def get_usages(site, region, start, end):
     )
 
 
-@plugin.register(chain='scrooge', requires=['service', 'tenant'])
+@plugin_runner.register(chain='scrooge', requires=['service', 'tenant'])
 def openstack_simple_usage(today, **kwargs):
     """
     Pricing plugin for openstack simple usages

@@ -14,7 +14,7 @@ from ralph_scrooge.models import (
     DailyUsage,
     UsageType,
 )
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ def get_usage_type():
     )[0]
 
 
-@plugin.register(chain='scrooge', requires=['asset', 'service'])
+@plugin_runner.register(chain='scrooge', requires=['asset', 'service'])
 def blade_server(today, **kwargs):
     """
     Updates Blade Servers usages from Ralph

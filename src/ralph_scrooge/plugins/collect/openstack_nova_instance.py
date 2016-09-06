@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._openstack_base import OpenStackBasePlugin
 
 
@@ -44,7 +44,7 @@ class NovaInstancePlugin(OpenStackBasePlugin):
         return d
 
 
-@plugin.register(chain='scrooge', requires=['service', 'tenant'])
+@plugin_runner.register(chain='scrooge', requires=['service', 'tenant'])
 def openstack_nova_instance(today, **kwargs):
     nova_instances = NovaInstancePlugin()
     new, total = nova_instances.run_plugin(

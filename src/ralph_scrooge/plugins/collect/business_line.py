@@ -11,7 +11,7 @@ from django.db.transaction import commit_on_success
 
 from ralph.util.api_scrooge import get_business_lines
 from ralph_scrooge.models import BusinessLine
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def update_business_line(data, date):
     return created
 
 
-@plugin.register(chain='scrooge', requires=[])
+@plugin_runner.register(chain='scrooge', requires=[])
 def business_line(today, **kwargs):
     """
     Updates Business Lines from CMDB

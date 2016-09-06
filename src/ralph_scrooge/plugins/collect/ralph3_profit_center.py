@@ -12,7 +12,7 @@ from django.db.transaction import commit_on_success
 # TODO(xor-xor): BusinessLine should be renamed to BusinessSegment (this also
 # applies to other occurrences of this name in this plugin).
 from ralph_scrooge.models import BusinessLine, ProfitCenter
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
@@ -40,7 +40,7 @@ def update_profit_center(pc, default_business_line):
     return created
 
 
-@plugin.register(chain='scrooge', requires=['ralph3_business_segment'])
+@plugin_runner.register(chain='scrooge', requires=['ralph3_business_segment'])
 def ralph3_profit_center(**kwargs):
     new_pc = total = 0
     default_business_line = BusinessLine.objects.get(pk=1)

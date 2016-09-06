@@ -20,7 +20,7 @@ from ralph_scrooge.models import (
     UsageType,
     VirtualInfo,
 )
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -217,7 +217,7 @@ def get_or_create_usages(usage_names):
 
 
 # virtual usages requires assets plugin to get proper devices
-@plugin.register(chain='scrooge', requires=['asset'])
+@plugin_runner.register(chain='scrooge', requires=['asset'])
 def virtual(**kwargs):
     """Updates the virtual usages from Ralph."""
 

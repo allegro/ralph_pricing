@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import logging
 
 
-from ralph_scrooge.plugins import plugin as plugin_runner
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.report.base_plugin_report import BasePluginReport
 from ralph_scrooge.utils.common import memoize, AttributeDict
 

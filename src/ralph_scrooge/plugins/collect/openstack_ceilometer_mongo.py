@@ -21,7 +21,7 @@ from itertools import chain
 from django.conf import settings
 from pymongo import MongoClient
 
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.openstack_ceilometer_mysql import (
     CeilometerMysqlPlugin,
 )
@@ -131,7 +131,7 @@ class CeilometerMongoPlugin(CeilometerMysqlPlugin):
             ))
 
 
-@plugin.register(chain='scrooge', requires=['service', 'tenant'])
+@plugin_runner.register(chain='scrooge', requires=['service', 'tenant'])
 def openstack_ceilometer_mongo(today, **kwargs):
     ceilometer = CeilometerMongoPlugin()
     new, total = ceilometer.run_plugin(

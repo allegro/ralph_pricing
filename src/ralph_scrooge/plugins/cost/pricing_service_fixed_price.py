@@ -9,7 +9,7 @@ import logging
 from collections import defaultdict
 from decimal import Decimal as D
 
-from ralph_scrooge.plugins import plugin as plugin_runner
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.pricing_service import PricingServiceBasePlugin
 from ralph_scrooge.utils.common import memoize

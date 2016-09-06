@@ -22,7 +22,7 @@ from ralph_scrooge.models import (
     Team,
     UsageType,
 )
-from ralph_scrooge.plugins import plugin as plugin_runner
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.plugins.cost.base import (
     NoPriceCostError,
     MultiplePriceCostError,

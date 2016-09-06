@@ -12,7 +12,7 @@ from ralph_scrooge.models import (
     AssetInfo,
     SupportCost,
 )
-from ralph_scrooge.plugins import plugin
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ def update_support(data):
     return assets_count
 
 
-@plugin.register(chain='scrooge', requires=['asset'])
+@plugin_runner.register(chain='scrooge', requires=['asset'])
 def support(today, **kwargs):
     """
     Get all information about assets supports
