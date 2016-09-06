@@ -394,7 +394,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         real or forecast price/cost.
         """
         try:
-            return plugin_runner.run(
+            return plugin_runner.run_plugin(
                 'scrooge_costs',
                 usage_type.get_plugin_name(),
                 type='total_cost',
@@ -480,7 +480,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         result = {}
         for team in Team.objects.all():
             try:
-                team_cost = plugin_runner.run(
+                team_cost = plugin_runner.run_plugin(
                     'scrooge_costs',
                     'team_plugin',
                     type='total_cost',
@@ -515,7 +515,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         )
         for dependent in dependent_services:
             try:
-                dependent_cost = plugin_runner.run(
+                dependent_cost = plugin_runner.run_plugin(
                     'scrooge_costs',
                     dependent.get_plugin_name(),
                     pricing_service=dependent,
@@ -548,7 +548,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         result = {}
         for extra_cost_type in ExtraCostType.objects.all():
             try:
-                extra_cost = plugin_runner.run(
+                extra_cost = plugin_runner.run_plugin(
                     'scrooge_costs',
                     extra_cost_type.get_plugin_name(),
                     type='total_cost',
@@ -584,7 +584,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         result = {}
         for dynamic_extra_cost_type in DynamicExtraCostType.objects.all():
             try:
-                dynamic_extra_cost = plugin_runner.run(
+                dynamic_extra_cost = plugin_runner.run_plugin(
                     'scrooge_costs',
                     'dynamic_extra_cost_plugin',
                     type='total_cost',
@@ -628,14 +628,14 @@ class PricingServiceBasePlugin(BaseCostPlugin):
             )
             try:
                 # first run valid pricing service plugin to get "offical" costs
-                ps_cost = plugin_runner.run(
+                ps_cost = plugin_runner.run_plugin(
                     'scrooge_costs',
                     ps.get_plugin_name(),
                     **args
                 )
 
                 # then call universal plugin to get real cost
-                ps_real_cost = plugin_runner.run(
+                ps_real_cost = plugin_runner.run_plugin(
                     'scrooge_costs',
                     'pricing_service_plugin',
                     **args

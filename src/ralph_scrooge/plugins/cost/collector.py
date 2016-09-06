@@ -265,7 +265,7 @@ class Collector(object):
         for i, plugin in enumerate(plugins or self.get_plugins()):
             try:
                 plugin_old_queries_count = len(connection.queries)
-                plugin_report = plugin_runner.run(
+                plugin_report = plugin_runner.run_plugin(
                     'scrooge_costs',
                     plugin.plugin_name,
                     date=date,

@@ -132,7 +132,7 @@ class ServicesUsagesReport(BasePluginReport):
         for usage_type in usage_types:
             plugin_name = usage_type.get_plugin_name()
             try:
-                plugin_report = plugin_runner.run(
+                plugin_report = plugin_runner.run_plugin(
                     'scrooge_reports',
                     plugin_name,
                     type='usages',
@@ -213,7 +213,7 @@ class ServicesUsagesReport(BasePluginReport):
         ]
         usage_types_headers = []
         for usage_type in usage_types:
-            usage_type_header = plugin_runner.run(
+            usage_type_header = plugin_runner.run_plugin(
                 'scrooge_reports',
                 usage_type.get_plugin_name(),
                 usage_type=usage_type,

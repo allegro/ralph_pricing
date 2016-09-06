@@ -50,7 +50,7 @@ class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
             try:
                 # results per service environment (list of costs per pricing
                 # object as a value)
-                costs = plugin_runner.run(
+                costs = plugin_runner.run_plugin(
                     'scrooge_costs',
                     usage_type.get_plugin_name(),
                     type='costs',

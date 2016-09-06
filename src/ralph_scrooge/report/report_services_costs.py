@@ -87,7 +87,7 @@ class ServicesCostsReport(BasePluginReport):
                     plugin.plugin_name,
                     plugin.get('plugin_kwargs', {}).get('base_usage', '-'),
                 ))
-                plugin_report = plugin_runner.run(
+                plugin_report = plugin_runner.run_plugin(
                     'scrooge_reports',
                     plugin.plugin_name,
                     start=start,

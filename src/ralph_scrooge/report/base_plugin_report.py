@@ -327,7 +327,7 @@ class BasePluginReport(BaseReport):
         header = []
         for plugin in cls.get_plugins():
             try:
-                plugin_headers = plugin_runner.run(
+                plugin_headers = plugin_runner.run_plugin(
                     'scrooge_reports',
                     plugin.plugin_name,
                     type=cls.schema_name,

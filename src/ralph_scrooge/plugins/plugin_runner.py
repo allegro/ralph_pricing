@@ -9,7 +9,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-
 PLUGINS_BY_NAME = {}
 PLUGINS_BY_REQUIREMENTS = {}
 PLUGINS_BY_PRIORITIES = {}
@@ -55,21 +54,11 @@ def get_possible_plugins(chain, done_reqs):
     return ret
 
 
-def next(chain, done_reqs):
-    # TODO: deprecation log
-    return get_possible_plugins(chain, done_reqs)
-
-
 def run_plugin(chain, func_name, **kwargs):
     """
     Run a single plugin by a name.
     """
     return PLUGINS_BY_NAME[chain][func_name](**kwargs)
-
-
-def run(chain, func_name, **kwargs):
-    # TODO: add deprecation log
-    return run_plugin(chain, func_name, **kwargs)
 
 
 def highest_priority(chain, plugins):

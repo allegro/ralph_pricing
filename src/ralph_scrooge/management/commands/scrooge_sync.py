@@ -51,7 +51,7 @@ def _run_plugin(name, today):
     success, message = False, None
     sync_status = SyncStatus.objects.get_or_create(plugin=name, date=today)[0]
     try:
-        success, message = plugin_runner.run(
+        success, message = plugin_runner.run_plugin(
             'scrooge',
             name,
             today=today,
