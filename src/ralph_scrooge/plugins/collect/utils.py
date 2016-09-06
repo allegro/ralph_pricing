@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from ralph_scrooge.models import ServiceEnvironment
+
 from django.conf import settings
 import requests
 
@@ -46,3 +48,29 @@ def get_from_ralph(endpoint, logger, query=None, limit=100):
             url = resp_contents.get("next")
             for result in resp_contents.get("results", []):
                 yield result
+
+
+def get_unknown_service_env(plugin_type, subtype=None):
+    """We assume that settings.UNKNOWN_SERVICES_ENVIRONMENTS structure can be
+    be nested by one level at most.
+    """
+    val = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(plugin_type, (None, None))
+    if isinstance(val, dict):
+        if subtype is None:
+            # 'subtype' param is required for nested structures here.
+            raise UnknownServiceEnvironmentNotConfiguredError()
+        else:
+            val = val.get(subtype)
+    service_uid, env_name = val
+    unknown_service_env = None
+    if service_uid:
+        try:
+            unknown_service_env = ServiceEnvironment.objects.get(
+                service__ci_uid=service_uid,
+                environment__name=env_name,
+            )
+        except ServiceEnvironment.DoesNotExist:
+            pass
+    if not unknown_service_env:
+        raise UnknownServiceEnvironmentNotConfiguredError()
+    return unknown_service_env

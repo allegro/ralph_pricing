@@ -404,9 +404,11 @@ class DailyTenantInfo(DailyPricingObject):
 
 
 class VIPInfo(PricingObject):
-    vip_id = db.IntegerField(unique=True, verbose_name=_("Ralph VIP ID"))
+    vip_id = db.IntegerField(
+        unique=True, null=True, verbose_name=_("Ralph VIP ID")
+    )
     external_id = db.IntegerField(
-        unique=True, verbose_name=_("VIP ID from external system")
+        unique=True, null=True, verbose_name=_("VIP ID from external system")
     )
     ip_info = db.ForeignKey(
         PricingObject,

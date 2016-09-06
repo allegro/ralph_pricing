@@ -27,7 +27,10 @@ from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError
 )
-from ralph_scrooge.plugins.collect.utils import get_from_ralph
+from ralph_scrooge.plugins.collect.utils import (
+    get_from_ralph,
+    get_unknown_service_env,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -285,24 +288,6 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     return usage_type
 
 
-def get_unknown_service_env():
-    service_uid, env_name = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(
-        'ralph3_asset', (None, None)
-    )
-    unknown_service_env = None
-    if service_uid:
-        try:
-            unknown_service_env = ServiceEnvironment.objects.get(
-                service__ci_uid=service_uid,
-                environment__name=env_name,
-            )
-        except ServiceEnvironment.DoesNotExist:
-            pass
-    if not unknown_service_env:
-        raise UnknownServiceEnvironmentNotConfiguredError()
-    return unknown_service_env
-
-
 @plugin_runner.register(
     chain='scrooge',
     requires=[
@@ -340,9 +325,12 @@ def ralph3_asset(**kwargs):
     usage_price.save()
 
     try:
-        unknown_service_env = get_unknown_service_env()
+        unknown_service_env = get_unknown_service_env('ralph3_asset')
     except UnknownServiceEnvironmentNotConfiguredError:
-        msg = 'Unknown service environment not configured for "asset"'
+        msg = (
+            'Unknown service environment not configured for "ralph3_asset" '
+            'plugin'
+        )
         logger.error(msg)
         return (False, msg)
 
