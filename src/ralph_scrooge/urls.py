@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework import routers
 from tastypie.api import Api
 
-import ralph_scrooge.plugins.subscribers  # XXX
+import ralph_scrooge.plugins.subscribers  # XXX is it OK to leave this like that (with #noqa maybe)..?
 from ralph_scrooge.api import PricingServiceUsageResource, SyncStatusViewSet
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,

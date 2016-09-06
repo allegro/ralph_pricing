@@ -112,7 +112,7 @@ def get_service_env(event_data):
         )
     subtype = event_data['load_balancer_type']
     subtype = normalize_lb_type(subtype)
-    service_env = get_unknown_service_env('vip', subtype=subtype)  # XXX use 'ralph3_vip' instead
+    service_env = get_unknown_service_env('vip', subtype=subtype)  # XXX use 'ralph3_vip' instead of 'vip' in settings..?
     return (service_env, service_env_found)
 
 
