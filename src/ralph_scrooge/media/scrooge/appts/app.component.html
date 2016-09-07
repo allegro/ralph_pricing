@@ -3,18 +3,20 @@
     <ul class="nav nav-tabs nav-main bs3fake">
       <li>
         <span class="brand">
-          <a href="/">Ralph 2</a>
+          <a href="/">Scrooge</a>
         </span>
       </li>
-      <li class="active">
-        <a href="/scrooge/">Scrooge</a>
-      </li>
+
       <li class="pull-right">
         <a href="{{ logoutUrl }}">Logout</a>
+      </li>
+      <li [hidden]="!isSuperUser" class="pull-right">
+        <a href="{{ adminUrl }}">Admin</a>
       </li>
       <li class="pull-right">
         <a href="#">{{ username }}</a>
       </li>
+
     </ul>
     <ul *ngIf="subMenus" class="nav navbar-fixed-top nav-tabs nav-submenu">
       <li *ngFor="let subMenu of subMenus" [class.active]="activeMenu == subMenu[0]">
