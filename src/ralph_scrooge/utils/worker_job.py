@@ -57,11 +57,9 @@ class WorkerJob(object):
             data = self._worker_func(**kwargs)
             return (100, data, {}) if self._return_job_meta else (100, data)
         key = _get_cache_key(self.cache_section, **kwargs)
-        print(key)
         cached = cache.get(key)
         if cached is not None:
             progress, job_id, data = cached
-            print(progress, job_id, data)
             job = self.get_rq_job(job_id)
             if progress < 100 and job_id is not None:
                 if job.is_finished:
@@ -77,7 +75,6 @@ class WorkerJob(object):
                     progress = 100
                     cache.delete(key)
         else:
-            print('running new job')
             queue = django_rq.get_queue(self.queue_name)
             job = queue.enqueue_call(
                 func=self._worker_func,

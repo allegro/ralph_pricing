@@ -10,12 +10,15 @@
         <input type="text" #startDatePicker [(ngModel)]="dates.startDate" autocomplete="off" placeholder="Start date" />
         <input type="text" #endDatePicker [(ngModel)]="dates.endDate" autocomplete="off" placeholder="End date" />
       </div>
-      <div class="col-md-5">
-        Forecast <input [(ngModel)]="forecast" type="checkbox" />
+      <div class="col-md-4">
+        <label>
+        <input [(ngModel)]="forecast" type="checkbox" /> Forecast
+        </label>
       </div>
-      <div class="col-md-3">
-        <input type="button" (click)="onClickRecalculate()" class="btn btn-primary" value="Recalculate costs" />
-        <input type="button" (click)="onClickAcceptCosts()" class="btn btn-primary" value="Accept costs" />
+      <div class="col-md-4">
+          <input type="button" (click)="onClickRecalculate()" class="btn btn-primary" value="Recalculate costs" />
+          <input type="button" (click)="onClickAcceptCosts()" class="btn btn-primary" value="Accept costs" />
+          <span [hidden]="!showSpinner" class="spinner pull-right"></span>
       </div>
     </div>
   </form>

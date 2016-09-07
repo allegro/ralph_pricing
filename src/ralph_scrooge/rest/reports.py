@@ -37,7 +37,6 @@ class BaseReportContent(APIView):
         return {}
 
     def get(self, request):
-        return_data = request.QUERY_PARAMS.get('return_data', False)
         self.progress, result = self.run_on_worker(
             **self._get_params(request)
         )
@@ -58,11 +57,6 @@ class BaseReportContent(APIView):
             "progress": self.progress,
             "finished": self.progress == 100,
         }
-        if return_data:
-            response_data.update({
-                'header': self.header,
-                'content': self.data,
-            })
         return Response(response_data)
 
     def delete(self, request):

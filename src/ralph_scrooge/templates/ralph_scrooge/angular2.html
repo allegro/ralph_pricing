@@ -84,7 +84,8 @@
       "usageTypeAPIUrl": "{% url 'usagetype-list' %}",
       "acceptMonhtyCostsAPIUrl": "{% url 'accept-monhtly-costs' %}",
       "usagesReportAPIUrl": "{% url 'usages_report_rest' %}",
-      "costsReportAPIUrl": "{% url 'services_costs_report_rest' %}"
+      "costsReportAPIUrl": "{% url 'services_costs_report_rest' %}",
+      "serverErrorMessage": "{% trans 'There was a problem during communication with Scrooge. Please try again.' %}"
     }
     System.import('{% static "scrooge/dist/main.js" %}').then(null, console.error.bind(console));
   </script>

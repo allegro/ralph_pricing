@@ -18,12 +18,16 @@ declare var $: any;
 })
 export class UsagesReportComponent implements AfterViewInit {
 
+  @ViewChild("startDatePicker") startDatePicker;
+  @ViewChild("endDatePicker") endDatePicker;
+
+  private apiErrorCounter: number = 0;
+  private maxApiErrorCounter: number = 10;
   private refreshTimeOut: number = 5000;
   public dates: {[key: string]: string} = {startdDate: "", endDate: ""};
   public selectTypes: string[] = [];
   public types: Array<{0: number; 1: string}> = [];
-  @ViewChild("startDatePicker") startDatePicker;
-  @ViewChild("endDatePicker") endDatePicker;
+  public showSpinner: boolean = false;
   public progress: string = "";
 
   constructor(
@@ -60,8 +64,8 @@ export class UsagesReportComponent implements AfterViewInit {
 
   setSelectedType(event: any) {
     this.selectTypes = [];
-    for (var i in event.target.selectedOptions){
-      if (event.target.selectedOptions[i].label){
+    for (let i in event.target.selectedOptions) {
+      if (event.target.selectedOptions[i].label) {
         this.selectTypes.push(event.target.selectedOptions[i].value);
       }
     }
@@ -75,8 +79,9 @@ export class UsagesReportComponent implements AfterViewInit {
       params.append("usage_types", String(item));
     }
     let url: string = ConfigService.get("usagesReportAPIUrl");
+    this.showSpinner = true;
     this.reportService.getCSV(url, params).subscribe(
-      json => {
+      (json) => {
         this.progress = `${json["progress"]}%`;
         if (json["finished"]) {
           params.set("report_format", "csv");
@@ -88,7 +93,19 @@ export class UsagesReportComponent implements AfterViewInit {
         } else {
           setTimeout(() => this.getCSVFile(), this.refreshTimeOut);
         }
-      }
+        this.showSpinner = false;
+      },
+      (error) => {
+          this.apiErrorCounter++;
+          if (this.apiErrorCounter < this.maxApiErrorCounter) {
+            setTimeout(() => this.getCSVFile(), this.refreshTimeOut);
+          } else {
+            this.flashService.addMessage(
+              ["danger", ConfigService.get("serverErrorMessage")]
+            );
+          }
+          this.showSpinner = false;
+        }
     );
   }
 

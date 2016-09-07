@@ -8,7 +8,7 @@ import "rxjs/add/operator/catch";
 import "rxjs/add/operator/map";
 
 @Injectable()
-export class ReportService{
+export class ReportService {
 
   constructor(
     private http: HttpClient

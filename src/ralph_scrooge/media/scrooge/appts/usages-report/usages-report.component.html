@@ -20,6 +20,7 @@
         <button type="button" class="btn btn-primary" (click)="onClickDownload()">
           Download CSV
         </button>
+        <span [hidden]="!showSpinner" class="spinner pull-right"></span>
       </div>
     </div>
   </form>

@@ -20,12 +20,16 @@ declare var $: any;
 })
 export class MonthlyCostsComponent implements AfterViewInit {
 
+  @ViewChild("startDatePicker") startDatePicker;
+  @ViewChild("endDatePicker") endDatePicker;
+
+  private apiErrorCounter: number = 0;
+  private maxApiErrorCounter: number = 10;
   private refreshTimeOut: number = 5000;
   public dates: {[key: string]: string} = {startdDate: "", endDate: ""};
   public forecast: boolean;
   public results: Array<{0: string; 1: string}> = [];
-  @ViewChild("startDatePicker") startDatePicker;
-  @ViewChild("endDatePicker") endDatePicker;
+  public showSpinner: boolean = false;
   public progress: string = "";
 
   constructor(
@@ -52,6 +56,7 @@ export class MonthlyCostsComponent implements AfterViewInit {
 
   checkJob(jobId: string) {
     if (jobId) {
+      this.showSpinner = true;
       this.monthlyCostsService.getJobInfo(jobId).subscribe(
         (json) => {
           this.progress = `${json["progress"]}%`;
@@ -65,8 +70,21 @@ export class MonthlyCostsComponent implements AfterViewInit {
               ["danger", "Recalculate failed."]
             );
           } else {
+            this.results = json["data"];
             setTimeout(() => this.checkJob(jobId), this.refreshTimeOut);
           }
+          this.showSpinner = false;
+        },
+        (error) => {
+          this.apiErrorCounter++;
+          if (this.apiErrorCounter < this.maxApiErrorCounter) {
+            setTimeout(() => this.checkJob(jobId), this.refreshTimeOut);
+          } else {
+            this.flashService.addMessage(
+              ["danger", ConfigService.get("serverErrorMessage")]
+            );
+          }
+          this.showSpinner = false;
         }
       );
     }
