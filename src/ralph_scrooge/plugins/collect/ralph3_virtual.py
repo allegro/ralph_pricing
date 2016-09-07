@@ -85,18 +85,16 @@ def update_virtual_info(group_name, data, date, service_environment):
     """
     hypervisor = None
     if data.get('hypervisor') is not None:
+        # TODO: use id field instead of url (need to implement it in Ralph3)
+        hypervisor_id = data['hypervisor']['url'].rstrip('/').rpartition('/')[2]
         try:
             hypervisor = DailyAssetInfo.objects.get(
-                asset_info__ralph3_asset_id=(
-                    # TODO: use id field instead of url (need to implement it
-                    # in Ralph3)
-                    data['hypervisor']['url'].rstrip('/').rpartition('/')[2]
-                ),
+                asset_info__ralph3_asset_id=hypervisor_id,
                 date=date,
             )
         except (AssetInfo.DoesNotExist, DailyAssetInfo.DoesNotExist):
             logger.error('Hypervisor {} not found for VM {}'.format(
-                data['hypervisor']['id'], data['__str__'],
+                hypervisor_id, data['__str__'],
             ))
     else:
         logger.warning(
