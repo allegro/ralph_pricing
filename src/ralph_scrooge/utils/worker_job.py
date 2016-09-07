@@ -40,6 +40,16 @@ class WorkerJob(object):
         key = _get_cache_key(cls.cache_section, **kwargs)
         cache.set(key, None)
 
+    def get_rq_job(self, job_id):
+        """
+        Return RQ Job
+
+        Args:
+            job_id: string
+        """
+        connection = django_rq.get_connection(self.queue_name)
+        return Job.fetch(job_id, connection)
+
     def run_on_worker(self, **kwargs):
         cache = get_cache(self.cache_name)
         if isinstance(cache, DummyCache):
@@ -50,8 +60,7 @@ class WorkerJob(object):
         cached = cache.get(key)
         if cached is not None:
             progress, job_id, data = cached
-            connection = django_rq.get_connection(self.queue_name)
-            job = Job.fetch(job_id, connection)
+            job = self.get_rq_job(job_id)
             if progress < 100 and job_id is not None:
                 if job.is_finished:
                     data = job.result
@@ -81,7 +90,7 @@ class WorkerJob(object):
                 timeout=self.cache_timeout,
             )
         if self._return_job_meta:
-            return progress, data, job.meta
+            return progress, data, job, job.meta
         return progress, data
 
     @classmethod

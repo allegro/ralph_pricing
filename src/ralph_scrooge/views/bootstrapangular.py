@@ -18,3 +18,12 @@ class BootstrapAngular(MenuMixin, TemplateView):
     template_name = 'ralph_scrooge/index.html'
     submodule_name = 'scrooge'  # to satisfy MenuMixin, not used in angular
     module_name = app.module_name
+
+
+class BootstrapAngular2(MenuMixin, TemplateView):
+    """
+    Initial view for bootstrap angularjs
+    """
+    template_name = 'ralph_scrooge/angular2.html'
+    submodule_name = 'scrooge'  # to satisfy MenuMixin, not used in angular
+    module_name = app.module_name

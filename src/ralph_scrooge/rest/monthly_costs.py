@@ -10,109 +10,107 @@ import time
 from dateutil import rrule
 
 from django.conf import settings
-from django.contrib import messages
 from django.core.cache import get_cache
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from rq import get_current_job
 
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 from ralph_scrooge.plugins.cost.collector import Collector
-from ralph_scrooge.views.base import Base
 from ralph_scrooge.utils.common import get_cache_name, get_queue_name
 from ralph_scrooge.utils.worker_job import WorkerJob, _get_cache_key
-from ralph_scrooge.forms import MonthlyCostsForm
 from ralph_scrooge.models import CostDateStatus
+from ralph_scrooge.rest.serializers import MonthlyCostsSerializer
 
 
 logger = logging.getLogger(__name__)
 
 
-# TODO: rename this view to sth more general (ex. CostsRecalculation)
-class MonthlyCosts(WorkerJob, Base):
-    template_name = 'ralph_scrooge/monthly_costs.html'
-    Form = MonthlyCostsForm
-    submodule_name = 'monthly-costs'
-    title = _('Recalculate and accept costs')
-    description = _(
-        'Recalculate and accept costs for selected period of time.'
-    )
-    initial = None
+class AcceptMonthlyCosts(APIView):
 
+    def post(self, request, *args, **kwargs):
+        result = {'status': 'failed', 'message': ''}
+        serializer = MonthlyCostsSerializer(data=request.DATA)
+        if serializer.is_valid():
+            start = serializer.data['start']
+            end = serializer.data['end']
+            forecast = bool(serializer.data['forecast'])
+            calculated_costs = CostDateStatus.objects.filter(
+                date__gte=start,
+                date__lte=end,
+                forecast_calculated=forecast
+            )
+            days = (end - start).days + 1
+            if len(calculated_costs) != days:
+                result['message'] = _(
+                    'Costs were not calculated for all selected days!'
+                )
+            else:
+                calculated_costs.update(**{
+                    'forecast_accepted' if forecast else 'accepted': True,
+                })
+                result['message'] = _('Costs were accepted!')
+                result['status'] = 'ok'
+        return Response(result)
+
+
+class MonthlyCosts(APIView, WorkerJob):
+
+    _return_job_meta = True
     queue_name = get_queue_name('scrooge_costs_master', 'scrooge_costs')
     cache_name = get_cache_name('scrooge_costs_master', 'scrooge_costs')
     cache_section = 'scrooge_costs'
     cache_timeout = 60 * 60 * 24  # 24 hours (max time for plugin to run)
-    cache_final_result_timeout = 5 * 60  # 2 hours
+    # cache for main (master) job result
+    cache_final_result_timeout = 60  # 1 minute
+    # cache for partial results for each day when every job is done (costs
+    # for each day are recalculated)
     cache_all_done_timeout = 60  # 1 minute
-    refresh_time = 30
 
     def __init__(self, *args, **kwargs):
-        super(MonthlyCosts, self).__init__(*args, **kwargs)
-        self.form = None
         self.progress = 0
         self.got_query = False
         self.data = {}
 
-    def get(self, *args, **kwargs):
-        if self.request.GET:
-            self.form = self.Form(self.request.GET)
-        else:
-            self.form = self.Form(initial=self.initial)
-        if self.form.is_valid():
-            if 'recalculate' in self.request.GET:
-                self.got_query = True
-                self.progress, self.data = self.run_on_worker(
-                    **self.form.cleaned_data
+    def post(self, request, *args, **kwargs):
+        """Recalculate costs."""
+        serializer = MonthlyCostsSerializer(data=request.DATA)
+        if serializer.is_valid():
+            if serializer.data["start"] > serializer.data["end"]:
+                return Response(
+                    {'message': 'End date can not be less than start date.'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-                self.data = self.data or {}
-                if self.progress < 100:
-                    messages.warning(self.request, _(
-                        "Please wait for costs recalculation."
-                    ))
-                else:
-                    messages.success(self.request, _('Costs recalculated.'))
-            elif 'accept' in self.request.GET:
-                self.accept_costs(**self.form.cleaned_data)
-            elif 'clear' in self.request.GET:
-                self.progress = 0
-                self.clear_cache(**self.form.cleaned_data)
-                messages.success(
-                    self.request, _("Cache cleared."),
-                )
-        return super(MonthlyCosts, self).get(*args, **kwargs)
+            result = {}
+            self.got_query = True
+            self.progress, self.data, job, meta = self.run_on_worker(
+                **serializer.data
+            )
+            result['job_id'] = job.id
+            result['message'] = _(
+                'Please wait for costs recalculation.'
+            )
+            return Response(result, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_context_data(self, **kwargs):
-        context = super(MonthlyCosts, self).get_context_data(**kwargs)
-        context.update({
-            'progress': self.progress,
-            'header': [_('Date'), _('Success')],
-            'data': sorted(self.data.items(), key=lambda k: k[0]),
-            'title': self.title,
-            'description': self.description,
-            'form': self.form,
-            'got_query': self.got_query,
-            'refresh_time': self.refresh_time,
-        })
-        return context
-
-    def accept_costs(self, start, end, forecast):
-        calculated_costs = CostDateStatus.objects.filter(
-            date__gte=start,
-            date__lte=end,
-            **{'forecast_calculated' if forecast else 'calculated': True}
+    def get(self, request, job_id, *args, **kwargs):
+        job = self.get_rq_job(job_id)
+        progress, data, job, meta = self.run_on_worker(
+            **job.kwargs
         )
-        days = (end - start).days + 1
-        if len(calculated_costs) != days:
-            messages.error(self.request, _(
-                "Costs were not calculated for all selected days!"
-            ))
-        else:
-            calculated_costs.update(**{
-                'forecast_accepted' if forecast else 'accepted': True,
-            })
-            messages.success(self.request, _(
-                "Costs were accepted!"
-            ))
+        status = 'running'
+        data = data or {}
+        data = sorted(data.items(), key=lambda k: k[0]),
+        data = [(str(i[0].date()), i[1]) for i in data[0]]
+        if job.is_finished:
+            status = 'finished'
+        elif job.is_failed:
+            status = 'failed'
+
+        return Response({'status': status, 'data': data, 'progress': progress})
 
     @classmethod
     def forget_cache(cls, start, end, **kwargs):
@@ -130,56 +128,6 @@ class MonthlyCosts(WorkerJob, Base):
             key = _get_cache_key(cls.cache_section, day=day, **kwargs)
             cached = cache.get(key)
             cache.set(key, cached, timeout=cls.cache_all_done_timeout)
-
-    def clear_cache(self, start, end, **kwargs):
-        """
-        Clear cache for period of time as clearing for one day at once.
-
-        :param start: start date
-        :type start: datetime.date
-        :param end: end date
-        :type end: datetime.date
-        """
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self._clear_cache(day=day, **kwargs)
-        self._clear_cache(start=start, end=end, **kwargs)
-
-    @classmethod
-    def _check_subjobs(cls, statuses, start, end, **kwargs):
-        """
-        Check subjobs (jobs for single day) statuses.
-
-        :param statuses: shared dict with statuses (True/False) for each day
-            between start and end.
-        :type statuses: dict
-        :param start: start date
-        :type start: datetime.date
-        :param end: end date
-        :type end: datetime.date
-        """
-        days = (end - start).days + 1
-        step = 100.0 / days
-        total_progress = 0
-        results = {}
-        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            # if day is in statuses, it was already calculated - do not check
-            # it again
-            if day in statuses:
-                continue
-            dcj = DailyCostsJob()
-            progress, success, job, result = dcj.run_on_worker(
-                day=day, **kwargs
-            )
-            if progress == 100:
-                total_progress += step
-                statuses[day] = success
-            if result:
-                results[day] = result['collector_result']
-        # clear cache if all done
-        if len(statuses) == days:
-            cls.forget_cache(start, end, **kwargs)
-            total_progress = 100
-        return total_progress, statuses, results
 
     @classmethod
     @transaction.commit_on_success
@@ -249,6 +197,44 @@ class MonthlyCosts(WorkerJob, Base):
         # save all costs
         cls._save_costs(processed_results, start, end, forecast)
         yield 100, statuses
+
+    @classmethod
+    def _check_subjobs(cls, statuses, start, end, **kwargs):
+        """
+        Check subjobs (jobs for single day) statuses.
+
+        :param statuses: shared dict with statuses (True/False) for each day
+            between start and end.
+        :type statuses: dict
+        :param start: start date
+        :type start: datetime.date
+        :param end: end date
+        :type end: datetime.date
+        """
+        days = (end - start).days + 1
+        step = 100.0 / days
+        total_progress = 0
+        results = {}
+        for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
+            # if day is in statuses, it was already calculated - do not check
+            # it again
+            if day in statuses:
+                total_progress += step
+                continue
+            dcj = DailyCostsJob()
+            progress, success, job, result = dcj.run_on_worker(
+                day=day, **kwargs
+            )
+            if progress == 100:
+                total_progress += step
+                statuses[day] = success
+            if result:
+                results[day] = result['collector_result']
+        # clear cache if all done
+        if len(statuses) == days:
+            cls.forget_cache(start, end, **kwargs)
+            total_progress = 100
+        return total_progress, statuses, results
 
 
 class DailyCostsJob(WorkerJob):

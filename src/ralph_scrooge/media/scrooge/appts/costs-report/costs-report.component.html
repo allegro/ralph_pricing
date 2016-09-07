@@ -1,0 +1,35 @@
+<div class="well well-sm">
+  <h4>Services Costs Report</h4>
+  This report provides detailed info regarding costs for all services within selected time frame.
+</div>
+<div class="well well-sm">
+  <form class="form-inline">
+    <horizontal-calendar [dates]="dates" (notify)="onNotify($event)"></horizontal-calendar>
+    <div class="row">
+      <div class="col-md-4">
+        <input type="text" #startDatePicker [(ngModel)]="dates.startDate" autocomplete="off" placeholder="Start date" />
+        <input type="text" #endDatePicker [(ngModel)]="dates.endDate" autocomplete="off" placeholder="End date" />
+      </div>
+      <div class="col-md-3">
+        <label>
+          <input type="checkbox" [(ngModel)]="forecast" /> Forecast
+        </label>
+      </div>
+      <div class="col-md-3">
+        <label>
+          <input type="checkbox" [(ngModel)]="onlyActive" /> Show only active
+        </label>
+      </div>
+      <div class="col-md-2">
+        <button type="button" class="btn btn-primary" (click)="onClickDownload()">
+          Download CSV
+        </button>
+        <span [hidden]="!showSpinner" class="spinner pull-right"></span>
+      </div>
+    </div>
+  </form>
+</div>
+<flash-message></flash-message>
+<div class="progress" *ngIf="progress != ''">
+  <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" [style.width]="progress"></div>
+</div>

@@ -1,0 +1,41 @@
+<div class="well well-sm">
+  <h4>Monthly costs</h4>
+  Recalculate and accept costs for selected period of time.
+</div>
+<div class="well well-sm">
+  <form class="form-inline">
+    <horizontal-calendar [dates]="dates" (notify)="onNotify($event)"></horizontal-calendar>
+    <div class="row">
+      <div class="col-md-4">
+        <input type="text" #startDatePicker [(ngModel)]="dates.startDate" autocomplete="off" placeholder="Start date" />
+        <input type="text" #endDatePicker [(ngModel)]="dates.endDate" autocomplete="off" placeholder="End date" />
+      </div>
+      <div class="col-md-4">
+        <label>
+        <input [(ngModel)]="forecast" type="checkbox" /> Forecast
+        </label>
+      </div>
+      <div class="col-md-4">
+          <input type="button" (click)="onClickRecalculate()" class="btn btn-primary" value="Recalculate costs" />
+          <input type="button" (click)="onClickAcceptCosts()" class="btn btn-primary" value="Accept costs" />
+          <span [hidden]="!showSpinner" class="spinner pull-right"></span>
+      </div>
+    </div>
+  </form>
+</div>
+<br />
+<div class="row">
+  <div class="col-md-12">
+    <flash-message></flash-message>
+    <div class="progress" *ngIf="progress != ''">
+      <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" [style.width]="progress"></div>
+    </div>
+    <table *ngIf="results" class="table table-bordered">
+      <tr *ngFor="let item of results">
+        <td>{{ item[0] }}</td>
+        <td><i class="fa {{ icon(item[1]) }}" aria-hidden="true"></i></td>
+      </tr>
+    </table>
+  </div>
+</div>
+

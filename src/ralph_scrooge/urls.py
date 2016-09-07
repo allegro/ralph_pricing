@@ -11,7 +11,10 @@ from rest_framework import routers
 from tastypie.api import Api
 
 from ralph_scrooge.api import PricingServiceUsageResource, SyncStatusViewSet
-from ralph_scrooge.views.bootstrapangular import BootstrapAngular
+from ralph_scrooge.views.bootstrapangular import (
+    BootstrapAngular,
+    BootstrapAngular2
+)
 from ralph_scrooge.views.collect_plugins import CollectPlugins
 from ralph_scrooge.views.extra_costs import ExtraCosts
 from ralph_scrooge.views.usage_types import UsageTypes
@@ -43,6 +46,11 @@ urlpatterns = patterns(
         r'^$',
         login_required(BootstrapAngular.as_view()),
         name='services_costs_report',
+    ),
+    url(
+        r'^ui/$',
+        login_required(BootstrapAngular2.as_view()),
+        name='angular2',
     ),
     # OLD URLS
     url(

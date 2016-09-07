@@ -52,18 +52,12 @@ class BaseReportContent(APIView):
                     itertools.chain(self.header, self.data),
                     '{}.csv'.format(self.section),
                 )
-            return Response({
-                "status": True,
-                "progress": self.progress,
-                "finished": self.progress == 100,
-            })
-        return Response({
+        response_data = {
             "status": True,
             "progress": self.progress,
             "finished": self.progress == 100,
-            "header": self.header,
-            "content": self.data
-        })
+        }
+        return Response(response_data)
 
     def delete(self, request):
         self._clear_cache(**self._get_params(request))

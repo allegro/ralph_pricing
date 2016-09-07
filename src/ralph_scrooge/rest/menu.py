@@ -16,7 +16,7 @@ class SubMenu(APIView):
         menu = [
             {
                 'name': 'Components',
-                'href': '#/components/',
+                'href': '/scrooge/#/components/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'daily',
                 'auto_choose_env': False,
@@ -24,7 +24,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Cost card',
-                'href': '#/costcard/',
+                'href': '/scrooge/#/costcard/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'monthly',
                 'auto_choose_env': True,
@@ -32,7 +32,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Components costs',
-                'href': '#/costs/',
+                'href': '/scrooge/#/costs/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'range',
                 'auto_choose_env': True,
@@ -40,7 +40,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Allocations',
-                'href': '#/allocation/client/',
+                'href': '/scrooge/#/allocation/client/',
                 'leftMenu': ['services', 'teams'],
                 'calendarMenu': 'monthly',
                 'auto_choose_env': True,
@@ -52,7 +52,7 @@ class SubMenu(APIView):
             menu.extend([
                 {
                     'name': 'Allocations admin',
-                    'href': '#/allocation/admin/',
+                    'href': '/scrooge/#/allocation/admin/',
                     'leftMenu': [],
                     'calendarMenu': 'monthly',
                     'auto_choose_env': True,
@@ -60,23 +60,15 @@ class SubMenu(APIView):
                 },
                 {
                     'name': 'Costs report',
-                    'href': '/scrooge/services-costs-report',
+                    'href': '/scrooge/ui/#/costs-report',
                 },
                 {
                     'name': 'Usages report',
-                    'href': '/scrooge/services-usages-report',
+                    'href': '/scrooge/ui/#/usages-report',
                 },
                 {
-                    'name': 'Collect plugins',
-                    'href': '/scrooge/collect-plugins',
-                },
-                {
-                    'name': 'Services changes report',
-                    'href': '/scrooge/services-changes-report',
-                },
-                {
-                    'name': 'Costs calculation',
-                    'href': '/scrooge/monthly-costs',
+                    'name': 'Monthly costs',
+                    'href': '/scrooge/ui/#/monthly-costs',
                 },
             ])
         return Response(menu)

@@ -1,0 +1,12 @@
+<div class="row padding">
+  <div class="col-md-4">
+    <div class="btn-group btn-group-sm" role="group" *ngIf="years">
+      <button *ngFor="let year of years" type="button" (click)="onClickYear(year)" class="btn {{ activeYear == year ? 'btn-success' : 'btn-default' }}">{{ year }}</button>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="btn-group btn-group-sm" role="group" *ngIf="months">
+      <button *ngFor="let month of months" type="button" (click)="onClickMonth(month[0])" class="btn {{ activeMonth == month[0] ? 'btn-success' : 'btn-default' }}">{{ month[1] }}</button>
+    </div>
+  </div>
+</div>
