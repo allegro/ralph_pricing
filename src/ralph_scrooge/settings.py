@@ -181,3 +181,7 @@ COMPONENTS_TABLE_SCHEMA = {
         'model': 'ralph_scrooge.models.DailyDatabaseInfo',
     },
 }
+
+LOAD_BALANCER_TYPES_MAPPING = {
+    'HAPROXY': 'HA Proxy',
+}

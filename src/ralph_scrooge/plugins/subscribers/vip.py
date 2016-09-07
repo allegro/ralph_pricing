@@ -20,6 +20,7 @@ from ralph_scrooge.plugins.collect._exceptions import (
 )
 from ralph_scrooge.plugins.collect.utils import get_unknown_service_env
 
+from django.conf import settings
 from pyhermes.decorators import subscriber
 
 logger = logging.getLogger(__name__)
@@ -75,22 +76,15 @@ def validate_vip_event_data(data):
 
 
 def normalize_lb_type(lb_type):
-    # XXX(xor-xor): What about standarizing these names between external
-    # systems and settings..?
-    if lb_type == 'HAPROXY':
-        return 'HA Proxy'
-    else:
-        return lb_type.upper()
+    return settings.LOAD_BALANCER_TYPES_MAPPING.get(lb_type, lb_type)
 
 
 def get_vip_model(event_data):
     lb_type = normalize_lb_type(event_data['load_balancer_type'])
     model = PricingObjectModel.objects.get_or_create(
-        # model_id=event_data['type_id'],  # XXX we don't have anything like that in the incoming event_data
         name=lb_type,
         type_id=PRICING_OBJECT_TYPES.VIP,
     )[0]
-    # XXX do we need to fill ralph3_model_id field here as well..?
     return model
 
 
@@ -112,7 +106,7 @@ def get_service_env(event_data):
         )
     subtype = event_data['load_balancer_type']
     subtype = normalize_lb_type(subtype)
-    service_env = get_unknown_service_env('vip', subtype=subtype)  # XXX use 'ralph3_vip' instead of 'vip' in settings..?
+    service_env = get_unknown_service_env('vip', subtype=subtype)
     return (service_env, service_env_found)
 
 
@@ -121,10 +115,6 @@ def save_vip_info(event_data):
     try:
         vip_info = VIPInfo.objects.get(external_id=event_data['id'])
     except VIPInfo.DoesNotExist:
-        # XXX @mkurek: there was a comment in old (Ralph2-based) vip plugin:
-        # "TODO(?): check if there is single PricingObject with given name
-        # first"
-        # - is it still valid..?
         vip_info = VIPInfo(
             external_id=event_data['id'],
             type_id=PRICING_OBJECT_TYPES.VIP,
@@ -137,6 +127,9 @@ def save_vip_info(event_data):
         defaults=dict(service_environment=service_env)
     )[0]
     if service_env_found:
+        # Service associated with IP address used by given VIP is the same as
+        # the service associated with this VIP - it is useful for charging for
+        # network usage.
         ip_info.service_environment = service_env
     ip_info.save()
 
@@ -174,8 +167,6 @@ def ralph3_vip(event_data):
         logger.error(msg.format('; '.join(errors)))
         return
 
-    # XXX @mkurek: since this plugin is not governed by plugin_runner, we have
-    # lost the ability to pass an arbitrary date here - is this OK for you..?
     date = datetime.date.today()
     try:
         vip_info = save_vip_info(event_data)

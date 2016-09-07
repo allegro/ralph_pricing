@@ -33,6 +33,7 @@ setup(
     install_requires=[
         'ralph>=2.3.1',
         'ralph_assets>=2.5.1',
+        'pyhermes>=0.1.3',
         'pymongo>=2.7.2',
         'python-novaclient==2.17.0',
         'django-simple-history==1.6.3',
