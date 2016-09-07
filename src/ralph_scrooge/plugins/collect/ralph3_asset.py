@@ -10,7 +10,6 @@ from datetime import datetime
 from decimal import Decimal as D
 
 from dateutil.relativedelta import relativedelta
-from django.conf import settings
 from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 

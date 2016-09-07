@@ -22,7 +22,7 @@ from ralph_scrooge.models import (
     ProfitCenter,
     TenantInfo,
     Warehouse,
-    VirtualInfo
+    VirtualInfo,
     VIPInfo,
 )
 

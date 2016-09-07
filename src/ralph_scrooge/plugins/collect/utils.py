@@ -6,6 +6,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from ralph_scrooge.models import ServiceEnvironment
+from ralph_scrooge.plugins.collect._exceptions import (
+    UnknownServiceEnvironmentNotConfiguredError,
+)
 
 from django.conf import settings
 import requests
