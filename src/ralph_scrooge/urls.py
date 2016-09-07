@@ -21,7 +21,6 @@ from ralph_scrooge.views.monthly_costs import MonthlyCosts
 from ralph_scrooge.views.report_services_changes import ServicesChangesReportView  # noqa
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
-from ralph_scrooge.rest import left_menu
 
 from ralph_scrooge.utils.security import scrooge_permission
 
@@ -36,7 +35,6 @@ for r in (SyncStatusViewSet, ):
 urlpatterns = patterns(
     '',
     url(r'^rest/', include('ralph_scrooge.rest.urls')),
-    url(r'^leftmenu/(?P<menu_type>\S+)/$', login_required(left_menu)),
     url(r'^api/', include(v09_api.urls)),
     url(r'^api/', include(v09_router.urls)),
     url(
