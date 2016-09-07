@@ -25,7 +25,7 @@ from ralph_scrooge.views.monthly_costs import MonthlyCosts
 from ralph_scrooge.views.report_services_changes import ServicesChangesReportView  # noqa
 from ralph_scrooge.views.report_services_costs import ServicesCostsReportView
 from ralph_scrooge.views.report_services_usages import ServicesUsagesReportView  # noqa
-from ralph_scrooge.rest import left_menu
+
 from ralph_scrooge.utils.security import scrooge_permission
 
 v09_api = Api(api_name='v0.9')
