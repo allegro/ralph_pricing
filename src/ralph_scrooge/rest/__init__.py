@@ -1,4 +1,4 @@
-from ralph_scrooge.rest.base import left_menu
+from ralph_scrooge.rest.base import LeftMenuAPIView
 from ralph_scrooge.rest.components import ComponentsContent
 from ralph_scrooge.rest.allocationadmin import (
     AllocationAdminContent,
@@ -28,7 +28,7 @@ __all__ = [
     'AllocationClientPerTeam',
     'ComponentsContent',
     'CostCardContent',
-    'left_menu',
+    'LeftMenuAPIView',
     'ObjectCostsContent',
     'ServicesCostsReportContent',
     'UsagesReportContent',

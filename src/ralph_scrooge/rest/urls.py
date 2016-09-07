@@ -16,6 +16,7 @@ from ralph_scrooge.rest import (
     AllocationClientPerTeam,
     CostCardContent,
     ComponentsContent,
+    LeftMenuAPIView,
     ObjectCostsContent,
     MonthlyCosts,
     ServicesCostsReportContent,
@@ -32,6 +33,10 @@ from ralph_scrooge.utils.security import (
 urlpatterns = patterns(
     '',
     url(r'^', include(router_urlpatterns)),  # TODO Permissions?
+    url(
+        r'^leftmenu/(?P<menu_type>\S+)/$',
+        login_required(LeftMenuAPIView.as_view())
+    ),
     url(
         r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/?$',
         scrooge_permission(AllocationAdminContent.as_view()),
