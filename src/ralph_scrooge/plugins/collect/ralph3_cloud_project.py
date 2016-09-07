@@ -9,9 +9,6 @@ import logging
 
 from django.conf import settings
 
-# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
-# which won't be tied to Ralph.
-from ralph.util import plugin
 from ralph_scrooge.models import (
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
@@ -20,6 +17,7 @@ from ralph_scrooge.models import (
     # (i.e., 'tenant' -> 'cloud_project').
     TenantInfo,
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError,
 )
@@ -109,7 +107,9 @@ def get_cloud_provider_id(logger):
             return provider['id']
 
 
-@plugin.register(chain='scrooge', requires=['ralph3_service_environment'])
+@plugin_runner.register(
+    chain='scrooge', requires=['ralph3_service_environment']
+)
 def ralph3_cloud_project(today, **kwargs):
     new = total = 0
     try:

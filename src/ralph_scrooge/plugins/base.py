@@ -10,7 +10,7 @@ import re
 
 from ralph_scrooge.utils.common import memoize
 
-from ralph.util import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.models import Warehouse
 
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
@@ -32,7 +32,7 @@ def register(*rargs, **rkwargs):
     """
     def wrap(cls):
         wrapper = cls()
-        plugin.register(wrapper, *rargs, **rkwargs)
+        plugin_runner.register(wrapper, *rargs, **rkwargs)
         return wrapper
     return wrap
 

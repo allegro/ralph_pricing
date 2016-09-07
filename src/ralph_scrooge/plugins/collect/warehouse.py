@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph.util import plugin
 from ralph_assets.api_scrooge import get_warehouses
 from ralph_scrooge.models import Warehouse
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ def update_warehouses(data):
     return created
 
 
-@plugin.register(chain='scrooge')
+@plugin_runner.register(chain='scrooge')
 def warehouse(**kwargs):
     """
     Get all information about warehouses

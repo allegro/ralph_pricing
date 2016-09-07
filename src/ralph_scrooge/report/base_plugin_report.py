@@ -11,7 +11,6 @@ from decimal import Decimal as D
 from ralph_scrooge.utils.common import memoize
 from django.utils.translation import ugettext_lazy as _
 
-from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
     DynamicExtraCostType,
     ExtraCostType,
@@ -20,6 +19,7 @@ from ralph_scrooge.models import (
     Team,
     UsageType,
 )
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.plugins import report  # noqa
 from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.report.base_report import BaseReport
@@ -327,7 +327,7 @@ class BasePluginReport(BaseReport):
         header = []
         for plugin in cls.get_plugins():
             try:
-                plugin_headers = plugin_runner.run(
+                plugin_headers = plugin_runner.run_plugin(
                     'scrooge_reports',
                     plugin.plugin_name,
                     type=cls.schema_name,

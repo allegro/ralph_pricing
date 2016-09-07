@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import logging
 
 
-from ralph.util import plugin as plugin_runner
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.report.base_plugin_report import BasePluginReport
 from ralph_scrooge.utils.common import memoize, AttributeDict
 
@@ -87,7 +87,7 @@ class ServicesCostsReport(BasePluginReport):
                     plugin.plugin_name,
                     plugin.get('plugin_kwargs', {}).get('base_usage', '-'),
                 ))
-                plugin_report = plugin_runner.run(
+                plugin_report = plugin_runner.run_plugin(
                     'scrooge_reports',
                     plugin.plugin_name,
                     start=start,

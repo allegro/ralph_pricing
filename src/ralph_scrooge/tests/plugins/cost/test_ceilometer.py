@@ -47,7 +47,7 @@ class TestPricingServiceFixedPricePluginPlugin(TestCase):
         self.service_environments = ServiceEnvironmentFactory.create_batch(2)
         self.maxDiff = None
 
-    @mock.patch('ralph_scrooge.plugins.cost.pricing_service_fixed_price.plugin_runner.run')  # noqa
+    @mock.patch('ralph_scrooge.plugins.cost.pricing_service_fixed_price.plugin_runner.run_plugin')  # noqa
     def test_costs(self, plugin_runner_mock):
         def effect(
             chain,

@@ -9,7 +9,7 @@ import logging
 from collections import defaultdict
 from decimal import Decimal as D
 
-from ralph.util import plugin as plugin_runner
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.pricing_service import PricingServiceBasePlugin
 from ralph_scrooge.utils.common import memoize
@@ -50,7 +50,7 @@ class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
             try:
                 # results per service environment (list of costs per pricing
                 # object as a value)
-                costs = plugin_runner.run(
+                costs = plugin_runner.run_plugin(
                     'scrooge_costs',
                     usage_type.get_plugin_name(),
                     type='costs',

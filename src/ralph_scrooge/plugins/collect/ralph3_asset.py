@@ -14,7 +14,6 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     AssetInfo,
     DailyUsage,
@@ -24,6 +23,7 @@ from ralph_scrooge.models import (
     UsageType,
     Warehouse,
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError
 )
@@ -303,7 +303,7 @@ def get_unknown_service_env():
     return unknown_service_env
 
 
-@plugin.register(
+@plugin_runner.register(
     chain='scrooge',
     requires=[
         'ralph3_service_environment',

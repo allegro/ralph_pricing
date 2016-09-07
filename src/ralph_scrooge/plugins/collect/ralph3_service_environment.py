@@ -9,7 +9,6 @@ import logging
 
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     Environment,
     ProfitCenter,
@@ -19,6 +18,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     ServiceOwnership,
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
@@ -97,7 +97,7 @@ def update_environment(env_from_ralph):
     return created
 
 
-@plugin.register(chain='scrooge', requires=['ralph3_profit_center'])
+@plugin_runner.register(chain='scrooge', requires=['ralph3_profit_center'])
 def ralph3_service_environment(**kwargs):
     new_services = total_services = 0
     new_envs = total_envs = 0

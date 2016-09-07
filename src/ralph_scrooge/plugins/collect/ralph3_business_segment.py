@@ -9,12 +9,10 @@ import logging
 
 from django.db.transaction import commit_on_success
 
-# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
-# which won't be tied to Ralph.
-from ralph.util import plugin
 # TODO(xor-xor): BusinessLine should be renamed to BusinessSegment (this also
 # applies to other occurrences of this name in this plugin).
 from ralph_scrooge.models import BusinessLine
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
@@ -34,7 +32,7 @@ def update_business_segment(bl):
     return created
 
 
-@plugin.register(chain='scrooge', requires=[])
+@plugin_runner.register(chain='scrooge', requires=[])
 def ralph3_business_segment(**kwargs):
     new_bl = total = 0
     for bl in get_from_ralph("business-segments", logger):

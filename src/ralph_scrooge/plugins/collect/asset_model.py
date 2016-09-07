@@ -7,12 +7,12 @@ from __future__ import unicode_literals
 
 import logging
 
-from ralph.util import plugin
 from ralph_assets.api_scrooge import get_models
 from ralph_scrooge.models import (
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
 )
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def update_asset_model(data):
     return created
 
 
-@plugin.register(chain='scrooge')
+@plugin_runner.register(chain='scrooge')
 def asset_model(**kwargs):
     """
     Get all information about assets models

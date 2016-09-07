@@ -7,13 +7,11 @@ from __future__ import unicode_literals
 
 import logging
 
-# TODO(xor-xor): To be eventually replaced by some other plugin mechanism,
-# which won't be tied to Ralph.
-from ralph.util import plugin
 from ralph_scrooge.models import (
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
 
@@ -34,7 +32,7 @@ def update_asset_model(model):
     return created
 
 
-@plugin.register(chain='scrooge')
+@plugin_runner.register(chain='scrooge')
 def ralph3_asset_model(**kwargs):
     new = total = 0
     # fetch only data center models

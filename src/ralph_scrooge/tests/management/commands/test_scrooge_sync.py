@@ -12,7 +12,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ralph.util import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.management.commands import scrooge_sync
 
 
@@ -24,7 +24,9 @@ class TestScroogeSync(TestCase):
     def test_load_plugins(self):
         scrooge_sync._load_plugins()
         self.assertTrue(scrooge_sync.PLUGINS_LOADED)
-        self.assertGreater(len(plugin.BY_NAME.get('scrooge', {})), 0)
+        self.assertGreater(
+            len(plugin_runner.PLUGINS_BY_NAME.get('scrooge', {})), 0
+        )
 
     @override_settings(COLLECT_PLUGINS=COLLECT_PLUGINS)
     def test_get_collect_plugins_names(self):
@@ -33,14 +35,14 @@ class TestScroogeSync(TestCase):
             COLLECT_PLUGINS
         )
 
-    @patch('ralph_scrooge.management.commands.scrooge_sync.plugin.run')
+    @patch('ralph_scrooge.management.commands.scrooge_sync.plugin_runner.run_plugin')  # noqa
     def test_run_plugin(self, plugin_run_mock):
         plugin_run_mock.return_value = True, 'Everything OK'
         today = datetime.date.today()
         scrooge_sync._run_plugin('abc', today)
         plugin_run_mock.assert_called_with('scrooge', 'abc', today=today)
 
-    @patch('ralph_scrooge.management.commands.scrooge_sync.plugin.run')
+    @patch('ralph_scrooge.management.commands.scrooge_sync.plugin_runner.run_plugin')  # noqa
     def test_run_plugin_failure(self, plugin_run_mock):
         plugin_run_mock.return_value = False, 'Something goes wrong'
         today = datetime.date.today()
@@ -48,7 +50,7 @@ class TestScroogeSync(TestCase):
             scrooge_sync._run_plugin('abc', today)
         plugin_run_mock.assert_called_with('scrooge', 'abc', today=today)
 
-    @patch('ralph_scrooge.management.commands.scrooge_sync.plugin.run')
+    @patch('ralph_scrooge.management.commands.scrooge_sync.plugin_runner.run_plugin')  # noqa
     def test_run_plugin_exception(self, plugin_run_mock):
         def side_effect(*args, **kwargs):
             raise Exception('Plugin error')

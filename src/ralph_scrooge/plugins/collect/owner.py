@@ -9,9 +9,9 @@ import logging
 
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph.util.api_scrooge import get_owners
 from ralph_scrooge.models import Owner
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def update_owner(data, date):
     return created
 
 
-@plugin.register(chain='scrooge', requires=[])
+@plugin_runner.register(chain='scrooge', requires=[])
 def owner(today, **kwargs):
     """
     Updates Owners from CMDB

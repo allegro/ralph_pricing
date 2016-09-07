@@ -9,9 +9,9 @@ import logging
 
 from django.db.transaction import commit_on_success
 
-from ralph.util import plugin
 from ralph.util.api_scrooge import get_profit_centers
 from ralph_scrooge.models import BusinessLine, ProfitCenter
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def update_profit_center(data, date, default_business_line):
     return created
 
 
-@plugin.register(chain='scrooge', requires=['business_line'])
+@plugin_runner.register(chain='scrooge', requires=['business_line'])
 def profit_center(today, **kwargs):
     """
     Updates Business Lines from CMDB

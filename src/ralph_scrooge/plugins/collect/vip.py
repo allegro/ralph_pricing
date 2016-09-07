@@ -8,7 +8,7 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph.util import api_scrooge
 from ralph_scrooge.models import (
     AssetInfo,
     PricingObject,
@@ -18,6 +18,7 @@ from ralph_scrooge.models import (
     VIPInfo,
     VirtualInfo,
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError,
 )
@@ -145,7 +146,7 @@ def get_unknown_service_environment(model_name):
     return unknown_service_environment
 
 
-@plugin.register(chain='scrooge', requires=['service', 'asset'])
+@plugin_runner.register(chain='scrooge', requires=['service', 'asset'])
 def vip(today, **kwargs):
     new = total = 0
     for vip_type in settings.VIP_TYPES:

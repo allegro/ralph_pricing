@@ -8,13 +8,14 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin, api_scrooge
+from ralph.util import api_scrooge
 from ralph_scrooge.models import (
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     TenantInfo,
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError,
 )
@@ -113,7 +114,7 @@ def get_unknown_service_environment(model_name):
     return unknown_service_environment
 
 
-@plugin.register(chain='scrooge', requires=['service'])
+@plugin_runner.register(chain='scrooge', requires=['service'])
 def tenant(today, **kwargs):
     new = total = 0
     # check if all unknown SE are configured

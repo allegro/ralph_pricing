@@ -12,7 +12,6 @@ from dateutil import rrule
 from django.conf import settings
 from django.db import connection
 
-from ralph.util import plugin as plugin_runner
 from ralph_scrooge.models import (
     CostDateStatus,
     DailyCost,
@@ -23,6 +22,7 @@ from ralph_scrooge.models import (
     Team,
     UsageType,
 )
+from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.plugins.cost.base import (
     NoPriceCostError,
     MultiplePriceCostError,
@@ -265,7 +265,7 @@ class Collector(object):
         for i, plugin in enumerate(plugins or self.get_plugins()):
             try:
                 plugin_old_queries_count = len(connection.queries)
-                plugin_report = plugin_runner.run(
+                plugin_report = plugin_runner.run_plugin(
                     'scrooge_costs',
                     plugin.plugin_name,
                     date=date,

@@ -12,7 +12,6 @@ from collections import defaultdict
 import paramiko
 from django.conf import settings
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     DailyPricingObject,
     DailyUsage,
@@ -21,6 +20,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     UsageType,
 )
+from ralph_scrooge.plugins import plugin_runner
 
 
 logger = logging.getLogger(__name__)
@@ -358,7 +358,7 @@ def delete_previous_usages(date):
     DailyUsage.objects.filter(type=usage_type, date=date).delete()
 
 
-@plugin.register(chain='scrooge', requires=['service'])
+@plugin_runner.register(chain='scrooge', requires=['service'])
 def netflow(**kwargs):
     """
     Getting network usage per service is included in the two steps.

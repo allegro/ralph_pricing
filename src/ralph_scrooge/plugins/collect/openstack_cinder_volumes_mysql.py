@@ -19,7 +19,7 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._openstack_base import OpenStackBasePlugin
 
 logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class CinderVolumesPlugin(OpenStackBasePlugin):
         return d
 
 
-@plugin.register(chain='scrooge', requires=['service', 'tenant'])
+@plugin_runner.register(chain='scrooge', requires=['service', 'tenant'])
 def openstack_cinder_volumes_mysql(today, **kwargs):
     cinder_volumes = CinderVolumesPlugin()
     new, total = cinder_volumes.run_plugin(
