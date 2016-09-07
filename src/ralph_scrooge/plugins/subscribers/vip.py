@@ -104,9 +104,9 @@ def get_service_env(event_data):
         logger.warning(
             msg.format(event_data['service']['uid'], event_data['environment'])
         )
-    subtype = event_data['load_balancer_type']
-    subtype = normalize_lb_type(subtype)
-    service_env = get_unknown_service_env('vip', subtype=subtype)
+        subtype = event_data['load_balancer_type']
+        subtype = normalize_lb_type(subtype)
+        service_env = get_unknown_service_env('vip', subtype=subtype)
     return (service_env, service_env_found)
 
 
@@ -138,9 +138,6 @@ def save_vip_info(event_data):
     vip_info.name = event_data['name']
     vip_info.port = event_data['port']
     vip_info.ip_info = ip_info
-    # We are temporarily null-ifying load_balancer field here, since there's no
-    # ralph3_asset_id (or anything like that) in the incoming event_data (yet).
-    vip_info.load_balancer = None
     vip_info.service_environment = service_env
     vip_info.save()
     return vip_info
@@ -157,7 +154,7 @@ def save_daily_vip_info(vip_info, date):
 @subscriber(
     topic='refreshVipEvent',
 )
-def ralph3_vip(event_data):
+def vip(event_data):
     errors = validate_vip_event_data(event_data)
     if errors:
         msg = (
@@ -172,8 +169,7 @@ def ralph3_vip(event_data):
         vip_info = save_vip_info(event_data)
     except UnknownServiceEnvironmentNotConfiguredError:
         msg = (
-            'Unknown service environment not configured for "ralph3_vip" '
-            'plugin'
+            'Unknown service environment not configured for "vip" plugin'
         )
         logger.error(msg)
         return
