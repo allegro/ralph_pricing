@@ -132,7 +132,14 @@ urlpatterns = patterns(
     ),
 )
 
-urlpatterns += patterns(
-    '',
-    url(r'^hermes/', include('pyhermes.apps.django.urls'))
-)
+# TODO(xor-xor): Uncomment patterns for hermes below once Scrooge will be
+# completely separated from Ralph. And remember, that endpoint for
+# refreshVipEvent subscription will change from:
+# /hermes/events/refreshVipEvent/
+# to:
+# /scrooge/hermes/events/refreshVipEvent/.
+#
+# urlpatterns += patterns(
+#     '',
+#     url(r'^hermes/', include('pyhermes.apps.django.urls'))
+# )
