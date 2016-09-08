@@ -9,13 +9,13 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
     DailyUsage,
     UsageType
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.ralph3_asset import (
     should_be_handled_by_scrooge
 )
@@ -85,7 +85,7 @@ def get_usage_type():
     )[0]
 
 
-@plugin.register(
+@plugin_runner.register(
     chain='scrooge', requires=['ralph3_asset', 'ralph3_service_environment']
 )
 def ralph3_blade_server(today, **kwargs):

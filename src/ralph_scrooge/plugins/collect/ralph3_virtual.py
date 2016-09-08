@@ -9,7 +9,6 @@ import logging
 
 from django.conf import settings
 
-from ralph.util import plugin
 from ralph_scrooge.models import (
     AssetInfo,
     DailyAssetInfo,
@@ -20,6 +19,7 @@ from ralph_scrooge.models import (
     UsageType,
     VirtualInfo,
 )
+from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError
 )
@@ -230,7 +230,7 @@ def get_unknown_service_env(group_name):
 
 
 # virtual usages requires assets plugin to get hypervisors
-@plugin.register(chain='scrooge', requires=['ralph3_asset'])
+@plugin_runner.register(chain='scrooge', requires=['ralph3_asset'])
 def ralph3_virtual(**kwargs):
     """Updates the virtual usages from Ralph."""
 
