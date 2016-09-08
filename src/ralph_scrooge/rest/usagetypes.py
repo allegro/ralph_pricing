@@ -20,4 +20,4 @@ class UsageTypeSerializer(serializers.ModelSerializer):
 class UsageTypesViewSet(viewsets.ModelViewSet):
 
     serializer_class = UsageTypeSerializer
-    queryset = UsageType.objects.all()
+    queryset = UsageType.objects.all().order_by('name')
