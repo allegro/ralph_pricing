@@ -469,8 +469,9 @@ class Migration(SchemaMigration):
         },
         u'ralph_scrooge.virtualinfo': {
             'Meta': {'object_name': 'VirtualInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
-            'device_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'})
+            'device_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True'}),
+            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.warehouse': {
             'Meta': {'object_name': 'Warehouse'},
