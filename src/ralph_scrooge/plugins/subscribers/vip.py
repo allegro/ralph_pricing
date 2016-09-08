@@ -57,7 +57,7 @@ def validate_vip_event_data(data):
         err = 'missing IP address'
         # unlike in Ralph3, we don't check if such address is valid!
         errors.append(err)
-    if not port or port < 1024 or port > 49151:
+    if not isinstance(port, (int, long)) or port < 1 or port > 65535:
         err = 'invalid port "{}"'.format(port)
         errors.append(err)
     if not protocol:
