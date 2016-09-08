@@ -5,15 +5,15 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import json
 from functools import wraps, partial
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import available_attrs
 from django.utils.translation import ugettext_lazy as _
+from django.http import HttpResponseForbidden
 
-from ralph.account.views import HTTP403
 from ralph.account.models import Perm, ralph_permission
-
 from ralph_scrooge.models import ServiceOwnership, TeamManager
 
 
@@ -74,7 +74,10 @@ def service_permission(view_func):
             'service' not in kwargs
         ):
             return view_func(request, *args, **kwargs)
-        return HTTP403(request, 'No permission to service')
+        return HttpResponseForbidden(
+            json.dumps({'message': 'No permission to service'}),
+            mimetype="application/json"
+        )
     return login_required(_wrapped_view)
 
 
@@ -93,5 +96,8 @@ def team_permission(view_func):
             'team' not in kwargs
         ):
             return view_func(request, *args, **kwargs)
-        return HTTP403(request, 'No permission to team')
+        return HttpResponseForbidden(
+            json.dumps({'message': 'No permission to team'}),
+            mimetype="application/json"
+        )
     return login_required(_wrapped_view)

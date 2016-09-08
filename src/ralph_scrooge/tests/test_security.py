@@ -6,7 +6,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import TestCase
+from rest_framework.test import APIClient
 from ralph.account.models import Perm
 
 from ralph_scrooge.app import Scrooge
@@ -20,7 +21,7 @@ from ralph_scrooge.tests.utils.factory import (
 
 class TestSecurity(TestCase):
     def setUp(self):
-        self.client = Client()
+        self.client = APIClient()
 
         # users
         self.accountant = User.objects.create_user(
