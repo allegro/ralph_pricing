@@ -51,7 +51,7 @@ class TestOpenStackBasePlugin(TestCase):
     def test_format_date(self):
         d = datetime.datetime(2014, 7, 1, 11, 12, 13)
         result = self.plugin._format_date(d)
-        self.assertEqual(result, 1404205933.0)
+        self.assertEqual(result, 1404231133.0)
 
     def test_get_dates_from_to(self):
         d = datetime.date(2014, 7, 1)

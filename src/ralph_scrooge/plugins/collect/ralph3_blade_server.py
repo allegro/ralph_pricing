@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
-
 from django.conf import settings
 
 from ralph_scrooge.models import (

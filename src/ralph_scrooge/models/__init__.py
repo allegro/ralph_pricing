@@ -16,6 +16,7 @@ from ralph_scrooge.models.owner import (
     Owner,
     ServiceOwnership,
     TeamManager,
+    UserProfile,
 )
 
 from ralph_scrooge.models.pricing_object import (
@@ -119,6 +120,7 @@ __all__ = [
     'TeamServiceEnvironmentPercent',
     'TenantInfo',
     'UsageType',
+    'UserProfile',
     'UsagePrice',
     'VIPInfo',
     'VirtualInfo',

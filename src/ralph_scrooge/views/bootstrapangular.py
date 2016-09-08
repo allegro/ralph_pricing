@@ -7,15 +7,12 @@ from __future__ import unicode_literals
 
 from django.views.generic import TemplateView
 
-from ralph_scrooge.app import Scrooge as app
-
 
 class BootstrapAngular(TemplateView):
     """
     Initial view for bootstrap angularjs
     """
     template_name = 'ralph_scrooge/index.html'
-    module_name = app.module_name
 
 
 class BootstrapAngular2(TemplateView):
@@ -23,4 +20,3 @@ class BootstrapAngular2(TemplateView):
     Initial view for bootstrap angularjs
     """
     template_name = 'ralph_scrooge/angular2.html'
-    module_name = app.module_name

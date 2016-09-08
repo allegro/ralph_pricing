@@ -8,15 +8,13 @@ from __future__ import unicode_literals
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ralph.account.models import Perm
-
 
 class SubMenu(APIView):
     def get(self, request, format=None):
         menu = [
             {
                 'name': 'Components',
-                'href': '/scrooge/#/components/',
+                'href': '/#/components/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'daily',
                 'auto_choose_env': False,
@@ -24,7 +22,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Cost card',
-                'href': '/scrooge/#/costcard/',
+                'href': '/#/costcard/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'monthly',
                 'auto_choose_env': True,
@@ -32,7 +30,7 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Components costs',
-                'href': '/scrooge/#/costs/',
+                'href': '/#/costs/',
                 'leftMenu': ['services'],
                 'calendarMenu': 'range',
                 'auto_choose_env': True,
@@ -40,19 +38,18 @@ class SubMenu(APIView):
             },
             {
                 'name': 'Allocations',
-                'href': '/scrooge/#/allocation/client/',
+                'href': '/#/allocation/client/',
                 'leftMenu': ['services', 'teams'],
                 'calendarMenu': 'monthly',
                 'auto_choose_env': True,
                 'hide_envs_for_tabs': ['serviceDivision'],
             },
         ]
-        profile = request.user.get_profile()
-        if profile.has_perm(Perm.has_scrooge_access) or profile.is_superuser:
+        if request.user.is_superuser:
             menu.extend([
                 {
                     'name': 'Allocations admin',
-                    'href': '/scrooge/#/allocation/admin/',
+                    'href': '/#/allocation/admin/',
                     'leftMenu': [],
                     'calendarMenu': 'monthly',
                     'auto_choose_env': True,
@@ -60,15 +57,15 @@ class SubMenu(APIView):
                 },
                 {
                     'name': 'Costs report',
-                    'href': '/scrooge/ui/#/costs-report',
+                    'href': '/ui/#/costs-report',
                 },
                 {
                     'name': 'Usages report',
-                    'href': '/scrooge/ui/#/usages-report',
+                    'href': '/ui/#/usages-report',
                 },
                 {
                     'name': 'Monthly costs',
-                    'href': '/scrooge/ui/#/monthly-costs',
+                    'href': '/ui/#/monthly-costs',
                 },
             ])
         return Response(menu)

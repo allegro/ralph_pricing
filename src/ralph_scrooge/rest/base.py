@@ -12,8 +12,6 @@ from datetime import date, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ralph.account.models import Perm
-
 from ralph_scrooge.models import (
     ServiceEnvironment,
     Team,
@@ -29,10 +27,7 @@ class LeftMenuAPIView(APIView):
         ).order_by(
             "service__name",
         )
-        if not (
-            request.user.is_superuser or
-            request.user.profile.has_perm(Perm.has_scrooge_access)
-        ):
+        if not request.user.is_superuser:
             service_environments = service_environments.filter(
                 service__serviceownership__owner__profile__user=request.user,
             )

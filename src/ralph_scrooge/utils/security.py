@@ -13,34 +13,27 @@ from django.utils.decorators import available_attrs
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseForbidden
 
-from ralph.account.models import Perm, ralph_permission
 from ralph_scrooge.models import ServiceOwnership, TeamManager
 
 
-def superuser_or_permission(view_func, perms):
+def scrooge_permission(view_func):
+    """
+    Check if user is superuser.
+    """
     @wraps(view_func, assigned=available_attrs(view_func))
     def _wrapped_view(request, *args, **kwargs):
         if request.user.is_superuser:
             return view_func(request, *args, **kwargs)
-        return ralph_permission(perms)(view_func)(request, *args, **kwargs)
+        return HttpResponseForbidden(
+            json.dumps({'message': 'No permission to service'}),
+            mimetype="application/json"
+        )
     return login_required(_wrapped_view)
 
 
-scrooge_permission = partial(
-    superuser_or_permission,
-    perms=[
-        {
-            'perm': Perm.has_scrooge_access,
-            'msg': _("You have no access to Scrooge!"),
-        },
-    ]
-)
-
-
 def _has_permission_to_service(user, service):
-    profile = user.get_profile()
     # check for superuser or accountant, which have access to all services
-    if user.is_superuser or profile.has_perm(Perm.has_scrooge_access):
+    if user.is_superuser:
         return True
     return ServiceOwnership.objects.filter(
         service__id=service,
@@ -49,9 +42,8 @@ def _has_permission_to_service(user, service):
 
 
 def _has_permission_to_team(user, team):
-    profile = user.get_profile()
     # check for superuser or accountant, which have access to all services
-    if user.is_superuser or profile.has_perm(Perm.has_scrooge_access):
+    if user.is_superuser:
         return True
     return TeamManager.objects.filter(
         team__id=team,

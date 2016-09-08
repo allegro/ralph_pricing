@@ -1,8 +1,9 @@
 #
 # A testing profile.
 #
-import os
+from ralph_scrooge.settings import *  # noqa
 
+import os
 TEST_DATABASE_ENGINE = os.environ.get('TEST_DATABASE_ENGINE')
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -39,7 +40,7 @@ else:
         }
     }
 
-PLUGGABLE_APPS = ['assets', 'scrooge', 'cmdb']
+PLUGGABLE_APPS = ['scrooge']
 
 SOUTH_TESTS_MIGRATE = False
 try:

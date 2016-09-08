@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.contrib import admin
 from django.conf.urls.defaults import include, patterns, url
 from django.contrib.auth.decorators import login_required
 from rest_framework.authtoken import views
@@ -51,6 +52,12 @@ urlpatterns = patterns(
         login_required(BootstrapAngular2.as_view()),
         name='angular2',
     ),
+    url(
+        r'^login/', 'django.contrib.auth.views.login',
+        {'template_name': 'admin/login.html'}
+    ),
+    url(r'^logout/', 'django.contrib.auth.views.logout', name='logout'),
+    url(r'^admin/', include(admin.site.urls)),
 )
 
 # TODO(xor-xor): Uncomment patterns for hermes below once Scrooge will be
