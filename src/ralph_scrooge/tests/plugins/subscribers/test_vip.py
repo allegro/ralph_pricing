@@ -48,7 +48,7 @@ EVENT_DATA = {
         "name": "test service"
     },
     "load_balancer_type": "HAPROXY",
-    "port": 8000,
+    "port": 80,
     "name": "ralph-test.local_8000",
     "environment": "test",
     "venture": None,
@@ -82,10 +82,20 @@ class ValidateEventDataTestCase(TestCase):
         self.assertIn('missing IP address', errors)
 
     def test_invalid_port(self):
-        self.event_data['port'] = 80
+        self.event_data['port'] = -1
         errors = validate_vip_event_data(self.event_data)
         self.assertEqual(len(errors), 1)
-        self.assertIn('invalid port "80"', errors)
+        self.assertIn('invalid port "-1"', errors)
+
+        self.event_data['port'] = 66666
+        errors = validate_vip_event_data(self.event_data)
+        self.assertEqual(len(errors), 1)
+        self.assertIn('invalid port "66666"', errors)
+
+        self.event_data['port'] = "invalid"
+        errors = validate_vip_event_data(self.event_data)
+        self.assertEqual(len(errors), 1)
+        self.assertIn('invalid port "invalid"', errors)
 
         self.event_data['port'] = None
         errors = validate_vip_event_data(self.event_data)
