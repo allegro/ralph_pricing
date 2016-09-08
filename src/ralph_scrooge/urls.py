@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework import routers
 from tastypie.api import Api
 
+import ralph_scrooge.plugins.subscribers  # noqa: F401
 from ralph_scrooge.api import PricingServiceUsageResource, SyncStatusViewSet
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
@@ -41,3 +42,15 @@ urlpatterns = patterns(
         name='angular2',
     ),
 )
+
+# TODO(xor-xor): Uncomment patterns for hermes below once Scrooge will be
+# completely separated from Ralph. And remember, that endpoint for
+# refreshVipEvent subscription will change from:
+# /hermes/events/refreshVipEvent/
+# to:
+# /scrooge/hermes/events/refreshVipEvent/.
+#
+# urlpatterns += patterns(
+#     '',
+#     url(r'^hermes/', include('pyhermes.apps.django.urls'))
+# )

@@ -22,7 +22,8 @@ from ralph_scrooge.models import (
     ProfitCenter,
     TenantInfo,
     Warehouse,
-    VirtualInfo
+    VirtualInfo,
+    VIPInfo,
 )
 
 
@@ -37,6 +38,7 @@ MODEL_MAPPING = {
     'TenantInfo': (TenantInfo, 'tenant_id', 'ralph3_tenant_id'),
     'DataCenterAsset': (AssetInfo, 'asset_id', 'ralph3_asset_id'),
     'VirtualServer': (VirtualInfo, 'device_id', 'ralph3_id'),
+    'VIPInfo': (VIPInfo, 'vip_id', 'external_id'),
 }
 
 

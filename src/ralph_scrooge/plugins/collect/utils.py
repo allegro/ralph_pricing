@@ -5,9 +5,17 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from ralph_scrooge.models import ServiceEnvironment
+from ralph_scrooge.plugins.collect._exceptions import (
+    UnknownServiceEnvironmentNotConfiguredError,
+)
+
 from django.conf import settings
 import requests
 
+
+# TODO(xor-xor): Move this module from plugins.collect to plugins, since it is
+# used both by collect and subscribers packages.
 
 # TODO(xor-xor): Add tests for this function once responses lib will
 # incorporate this bugfix: https://github.com/getsentry/responses/pull/109
@@ -46,3 +54,32 @@ def get_from_ralph(endpoint, logger, query=None, limit=100):
             url = resp_contents.get("next")
             for result in resp_contents.get("results", []):
                 yield result
+
+
+# TODO(xor-xor): Add test(s) for this function.
+# TODO(xor-xor): Refactor other plugins (especially those with ralph3_ prefix)
+# to use this function for getting unknown service environment.
+def get_unknown_service_env(plugin_type, subtype=None):
+    """We assume that settings.UNKNOWN_SERVICES_ENVIRONMENTS structure can be
+    be nested by one level at most.
+    """
+    val = settings.UNKNOWN_SERVICES_ENVIRONMENTS.get(plugin_type, (None, None))
+    if isinstance(val, dict):
+        if subtype is None:
+            # 'subtype' param is required for nested structures here.
+            raise UnknownServiceEnvironmentNotConfiguredError()
+        else:
+            val = val.get(subtype)
+    service_uid, env_name = val
+    unknown_service_env = None
+    if service_uid:
+        try:
+            unknown_service_env = ServiceEnvironment.objects.get(
+                service__ci_uid=service_uid,
+                environment__name=env_name,
+            )
+        except ServiceEnvironment.DoesNotExist:
+            pass
+    if not unknown_service_env:
+        raise UnknownServiceEnvironmentNotConfiguredError()
+    return unknown_service_env
