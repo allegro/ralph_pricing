@@ -13,6 +13,8 @@ from ralph_scrooge.plugins.collect._exceptions import (
 from django.conf import settings
 import requests
 
+# TODO(xor-xor): Move this module from plugins.collect to plugins, since it is
+# used both by collect and subscribers packages.
 
 # TODO(xor-xor): Add tests for this function once responses lib will
 # incorporate this bugfix: https://github.com/getsentry/responses/pull/109
@@ -53,6 +55,9 @@ def get_from_ralph(endpoint, logger, query=None, limit=100):
                 yield result
 
 
+# TODO(xor-xor): Add test(s) for this function.
+# TODO(xor-xor): Refactor other plugins (especially those with ralph3_ prefix)
+# to use this function for getting unknown service environment.
 def get_unknown_service_env(plugin_type, subtype=None):
     """We assume that settings.UNKNOWN_SERVICES_ENVIRONMENTS structure can be
     be nested by one level at most.
