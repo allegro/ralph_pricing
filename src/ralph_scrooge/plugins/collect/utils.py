@@ -13,6 +13,7 @@ from ralph_scrooge.plugins.collect._exceptions import (
 from django.conf import settings
 import requests
 
+
 # TODO(xor-xor): Move this module from plugins.collect to plugins, since it is
 # used both by collect and subscribers packages.
 
