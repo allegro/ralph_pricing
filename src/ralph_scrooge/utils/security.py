@@ -7,14 +7,36 @@ from __future__ import unicode_literals
 
 from functools import wraps, partial
 
+from django import http
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.template import loader, RequestContext, TemplateDoesNotExist
 from django.utils.decorators import available_attrs
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import requires_csrf_token
 
-from ralph.account.views import HTTP403
 from ralph.account.models import Perm, ralph_permission
 
 from ralph_scrooge.models import ServiceOwnership, TeamManager
+
+
+@requires_csrf_token
+def HTTP403(request, msg=None, template_name='403.html'):
+    """
+    A slightly customized version of 'permission_denied' handler taken from
+    'django.views.defaults' (added 'REQUEST_PERM_URL' etc.).
+    """
+    if not msg:
+        msg = _("You don't have permission to this resource.")
+    try:
+        template = loader.get_template(template_name)
+    except TemplateDoesNotExist:
+        return http.HttpResponseForbidden('<h1>403 Forbidden</h1>')
+    context = RequestContext(request, {
+        'REQUEST_PERM_URL': getattr(settings, 'REQUEST_PERM_URL', None),
+        'msg': msg,
+    })
+    return http.HttpResponseForbidden(template.render(context))
 
 
 def superuser_or_permission(view_func, perms):
