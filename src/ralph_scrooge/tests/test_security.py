@@ -74,11 +74,6 @@ class TestSecurity(TestCase):
             se.environment.id,
         ))
 
-    def _get_report(self):
-        return self.client.get('/{}/services-costs-report/'.format(
-            Scrooge.url_prefix,
-        ))
-
     def _get_team_allocation(self, team):
         return self.client.get('/{}/rest/allocationclient/{}/2014/10/'.format(
             Scrooge.url_prefix,
@@ -105,21 +100,6 @@ class TestSecurity(TestCase):
     def test_components_owner_access_permission_denied(self):
         self._login_as('owner')
         response = self._get_components(self.se2)
-        self.assertEquals(response.status_code, 403)
-
-    def test_report_superuser_access(self):
-        self._login_as('superuser')
-        response = self._get_report()
-        self.assertEquals(response.status_code, 200)
-
-    def test_report_accountant_access(self):
-        self._login_as('accountant')
-        response = self._get_report()
-        self.assertEquals(response.status_code, 200)
-
-    def test_report_owner_access(self):
-        self._login_as('owner')
-        response = self._get_report()
         self.assertEquals(response.status_code, 403)
 
     def test_allocation_team_manager_access(self):

@@ -75,6 +75,8 @@
       "changelogUrl": "{{ CHANGELOG_URL }}",
       "bugtrackerUrl": "{{ BUGTRACKER_URL }}",
       "logoutUrl": "{% url 'logout' %}",
+      "isSuperUser":  {% if user.is_superuser %}true{% else %}false{% endif %},
+      "adminUrl": "{% url 'admin:index' %}",
       "app.component.template": "{% static 'scrooge/appts/app.component.html' %}",
       "monthly-cost.component.template": "{% static 'scrooge/appts/monthly-costs/monthly-costs.component.html' %}",
       "horizontal-calendar.component.template": "{% static 'scrooge/appts/horizontal-calendar/horizontal-calendar.component.html' %}",

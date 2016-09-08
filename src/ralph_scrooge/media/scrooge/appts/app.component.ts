@@ -24,6 +24,8 @@ export class AppComponent implements AfterViewInit, OnInit {
   public username: string;
   public logoutUrl: string;
   public subMenus: Array<{0: string, 1: string}> = [];
+  public isSuperUser: boolean = ConfigService.get("isSuperUser");
+  public adminUrl: string = ConfigService.get("adminUrl");
   public activeMenu: string = "";
 
   constructor(

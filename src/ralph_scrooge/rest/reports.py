@@ -18,9 +18,31 @@ from rest_framework.views import APIView
 from ralph_scrooge.models import UsageType
 from ralph_scrooge.report.report_services_costs import ServicesCostsReport
 from ralph_scrooge.report.report_services_usages import ServicesUsagesReport
-from ralph_scrooge.views.base_report import format_csv_header
 
 logger = logging.getLogger(__name__)
+
+
+def format_csv_header(header):
+    """
+    Format csv header rows. Insert empty cells to show rowspan and colspan.
+    """
+    result = []
+    for row in header:
+        output_row = []
+        for col in row:
+            output_row.append(col[0])
+            for colspan in range((col[1].get('colspan') or 1) - 1):
+                output_row.append('')
+        result.append(output_row)
+    # rowspans
+    for row_num, row in enumerate(header):
+        i = 0
+        for col in row:
+            if 'rowspan' in col[1]:
+                for rowspan in range(1, (col[1]['rowspan'] or 1)):
+                    result[row_num + rowspan].insert(i, '')
+            i += col[1].get('colspan', 1)
+    return result
 
 
 class BaseReportContent(APIView):
