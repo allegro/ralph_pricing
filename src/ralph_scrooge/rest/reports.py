@@ -9,7 +9,7 @@ import dateutil
 import itertools
 import logging
 
-from bob.csvutil import make_csv_response
+from ralph_scrooge.csvutil import make_csv_response
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
