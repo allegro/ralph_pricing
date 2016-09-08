@@ -19,6 +19,7 @@ from ralph_scrooge.rest import (
     LeftMenuAPIView,
     ObjectCostsContent,
     MonthlyCosts,
+    PricingServiceUsages,
     ServicesCostsReportContent,
     UsagesReportContent,
 )
@@ -107,5 +108,14 @@ urlpatterns = patterns(
         r'^services_costs_report/?$',
         scrooge_permission(ServicesCostsReportContent.as_view()),
         name='services_costs_report_rest'
+    ),
+
+
+    # XXX To be eventually moved into `/api/` URLs hierarchy.
+    url(
+        r'^pricingserviceusages/?$',
+        # scrooge_permission(PricingServiceUsages.as_view()),
+        PricingServiceUsages.as_view(),
+        name='pricing_service_usages'
     ),
 )

@@ -10,6 +10,9 @@ from ralph_scrooge.rest.allocationclient import (
 from ralph_scrooge.rest.costcard import (
     CostCardContent,
 )
+from ralph_scrooge.rest.pricing_service_usages import (
+    PricingServiceUsages,
+)
 from ralph_scrooge.rest.object_costs import (
     ObjectCostsContent,
 )
@@ -30,6 +33,7 @@ __all__ = [
     'CostCardContent',
     'LeftMenuAPIView',
     'ObjectCostsContent',
+    'PricingServiceUsages',
     'ServicesCostsReportContent',
     'UsagesReportContent',
     'UsageTypesViewSet',
