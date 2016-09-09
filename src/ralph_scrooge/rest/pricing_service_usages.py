@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
 import json
 import logging
 from collections import defaultdict
@@ -17,7 +18,7 @@ from rest_framework.serializers import Serializer
 from ralph_scrooge.models import (
     DailyUsage,
     PricingObject,
-    # PricingService,  # XXX not used..?
+    PricingService,  # XXX not used..?
     ServiceEnvironment,
     UsageType,
 )
@@ -76,14 +77,31 @@ class PricingServiceUsages(APIView):
         result = {
             'status': 'ok',
             'message': 'success!',
-        }
+        }  # XXX ?
         return Response(result, status=status.HTTP_201_CREATED)
 
-    def validate(self, post_data):
+    def get(self, request, *args, **kwargs):
+        # XXX resume from here
+
+
+    def validate(self, post_data):  # XXX change name of this fn
         # check if service exists
+        ps_params = {}
+        if post_data.get('pricing_service_id'):
+            ps_params['id'] = post_data['pricing_service_id']
+        elif post_data.get('pricing_service'):
+            ps_params['name'] = post_data['pricing_service']
+            PricingService.objects_admin.get(**ps_params)  # XXX try/except
+
         # check if date is properly set
+        # assert isinstance(post_data['date'], datetime.date)  # XXX
+
         # check if overwrite is properly set
-        pass
+        assert post_data.get('overwrite', 'no') in (  # XXX
+            'no',
+            'delete_all_previous',
+            'values_only',
+        )
 
     def get_service_env(self, usages):
         se_params = {
@@ -130,6 +148,7 @@ class PricingServiceUsages(APIView):
         usage_types = {}  # XXX
         daily_usages = []
         usages_daily_pricing_objects = defaultdict(list)
+        date = datetime.datetime.strptime(post_data['date'], '%Y-%m-%d').date()
 
         for usages in post_data['usages']:
             pricing_object = self.get_pricing_object(usages)
@@ -139,10 +158,10 @@ class PricingServiceUsages(APIView):
                     UsageType.objects_admin.get(symbol=usage['symbol'])  # XXX try/except
                 )
                 daily_pricing_object = (
-                    pricing_object.get_daily_pricing_object(post_data['date'])
+                    pricing_object.get_daily_pricing_object(date)
                 )
                 daily_usage = DailyUsage(
-                    date=post_data['date'],
+                    date=date,
                     type=usage_type,
                     value=usage['value'],
                     daily_pricing_object=daily_pricing_object,
