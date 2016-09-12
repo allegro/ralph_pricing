@@ -10,6 +10,7 @@ import json
 import logging
 from collections import defaultdict
 
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework.views import APIView
@@ -19,7 +20,7 @@ from rest_framework.serializers import Serializer
 from ralph_scrooge.models import (
     DailyUsage,
     PricingObject,
-    PricingService,  # XXX not used..?
+    PricingService,
     ServiceEnvironment,
     UsageType,
 )
@@ -114,7 +115,7 @@ class PricingServiceUsageObject(object):
         self.pricing_service_id = pricing_service_id
         self.date = date
         self.usages = usages or []
-        self.overwrite = 'no'  # default overwrite
+        self.overwrite = 'no'  # overwrite by default
 
 
 class PricingServiceUsageObjectSerializer(Serializer):
@@ -130,6 +131,8 @@ class PricingServiceUsageObjectSerializer(Serializer):
 
 
 class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer):  # noqa
+    pricing_service_id = serializers.CharField(required=False)  # XXX required..?
+    overwrite = serializers.CharField(required=False)
     usages = UsagesObjectDeserializer(many=True)
 
     class Meta:
@@ -138,39 +141,28 @@ class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer)
 
 class PricingServiceUsages(APIView):
 
-    # def get_serializer_class(self):
-    #     # XXX add some comment re: serializers/deserializers hack
-    #     import ipdb; ipdb.set_trace()
-    #     pass
-
     def get(self, request, *args, **kwargs):
         usages_date = datetime.datetime.strptime(
             kwargs['date'],
             '%Y-%m-%d'
         ).date()
-        result = self.get_as_obj(usages_date, kwargs['pricing_service_id'])
-        return Response(PricingServiceUsageObjectSerializer(result).data)  # XXX
+        pricing_service_id = kwargs['pricing_service_id']
+        result = self.get_as_obj(usages_date, pricing_service_id)
+        return Response(PricingServiceUsageObjectSerializer(result).data)
 
     def post(self, request, *args, **kwargs):
-        post_data = json.loads(request.raw_post_data)
-        self.validate(post_data)
-        self.save_usages(post_data)
-        result = {
-            'status': 'ok',
-            'message': 'success!',
-        }  # XXX ?
-        return Response(result, status=status.HTTP_201_CREATED)
+        post_data = json.loads(request.raw_post_data)  # XXX what about using BytesIO/JSONParser for that..?
+        deserializer = PricingServiceUsageObjectDeserializer(data=post_data)
+        if deserializer.is_valid():
+            # self.validate(post_data)  # XXX temporarily commented out
+            self.save_usages(post_data)
+            return HttpResponse(status=201)
+        return Response(deserializer.errors, status=400)
 
     def get_as_dict(self, usages_date, pricing_service_id):
-        # pricing_service = PricingService.objects_admin.get(  # XXX must be admin..?
-        pricing_service = PricingService.objects.get(  # XXX must be admin..?
+        pricing_service = PricingService.objects.get(  # XXX object_admin..?
             id=pricing_service_id,
         )  # XXX try/except
-        # ps = PricingServiceUsageObject(  # XXX
-        #     pricing_service=pricing_service.name,
-        #     date=usages_date,
-        #     usages=[],
-        # )
         ps = {
             'pricing_service': pricing_service.name,
             'date': usages_date,
@@ -218,7 +210,7 @@ class PricingServiceUsages(APIView):
         return ps
 
     def get_as_obj(self, usages_date, pricing_service_id):
-        pricing_service = PricingService.objects.get(  # XXX must be admin..?
+        pricing_service = PricingService.objects.get(  # XXX objects_admin..?
             id=pricing_service_id,
         )  # XXX try/except
         ps = PricingServiceUsageObject(
@@ -316,11 +308,11 @@ class PricingServiceUsages(APIView):
                 # XXX raise some exception here
             else:
                 service_env = self.get_service_env(usages)
-                pricing_object = service_env.dummy_pricing_object  # XXX ?
+                pricing_object = service_env.dummy_pricing_object  # XXX what is dummy_pricing_object?
         return pricing_object
 
     def get_usages(self, post_data):
-        usage_types = {}  # XXX
+        usage_types = {}  # XXX there's such empty dict in old API's code
         daily_usages = []
         usages_daily_pricing_objects = defaultdict(list)
         date = datetime.datetime.strptime(post_data['date'], '%Y-%m-%d').date()
