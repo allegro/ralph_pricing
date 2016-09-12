@@ -45,7 +45,7 @@ SOUTH_TESTS_MIGRATE = False
 try:
     INSTALLED_APPS += ('django_nose',)
     TEST_RUNNER = str('django_nose.NoseTestSuiteRunner')
-    NOSE_ARGS = ['--with-doctest']
+    NOSE_ARGS = ['--with-doctest', '-s']
 except NameError:
     print('Cannot use nose test runner')
 

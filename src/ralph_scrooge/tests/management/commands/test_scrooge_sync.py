@@ -16,7 +16,7 @@ from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.management.commands import scrooge_sync
 
 
-COLLECT_PLUGINS = ['asset', 'business_line', 'warehouse']
+COLLECT_PLUGINS = ['ralph3_data_center', 'ralph3_business_segment']
 COMMAND_NAME = scrooge_sync.Command.__module__.split('.')[-1]
 
 
@@ -30,7 +30,7 @@ class TestScroogeSync(TestCase):
 
     @override_settings(COLLECT_PLUGINS=COLLECT_PLUGINS)
     def test_get_collect_plugins_names(self):
-        self.assertEquals(
+        self.assertItemsEqual(
             scrooge_sync.get_collect_plugins_names(),
             COLLECT_PLUGINS
         )
@@ -64,7 +64,7 @@ class TestScroogeSync(TestCase):
     @patch('ralph_scrooge.management.commands.scrooge_sync._run_plugin')
     def test_run_plugins(self, run_plugin_mock):
         def side_effect(name, today):
-            if name == 'business_line':
+            if name == 'ralph3_business_segment':
                 raise scrooge_sync.PluginError()
             else:
                 return None
@@ -78,14 +78,14 @@ class TestScroogeSync(TestCase):
         # fulfilled dependiencies
         run_plugin_mock.assert_has_calls(
             [
-                call('business_line', today),
-                call('warehouse', today),
+                call('ralph3_business_segment', today),
+                call('ralph3_data_center', today),
             ],
             any_order=True
         )
         self.assertEquals(set(result), set([
-            ('business_line', False),
-            ('warehouse', True),
+            ('ralph3_data_center', True),
+            ('ralph3_business_segment', False),
         ]))
 
     @override_settings(COLLECT_PLUGINS=COLLECT_PLUGINS)
