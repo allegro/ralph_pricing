@@ -159,56 +159,7 @@ class PricingServiceUsages(APIView):
             return HttpResponse(status=201)
         return Response(deserializer.errors, status=400)
 
-    def get_as_dict(self, usages_date, pricing_service_id):
-        pricing_service = PricingService.objects.get(  # XXX object_admin..?
-            id=pricing_service_id,
-        )  # XXX try/except
-        ps = {
-            'pricing_service': pricing_service.name,
-            'date': usages_date,
-            'usages': [],
-        }  # XXX
-        usages_dict = defaultdict(list)
-
-        # iterate through pricing service usage types
-        for usage_type in pricing_service.usage_types.all():
-            daily_usages = usage_type.dailyusage_set.filter(
-                date=usages_date
-            ).select_related(
-                'service_environment',
-                'service_environment__service',
-                'service_environment__environment',
-                'pricing_object'
-            )
-            for daily_usage in daily_usages:
-                usages_dict[daily_usage.daily_pricing_object].append(
-                    (daily_usage.type.symbol, daily_usage.value)
-                )
-
-        # save usages tp UsagesObjects
-        for dpo, u in usages_dict.iteritems():
-            usages = {}
-            se = dpo.service_environment
-            usages['service'] = se.service.name
-            usages['service_id'] = se.service.id
-            usages['environment'] = se.environment.name
-            # if pricing object is not dummy pricing object for service
-            # environment use it
-            if se.dummy_pricing_object != dpo.pricing_object:
-                usages['pricing_object'] = dpo.pricing_object.name
-            # usages.usages = [UsageObject(k, v) for k, v in u]  # XXX
-            # usages['usages'] = [{'symbol': k, 'value': v} for k, v in u]  # XXX
-            usages['usages'] = [UsageObjectSerializer(UsageObject(k, v)).data for k, v in u]  # XXX
-            ps['usages'].append(usages)
-            # XXX missing:
-            # pricing_service_id (np. null)
-            # datetime jako string
-        # XXX
-        ps['pricing_service_id'] = None
-        ps['date'] = ps['date'].strftime('%Y-%m-%d')
-        # result = json.dumps(ps)
-        return ps
-
+    # XXX rename this fn
     def get_as_obj(self, usages_date, pricing_service_id):
         pricing_service = PricingService.objects.get(  # XXX objects_admin..?
             id=pricing_service_id,
@@ -249,7 +200,6 @@ class PricingServiceUsages(APIView):
             usages.usages = [UsageObject(k, v) for k, v in u]
             ps.usages.append(usages)
         return ps
-
 
     def validate(self, post_data):  # XXX change name of this fn
         # check if service exists
