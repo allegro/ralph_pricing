@@ -78,7 +78,7 @@ class UsagesObject(object):
 
 class UsagesObjectSerializer(Serializer):
     service = serializers.CharField()
-    service_id = serializers.CharField()  # XXX or maybe some numeric field..?
+    service_id = serializers.IntegerField()
     service_uid = serializers.CharField()
     environment = serializers.CharField()
     pricing_object = serializers.CharField()
@@ -90,7 +90,23 @@ class UsagesObjectSerializer(Serializer):
 
 
 class UsagesObjectDeserializer(UsagesObjectSerializer):
-    usages = UsageObjectDeserializer(many=True)
+    service = serializers.CharField(required=False)
+    service_id = serializers.IntegerField(required=False)
+    service_uid = serializers.CharField(required=False)
+    environment = serializers.CharField(required=False)
+    pricing_object = serializers.CharField(required=False)
+    usages = UsageObjectDeserializer(many=True, required=False)
+
+    def validate(self, data):
+        # Required:
+        # pricing_object
+        # or:
+        # service + environment,
+        # or:
+        # service_id + environment,
+        # or:
+        # service_uid + environment.
+        assert False  # XXX resume from here
 
     class Meta:
         model = UsagesObject
@@ -120,7 +136,7 @@ class PricingServiceUsageObject(object):
 
 class PricingServiceUsageObjectSerializer(Serializer):
     pricing_service = serializers.CharField()
-    pricing_service_id = serializers.CharField()  # XXX or maybe some numeric field..?
+    pricing_service_id = serializers.IntegerField()
     date = serializers.DateField()
     overwrite = serializers.CharField()
     usages = UsagesObjectSerializer(many=True)
@@ -131,7 +147,7 @@ class PricingServiceUsageObjectSerializer(Serializer):
 
 
 class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer):  # noqa
-    pricing_service_id = serializers.CharField(required=False)  # XXX required..?
+    pricing_service_id = serializers.CharField(required=False)
     overwrite = serializers.CharField(required=False)
     usages = UsagesObjectDeserializer(many=True)
 
@@ -140,6 +156,25 @@ class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer)
 
 
 class PricingServiceUsages(APIView):
+
+    # def validate(self, post_data):  # XXX move this logic to deserializer
+    #     # check if service exists
+    #     ps_params = {}
+    #     if post_data.get('pricing_service_id'):
+    #         ps_params['id'] = post_data['pricing_service_id']
+    #     elif post_data.get('pricing_service'):
+    #         ps_params['name'] = post_data['pricing_service']
+    #         PricingService.objects_admin.get(**ps_params)  # XXX try/except
+
+    #     # check if date is properly set
+    #     # assert isinstance(post_data['date'], datetime.date)  # XXX
+
+    #     # check if overwrite is properly set
+    #     assert post_data.get('overwrite', 'no') in (  # XXX
+    #         'no',
+    #         'delete_all_previous',
+    #         'values_only',
+    #     )
 
     def get(self, request, *args, **kwargs):
         usages_date = datetime.datetime.strptime(
@@ -154,7 +189,6 @@ class PricingServiceUsages(APIView):
         post_data = json.loads(request.raw_post_data)  # XXX what about using BytesIO/JSONParser for that..?
         deserializer = PricingServiceUsageObjectDeserializer(data=post_data)
         if deserializer.is_valid():
-            # self.validate(post_data)  # XXX temporarily commented out
             self.save_usages(post_data)
             return HttpResponse(status=201)
         return Response(deserializer.errors, status=400)
@@ -200,25 +234,6 @@ class PricingServiceUsages(APIView):
             usages.usages = [UsageObject(k, v) for k, v in u]
             ps.usages.append(usages)
         return ps
-
-    def validate(self, post_data):  # XXX change name of this fn
-        # check if service exists
-        ps_params = {}
-        if post_data.get('pricing_service_id'):
-            ps_params['id'] = post_data['pricing_service_id']
-        elif post_data.get('pricing_service'):
-            ps_params['name'] = post_data['pricing_service']
-            PricingService.objects_admin.get(**ps_params)  # XXX try/except
-
-        # check if date is properly set
-        # assert isinstance(post_data['date'], datetime.date)  # XXX
-
-        # check if overwrite is properly set
-        assert post_data.get('overwrite', 'no') in (  # XXX
-            'no',
-            'delete_all_previous',
-            'values_only',
-        )
 
     def get_service_env(self, usages):
         se_params = {
