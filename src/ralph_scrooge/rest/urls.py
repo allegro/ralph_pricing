@@ -118,4 +118,11 @@ urlpatterns = patterns(
         PricingServiceUsages.as_view(),
         name='pricing_service_usages'
     ),
+    url(
+        # r'^pricingserviceusages/?$',
+        r'^pricingserviceusages/(?P<pricing_service_id>[\w\d\s_.-]+)/(?P<date>[\d-]+)/$',
+        # scrooge_permission(PricingServiceUsages.as_view()),
+        PricingServiceUsages.as_view(),
+        name='pricing_service_usages'
+    ),
 )
