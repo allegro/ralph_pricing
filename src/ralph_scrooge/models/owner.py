@@ -7,11 +7,13 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.db import models as db
+from django.db.utils import DatabaseError
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.utils.models import TimeTrackable
 from lck.django.common.models import TimeTrackable
 from dj.choices import Choices, Country, Gender
+from tastypie.models import create_api_key
 
 
 class UserProfile(db.Model):
@@ -149,3 +151,15 @@ class TeamManager(db.Model):
 
     def __unicode__(self):
         return '{} / {}'.format(self.team, self.manager)
+
+
+def create_api_key_ignore_dberrors(*args, **kwargs):
+    try:
+        return create_api_key(*args, **kwargs)
+    except DatabaseError:
+        # no such table yet, first syncdb
+        from django.db import transaction
+        transaction.rollback_unless_managed()
+
+
+db.signals.post_save.connect(create_api_key_ignore_dberrors, sender=User)
