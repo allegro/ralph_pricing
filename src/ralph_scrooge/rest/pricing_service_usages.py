@@ -162,34 +162,33 @@ class PricingServiceUsageObjectSerializer(Serializer):
 
 
 class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer):  # noqa
-    pricing_service_id = serializers.CharField(required=False)
-    overwrite = serializers.CharField(required=False)
+    overwrite = serializers.CharField(required=False, default='no')
     usages = UsagesObjectDeserializer(many=True)
+
+    def validate_overwrite(self, attrs, source):
+        value = attrs[source]
+        if value not in ('no', 'delete_all_previous', 'values_only'):
+            raise serializers.ValidationError(
+                "Invalid value: {}".format(value)
+            )
+        return attrs
+
+    def validate_pricing_service(self, attrs, source):
+        value = attrs[source]
+        try:
+            PricingService.objects.get(name=value)
+        except PricingService.DoesNotExist:
+            raise serializers.ValidationError(
+                "Unknown service name: {}".format(value)
+            )
+        return attrs
 
     class Meta:
         model = PricingServiceUsageObject
+        exclude = ('pricing_service_id',)
 
 
 class PricingServiceUsages(APIView):
-
-    # def validate(self, post_data):  # XXX move this logic to deserializer
-    #     # check if service exists
-    #     ps_params = {}
-    #     if post_data.get('pricing_service_id'):
-    #         ps_params['id'] = post_data['pricing_service_id']
-    #     elif post_data.get('pricing_service'):
-    #         ps_params['name'] = post_data['pricing_service']
-    #         PricingService.objects_admin.get(**ps_params)  # XXX try/except
-
-    #     # check if date is properly set
-    #     # assert isinstance(post_data['date'], datetime.date)  # XXX
-
-    #     # check if overwrite is properly set
-    #     assert post_data.get('overwrite', 'no') in (  # XXX
-    #         'no',
-    #         'delete_all_previous',
-    #         'values_only',
-    #     )
 
     def get(self, request, *args, **kwargs):
         usages_date = datetime.datetime.strptime(
@@ -197,6 +196,13 @@ class PricingServiceUsages(APIView):
             '%Y-%m-%d'
         ).date()
         pricing_service_id = kwargs['pricing_service_id']
+        try:
+            PricingService.objects.get(id=pricing_service_id)
+        except PricingService.DoesNotExist:
+            msg = (
+                "Service with ID {} does not exist.".format(pricing_service_id)
+            )
+            return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
         result = self.get_as_obj(usages_date, pricing_service_id)
         return Response(PricingServiceUsageObjectSerializer(result).data)
 
