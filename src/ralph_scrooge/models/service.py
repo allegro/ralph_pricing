@@ -10,12 +10,7 @@ from datetime import date
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.choices import Choices
-from lck.django.common.models import (
-    EditorTrackable,
-    Named,
-    TimeTrackable,
-)
+from dj.choices import Choices
 
 from ralph_scrooge.models._history import (
     IntervalHistoricalRecords,
@@ -26,6 +21,7 @@ from ralph_scrooge.models.base import (
     BaseUsageManager,
     BaseUsageType,
 )
+from ralph_scrooge.utils.models import EditorTrackable, Named, TimeTrackable
 from ralph_scrooge.models.usage import DailyUsage
 from ralph_scrooge.models.pricing_object import PRICING_OBJECT_TYPES
 

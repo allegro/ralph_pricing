@@ -7,16 +7,11 @@ from __future__ import unicode_literals
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.common.models import (
-    EditorTrackable,
-    Named,
-    TimeTrackable,
-    WithConcurrentGetOrCreate,
-)
+
+from ralph_scrooge.utils.models import EditorTrackable, Named, TimeTrackable
 
 
-class Warehouse(TimeTrackable, EditorTrackable, Named,
-                WithConcurrentGetOrCreate):
+class Warehouse(TimeTrackable, EditorTrackable, Named):
     """
     Pricing warehouse model contains name and id from assets and own create
     and modified date

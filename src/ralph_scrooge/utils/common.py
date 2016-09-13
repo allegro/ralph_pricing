@@ -9,7 +9,7 @@ from decimal import Decimal
 from functools import wraps
 
 from django.conf import settings
-from lck.cache import memoize as memoize_orig
+from ralph_scrooge.utils.cache import memoize as memoize_orig
 
 
 class AttributeDict(dict):

@@ -7,7 +7,8 @@ from __future__ import unicode_literals
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.common.models import TimeTrackable
+
+from ralph_scrooge.utils.models import TimeTrackable
 
 
 class SyncStatus(TimeTrackable):
