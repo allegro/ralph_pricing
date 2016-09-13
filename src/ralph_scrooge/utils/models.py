@@ -58,18 +58,6 @@ class Named(db.Model):
 # TODO change it, if django > 1.8
 # https://github.com/allegro/ralph/blob/ng/src/ralph/lib/mixins/models.py#L34
 class TimeTrackable(db.Model):
-    """Describes an abstract model whose lifecycle is tracked by time. Includes
-    a ``created`` field that is set automatically upon object creation,
-    a ``modified`` field that is updated automatically upon calling ``save()``
-    on the object whenever a **significant** change was done, and
-    a ``cache_version`` integer field that is automatically incremeneted any
-    time a **significant** change is done.
-    By a **significant** change we mean any change outside of those internal
-    ``created``, ``modified``, ``cache_version``, ``display_count``
-    or ``last_active`` fields. Full list of ignored fields lies in
-    ``TimeTrackable.insignificant_fields``.
-    """
-
     insignificant_fields = {
         'cache_version', 'modified', 'modified_by', 'display_count',
         'last_active'
@@ -177,19 +165,8 @@ class TimeTrackable(db.Model):
                 self._field_state[field] = _current_state[field]
 
 
+# TODO change it, if django > 1.8
 class EditorTrackable(db.Model):
-    """Describes objects authored by users of the application. In the admin,
-    on object creation the ``created_by`` field is set according to the editor.
-    Same goes for modifying an object and the ``modified_by`` field. Works best
-    in integration with TimeTrackable.
-    If you would rather link to your user profile instead of the user object
-    directly, use the ``EDITOR_TRACKABLE_MODEL`` (the same
-    ``"app_name.ModelClass"``syntax as ``AUTH_PROFILE_MODULE``) setting.
-    Note: for automatic editor updates in admin,
-    ``lck.django.common.admin.ModelAdmin`` **MUST** be used instead of the
-    vanilla ``ModelAdmin``. As a bonus, the ``created_by`` and ``modified_by``
-    fields will appear as filters on the side of the change list
-    and those fields will be rendered as read-only on the change form."""
     created_by = db.ForeignKey(
         EDITOR_TRACKABLE_MODEL, verbose_name=_("created by"), null=True,
         blank=True, default=None, related_name='+', on_delete=db.SET_NULL,
@@ -209,20 +186,3 @@ class EditorTrackable(db.Model):
 
     class Meta:
         abstract = True
-
-    def get_editor_from_request(self, request):
-        """This has to be overriden if you're using a custom editor model.
-        Both ``auth.User`` and ``AUTH_PROFILE_MODULE`` are automatically
-        handled."""
-        if model_is_user(EDITOR_TRACKABLE_MODEL):
-            return request.user
-        else:
-            return request.user.get_profile()
-
-    def pre_save_model(self, request, obj, form, change):
-        """Internal method used by ``lck.django.common.ModelAdmin``."""
-        if not change:
-            if not obj.created_by:
-                obj.created_by = self.get_editor_from_request(request)
-        else:
-            obj.modified_by = self.get_editor_from_request(request)
