@@ -68,10 +68,7 @@ class TimeTrackable(db.Model):
     ``created``, ``modified``, ``cache_version``, ``display_count``
     or ``last_active`` fields. Full list of ignored fields lies in
     ``TimeTrackable.insignificant_fields``.
-    Note: for admin integration ``lck.django.common.admin.ModelAdmin`` is
-    recommended over the vanilla ``ModelAdmin``. It adds the ``created`` and
-    ``modified`` fields as filters on the side of the change list and those
-    fields will be rendered as read-only on the change form."""
+    """
 
     insignificant_fields = {
         'cache_version', 'modified', 'modified_by', 'display_count',
