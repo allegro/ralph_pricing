@@ -48,8 +48,6 @@ INSTALLED_APPS = [
     'django_rq',
     'south',
     'rest_framework',
-    'ajax_select',
-    'bob',
     'ralph_scrooge'
 ]
 
@@ -78,6 +76,9 @@ DATABASES = {
         ),
     },
 }
+
+TIME_ZONE = 'Europe/Warsaw'
+
 LOGIN_URL = '/login/'
 ROOT_URLCONF = 'ralph_scrooge.urls'
 
