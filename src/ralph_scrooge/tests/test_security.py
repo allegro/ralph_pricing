@@ -68,15 +68,19 @@ class TestSecurity(TestCase):
         self.client.login(username=user, password='12345')
 
     def _get_components(self, se):
-        return self.client.get('/scrooge/rest/components/{}/{}/2014/10/1/'.format(
-            se.service.id,
-            se.environment.id,
-        ))
+        return self.client.get(
+            '/scrooge/rest/components/{}/{}/2014/10/1/'.format(
+                se.service.id,
+                se.environment.id,
+            )
+        )
 
     def _get_team_allocation(self, team):
-        return self.client.get('/scrooge/rest/allocationclient/{}/2014/10/'.format(
-            team.id,
-        ))
+        return self.client.get(
+            '/scrooge/rest/allocationclient/{}/2014/10/'.format(
+                team.id,
+            )
+        )
 
     def test_components_superuser_access(self):
         self._login_as('superuser')

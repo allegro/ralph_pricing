@@ -6,11 +6,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
-from functools import wraps, partial
+from functools import wraps
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import available_attrs
-from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseForbidden
 
 from ralph_scrooge.models import ServiceOwnership, TeamManager
