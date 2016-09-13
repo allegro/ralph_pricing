@@ -110,7 +110,7 @@ class BaseReportContent(APIView):
         for date in ['start', 'end']:
             try:
                 params[date] = dateutil.parser.parse(
-                    request.QUERY_PARAMS.get('start')
+                    request.QUERY_PARAMS.get(date)
                 )
             except ValueError:
                 raise ParseError('Invalid value for {} param'.format(
