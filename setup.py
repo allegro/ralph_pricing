@@ -50,6 +50,7 @@ setup(
         'ipaddr==2.1.11',
         'paramiko==1.9.0',
         'pyhermes>=0.1.2',
+        'mock==0.8.0',
         'mock-django==0.6.6',
         'factory-boy==2.3.1',
         'pyyaml==3.12',
