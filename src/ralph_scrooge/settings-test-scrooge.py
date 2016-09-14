@@ -44,7 +44,7 @@ PLUGGABLE_APPS = ['scrooge']
 
 SOUTH_TESTS_MIGRATE = False
 try:
-    INSTALLED_APPS += ('django_nose',)
+    INSTALLED_APPS += ('django_nose',)  # noqa
     TEST_RUNNER = str('django_nose.NoseTestSuiteRunner')
     NOSE_ARGS = ['--with-doctest', '-s']
 except NameError:
