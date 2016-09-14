@@ -192,14 +192,12 @@ def get_ralph3_profile(n):
 class OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
-    cmdb_id = Sequence(lambda n: n)
     profile = get_profile
 
 
 class Ralph3OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
-    cmdb_id = Sequence(lambda n: n)
     profile = get_ralph3_profile
 
 
