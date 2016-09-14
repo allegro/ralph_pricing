@@ -20,6 +20,7 @@ from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular2
 )
 
+admin.autodiscover()
 
 urlpatterns = patterns(
     '',

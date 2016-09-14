@@ -11,7 +11,6 @@ from django.db.utils import DatabaseError
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.utils.models import TimeTrackable
-from lck.django.common.models import TimeTrackable
 from dj.choices import Choices, Country, Gender
 from tastypie.models import create_api_key
 

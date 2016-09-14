@@ -12,7 +12,7 @@ with open(os.path.join(current_dir, 'README.rst')) as readme_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
 sys.path.insert(0, current_dir + os.sep + 'src')
-from ralph_scrooge import VERSION
+from ralph_scrooge import VERSION  # noqa
 release = ".".join(str(num) for num in VERSION)
 
 setup(
@@ -44,8 +44,8 @@ setup(
         'MySQL-python==1.2.3',
         'rq>=0.3.7',
         'rq-scheduler==0.3.6',
-        'lck.django==0.8.10',
         'django-tastypie==0.9.16',
+        'dj.choices==0.9.2',
         'SQLAlchemy==0.7.8',
         'ipaddr==2.1.11',
         'paramiko==1.9.0',

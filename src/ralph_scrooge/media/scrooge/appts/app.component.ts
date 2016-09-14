@@ -35,7 +35,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   ) { }
 
   ngAfterViewInit() {
-    this.activeMenu = `/scrooge/ui/#${this.location.path()}`;
+    this.activeMenu = `/ui/#${this.location.path()}`;
   }
 
   ngOnInit() {

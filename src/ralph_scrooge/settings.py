@@ -32,7 +32,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'lck.django.common.middleware.ForceLanguageCodeMiddleware',
 )
 
 TEMPLATE_DIRS = (BASE_DIR + "templates",)
@@ -83,7 +82,9 @@ TIME_ZONE = 'Europe/Warsaw'
 LOGIN_URL = '/login/'
 ROOT_URLCONF = 'ralph_scrooge.urls'
 
-RQ_QUEUE_LIST = ('reports_pricing',)
+RQ_QUEUE_LIST = (
+    'reports_pricing', 'scrooge_costs_master', 'scrooge_costs', 'scrooge_repor'
+)
 RQ_QUEUES = {
     'default': {
         'HOST': 'localhost',
