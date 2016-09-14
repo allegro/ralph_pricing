@@ -8,12 +8,9 @@ from __future__ import unicode_literals
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.choices import Choices
-from lck.django.common.models import (
-    EditorTrackable,
-    TimeTrackable,
-)
+from dj.choices import Choices
 
+from ralph_scrooge.utils.models import EditorTrackable, TimeTrackable
 from ralph_scrooge.models.base import (
     BaseUsage,
     BaseUsageManager,

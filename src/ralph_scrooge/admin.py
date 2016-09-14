@@ -10,10 +10,6 @@ from django.contrib import admin
 from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import ugettext_lazy as _
-from lck.django.common.admin import (
-    ForeignKeyAutocompleteInlineMixin,
-    ModelAdmin,
-)
 from simple_history.admin import SimpleHistoryAdmin
 
 from ralph_scrooge import models
@@ -39,7 +35,7 @@ class UpdateReadonlyMixin(object):
 # WAREHOUSE
 # =============================================================================
 @register(models.Warehouse)
-class WarehouseAdmin(ModelAdmin):
+class WarehouseAdmin(admin.ModelAdmin):
     list_display = ('name', 'show_in_report')
     search_fields = ('name',)
 
@@ -74,7 +70,6 @@ class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
 
 class VIPInfoInline(
     UpdateReadonlyMixin,
-    ForeignKeyAutocompleteInlineMixin,
     PricingObjectChildInlineBase
 ):
     model = models.VIPInfo
@@ -108,7 +103,7 @@ class PricingObjectTypeFilter(SimpleListFilter):
 
 
 @register(models.PricingObject)
-class PricingObjectAdmin(UpdateReadonlyMixin, ModelAdmin):
+class PricingObjectAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
     list_display = ('name', 'service', 'type', 'remarks',)
     search_fields = ('name', 'service_environment__service__name', 'remarks',)
     list_filter = (PricingObjectTypeFilter,)
@@ -163,7 +158,7 @@ class UsagePriceInline(admin.TabularInline):
 
 
 @register(models.UsageType)
-class UsageTypeAdmin(ModelAdmin):
+class UsageTypeAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [UsagePriceInline]
@@ -178,7 +173,7 @@ class ExtraCostInline(admin.TabularInline):
 
 
 @register(models.ExtraCostType)
-class ExtraCostTypeAdmin(ModelAdmin):
+class ExtraCostTypeAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [ExtraCostInline]
@@ -201,7 +196,7 @@ class DynamicExtraTypeForm(forms.ModelForm):
 
 
 @register(models.DynamicExtraCostType)
-class DynamicExtraCostTypeAdmin(ModelAdmin):
+class DynamicExtraCostTypeAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [DynamicExtraCostDivisionInline, DynamicExtraCostInline]
@@ -212,21 +207,21 @@ class DynamicExtraCostTypeAdmin(ModelAdmin):
 # SERVICE
 # =============================================================================
 @register(models.BusinessLine)
-class BusinessLineAdmin(UpdateReadonlyMixin, ModelAdmin):
+class BusinessLineAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     readonly_when_update = ('ci_id', 'ci_uid')
 
 
 @register(models.Environment)
-class EnvironmentAdmin(UpdateReadonlyMixin, ModelAdmin):
+class EnvironmentAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     readonly_when_update = ('ci_id', 'ci_uid')
 
 
 @register(models.Owner)
-class OwnerAdmin(ModelAdmin):
+class OwnerAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name')
     search_fields = ('first_name', 'last_name')
 
@@ -294,7 +289,7 @@ class ServiceUsageTypesInline(admin.TabularInline):
 
 
 @register(models.PricingService)
-class PricingServiceAdmin(ModelAdmin):
+class PricingServiceAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     form = PricingServiceForm
@@ -317,7 +312,7 @@ class TeamForm(forms.ModelForm):
 
 
 @register(models.Team)
-class TeamAdmin(ModelAdmin):
+class TeamAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
     inlines = [TeamCostInline]
@@ -329,7 +324,7 @@ class TeamServiceEnvironmentPercentInline(admin.TabularInline):
 
 
 @register(models.TeamCost)
-class TeamCostAdmin(UpdateReadonlyMixin, ModelAdmin):
+class TeamCostAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
     list_display = ('team', 'start', 'end')
     search_fields = ('team__name', 'start', 'end',)
     list_filter = ('team__name', )

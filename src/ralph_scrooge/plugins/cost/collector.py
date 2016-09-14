@@ -235,7 +235,7 @@ class Collector(object):
         forecast flag).
         """
         # update status to created
-        status, created = CostDateStatus.concurrent_get_or_create(date=date)
+        status, created = CostDateStatus.objects.get_or_create(date=date)
         if forecast:
             status.forecast_calculated = True
         else:

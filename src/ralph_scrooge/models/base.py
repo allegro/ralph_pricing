@@ -7,8 +7,9 @@ from __future__ import unicode_literals
 
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
-from lck.django.choices import Choices
-from lck.django.common.models import Named
+from dj.choices import Choices
+
+from ralph_scrooge.utils.models import Named
 
 
 class BaseUsageType(Choices):
