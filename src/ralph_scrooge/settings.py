@@ -72,8 +72,7 @@ DATABASES = {
         'PASSWORD': 'ralph',
         'HOST': '',
         'PORT': '',
-        'OPTIONS': dict(
-        ),
+        'OPTIONS': dict(),
     },
 }
 
@@ -96,6 +95,21 @@ for queue in RQ_QUEUE_LIST:
     RQ_QUEUES[queue] = dict(RQ_QUEUES['default'])
 
 AUTH_PROFILE_MODULE = 'ralph_scrooge.UserProfile'
+
+
+CACHES = dict(
+    default=dict(
+        BACKEND='django.core.cache.backends.locmem.LocMemCache',
+        LOCATION='',
+        TIMEOUT=300,
+        OPTIONS=dict(),
+        KEY_PREFIX='RALPH_',
+    ),
+    staticfiles=dict(
+        BACKEND='django.core.cache.backends.locmem.LocMemCache',
+        LOCATION='cached_static_files'
+    )
+)
 
 # -----------------------------------------
 # SCROOGE SETTINGS
@@ -289,9 +303,7 @@ LOAD_BALANCER_TYPES_MAPPING = {
 
 EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
 
-scrooge_settings_path = os.environ.get('SCROOGE_SETTINGS_PATH', '~/.scrooge')
-cfg_loc = os.path.join(scrooge_settings_path, 'settings')
-cfg_loc = os.path.expanduser(cfg_loc)
-
-if os.path.exists(cfg_loc):
-    execfile(cfg_loc)  # noqa
+try:
+    execfile(os.path.expanduser("~/.scrooge/settings"))  # noqa
+except IOError:
+    pass

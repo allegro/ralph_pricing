@@ -51,6 +51,6 @@ except NameError:
     print('Cannot use nose test runner')
 
 try:
-    execfile(os.path.expanduser("~/.ralph/settings-test-scrooge-local"))
+    execfile(os.path.expanduser("~/.scrooge/settings-test-scrooge-local"))  # noqa
 except IOError:
     pass

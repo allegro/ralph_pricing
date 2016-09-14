@@ -54,6 +54,7 @@ setup(
         'mock-django==0.6.6',
         'factory-boy==2.3.1',
         'pyyaml==3.12',
+        'django-auth-ldap==1.1.3'
     ],
     entry_points={
         'django.pluggable_app': [
