@@ -286,3 +286,12 @@ COMPONENTS_TABLE_SCHEMA = {
 LOAD_BALANCER_TYPES_MAPPING = {
     'HAPROXY': 'HA Proxy',
 }
+
+EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
+
+scrooge_settings_path = os.environ.get('SCROOGE_SETTINGS_PATH', '~/.scrooge')
+cfg_loc = os.path.join(scrooge_settings_path, 'settings')
+cfg_loc = os.path.expanduser(cfg_loc)
+
+if os.path.exists(cfg_loc):
+    execfile(cfg_loc)  # noqa
