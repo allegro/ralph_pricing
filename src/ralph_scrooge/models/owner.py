@@ -76,13 +76,6 @@ class Owner(TimeTrackable):
     objects = OwnerManager()
     objects_raw = db.Manager()
 
-    # todo delete this
-    cmdb_id = db.IntegerField(
-        unique=True,
-        null=False,
-        blank=False,
-        verbose_name=_("id from cmdb"),
-    )
     profile = db.OneToOneField(
         UserProfile,
         verbose_name=_("profile"),
