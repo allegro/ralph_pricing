@@ -2,10 +2,10 @@ install:
 	pip install -e .
 
 quicktest:
-	DJANGO_SETTINGS_MODULE=ralph_scrooge.settings-test-scrooge scrooge test ralph_scrooge
+	test_scrooge test ralph_scrooge
 
 test-with-coveralls:
-	DJANGO_SETTINGS_MODULE=ralph_scrooge.settings-test-scrooge coverage run --source=ralph_scrooge --omit='*migrations*,*tests*,*__init__*' '$(VIRTUAL_ENV)/bin/scrooge' test ralph_scrooge
+	coverage run --source=ralph_scrooge --omit='*migrations*,*tests*,*__init__*' '$(VIRTUAL_ENV)/bin/test_scrooge' test ralph_scrooge
 
 coverage:
 	make test-with-coveralls
@@ -15,8 +15,11 @@ flake:
 	flake8 --exclude="migrations" --statistics src/ralph_scrooge
 
 runserver:
-	scrooge runserver
+	dev_scrooge runserver
 
 install_ui:
 	npm install
 	./node_modules/.bin/gulp
+
+clean:
+	find . -name '*.py[cod]' -exec rm -rf {} \;

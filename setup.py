@@ -64,7 +64,9 @@ setup(
             'scrooge = ralph_scrooge.plugins.collect',
         ],
         'console_scripts': [
-            'scrooge = ralph_scrooge.__main__:main',
+            'scrooge = ralph_scrooge.__main__:prod',
+            'dev_scrooge = ralph_scrooge.__main__:dev',
+            'test_scrooge = ralph_scrooge.__main__:test',
          ]
     },
     classifiers=[

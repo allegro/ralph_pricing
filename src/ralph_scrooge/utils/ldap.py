@@ -44,7 +44,9 @@ else:
         user.is_active = 'active' in ldap_user.group_names
 
     @receiver(populate_user_profile)
-    def manager_country_attribute_populate(sender, profile, ldap_user, **kwargs):
+    def manager_country_attribute_populate(
+        sender, profile, ldap_user, **kwargs
+    ):
         try:
             profile_map = settings.AUTH_LDAP_PROFILE_ATTR_MAP
         except AttributeError:

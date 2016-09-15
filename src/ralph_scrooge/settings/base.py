@@ -2,7 +2,7 @@ import os
 import sys
 
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
@@ -21,7 +21,7 @@ MEDIA_URL = '/u/'
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'  # noqa
 STATICFILES_DIRS = (
-    BASE_DIR + '/ralph_scrooge/media',
+    BASE_DIR + '/media',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -302,8 +302,3 @@ LOAD_BALANCER_TYPES_MAPPING = {
 }
 
 EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
-
-try:
-    execfile(os.path.expanduser("~/.scrooge/settings"))  # noqa
-except IOError:
-    pass

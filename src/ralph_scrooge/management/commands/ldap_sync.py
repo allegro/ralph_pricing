@@ -27,8 +27,8 @@ except ImportError:
 
 def _truncate_surname(ldap_dict):
     """
-    Truncate user's surname when it's longer then default django value, which is
-    30 chars.
+    Truncate user's surname when it's longer then default django value,
+    which is 30 chars.
     """
     if 'sn' in ldap_dict:
         max_length = User._meta.get_field('last_name').max_length

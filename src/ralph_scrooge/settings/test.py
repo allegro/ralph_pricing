@@ -1,7 +1,7 @@
 #
 # A testing profile.
 #
-from ralph_scrooge.settings import *  # noqa
+from ralph_scrooge.settings.base import *  # noqa
 
 import os
 TEST_DATABASE_ENGINE = os.environ.get('TEST_DATABASE_ENGINE')

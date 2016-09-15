@@ -61,6 +61,7 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
 )
 
+
 # TODO(xor-xor): Uncomment patterns for hermes below once Scrooge will be
 # completely separated from Ralph. And remember, that endpoint for
 # refreshVipEvent subscription will change from:
