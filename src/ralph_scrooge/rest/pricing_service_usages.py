@@ -89,15 +89,9 @@ class UsagesObject(object):
 class UsagesObjectSerializer(Serializer):
     service = serializers.CharField()
     service_id = serializers.IntegerField()
-    service_uid = serializers.CharField()
     environment = serializers.CharField()
     pricing_object = serializers.CharField()
     usages = UsageObjectSerializer(many=True)
-
-    class Meta:
-        model = UsagesObject  # XXX needed..?
-        exclude = ('service_uid',)
-
 
 
 class UsagesObjectDeserializer(UsagesObjectSerializer):
@@ -218,15 +212,11 @@ class PricingServiceUsageObjectSerializer(Serializer):
     pricing_service = serializers.CharField()
     pricing_service_id = serializers.IntegerField()
     date = serializers.DateField()
-    overwrite = serializers.CharField()
     usages = UsagesObjectSerializer(many=True)
-
-    class Meta:
-        model = PricingServiceUsageObject  # XXX needed..?
-        exclude = ('overwrite',)
 
 
 class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer):  # noqa
+    pricing_service_id = serializers.IntegerField(required=False)
     overwrite = serializers.CharField(required=False, default='no')
     usages = UsagesObjectDeserializer(many=True)
 
@@ -247,10 +237,6 @@ class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer)
                 "Unknown service name: {}".format(value)
             )
         return attrs
-
-    class Meta:
-        model = PricingServiceUsageObject  # XXX needed..?
-        exclude = ('pricing_service_id',)
 
 
 class PricingServiceUsages(APIView):
