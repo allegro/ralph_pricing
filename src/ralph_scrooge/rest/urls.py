@@ -114,7 +114,7 @@ urlpatterns = patterns(
     # XXX To be eventually moved into `/api/` URLs hierarchy.
     url(
         r'^pricingserviceusages/?$',
-        # scrooge_permission(PricingServiceUsages.as_view()),
+        # scrooge_permission(PricingServiceUsages.as_view()),  # XXX doesn't work
         PricingServiceUsages.as_view(),
         {'allowed_methods': ['POST']},
         name='pricing_service_usages'
@@ -122,7 +122,7 @@ urlpatterns = patterns(
     url(
         # r'^pricingserviceusages/?$',
         r'^pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',
-        # scrooge_permission(PricingServiceUsages.as_view()),
+        # scrooge_permission(PricingServiceUsages.as_view()),  # XXX doesn't work
         PricingServiceUsages.as_view(),
         {'allowed_methods': ['GET']},
         name='pricing_service_usages'
