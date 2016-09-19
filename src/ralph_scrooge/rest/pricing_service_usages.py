@@ -28,7 +28,7 @@ from ralph_scrooge.models import (
 logger = logging.getLogger(__name__)
 
 
-# TODO(xor-xor): Consider moving *all* exceptions used by Scrooge into single
+# TODO(xor-xor): Consider moving *all* exceptions used by Scrooge into a single
 # module.
 class ServiceEnvironmentDoesNotExistError(Exception):
     pass
@@ -241,6 +241,16 @@ class PricingServiceUsageObjectDeserializer(PricingServiceUsageObjectSerializer)
 
 class PricingServiceUsages(APIView):
 
+    # TODO(xor-xor): Consider using function-based views / api_view decorator
+    # to get rid of this logic here (and allowed_methods extra argument in
+    # definition of URLs).
+    def dispatch(self, request, allowed_methods=[], *args, **kwargs):
+        if request.method not in allowed_methods:
+            return HttpResponse(status=405)
+        return super(PricingServiceUsages, self).dispatch(
+            request, *args, **kwargs
+        )
+
     def get(self, request, usages_date, pricing_service_id, *args, **kwargs):
         try:
             PricingService.objects.get(id=pricing_service_id)
@@ -292,6 +302,7 @@ class PricingServiceUsages(APIView):
             usages.usages = [UsageObject(k, v) for k, v in u]
             ps.usages.append(usages)
         return ps
+
 
     def post(self, request, *args, **kwargs):
         deserializer = PricingServiceUsageObjectDeserializer(data=request.DATA)

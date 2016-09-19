@@ -116,6 +116,7 @@ urlpatterns = patterns(
         r'^pricingserviceusages/?$',
         # scrooge_permission(PricingServiceUsages.as_view()),
         PricingServiceUsages.as_view(),
+        {'allowed_methods': ['POST']},
         name='pricing_service_usages'
     ),
     url(
@@ -123,6 +124,7 @@ urlpatterns = patterns(
         r'^pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',
         # scrooge_permission(PricingServiceUsages.as_view()),
         PricingServiceUsages.as_view(),
+        {'allowed_methods': ['GET']},
         name='pricing_service_usages'
     ),
 )
