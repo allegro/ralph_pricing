@@ -267,13 +267,6 @@ class PricingServiceUsages(APIView):
         result = self.get_usages(usages_date, pricing_service_id)
         return Response(PricingServiceUsageObjectSerializer(result).data)
 
-    def post(self, request, *args, **kwargs):
-        deserializer = PricingServiceUsageObjectDeserializer(data=request.DATA)
-        if deserializer.is_valid():
-            self.save_usages(deserializer.object)
-            return HttpResponse(status=201)
-        return Response(deserializer.errors, status=400)
-
     def get_usages(self, usages_date, pricing_service_id):
         pricing_service = PricingService.objects.get(
             id=pricing_service_id,
@@ -315,16 +308,12 @@ class PricingServiceUsages(APIView):
             ps.usages.append(usages)
         return ps
 
-    def remove_previous_daily_usages(self, overwrite, date, usages_dp_objs):
-        if overwrite in ('values_only', 'delete_all_previous'):
-            logger.debug('Remove previous values ({})'.format(overwrite))
-            for k, v in usages_dp_objs.iteritems():
-                previuos_usages = DailyUsage.objects.filter(date=date, type=k)
-                if overwrite == 'values_only':
-                    previuos_usages = previuos_usages.filter(
-                        daily_pricing_object__in=v
-                    )
-                previuos_usages.delete()
+    def post(self, request, *args, **kwargs):
+        deserializer = PricingServiceUsageObjectDeserializer(data=request.DATA)
+        if deserializer.is_valid():
+            self.save_usages(deserializer.object)
+            return HttpResponse(status=201)
+        return Response(deserializer.errors, status=400)
 
     def save_usages(self, pricing_service_usage):
         logger.info("Saving usages for service {}".format(
@@ -371,3 +360,14 @@ class PricingServiceUsages(APIView):
                     daily_pricing_object
                 )
         return (daily_usages, usages_daily_pricing_objects)
+
+    def remove_previous_daily_usages(self, overwrite, date, usages_dp_objs):
+        if overwrite in ('values_only', 'delete_all_previous'):
+            logger.debug('Remove previous values ({})'.format(overwrite))
+            for k, v in usages_dp_objs.iteritems():
+                previuos_usages = DailyUsage.objects.filter(date=date, type=k)
+                if overwrite == 'values_only':
+                    previuos_usages = previuos_usages.filter(
+                        daily_pricing_object__in=v
+                    )
+                previuos_usages.delete()
