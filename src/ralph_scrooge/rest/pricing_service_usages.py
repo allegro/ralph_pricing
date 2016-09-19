@@ -5,8 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import datetime
-import json
 import logging
 from collections import defaultdict
 
@@ -102,20 +100,16 @@ class UsagesObjectDeserializer(UsagesObjectSerializer):
     pricing_object = serializers.CharField(required=False)
     usages = UsageObjectDeserializer(many=True)
 
-
     def _get_service_env(self, attrs):
         se_params = {
             'environment__name': attrs.get('environment'),
         }
         if attrs.get('service_id'):
             se_params['service_id'] = attrs['service_id']
-            service_selector = attrs['service_id']
         elif attrs.get('service_uid'):
             se_params['service__ci_uid'] = attrs['service_uid']
-            service_selector = attrs['service_uid']
         else:
             se_params['service__name'] = attrs['service']
-            service_selector = attrs['service']
         try:
             se = ServiceEnvironment.objects.get(**se_params)
         except ServiceEnvironment.DoesNotExist:
@@ -170,7 +164,7 @@ class UsagesObjectDeserializer(UsagesObjectSerializer):
                     name=pricing_obj
                 )
             except PricingObject.DoesNotExist:
-                err = "pricing_object {} does not exist".format(pricing_object)
+                err = "pricing_object {} does not exist".format(pricing_obj)
         else:
             try:
                 service_env = self._get_service_env(attrs)
@@ -302,7 +296,6 @@ class PricingServiceUsages(APIView):
             usages.usages = [UsageObject(k, v) for k, v in u]
             ps.usages.append(usages)
         return ps
-
 
     def post(self, request, *args, **kwargs):
         deserializer = PricingServiceUsageObjectDeserializer(data=request.DATA)
