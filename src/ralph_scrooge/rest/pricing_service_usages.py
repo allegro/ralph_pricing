@@ -50,15 +50,14 @@ class UsageObjectSerializer(Serializer):
 
 class UsageObjectDeserializer(UsageObjectSerializer):
 
-    def validate(self, attrs):
-        if not UsageType.objects.filter(symbol=attrs['symbol']).exists():
+    def validate_symbol(self, attrs, source):
+        if not UsageType.objects.filter(symbol=attrs[source]).exists():
             err = (
                 'usage type for symbol "{}" does not exist'
-                .format(attrs['symbol'])
+                .format(attrs[source])
             )
             raise serializers.ValidationError(err)
         return attrs
-
 
 
 class UsagesObject(object):
