@@ -145,6 +145,9 @@ class TeamManager(db.Model):
         return '{} / {}'.format(self.team, self.manager)
 
 
+# Code from Ralph 2
+# https://github.com/allegro/ralph/blob/develop/src/ralph/util/models.py#L25
+# TODO Only for django-tastypie, if we use only DRF delete this.
 def create_api_key_ignore_dberrors(*args, **kwargs):
     try:
         return create_api_key(*args, **kwargs)

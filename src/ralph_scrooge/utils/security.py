@@ -15,7 +15,7 @@ from django.http import HttpResponseForbidden
 from ralph_scrooge.models import ServiceOwnership, TeamManager
 
 
-def scrooge_permission(view_func):
+def superuser_permission(view_func):
     """
     Check if user is superuser.
     """

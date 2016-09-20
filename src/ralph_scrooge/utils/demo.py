@@ -47,7 +47,7 @@ demo_data = defaultdict(dict)
 
 def register(demo_klass, **kwargs):
     if demo_klass.name in registry:
-        raise NameError('This key ({}) already exist.'.format(demo_klass.name))
+        raise NameError('This key ({}) already exists.'.format(demo_klass.name))
     registry[demo_klass.name] = demo_klass
     return demo_klass
 
@@ -60,15 +60,24 @@ days = [d.date() for d in rrule.rrule(
 )]
 
 
+# DemoData from Ralph 2
+# https://github.com/allegro/ralph/blob/develop/src/ralph/util/demo/__init__.py
+# TODO: Change it to be like Ralph 3?
 class DemoData(object):
     required = None
 
     @property
     def name():
+        """
+        Demo data component name.
+        """
         raise NotImplementedError('Please specify name')
 
     @property
     def title():
+        """
+        Demo data component title. Displayed on console.
+        """
         raise NotImplementedError('Please specify title')
 
     def execute(self):
@@ -77,7 +86,7 @@ class DemoData(object):
         print('Finish created {}.'.format(self.name))
 
     def generate_data(self, data):
-        raise NotImplementedError('Please override')
+        raise NotImplementedError('Please override "generate_data" method')
 
 
 class DemoRunner(object):
@@ -87,15 +96,16 @@ class DemoRunner(object):
         super(DemoRunner, self).__init__(*args, **kwargs)
 
     def run(self):
-        """This method find reqiurement of demo data and call execute method
+        """This method finds reqiurement of demo data and call execute method
         for each demo in demo_keys."""
         demos = Counter()
         max_depth = 10
         default_weight = 10
 
         def dig_requirements(demo, depth=1):
-            """Method search all requirements for demo and add or update
-            weight (count) in demos counter."""
+            """Search function all requirements for demo and add or update
+            weight (count) in demos counter.
+            """
             if max_depth <= depth:
                 return
             demos[demo.name] += default_weight * depth

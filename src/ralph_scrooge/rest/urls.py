@@ -25,7 +25,7 @@ from ralph_scrooge.rest import (
 from ralph_scrooge.rest.router import urlpatterns as router_urlpatterns
 from ralph_scrooge.rest.menu import SubMenu
 from ralph_scrooge.utils.security import (
-    scrooge_permission,
+    superuser_permission,
     service_permission,
     team_permission,
 )
@@ -39,11 +39,11 @@ urlpatterns = patterns(
     ),
     url(
         r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/?$',
-        scrooge_permission(AllocationAdminContent.as_view()),
+        superuser_permission(AllocationAdminContent.as_view()),
     ),
     url(
         r'^allocationadmin/(?P<year>\d+)/(?P<month>\d+)/(?P<allocate_type>\S+)/save/?$',  # noqa
-        scrooge_permission(AllocationAdminContent.as_view()),
+        superuser_permission(AllocationAdminContent.as_view()),
     ),
     url(
         r'^allocationclient/(?P<service>\d+)/(?P<env>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
@@ -75,17 +75,17 @@ urlpatterns = patterns(
     ),
     url(
         r'^monthly_costs/?$',
-        scrooge_permission(MonthlyCosts.as_view()),
+        superuser_permission(MonthlyCosts.as_view()),
         name="monhtly-costs",
     ),
     url(
         r'^monthly_costs/(?P<job_id>[\w\-]+)?$',
-        scrooge_permission(MonthlyCosts.as_view()),
+        superuser_permission(MonthlyCosts.as_view()),
         name="monhtly-costs",
     ),
     url(
         r'^accept_monthly_costs/?$',
-        scrooge_permission(AcceptMonthlyCosts.as_view()),
+        superuser_permission(AcceptMonthlyCosts.as_view()),
         name="accept-monhtly-costs",
     ),
     url(
@@ -100,12 +100,12 @@ urlpatterns = patterns(
     ),
     url(
         r'^usages_report/?$',
-        scrooge_permission(UsagesReportContent.as_view()),
+        superuser_permission(UsagesReportContent.as_view()),
         name='usages_report_rest'
     ),
     url(
         r'^services_costs_report/?$',
-        scrooge_permission(ServicesCostsReportContent.as_view()),
+        superuser_permission(ServicesCostsReportContent.as_view()),
         name='services_costs_report_rest'
     ),
 )

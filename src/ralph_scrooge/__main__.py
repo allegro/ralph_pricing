@@ -20,8 +20,8 @@ def dev():
 
 def test():
     # test only with test settings, not local (or any set by environment
-    # variable DJANGO_SETTINGS_MODULE) - especially usefull in vagrant, when
-    # default DJANGO_SETTINGS_MODULE is overwrited in .profile
+    # variable DJANGO_SETTINGS_MODULE) - especially useful in Vagrant, when
+    # default DJANGO_SETTINGS_MODULE is overwritten in .profile
     main('ralph_scrooge.settings.test', force=True)
 
 
