@@ -172,7 +172,8 @@ class UsagesDeserializer(UsagesSerializer):
                 err = (
                     "service environment does not exist ({})".format(e.message)
                 )
-            attrs['pricing_object'] = service_env.dummy_pricing_object
+            else:
+                attrs['pricing_object'] = service_env.dummy_pricing_object
         if err is not None:
             raise serializers.ValidationError(err)
 
@@ -345,10 +346,11 @@ def get_usages_for_save(pricing_service_usage):
 def remove_previous_daily_usages(overwrite, date, usages_dp_objs):
     if overwrite in ('values_only', 'delete_all_previous'):
         logger.debug('Remove previous values ({})'.format(overwrite))
-        for k, v in usages_dp_objs.iteritems():
-            previous_usages = DailyUsage.objects.filter(date=date, type=k)
+        for ut, dpo in usages_dp_objs.iteritems():
+            previous_usages = DailyUsage.objects.filter(date=date, type=ut)
             if overwrite == 'values_only':
+                # XXX how to interpret this line..?
                 previous_usages = previous_usages.filter(
-                    daily_pricing_object__in=v
+                    daily_pricing_object__in=dpo
                 )
             previous_usages.delete()

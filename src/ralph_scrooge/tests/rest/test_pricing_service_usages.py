@@ -24,76 +24,56 @@ from ralph_scrooge.tests.utils.factory import (
 )
 from rest_framework.test import APIClient
 
+# XXX
+from ralph_scrooge.models import (
+    DailyUsage,
+    PricingObject,
+    PricingService,
+    ServiceEnvironment,
+    UsageType,
+)
 
-PRICING_SERVICE_USAGE_TEMPLATE = {
-    "pricing_service": "service-1",
-    "date": "2016-09-08",
-    "usages": [],
-}
-
-USAGE_TEMPLATE_PRICING_OBJECT = {
-    "pricing_object": "some.hostname.net",
-    "usages": [
-        {
-            "symbol": "symbol-1",
-            "value": 40
-        }  # add more of them if needed
-    ]
-}
-
-USAGE_TEMPLATE_SERVICE = {
-    "service": "service1",
-    "environment": "env1",
-    "usages": [
-        {
-            "symbol": "requests",
-            "value": 123
-        }
-    ]
-}
-
-USAGE_TEMPLATE_SERVICE_ID = {
-    "service_id": 1,
-    "environment": "env1",
-    "usages": [
-        {
-            "symbol": "requests",
-            "value": 123
-        }
-    ]
-}
-
-USAGE_TEMPLATE_SERVICE_UID = {
-    "service_uid": "sc-123",
-    "environment": "env1",
-    "usages": [
-        {
-            "symbol": "requests",
-            "value": 123
-        }
-    ]
-}
+def print_state():
+    print('PricingService:')
+    print(PricingService.objects.all())
+    print('\n')
+    print('ServiceEnvironment:')
+    print(ServiceEnvironment.objects.all())
+    print('\n')
+    print('PricingObject:')
+    print(PricingObject.objects.all())
+    print('\n')
+    print('UsageType:')
+    print(UsageType.objects.all())
+    print('\n')
+    print('ServiceUsageTypes:')
+    print(ServiceUsageTypes.objects.all())
+    print('\n')
+    print('DailyUsage:')
+    print(DailyUsage.objects.all())
+    print('\n')
 
 
 class TestPricingServiceUsages(TestCase):
 
     def compare_usages(self):
+        # XXX why only the first one..?
         daily_usage1 = DailyUsage.objects.order_by('id')[0]
         self.assertEquals(
             daily_usage1.service_environment,
-            self.service_environment1
+            self.service_environment
         )
         self.assertEquals(daily_usage1.date, self.date)
         self.assertEquals(daily_usage1.type, self.usage_type1)
-        self.assertEquals(daily_usage1.value, 123)
+        self.assertEquals(daily_usage1.value, 50)  # XXX
 
     def setUp(self):
         self.date = datetime.date(2016, 9, 8)
         self.today = datetime.date.today()
         client = APIClient()
         self.pricing_service = PricingServiceFactory()
-        self.service_environment = ServiceEnvironmentFactory()
         self.pricing_object = PricingObjectFactory()
+        self.service_environment = self.pricing_object.service_environment
         self.usage_type1 = UsageTypeFactory()
         self.usage_type2 = UsageTypeFactory()
         ServiceUsageTypes.objects.create(
@@ -111,63 +91,182 @@ class TestPricingServiceUsages(TestCase):
             percent=50,
         )
 
-    def test_if_usage_saves_correctly(self):
+        self.pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": "2016-09-08",
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type1.symbol,
+                            "value": 50,
+                        },
+                        {
+                            "symbol": self.usage_type1.symbol,
+                            "value": 50,
+                        },
+                    ]
+                }
+            ]
+        }
 
-        pricing_service_usage = deepcopy(PRICING_SERVICE_USAGE_TEMPLATE)
-        pricing_object = deepcopy(USAGE_TEMPLATE_PRICING_OBJECT)
-        pricing_service_usage['usages'].append(pricing_object)
-        pricing_service_usage['usages'].append(pricing_object)
 
+    def test_for_success_when_valid_pricing_object_data_given(self):
         resp = self.client.post(
-            reverse('pricing_service_usages'),
-            pricing_service_usage,
-            format='json',
+            reverse('create_pricing_service_usages'),
+            json.dumps(self.pricing_service_usage),
+            content_type='application/json',
         )
         self.assertEquals(resp.status_code, 201)
         self.compare_usages()
 
 
-    # def test_if_usage_saves_correctly_with_existing_pricing_service(self):
+    def test_for_success_when_valid_service_data_given(self):
+        del self.pricing_service_usage['usages'][0]['pricing_object']
+        self.pricing_service_usage['usages'][0]['service'] = (
+            self.pricing_object.service_environment.service.name
+        )
+        self.pricing_service_usage['usages'][0]['environment'] = (
+            self.pricing_object.service_environment.environment.name
+        )
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(self.pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        self.compare_usages()
+
+
+    def test_for_success_when_valid_service_id_data_given(self):
+        del self.pricing_service_usage['usages'][0]['pricing_object']
+        self.pricing_service_usage['usages'][0]['service_id'] = (
+            self.pricing_object.service_environment.service_id
+        )
+        self.pricing_service_usage['usages'][0]['environment'] = (
+            self.pricing_object.service_environment.environment.name
+        )
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(self.pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        self.compare_usages()
+
+
+    def test_for_success_when_valid_service_uid_data_given(self):
+        del self.pricing_service_usage['usages'][0]['pricing_object']
+        self.pricing_service_usage['usages'][0]['service_uid'] = (
+            self.pricing_object.service_environment.service.ci_uid
+        )
+        self.pricing_service_usage['usages'][0]['environment'] = (
+            self.pricing_object.service_environment.environment.name
+        )
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(self.pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        self.compare_usages()
+
+
+    def test_for_error_when_invalid_pricing_service_given(self):
+        self.pricing_service_usage['pricing_service'] = 'fake_service'
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(self.pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['pricing_service']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('fake_service', errors[0])
+
+
+    def test_for_error_when_invalid_service_given(self):
+        del self.pricing_service_usage['usages'][0]['pricing_object']
+        self.pricing_service_usage['usages'][0]['service'] = 'fake_service'
+        self.pricing_service_usage['usages'][0]['environment'] = (
+            self.pricing_object.service_environment.environment.name
+        )
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(self.pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['non_field_errors']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('fake_service', errors[0])
+        self.assertIn('does not exist', errors[0])
+
+
+    # def test_for_error_when_invalid_service_id_given(self):
     #     pass
 
-    # def test_for_error_when_invalid_pricing_service_given(self):
-    #     pass
-
-    # def test_for_error_when_invalid_service_given(self):
+    # def test_for_error_when_invalid_service_uid_given(self):
     #     pass
 
     # def test_for_error_when_invalid_environment_given(self):
     #     pass
 
-    # def test_for_error_when_service_is_missing(self):
-    #     pass
-
-    # def test_for_error_when_environment_is_missing(self):
-    #     pass
-
-    # def test_for_error_when_pricing_object_is_missing(self):
-    #     pass
-
     # def test_for_error_when_invalid_usage_given(self):
     #     pass
 
+    # XXX Consider adding 'missing' variant for the tests above.
+
+
     # def test_overwrite_values_only(self):
-    #     pass
+    #     resp = self.client.post(
+    #         reverse('create_pricing_service_usages'),
+    #         json.dumps(self.pricing_service_usage),
+    #         content_type='application/json',
+    #     )
+    #     self.assertEquals(resp.status_code, 201)
+    #     self.compare_usages()
+    #     self.assertEquals(DailyUsage.objects.count(), 2)
+    #     self.assertEquals(DailyUsage.objects.all()[0].value, 50)
+    #     self.assertEquals(DailyUsage.objects.all()[1].value, 50)
+
+    #     # before:
+    #     # ut13, 50
+    #     # ut13, 50
+    #     #
+    #     # after:
+    #     # ut14, 60
+    #     # ut13, 40
+
+    #     self.pricing_service_usage['overwrite'] = 'values_only'
+    #     self.pricing_service_usage['usages'][0]['usages'][0]['symbol'] = self.usage_type2.symbol
+    #     self.pricing_service_usage['usages'][0]['usages'][0]['value'] = 60
+    #     self.pricing_service_usage['usages'][0]['usages'][1]['value'] = 40
+    #     resp = self.client.post(
+    #         reverse('create_pricing_service_usages'),
+    #         json.dumps(self.pricing_service_usage),
+    #         content_type='application/json',
+    #     )
+    #     print_state(); assert False
+    #     self.assertEquals(resp.status_code, 201)
+    #     # self.compare_usages()  # XXX
+    #     self.assertEquals(DailyUsage.objects.count(), 2)
+    #     self.assertEquals(DailyUsage.objects.all()[0].value, new_value)
+    #     self.assertEquals(DailyUsage.objects.all()[1].value, new_value)
+
+    #     # same ('previous') DailyUsage == same date and same UsageType
+
+    #     # XXX what is DailyPricingObject..? what's the difference between DailyUsage..?
+
+
 
     # def test_overwrite_delete_all_previous(self):
     #     pass
 
-    # def test_not_overwriting(self):
+    # def test_not_overwriting_by_default(self):
     #     pass
+
 
     # def test_get_pricing_service_usages(self):
     #     pass
-
-    # # # XXX to be removed
-    # # def test_post(self):
-    # #     client = APIClient()
-    # #     resp = client.post(
-    # #         reverse('pricing_service_usages'),
-    # #         {'aaa': 'bbb'},
-    # #         format='json',
-    # #     )
