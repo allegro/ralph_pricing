@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 
 import logging
 from collections import defaultdict
-from copy import deepcopy
 
 from django.http import HttpResponse
 from rest_framework import status
@@ -33,25 +32,11 @@ class ServiceEnvironmentDoesNotExistError(Exception):
     pass
 
 
-USAGE_OBJECT = {
-    'symbol': None,
-    'value': None,
-}
-
-
-def new_usage_object(symbol, value):
-    usage = deepcopy(USAGE_OBJECT)
-    usage['symbol'] = symbol
-    usage['value'] = value
-    return usage
-
-# class UsageObject(object):
-#     symbol = None
-#     value = None
-
-#     def __init__(self, symbol=None, value=None, **kwargs):
-#         self.symbol = symbol
-#         self.value = value
+def new_usage_object(symbol=None, value=None):
+    return {
+        'symbol': symbol,
+        'value': value,
+    }
 
 
 class UsageObjectSerializer(Serializer):
@@ -71,38 +56,20 @@ class UsageObjectDeserializer(UsageObjectSerializer):
         return attrs
 
 
-USAGES_OBJECT = {
-    'service': None,
-    'service_id': None,
-    'environment': None,
-    'pricing_object': None,
-    'usages': [],
-}
-
-# class UsagesObject(object):
-#     service = None
-#     service_id = None
-#     service_uid = None
-#     environment = None
-#     pricing_object = None
-#     usages = []  # list of UsageObject
-
-#     def __init__(
-#         self,
-#         service=None,
-#         service_id=None,
-#         service_uid=None,
-#         environment=None,
-#         pricing_object=None,
-#         usages=None,
-#         **kwargs
-#     ):
-#         self.service = service
-#         self.service_id = service_id
-#         self.service_uid = service_uid
-#         self.environment = environment
-#         self.pricing_object = pricing_object
-#         self.usages = usages or []
+def new_usages_object(
+        service=None,
+        service_id=None,
+        environment=None,
+        pricing_object=None,
+        usages=None,
+):
+    return {
+        'service': service,
+        'service_id': service_id,
+        'environment': environment,
+        'pricing_object': pricing_object,
+        'usages': usages or [],
+    }
 
 
 class UsagesObjectSerializer(Serializer):
@@ -205,31 +172,24 @@ PRICING_SERVICE_USAGE_OBJECT = {
     'pricing_service_id': None,
     'date': None,
     'overwrite': 'no',
-    'usages': [],  # list of USAGES_OBJECTs
+    'usages': [],
 }
 
 
-# class PricingServiceUsageObject(object):
-#     pricing_service = None
-#     pricing_service_id = None
-#     date = None
-#     overwrite = None
-#     usages = []  # list of UsagesObject
-
-#     def __init__(
-#         self,
-#         pricing_service=None,
-#         pricing_service_id=None,
-#         usages=None,
-#         date=None,
-#         overwrite=None,
-#         **kwargs
-#     ):
-#         self.pricing_service = pricing_service
-#         self.pricing_service_id = pricing_service_id
-#         self.date = date
-#         self.usages = usages or []
-#         self.overwrite = overwrite or 'no'
+def new_pricing_service_usage_object(
+        pricing_service=None,
+        pricing_service_id=None,
+        usages=None,
+        date=None,
+        overwrite='no',
+):
+    return {
+        'pricing_service': pricing_service,
+        'pricing_service_id': pricing_service_id,
+        'usages': usages or [],
+        'date': date,
+        'overwrite': overwrite,
+    }
 
 
 class PricingServiceUsageObjectSerializer(Serializer):
@@ -290,14 +250,10 @@ class PricingServiceUsages(APIView):
         pricing_service = PricingService.objects.get(
             id=pricing_service_id,
         )
-        # ps = PricingServiceUsageObject(
-        #     pricing_service=pricing_service.name,
-        #     date=usages_date,
-        #     usages=[],
-        # )
-        ps = deepcopy(PRICING_SERVICE_USAGE_OBJECT)
-        ps['pricing_service'] = pricing_service.name
-        ps['date'] = usages_date
+        ps = new_pricing_service_usage_object(
+            pricing_service=pricing_service.name,
+            date=usages_date,
+        )
         usages_dict = defaultdict(list)
 
         # iterate through pricing service usage types
@@ -317,18 +273,19 @@ class PricingServiceUsages(APIView):
 
         # save usages to UsagesObjects
         for dpo, u in usages_dict.iteritems():
-            # usages = UsagesObject()
-            usages = deepcopy(USAGES_OBJECT)
             se = dpo.service_environment
-            usages['service'] = se.service.name
-            usages['service_id'] = se.service.id
-            usages['environment'] = se.environment.name
+            usages = new_usages_object(
+                service=se.service.name,
+                service_id=se.service.id,
+                environment=se.environment.name,
+            )
             # If pricing object is not a dummy pricing object for given service
             # environment, then use it.
             if se.dummy_pricing_object != dpo.pricing_object:
                 usages['pricing_object'] = dpo.pricing_object.name
-            # usages['usages'] = [UsageObject(k, v) for k, v in u]
-            usages['usages'] = [new_usage_object(k, v) for k, v in u]
+            usages['usages'] = [
+                new_usage_object(symbol=k, value=v) for k, v in u
+            ]
             ps['usages'].append(usages)
         return ps
 
