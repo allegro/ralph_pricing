@@ -302,3 +302,67 @@ LOAD_BALANCER_TYPES_MAPPING = {
 }
 
 EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'maxBytes': 1024 * 1024 * 100,  # 100 MB
+            'backupCount': 10,
+            'filename': None,  # to be configured in settings-local.py
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'datefmt': '%d.%m.%Y %H:%M:%S',
+            'format': (
+                '[%(asctime)08s,%(msecs)03d] %(levelname)-7s [%(processName)s'
+                ' %(process)d] %(module)s - %(message)s'),
+        },
+        'simple': {
+            'datefmt': '%H:%M:%S',
+            'format': '[%(asctime)08s] %(levelname)-7s %(message)s',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'plugins': {
+            'handlers': ['file', 'console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+        'ralph_scrooge.management.commands.scrooge_sync': {
+            'handlers': ['file', 'console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+        'critical_only': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'CRITICAL',
+            'propagate': False,
+        },
+    },
+}
