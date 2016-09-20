@@ -25,6 +25,16 @@ from ralph_scrooge.models import (
 
 logger = logging.getLogger(__name__)
 
+# TODO(xor-xor): Consider some better naming for dicts in this hierarchy:
+# pricing_service_usage -> usages -> usage
+# (especially for usages).
+
+# TODO(xor-xor) Consider separate endpoints for usages associated with:
+# * service + environment
+# * service_id + environment
+# * service_uid + environment
+# * pricing_object
+# instead of a "polymorphic" one
 
 # TODO(xor-xor): Consider moving *all* exceptions used by Scrooge into a single
 # module.
