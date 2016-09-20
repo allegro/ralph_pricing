@@ -47,7 +47,9 @@ demo_data = defaultdict(dict)
 
 def register(demo_klass, **kwargs):
     if demo_klass.name in registry:
-        raise NameError('This key ({}) already exists.'.format(demo_klass.name))
+        raise NameError(
+            'This key ({}) already exists.'.format(demo_klass.name)
+        )
     registry[demo_klass.name] = demo_klass
     return demo_klass
 
