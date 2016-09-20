@@ -25,6 +25,7 @@ from ralph_scrooge.models import (
 
 logger = logging.getLogger(__name__)
 
+
 # TODO(xor-xor): Consider some better naming for dicts in this hierarchy:
 # pricing_service_usage -> usages -> usage
 # (especially for usages).
