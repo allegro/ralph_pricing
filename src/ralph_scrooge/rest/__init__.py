@@ -11,7 +11,8 @@ from ralph_scrooge.rest.costcard import (
     CostCardContent,
 )
 from ralph_scrooge.rest.pricing_service_usages import (
-    PricingServiceUsages,
+    create_pricing_service_usages,
+    list_pricing_service_usages,
 )
 from ralph_scrooge.rest.object_costs import (
     ObjectCostsContent,

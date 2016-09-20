@@ -19,9 +19,10 @@ from ralph_scrooge.rest import (
     LeftMenuAPIView,
     ObjectCostsContent,
     MonthlyCosts,
-    PricingServiceUsages,
     ServicesCostsReportContent,
     UsagesReportContent,
+    create_pricing_service_usages,
+    list_pricing_service_usages,
 )
 from ralph_scrooge.rest.router import urlpatterns as router_urlpatterns
 from ralph_scrooge.rest.menu import SubMenu
@@ -114,17 +115,14 @@ urlpatterns = patterns(
     # XXX To be eventually moved into `/api/` URLs hierarchy.
     url(
         r'^pricingserviceusages/?$',
-        # scrooge_permission(PricingServiceUsages.as_view()),  # XXX doesn't work
-        PricingServiceUsages.as_view(),
-        {'allowed_methods': ['POST']},
-        name='pricing_service_usages'
+        # scrooge_permission(create_pricing_service_usages),  # XXX doesn't work
+        create_pricing_service_usages,
+        name='create_pricing_service_usages'
     ),
     url(
-        # r'^pricingserviceusages/?$',
         r'^pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',
-        # scrooge_permission(PricingServiceUsages.as_view()),  # XXX doesn't work
-        PricingServiceUsages.as_view(),
-        {'allowed_methods': ['GET']},
-        name='pricing_service_usages'
+        # scrooge_permission(list_pricing_service_usages),  # XXX doesn't work
+        list_pricing_service_usages,
+        name='list_pricing_service_usages'
     ),
 )

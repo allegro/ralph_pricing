@@ -11,7 +11,7 @@ from collections import defaultdict
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import serializers
-from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
@@ -179,15 +179,6 @@ class UsagesDeserializer(UsagesSerializer):
         return attrs
 
 
-PRICING_SERVICE_USAGE_OBJECT = {
-    'pricing_service': None,
-    'pricing_service_id': None,
-    'date': None,
-    'overwrite': 'no',
-    'usages': [],
-}
-
-
 def new_pricing_service_usage(
         pricing_service=None,
         pricing_service_id=None,
@@ -235,132 +226,129 @@ class PricingServiceUsageDeserializer(PricingServiceUsageSerializer):
         return attrs
 
 
-class PricingServiceUsages(APIView):
-
-    # TODO(xor-xor): Consider using function-based views / api_view decorator
-    # to get rid of this logic here (and allowed_methods extra argument in
-    # definition of URLs).
-    def dispatch(self, request, allowed_methods=[], *args, **kwargs):
-        if request.method not in allowed_methods:
-            return HttpResponse(status=405)
-        return super(PricingServiceUsages, self).dispatch(
-            request, *args, **kwargs
+@api_view(['GET'])
+def list_pricing_service_usages(
+        request, usages_date, pricing_service_id, *args, **kwargs
+):
+    try:
+        PricingService.objects.get(id=pricing_service_id)
+    except PricingService.DoesNotExist:
+        msg = (
+            "Service with ID {} does not exist.".format(pricing_service_id)
         )
+        return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
+    result = get_usages(usages_date, pricing_service_id)
+    return Response(PricingServiceUsageSerializer(result).data)
 
-    def get(self, request, usages_date, pricing_service_id, *args, **kwargs):
-        try:
-            PricingService.objects.get(id=pricing_service_id)
-        except PricingService.DoesNotExist:
-            msg = (
-                "Service with ID {} does not exist.".format(pricing_service_id)
+
+def get_usages(usages_date, pricing_service_id):
+    pricing_service = PricingService.objects.get(
+        id=pricing_service_id,
+    )
+    ps = new_pricing_service_usage(
+        pricing_service=pricing_service.name,
+        date=usages_date,
+    )
+    usages_dict = defaultdict(list)
+
+    # iterate through pricing service usage types
+    for usage_type in pricing_service.usage_types.all():
+        daily_usages = usage_type.dailyusage_set.filter(
+            date=usages_date
+        ).select_related(
+            'service_environment',
+            'service_environment__service',
+            'service_environment__environment',
+            'pricing_object'
+        )
+        for daily_usage in daily_usages:
+            usages_dict[daily_usage.daily_pricing_object].append(
+                (daily_usage.type.symbol, daily_usage.value)
             )
-            return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
-        result = self.get_usages(usages_date, pricing_service_id)
-        return Response(PricingServiceUsageSerializer(result).data)
 
-    def get_usages(self, usages_date, pricing_service_id):
-        pricing_service = PricingService.objects.get(
-            id=pricing_service_id,
+    # save usages
+    for dpo, u in usages_dict.iteritems():
+        se = dpo.service_environment
+        usages = new_usages(
+            service=se.service.name,
+            service_id=se.service.id,
+            environment=se.environment.name,
         )
-        ps = new_pricing_service_usage(
-            pricing_service=pricing_service.name,
-            date=usages_date,
-        )
-        usages_dict = defaultdict(list)
+        # If pricing object is not a dummy pricing object for given service
+        # environment, then use it.
+        if se.dummy_pricing_object != dpo.pricing_object:
+            usages['pricing_object'] = dpo.pricing_object.name
+        usages['usages'] = [
+            new_usage(symbol=k, value=v) for k, v in u
+        ]
+        ps['usages'].append(usages)
+    return ps
 
-        # iterate through pricing service usage types
-        for usage_type in pricing_service.usage_types.all():
-            daily_usages = usage_type.dailyusage_set.filter(
-                date=usages_date
-            ).select_related(
-                'service_environment',
-                'service_environment__service',
-                'service_environment__environment',
-                'pricing_object'
+
+@api_view(['POST'])
+def create_pricing_service_usages(request, *args, **kwargs):
+    deserializer = PricingServiceUsageDeserializer(data=request.DATA)
+    if deserializer.is_valid():
+        save_usages(deserializer.object)
+        return HttpResponse(status=201)
+    return Response(deserializer.errors, status=400)
+
+
+def save_usages(pricing_service_usage):
+    logger.info("Saving usages for service {}".format(
+        pricing_service_usage['pricing_service']
+    ))
+    daily_usages, usages_daily_pricing_objects = get_usages_for_save(
+        pricing_service_usage
+    )
+    remove_previous_daily_usages(
+        pricing_service_usage['overwrite'],
+        pricing_service_usage['date'],
+        usages_daily_pricing_objects,
+    )
+    DailyUsage.objects.bulk_create(daily_usages)
+
+
+def get_usages_for_save(pricing_service_usage):
+    usage_types_cache = {}
+    daily_usages = []
+    usages_daily_pricing_objects = defaultdict(list)
+
+    for usages in pricing_service_usage['usages']:
+        for usage in usages['usages']:
+            usage_type = usage_types_cache.get(
+                usage['symbol'],
+                UsageType.objects.get(symbol=usage['symbol'])
             )
-            for daily_usage in daily_usages:
-                usages_dict[daily_usage.daily_pricing_object].append(
-                    (daily_usage.type.symbol, daily_usage.value)
+            usage_types_cache[usage['symbol']] = usage_type
+            daily_pricing_object = (
+                usages['pricing_object'].get_daily_pricing_object(
+                    pricing_service_usage['date']
                 )
-
-        # save usages
-        for dpo, u in usages_dict.iteritems():
-            se = dpo.service_environment
-            usages = new_usages(
-                service=se.service.name,
-                service_id=se.service.id,
-                environment=se.environment.name,
             )
-            # If pricing object is not a dummy pricing object for given service
-            # environment, then use it.
-            if se.dummy_pricing_object != dpo.pricing_object:
-                usages['pricing_object'] = dpo.pricing_object.name
-            usages['usages'] = [
-                new_usage(symbol=k, value=v) for k, v in u
-            ]
-            ps['usages'].append(usages)
-        return ps
+            daily_usage = DailyUsage(
+                date=pricing_service_usage['date'],
+                type=usage_type,
+                value=usage['value'],
+                daily_pricing_object=daily_pricing_object,
+                service_environment=(
+                    daily_pricing_object.service_environment
+                ),
+            )
+            daily_usages.append(daily_usage)
+            usages_daily_pricing_objects[usage_type].append(
+                daily_pricing_object
+            )
+    return (daily_usages, usages_daily_pricing_objects)
 
-    def post(self, request, *args, **kwargs):
-        deserializer = PricingServiceUsageDeserializer(data=request.DATA)
-        if deserializer.is_valid():
-            self.save_usages(deserializer.object)
-            return HttpResponse(status=201)
-        return Response(deserializer.errors, status=400)
 
-    def save_usages(self, pricing_service_usage):
-        logger.info("Saving usages for service {}".format(
-            pricing_service_usage['pricing_service']
-        ))
-        daily_usages, usages_daily_pricing_objects = self.get_usages_for_save(
-            pricing_service_usage
-        )
-        self.remove_previous_daily_usages(
-            pricing_service_usage['overwrite'],
-            pricing_service_usage['date'],
-            usages_daily_pricing_objects,
-        )
-        DailyUsage.objects.bulk_create(daily_usages)
-
-    def get_usages_for_save(self, pricing_service_usage):
-        usage_types_cache = {}
-        daily_usages = []
-        usages_daily_pricing_objects = defaultdict(list)
-
-        for usages in pricing_service_usage['usages']:
-            for usage in usages['usages']:
-                usage_type = usage_types_cache.get(
-                    usage['symbol'],
-                    UsageType.objects.get(symbol=usage['symbol'])
+def remove_previous_daily_usages(overwrite, date, usages_dp_objs):
+    if overwrite in ('values_only', 'delete_all_previous'):
+        logger.debug('Remove previous values ({})'.format(overwrite))
+        for k, v in usages_dp_objs.iteritems():
+            previous_usages = DailyUsage.objects.filter(date=date, type=k)
+            if overwrite == 'values_only':
+                previous_usages = previous_usages.filter(
+                    daily_pricing_object__in=v
                 )
-                usage_types_cache[usage['symbol']] = usage_type
-                daily_pricing_object = (
-                    usages['pricing_object'].get_daily_pricing_object(
-                        pricing_service_usage['date']
-                    )
-                )
-                daily_usage = DailyUsage(
-                    date=pricing_service_usage['date'],
-                    type=usage_type,
-                    value=usage['value'],
-                    daily_pricing_object=daily_pricing_object,
-                    service_environment=(
-                        daily_pricing_object.service_environment
-                    ),
-                )
-                daily_usages.append(daily_usage)
-                usages_daily_pricing_objects[usage_type].append(
-                    daily_pricing_object
-                )
-        return (daily_usages, usages_daily_pricing_objects)
-
-    def remove_previous_daily_usages(self, overwrite, date, usages_dp_objs):
-        if overwrite in ('values_only', 'delete_all_previous'):
-            logger.debug('Remove previous values ({})'.format(overwrite))
-            for k, v in usages_dp_objs.iteritems():
-                previous_usages = DailyUsage.objects.filter(date=date, type=k)
-                if overwrite == 'values_only':
-                    previous_usages = previous_usages.filter(
-                        daily_pricing_object__in=v
-                    )
-                previous_usages.delete()
+            previous_usages.delete()
