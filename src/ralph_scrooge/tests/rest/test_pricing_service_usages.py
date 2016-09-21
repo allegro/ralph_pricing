@@ -28,6 +28,8 @@ from ralph_scrooge.models import (
     PricingService,
     ServiceEnvironment,
     UsageType,
+    Service,
+    Environment,
 )
 from pprint import pprint
 
@@ -56,40 +58,31 @@ class TestPricingServiceUsages(TestCase):
 
     def setUp(self):
         self.date = datetime.date(2016, 9, 8)
-        self.today = datetime.date.today()  # XXX unused..?
+        self.date_as_str = self.date.strftime("%Y-%m-%d")
         client = APIClient()
         self.pricing_service = PricingServiceFactory()
         self.pricing_object1 = PricingObjectFactory()
         self.pricing_object2 = PricingObjectFactory()
         self.service_environment1 = self.pricing_object1.service_environment
         self.service_environment2 = self.pricing_object2.service_environment
-        self.usage_type1 = UsageTypeFactory()
-        self.usage_type2 = UsageTypeFactory()
+        self.usage_type = UsageTypeFactory()
         ServiceUsageTypes.objects.create(
-            usage_type=self.usage_type1,
+            usage_type=self.usage_type,
             pricing_service=self.pricing_service,
             start=datetime.date.min,
             end=datetime.date.max,
-            percent=50,
-        )
-        ServiceUsageTypes.objects.create(
-            usage_type=self.usage_type2,
-            pricing_service=self.pricing_service,
-            start=datetime.date.min,
-            end=datetime.date.max,
-            percent=50,
         )
 
     def test_save_usages_successfully_when_pricing_object_given(self):
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -111,7 +104,7 @@ class TestPricingServiceUsages(TestCase):
             self.service_environment1
         )
         self.assertEquals(daily_usages[0].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
 
@@ -122,14 +115,14 @@ class TestPricingServiceUsages(TestCase):
         )
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "service": service_name,
                     "environment": environment_name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -151,7 +144,7 @@ class TestPricingServiceUsages(TestCase):
             self.service_environment1
         )
         self.assertEquals(daily_usages[0].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
 
@@ -162,14 +155,14 @@ class TestPricingServiceUsages(TestCase):
         )
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "service_id": service_id,
                     "environment": environment_name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -191,7 +184,7 @@ class TestPricingServiceUsages(TestCase):
             self.service_environment1
         )
         self.assertEquals(daily_usages[0].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
     def test_save_usages_successfully_when_service_uid_and_environment_given(self):  # noqa
@@ -201,14 +194,14 @@ class TestPricingServiceUsages(TestCase):
         )
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "service_uid": service_uid,
                     "environment": environment_name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -230,20 +223,20 @@ class TestPricingServiceUsages(TestCase):
             self.service_environment1
         )
         self.assertEquals(daily_usages[0].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
 
     def test_for_error_when_non_existing_pricing_service_given(self):
         pricing_service_usage = {
             "pricing_service": 'fake_pricing_service',
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -263,19 +256,23 @@ class TestPricingServiceUsages(TestCase):
 
 
     def test_for_error_when_non_existing_service_given(self):
+        non_existing_service = 'fake_service'
+        self.assertFalse(
+            Service.objects.filter(name=non_existing_service).exists()
+        )
         environment_name = (
             self.pricing_object1.service_environment.environment.name
         )
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
-                    "service": 'fake_service',
+                    "service": non_existing_service,
                     "environment": environment_name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -291,25 +288,158 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 400)
         errors = json.loads(resp.content)['usages'][0]['non_field_errors']
         self.assertEquals(len(errors), 1)
-        self.assertIn('fake_service', errors[0])
+        self.assertIn(non_existing_service, errors[0])
         self.assertIn('does not exist', errors[0])
 
 
-    # def test_for_error_when_invalid_service_id_given(self):
-    #     pass
+    def test_for_error_when_non_existing_service_id_given(self):
+        non_existing_service_id = 9999999999
+        self.assertFalse(
+            Service.objects.filter(id=non_existing_service_id).exists()
+        )
+        environment_name = (
+            self.pricing_object1.service_environment.environment.name
+        )
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "service_id": non_existing_service_id,
+                    "environment": environment_name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
 
-    # def test_for_error_when_invalid_service_uid_given(self):
-    #     pass
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['non_field_errors']
+        self.assertEquals(len(errors), 1)
+        self.assertIn(str(non_existing_service_id), errors[0])
+        self.assertIn('does not exist', errors[0])
 
-    # def test_for_error_when_invalid_environment_given(self):
-    #     pass
 
-    # def test_for_error_when_invalid_usage_given(self):
-    #     pass
+    def test_for_error_when_non_existing_service_uid_given(self):
+        non_existing_service_uid = 'xx-123'
+        self.assertFalse(
+            Service.objects.filter(ci_uid=non_existing_service_uid).exists()
+        )
+        environment_name = (
+            self.pricing_object1.service_environment.environment.name
+        )
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "service_uid": non_existing_service_uid,
+                    "environment": environment_name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
 
-    # XXX Consider adding 'missing' variant for the tests above.
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['non_field_errors']
+        self.assertEquals(len(errors), 1)
+        self.assertIn(non_existing_service_uid, errors[0])
+        self.assertIn('does not exist', errors[0])
 
-    def test_not_overwriting_by_default(self):
+
+    def test_for_error_when_non_existing_environment_given(self):
+        service_name = self.pricing_object1.service_environment.service.name
+        non_existing_env = 'fake_env'
+        self.assertFalse(
+            Environment.objects.filter(name=non_existing_env).exists()
+        )
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "service": service_name,
+                    "environment": non_existing_env,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
+
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['non_field_errors']
+        self.assertEquals(len(errors), 1)
+        self.assertIn(non_existing_env, errors[0])
+        self.assertIn('does not exist', errors[0])
+
+
+    def test_for_error_when_non_existing_usage_type_given(self):
+        service_name = self.pricing_object1.service_environment.service.name
+        environment_name = (
+            self.pricing_object1.service_environment.environment.name
+        )
+        non_existing_usage_type = 'fake_usage_type'
+        self.assertFalse(
+            UsageType.objects.filter(symbol=non_existing_usage_type).exists()
+        )
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "service": service_name,
+                    "environment": environment_name,
+                    "usages": [
+                        {
+                            "symbol": non_existing_usage_type,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
+
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['usages'][0]['symbol']
+        self.assertEquals(len(errors), 1)
+        self.assertIn(non_existing_usage_type, errors[0])
+        self.assertIn('does not exist', errors[0])
+
+
+    def test_usages_are_appended_when_not_overwriting_by_default_opt_is_chosen(self):  # noqa
         # 1st POST (same day, same usage type):
         # daily usage 1: service env 1, value 40
         # daily usage 2: service env 2, value 60
@@ -331,13 +461,13 @@ class TestPricingServiceUsages(TestCase):
 
         pricing_service_usage_1st_post = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -346,7 +476,7 @@ class TestPricingServiceUsages(TestCase):
                     "pricing_object": self.pricing_object2.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 60,
                         },
                     ]
@@ -355,13 +485,13 @@ class TestPricingServiceUsages(TestCase):
         }
         pricing_service_usage_2nd_post = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 50,
                         },
                     ],
@@ -389,8 +519,8 @@ class TestPricingServiceUsages(TestCase):
         )
         self.assertEquals(daily_usages[0].date, self.date)
         self.assertEquals(daily_usages[1].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
-        self.assertEquals(daily_usages[1].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
+        self.assertEquals(daily_usages[1].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
         self.assertEquals(daily_usages[1].value, 60)
 
@@ -418,15 +548,15 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[0].date, self.date)
         self.assertEquals(daily_usages[1].date, self.date)
         self.assertEquals(daily_usages[2].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
-        self.assertEquals(daily_usages[1].type, self.usage_type1)
-        self.assertEquals(daily_usages[2].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
+        self.assertEquals(daily_usages[1].type, self.usage_type)
+        self.assertEquals(daily_usages[2].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
         self.assertEquals(daily_usages[1].value, 60)
         self.assertEquals(daily_usages[2].value, 50)
 
 
-    def test_overwrite_delete_all_previous(self):
+    def test_usages_are_deleted_when_overwrite_delete_all_previous_opt_is_chosen(self):  # noqa
         # 1st POST (same day, same usage type):
         # daily usage 1: service env 1, value 40
         # daily usage 2: service env 2, value 60
@@ -447,13 +577,13 @@ class TestPricingServiceUsages(TestCase):
 
         pricing_service_usage_1st_post = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -462,7 +592,7 @@ class TestPricingServiceUsages(TestCase):
                     "pricing_object": self.pricing_object2.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 60,
                         },
                     ]
@@ -472,13 +602,13 @@ class TestPricingServiceUsages(TestCase):
         pricing_service_usage_2nd_post = {
             "pricing_service": self.pricing_service.name,
             "overwrite": "delete_all_previous",
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 50,
                         },
                     ],
@@ -506,8 +636,8 @@ class TestPricingServiceUsages(TestCase):
         )
         self.assertEquals(daily_usages[0].date, self.date)
         self.assertEquals(daily_usages[1].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
-        self.assertEquals(daily_usages[1].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
+        self.assertEquals(daily_usages[1].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
         self.assertEquals(daily_usages[1].value, 60)
 
@@ -525,11 +655,11 @@ class TestPricingServiceUsages(TestCase):
             self.service_environment1
         )
         self.assertEquals(daily_usages[0].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 50)
 
 
-    def test_overwrite_values_only(self):
+    def test_usages_are_replaced_when_overwrite_values_only_opt_is_chosen(self):  # noqa
         # 1st POST (same day, same usage type):
         # daily usage 1: service env 1, value 40
         # daily usage 2: service env 2, value 60
@@ -551,13 +681,13 @@ class TestPricingServiceUsages(TestCase):
 
         pricing_service_usage_1st_post = {
             "pricing_service": self.pricing_service.name,
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 40,
                         },
                     ],
@@ -566,7 +696,7 @@ class TestPricingServiceUsages(TestCase):
                     "pricing_object": self.pricing_object2.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 60,
                         },
                     ]
@@ -576,13 +706,13 @@ class TestPricingServiceUsages(TestCase):
         pricing_service_usage_2nd_post = {
             "pricing_service": self.pricing_service.name,
             "overwrite": "values_only",
-            "date": "2016-09-08",
+            "date": self.date_as_str,
             "usages": [
                 {
                     "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
-                            "symbol": self.usage_type1.symbol,
+                            "symbol": self.usage_type.symbol,
                             "value": 50,
                         },
                     ],
@@ -610,8 +740,8 @@ class TestPricingServiceUsages(TestCase):
         )
         self.assertEquals(daily_usages[0].date, self.date)
         self.assertEquals(daily_usages[1].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
-        self.assertEquals(daily_usages[1].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
+        self.assertEquals(daily_usages[1].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
         self.assertEquals(daily_usages[1].value, 60)
 
@@ -634,11 +764,97 @@ class TestPricingServiceUsages(TestCase):
         )
         self.assertEquals(daily_usages[0].date, self.date)
         self.assertEquals(daily_usages[1].date, self.date)
-        self.assertEquals(daily_usages[0].type, self.usage_type1)
-        self.assertEquals(daily_usages[1].type, self.usage_type1)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
+        self.assertEquals(daily_usages[1].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 60)
         self.assertEquals(daily_usages[1].value, 50)
 
 
-    # def test_get_pricing_service_usages(self):
-    #     pass
+    def test_posted_pricing_service_usage_is_the_same_when_fetched_with_get(self):  # noqa
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+                {
+                    "pricing_object": self.pricing_object2.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 60,
+                        },
+                    ],
+                },
+            ]
+        }
+
+        env1 = self.pricing_object1.service_environment.environment.name
+        service1 = self.pricing_object1.service_environment.service.name
+        service_id1 = self.pricing_object1.service_environment.service_id
+
+        env2 = self.pricing_object2.service_environment.environment.name
+        service2 = self.pricing_object2.service_environment.service.name
+        service_id2 = self.pricing_object2.service_environment.service_id
+
+        expected_response = {
+            "date": self.date_as_str,
+            "pricing_service": self.pricing_service.name,
+            "pricing_service_id": None,
+            "usages": [
+                {
+                    "environment": env1,
+                    "pricing_object": self.pricing_object1.name,
+                    "service": service1,
+                    "service_id": service_id1,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40.0
+                        }
+                    ]
+                },
+                {
+                    "environment": env2,
+                    "pricing_object": self.pricing_object2.name,
+                    "service": service2,
+                    "service_id": service_id2,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 60.0
+                        }
+                    ]
+                }
+            ]
+        }
+
+        self.assertEquals(DailyUsage.objects.all().count(), 0)
+        self.assertEquals(PricingService.objects.all().count(), 1)
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        self.assertEquals(DailyUsage.objects.all().count(), 2)
+        self.assertEquals(PricingService.objects.all().count(), 1)
+        resp = self.client.get(
+            reverse(
+                'list_pricing_service_usages',
+                kwargs={
+                    'pricing_service_id': PricingService.objects.all()[0].id,
+                    'usages_date': self.date_as_str,
+                }
+            )
+        )
+        self.assertEquals(resp.status_code, 200)
+        got = json.loads(resp.content)
+        self.assertDictEqual(got, expected_response)
