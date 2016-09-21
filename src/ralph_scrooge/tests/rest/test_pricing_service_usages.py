@@ -7,51 +7,23 @@ from __future__ import unicode_literals
 
 import datetime
 import json
-from copy import deepcopy
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from ralph_scrooge.models import DailyUsage, ServiceUsageTypes
+from ralph_scrooge.models import (
+    DailyUsage,
+    Environment,
+    PricingService,
+    Service,
+    ServiceUsageTypes,
+    UsageType,
+)
 from ralph_scrooge.tests.utils.factory import (
     PricingObjectFactory,
     PricingServiceFactory,
-    ServiceEnvironmentFactory,
     UsageTypeFactory,
 )
-from rest_framework.test import APIClient
-
-# XXX
-from ralph_scrooge.models import (
-    DailyUsage,
-    PricingObject,
-    PricingService,
-    ServiceEnvironment,
-    UsageType,
-    Service,
-    Environment,
-)
-from pprint import pprint
-
-def print_state():
-    print('PricingService:')
-    print(PricingService.objects.all())
-    print('\n')
-    print('ServiceEnvironment:')
-    print(ServiceEnvironment.objects.all())
-    print('\n')
-    print('PricingObject:')
-    print(PricingObject.objects.all())
-    print('\n')
-    print('UsageType:')
-    print(UsageType.objects.all())
-    print('\n')
-    print('ServiceUsageTypes:')
-    print(ServiceUsageTypes.objects.all())
-    print('\n')
-    print('DailyUsage:')
-    print(DailyUsage.objects.all())
-    print('\n')
 
 
 class TestPricingServiceUsages(TestCase):
@@ -59,7 +31,6 @@ class TestPricingServiceUsages(TestCase):
     def setUp(self):
         self.date = datetime.date(2016, 9, 8)
         self.date_as_str = self.date.strftime("%Y-%m-%d")
-        client = APIClient()
         self.pricing_service = PricingServiceFactory()
         self.pricing_object1 = PricingObjectFactory()
         self.pricing_object2 = PricingObjectFactory()
@@ -73,7 +44,7 @@ class TestPricingServiceUsages(TestCase):
             end=datetime.date.max,
         )
 
-    def test_save_usages_successfully_when_pricing_object_given(self):
+    def test_save_usages_successfully_when_pricing_object_is_given(self):
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
             "date": self.date_as_str,
@@ -107,8 +78,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
-
-    def test_save_usages_successfully_when_service_and_environment_given(self):
+    def test_save_usages_successfully_when_service_and_environment_is_given(self):  # noqa
         service_name = self.pricing_object1.service_environment.service.name
         environment_name = (
             self.pricing_object1.service_environment.environment.name
@@ -147,8 +117,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
-
-    def test_save_usages_successfully_when_service_id_and_environment_given(self):  # noqa
+    def test_save_usages_successfully_when_service_id_and_environment_is_given(self):  # noqa
         service_id = self.pricing_object1.service_environment.service_id
         environment_name = (
             self.pricing_object1.service_environment.environment.name
@@ -187,7 +156,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
-    def test_save_usages_successfully_when_service_uid_and_environment_given(self):  # noqa
+    def test_save_usages_successfully_when_service_uid_and_environment_is_given(self):  # noqa
         service_uid = self.pricing_object1.service_environment.service.ci_uid
         environment_name = (
             self.pricing_object1.service_environment.environment.name
@@ -226,8 +195,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 40)
 
-
-    def test_for_error_when_non_existing_pricing_service_given(self):
+    def test_for_error_when_non_existing_pricing_service_is_given(self):
         pricing_service_usage = {
             "pricing_service": 'fake_pricing_service',
             "date": self.date_as_str,
@@ -254,8 +222,33 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(len(errors), 1)
         self.assertIn('fake_pricing_service', errors[0])
 
+    def test_for_error_when_pricing_service_missing(self):
+        pricing_service_usage = {
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
 
-    def test_for_error_when_non_existing_service_given(self):
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['pricing_service']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('This field is required', errors[0])
+
+    def test_for_error_when_non_existing_service_is_given(self):
         non_existing_service = 'fake_service'
         self.assertFalse(
             Service.objects.filter(name=non_existing_service).exists()
@@ -291,8 +284,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(non_existing_service, errors[0])
         self.assertIn('does not exist', errors[0])
 
-
-    def test_for_error_when_non_existing_service_id_given(self):
+    def test_for_error_when_non_existing_service_id_is_given(self):
         non_existing_service_id = 9999999999
         self.assertFalse(
             Service.objects.filter(id=non_existing_service_id).exists()
@@ -328,8 +320,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(str(non_existing_service_id), errors[0])
         self.assertIn('does not exist', errors[0])
 
-
-    def test_for_error_when_non_existing_service_uid_given(self):
+    def test_for_error_when_non_existing_service_uid_is_given(self):
         non_existing_service_uid = 'xx-123'
         self.assertFalse(
             Service.objects.filter(ci_uid=non_existing_service_uid).exists()
@@ -365,8 +356,38 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(non_existing_service_uid, errors[0])
         self.assertIn('does not exist', errors[0])
 
+    def test_for_error_when_env_without_service_or_service_id_or_service_uid_is_given(self):  # noqa
+        environment_name = (
+            self.pricing_object1.service_environment.environment.name
+        )
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "environment": environment_name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
 
-    def test_for_error_when_non_existing_environment_given(self):
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['non_field_errors']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('service', errors[0])
+        self.assertIn('Invalid combination of fields', errors[0])
+
+    def test_for_error_when_non_existing_environment_is_given(self):
         service_name = self.pricing_object1.service_environment.service.name
         non_existing_env = 'fake_env'
         self.assertFalse(
@@ -400,12 +421,36 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(non_existing_env, errors[0])
         self.assertIn('does not exist', errors[0])
 
-
-    def test_for_error_when_non_existing_usage_type_given(self):
+    def test_for_error_when_service_without_environment_is_given(self):
         service_name = self.pricing_object1.service_environment.service.name
-        environment_name = (
-            self.pricing_object1.service_environment.environment.name
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "service": service_name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
+
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
         )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['non_field_errors']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('service environment', errors[0])
+        self.assertIn('does not exist', errors[0])
+
+    def test_for_error_when_non_existing_usage_type_is_given(self):
         non_existing_usage_type = 'fake_usage_type'
         self.assertFalse(
             UsageType.objects.filter(symbol=non_existing_usage_type).exists()
@@ -415,8 +460,7 @@ class TestPricingServiceUsages(TestCase):
             "date": self.date_as_str,
             "usages": [
                 {
-                    "service": service_name,
-                    "environment": environment_name,
+                    "pricing_object": self.pricing_object1.name,
                     "usages": [
                         {
                             "symbol": non_existing_usage_type,
@@ -438,6 +482,119 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(non_existing_usage_type, errors[0])
         self.assertIn('does not exist', errors[0])
 
+    def test_for_error_when_usages_are_missing(self):
+        # "inner" usages
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                },
+            ]
+        }
+
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['usages']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('This field is required', errors[0])
+
+        # "outer" usages
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+        }
+
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('This field is required', errors[0])
+
+    def test_for_error_when_usages_are_empty_lists(self):
+        # "inner" usages
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [],
+                },
+            ]
+        }
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['usages']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('This field cannot be empty', errors[0])
+
+        # "outer" usages
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [],
+        }
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('This field cannot be empty', errors[0])
+
+    def test_for_error_when_usages_are_none(self):
+        # "inner" usages
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": None,
+                },
+            ]
+        }
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages'][0]['usages']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('This field cannot be empty', errors[0])
+
+        # "outer" usages
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": None,
+        }
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        errors = json.loads(resp.content)['usages']
+        self.assertEquals(len(errors), 1)
+        self.assertIn('This field cannot be empty', errors[0])
 
     def test_usages_are_appended_when_not_overwriting_by_default_opt_is_chosen(self):  # noqa
         # 1st POST (same day, same usage type):
@@ -555,7 +712,6 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[1].value, 60)
         self.assertEquals(daily_usages[2].value, 50)
 
-
     def test_usages_are_deleted_when_overwrite_delete_all_previous_opt_is_chosen(self):  # noqa
         # 1st POST (same day, same usage type):
         # daily usage 1: service env 1, value 40
@@ -657,7 +813,6 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[0].date, self.date)
         self.assertEquals(daily_usages[0].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 50)
-
 
     def test_usages_are_replaced_when_overwrite_values_only_opt_is_chosen(self):  # noqa
         # 1st POST (same day, same usage type):
@@ -768,7 +923,6 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(daily_usages[1].type, self.usage_type)
         self.assertEquals(daily_usages[0].value, 60)
         self.assertEquals(daily_usages[1].value, 50)
-
 
     def test_posted_pricing_service_usage_is_the_same_when_fetched_with_get(self):  # noqa
         pricing_service_usage = {

@@ -60,6 +60,8 @@ class UsageSerializer(Serializer):
 
 
 class UsageDeserializer(UsageSerializer):
+    symbol = serializers.CharField(required=True)
+    value = serializers.FloatField(required=True)
 
     def validate_symbol(self, attrs, source):
         if not UsageType.objects.filter(symbol=attrs[source]).exists():
@@ -101,7 +103,13 @@ class UsagesDeserializer(UsagesSerializer):
     service_uid = serializers.CharField(required=False)
     environment = serializers.CharField(required=False)
     pricing_object = serializers.CharField(required=False)
-    usages = UsageDeserializer(many=True)
+    usages = UsageDeserializer(many=True, required=True)
+
+    def validate_usages(self, attrs, source):
+        usages = attrs[source]
+        if usages is None or len(usages) == 0:
+            raise serializers.ValidationError("This field cannot be empty.")
+        return attrs
 
     def _get_service_env(self, attrs):
         se_params = {
@@ -206,7 +214,13 @@ class PricingServiceUsageSerializer(Serializer):
 class PricingServiceUsageDeserializer(PricingServiceUsageSerializer):
     pricing_service_id = serializers.IntegerField(required=False)
     overwrite = serializers.CharField(required=False, default='no')
-    usages = UsagesDeserializer(many=True)
+    usages = UsagesDeserializer(many=True, required=True)
+
+    def validate_usages(self, attrs, source):
+        usages = attrs[source]
+        if usages is None or len(usages) == 0:
+            raise serializers.ValidationError("This field cannot be empty.")
+        return attrs
 
     def validate_overwrite(self, attrs, source):
         value = attrs[source]
