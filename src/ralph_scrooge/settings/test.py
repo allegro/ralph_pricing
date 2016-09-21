@@ -43,6 +43,9 @@ else:
 PLUGGABLE_APPS = ['scrooge']
 
 SOUTH_TESTS_MIGRATE = False
+
+LOGGING['handlers']['file']['filename'] = 'scrooge.log'  # noqa
+
 try:
     INSTALLED_APPS += ('django_nose',)  # noqa
     TEST_RUNNER = str('django_nose.NoseTestSuiteRunner')
