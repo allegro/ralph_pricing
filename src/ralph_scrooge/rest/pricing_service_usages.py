@@ -346,11 +346,10 @@ def get_usages_for_save(pricing_service_usage):
 def remove_previous_daily_usages(overwrite, date, usages_dp_objs):
     if overwrite in ('values_only', 'delete_all_previous'):
         logger.debug('Remove previous values ({})'.format(overwrite))
-        for ut, dpo in usages_dp_objs.iteritems():
+        for ut, dp_objs in usages_dp_objs.iteritems():
             previous_usages = DailyUsage.objects.filter(date=date, type=ut)
             if overwrite == 'values_only':
-                # XXX how to interpret this line..?
                 previous_usages = previous_usages.filter(
-                    daily_pricing_object__in=dpo
+                    daily_pricing_object__in=dp_objs
                 )
             previous_usages.delete()
