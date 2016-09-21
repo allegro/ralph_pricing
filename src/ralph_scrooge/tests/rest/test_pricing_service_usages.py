@@ -285,7 +285,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn('does not exist', errors[0])
 
     def test_for_error_when_non_existing_service_id_is_given(self):
-        non_existing_service_id = 9999999999
+        non_existing_service_id = 9999
         self.assertFalse(
             Service.objects.filter(id=non_existing_service_id).exists()
         )
@@ -1011,4 +1011,5 @@ class TestPricingServiceUsages(TestCase):
         )
         self.assertEquals(resp.status_code, 200)
         got = json.loads(resp.content)
+        self.maxDiff = None  # XXX temporarily
         self.assertDictEqual(got, expected_response)
