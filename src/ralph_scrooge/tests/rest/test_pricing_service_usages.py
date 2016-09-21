@@ -1010,6 +1010,6 @@ class TestPricingServiceUsages(TestCase):
             )
         )
         self.assertEquals(resp.status_code, 200)
-        got = json.loads(resp.content)
-        self.maxDiff = None  # XXX temporarily
-        self.assertDictEqual(got, expected_response)
+        # received_response = json.loads(resp.content)
+        # self.assertDictEqual(received_response, expected_response)  # XXX
+        self.assertEquals(json.dumps(expected_response), resp.content)
