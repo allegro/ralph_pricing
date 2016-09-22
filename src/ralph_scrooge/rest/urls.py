@@ -22,10 +22,6 @@ from ralph_scrooge.rest import (
     ServicesCostsReportContent,
     UsagesReportContent,
 )
-from ralph_scrooge.rest.pricing_service_usages import (
-    create_pricing_service_usages,
-    list_pricing_service_usages,
-)
 from ralph_scrooge.rest.router import urlpatterns as router_urlpatterns
 from ralph_scrooge.rest.menu import SubMenu
 from ralph_scrooge.utils.security import (
@@ -111,18 +107,5 @@ urlpatterns = patterns(
         r'^services_costs_report/?$',
         scrooge_permission(ServicesCostsReportContent.as_view()),
         name='services_costs_report_rest'
-    ),
-
-
-    # XXX To be eventually moved into `/api/` URLs hierarchy.
-    url(
-        r'^pricingserviceusages/?$',
-        create_pricing_service_usages,
-        name='create_pricing_service_usages'
-    ),
-    url(
-        r'^pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa
-        list_pricing_service_usages,
-        name='list_pricing_service_usages'
     ),
 )
