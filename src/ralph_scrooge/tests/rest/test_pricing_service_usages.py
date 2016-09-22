@@ -723,10 +723,11 @@ class TestPricingServiceUsages(TestCase):
         # final result:
         # daily usage 1: service env 1, value 50
         #
-        # All daily usages from the same day, with the same usage type should
-        # be deleted - only usages from the 2nd POST should remain, despite
-        # the fact that 1st POST contained daily usage for different service
-        # environment than the 2nd one.
+        # All previously uploaded daily usages from the same day, with
+        # the same usage type should be deleted - only usages from the
+        # 2nd POST should remain, despite the fact that 1st POST
+        # contained daily usage for different service environment than
+        # the 2nd one.
         #
         # Please note that service environment is given here implicitly, via
         # pricing object.
