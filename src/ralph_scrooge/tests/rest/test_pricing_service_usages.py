@@ -1010,6 +1010,42 @@ class TestPricingServiceUsages(TestCase):
             )
         )
         self.assertEquals(resp.status_code, 200)
-        # received_response = json.loads(resp.content)
-        # self.assertDictEqual(received_response, expected_response)  # XXX
-        self.assertEquals(json.dumps(expected_response), resp.content)
+        received_response = json.loads(resp.content)
+        # The order of returned objects depends on DB backend, so we have to
+        # manually sort them here before we compare them.
+        received_response['usages'].sort(key=lambda d: d['service_id'])
+        # Abbreviations for convenience.
+        self.assertEquals(received_response['date'], expected_response['date'])
+        self.assertEquals(
+            received_response['pricing_service'],
+            expected_response['pricing_service']
+        )
+        self.assertEquals(
+            received_response['pricing_service_id'],
+            expected_response['pricing_service_id']
+        )
+        for i in range(len(expected_response['usages'])):
+            self.assertEquals(
+                received_response['usages'][i]['environment'],
+                expected_response['usages'][i]['environment']
+            )
+            self.assertEquals(
+                received_response['usages'][i]['pricing_object'],
+                expected_response['usages'][i]['pricing_object']
+            )
+            self.assertEquals(
+                received_response['usages'][i]['service'],
+                expected_response['usages'][i]['service']
+            )
+            self.assertEquals(
+                received_response['usages'][i]['service_id'],
+                expected_response['usages'][i]['service_id']
+            )
+            self.assertEquals(
+                received_response['usages'][i]['usages'][0]['symbol'],
+                expected_response['usages'][i]['usages'][0]['symbol']
+            )
+            self.assertEquals(
+                received_response['usages'][i]['usages'][0]['value'],
+                expected_response['usages'][i]['usages'][0]['value']
+            )
