@@ -11,7 +11,16 @@ from collections import defaultdict
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import serializers
-from rest_framework.decorators import api_view
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.authentication import (
+    TokenAuthentication,
+    get_authorization_header,
+)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
@@ -241,7 +250,54 @@ class PricingServiceUsageDeserializer(PricingServiceUsageSerializer):
         return attrs
 
 
+class TastyPieLikeTokenAuthentication(TokenAuthentication):
+    """
+    A subclass of TokenAuthentication, which also supports TastyPie-like
+    auth tokens, i.e.:
+
+        Authorization: ApiKey username:401f7ac837da42b97f613d789819ff93537bee6a
+
+    and
+
+        Authorization: Token 401f7ac837da42b97f613d789819ff93537bee6a
+
+    instead of just the latter (DjRF-like). In the former case, the "username:"
+    component is silently discarded.
+    """
+    keywords = ('ApiKey', 'Token')
+
+    def authenticate(self, request):
+        auth = get_authorization_header(request).split()
+
+        for keyword in self.keywords:
+            # XXX resume from here
+            if not auth or auth[0].lower() != keyword.lower().encode():
+                return None
+
+        if len(auth) == 1:
+            msg = 'Invalid token header. No credentials provided.'
+            raise exceptions.AuthenticationFailed(msg)
+        elif len(auth) > 2:
+            msg = (
+                'Invalid token header. Token string should not contain spaces.'
+            )
+            raise exceptions.AuthenticationFailed(msg)
+
+        try:
+            token = auth[1].split(':')[-1].decode()
+        except UnicodeError:
+            msg = (
+                'Invalid token header. Token string should not contain '
+                'invalid characters.'
+            )
+            raise exceptions.AuthenticationFailed(msg)
+
+        return self.authenticate_credentials(token)
+
+
 @api_view(['GET'])
+@authentication_classes((TastyPieLikeTokenAuthentication,))
+@permission_classes((IsAuthenticated,))
 def list_pricing_service_usages(
         request, usages_date, pricing_service_id, *args, **kwargs
 ):
@@ -301,6 +357,8 @@ def get_usages(usages_date, pricing_service_id):
 
 
 @api_view(['POST'])
+@authentication_classes((TastyPieLikeTokenAuthentication,))
+@permission_classes((IsAuthenticated,))
 def create_pricing_service_usages(request, *args, **kwargs):
     deserializer = PricingServiceUsageDeserializer(data=request.DATA)
     if deserializer.is_valid():

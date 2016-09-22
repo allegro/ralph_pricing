@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 from django.conf.urls.defaults import include, patterns, url
 from django.contrib.auth.decorators import login_required
+from rest_framework.authtoken import views
 
 import ralph_scrooge.plugins.subscribers  # noqa: F401
 from ralph_scrooge.rest.pricing_service_usages import (
@@ -21,6 +22,7 @@ from ralph_scrooge.views.bootstrapangular import (
 
 urlpatterns = patterns(
     '',
+    url(r'^api-token-auth/', views.obtain_auth_token),
 
     # TODO(xor-xor): These two URLs below are intentionally added here (instead
     # of ralph_scrooge.rest.urls) to provide backward compatibility with old,
@@ -37,7 +39,6 @@ urlpatterns = patterns(
         list_pricing_service_usages,
         name='list_pricing_service_usages'
     ),
-
 
     url(r'^rest/', include('ralph_scrooge.rest.urls')),
     url(
