@@ -8,8 +8,10 @@ from __future__ import unicode_literals
 import datetime
 import json
 
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from rest_framework.test import APIClient
 
 from ralph_scrooge.models import (
     DailyUsage,
@@ -43,6 +45,11 @@ class TestPricingServiceUsages(TestCase):
             start=datetime.date.min,
             end=datetime.date.max,
         )
+        superuser = User.objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(superuser)
 
     def test_save_usages_successfully_when_pricing_object_is_given(self):
         pricing_service_usage = {
