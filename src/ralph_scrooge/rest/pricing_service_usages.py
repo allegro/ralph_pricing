@@ -16,6 +16,9 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
 )
+from rest_framework.exceptions import (
+    AuthenticationFailed
+)
 from rest_framework.authentication import (
     TokenAuthentication,
     get_authorization_header,
@@ -270,18 +273,19 @@ class TastyPieLikeTokenAuthentication(TokenAuthentication):
         auth = get_authorization_header(request).split()
 
         for keyword in self.keywords:
-            # XXX resume from here
-            if not auth or auth[0].lower() != keyword.lower().encode():
-                return None
+            if auth and auth[0].lower() == keyword.lower().encode():
+                break
+        else:
+            return None
 
         if len(auth) == 1:
             msg = 'Invalid token header. No credentials provided.'
-            raise exceptions.AuthenticationFailed(msg)
+            raise AuthenticationFailed(msg)
         elif len(auth) > 2:
             msg = (
                 'Invalid token header. Token string should not contain spaces.'
             )
-            raise exceptions.AuthenticationFailed(msg)
+            raise AuthenticationFailed(msg)
 
         try:
             token = auth[1].split(':')[-1].decode()
@@ -290,7 +294,7 @@ class TastyPieLikeTokenAuthentication(TokenAuthentication):
                 'Invalid token header. Token string should not contain '
                 'invalid characters.'
             )
-            raise exceptions.AuthenticationFailed(msg)
+            raise AuthenticationFailed(msg)
 
         return self.authenticate_credentials(token)
 
