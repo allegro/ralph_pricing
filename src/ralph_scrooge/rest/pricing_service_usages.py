@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import logging
 from collections import defaultdict
 
+from django.db.transaction import commit_on_success
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import serializers
@@ -28,6 +29,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 from ralph_scrooge.models import (
+    PRICING_OBJECT_TYPES,
     DailyUsage,
     PricingObject,
     PricingService,
@@ -56,6 +58,10 @@ logger = logging.getLogger(__name__)
 # TODO(xor-xor): Consider moving *all* exceptions used by Scrooge into a single
 # module.
 class ServiceEnvironmentDoesNotExistError(Exception):
+    pass
+
+
+class MultipleServiceEnvironmentsReturned(Exception):
     pass
 
 
@@ -88,6 +94,7 @@ class UsageDeserializer(UsageSerializer):
 def new_usages(
         service=None,
         service_id=None,
+        service_uid=None,
         environment=None,
         pricing_object=None,
         usages=None,
@@ -95,6 +102,7 @@ def new_usages(
     return {
         'service': service,
         'service_id': service_id,
+        'service_uid': service_uid,
         'environment': environment,
         'pricing_object': pricing_object,
         'usages': usages or [],
@@ -104,6 +112,7 @@ def new_usages(
 class UsagesSerializer(Serializer):
     service = serializers.CharField()
     service_id = serializers.IntegerField()
+    service_uid = serializers.CharField()
     environment = serializers.CharField()
     pricing_object = serializers.CharField()
     usages = UsageSerializer(many=True)
@@ -124,6 +133,11 @@ class UsagesDeserializer(UsagesSerializer):
         return attrs
 
     def _get_service_env(self, attrs):
+        """Fetch ServiceEnvironment basing on the attrs (environment name
+        + serivce ID/UID/name) from the incoming request. Since our API allows
+        specifying service by its ID, UID or name, these variants are checked
+        in that order.
+        """
         se_params = {
             'environment__name': attrs.get('environment'),
         }
@@ -140,6 +154,13 @@ class UsagesDeserializer(UsagesSerializer):
                 ["{}={}".format(k, v) for k, v in se_params.items()]
             )
             raise ServiceEnvironmentDoesNotExistError(
+                'query params: {}'.format(params)
+            )
+        except ServiceEnvironment.MultipleObjectsReturned:
+            params = ", ".join(
+                ["{}={}".format(k, v) for k, v in se_params.items()]
+            )
+            raise MultipleServiceEnvironmentsReturned(
                 'query params: {}'.format(params)
             )
         return se
@@ -191,6 +212,11 @@ class UsagesDeserializer(UsagesSerializer):
             except ServiceEnvironmentDoesNotExistError as e:
                 err = (
                     "service environment does not exist ({})".format(e.message)
+                )
+            except MultipleServiceEnvironmentsReturned as e:
+                err = (
+                    "multiple service environments returned, while there "
+                    "should be only one ({})".format(e.message)
                 )
             else:
                 attrs['pricing_object'] = service_env.dummy_pricing_object
@@ -306,20 +332,32 @@ def list_pricing_service_usages(
         request, usages_date, pricing_service_id, *args, **kwargs
 ):
     try:
-        PricingService.objects.get(id=pricing_service_id)
+        pricing_service = PricingService.objects.get(id=pricing_service_id)
     except PricingService.DoesNotExist:
         msg = (
-            "Service with ID {} does not exist.".format(pricing_service_id)
+            "Pricing Service with ID {} does not exist."
+            .format(pricing_service_id)
         )
         return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
-    usages = get_usages(usages_date, pricing_service_id)
+    usages = get_usages(usages_date, pricing_service)
     return Response(PricingServiceUsageSerializer(usages).data)
 
 
-def get_usages(usages_date, pricing_service_id):
-    pricing_service = PricingService.objects.get(
-        id=pricing_service_id,
-    )
+def get_usages(usages_date, pricing_service):
+    """Create pricing service usage dict (i.e. the most "outer" one when
+    looking at the JSON returned with the HTTP response), and fill it with
+    the usages by going through these steps:
+    1) For every usage type associated with given pricing service, fetch
+       daily usages for a given date (`usages_date`) and store them in a dict
+       keyed by daily pricing object, where the value is a list of tulpes
+       (symbol, value) designating the actual usages (i.e. the most "inner"
+       ones).
+    2) By iterating over the structure from the previous step, wrap the "inner"
+       usages into a structure containing the information re: the service and
+       environment (or the pricing object).
+    3) The list dicts from the previous step are finally added into a top-level
+       (the most "outer" one) dict, under the "usages" key.
+    """
     ps = new_pricing_service_usage(
         pricing_service=pricing_service.name,
         pricing_service_id=pricing_service.id,
@@ -346,11 +384,10 @@ def get_usages(usages_date, pricing_service_id):
         usages = new_usages(
             service=se.service.name,
             service_id=se.service.id,
+            service_uid=se.service.ci_uid,
             environment=se.environment.name,
         )
-        # If pricing object is not a dummy pricing object for given service
-        # environment, then use it.
-        if se.dummy_pricing_object != dpo.pricing_object:
+        if dpo.pricing_object != PRICING_OBJECT_TYPES.DUMMY:
             usages['pricing_object'] = dpo.pricing_object.name
         usages['usages'] = [
             new_usage(symbol=k, value=v) for k, v in u
@@ -370,7 +407,14 @@ def create_pricing_service_usages(request, *args, **kwargs):
     return Response(deserializer.errors, status=400)
 
 
+@commit_on_success
 def save_usages(pricing_service_usage):
+    """This combines three "low-level" steps:
+    1) The transformation of the incoming pricing_service_usage dict into
+       a data structure needed by next two steps.
+    2) Removing previous usages associated with a given day.
+    3) The actual save of the incoming usages.
+    """
     logger.info("Saving usages for service {}".format(
         pricing_service_usage['pricing_service']
     ))
@@ -386,16 +430,25 @@ def save_usages(pricing_service_usage):
 
 
 def get_usages_for_save(pricing_service_usage):
+    """This function transforms incoming pricing_service_usage dict into a
+    tuple, where the first element is a list containing DailyUsage object(s),
+    and the second is a dict keyed by UsageType, where the value is a list
+    of DailyPricingObject(s)
+
+    Only the first element of this tuple is actually used for saving usages to
+    database - the second one is needed for removing previous daily usages for
+    a given day (see `remove_previous_daily_usages` function`).
+    """
     usage_types_cache = {}
     daily_usages = []
     usages_daily_pricing_objects = defaultdict(list)
 
     for usages in pricing_service_usage['usages']:
         for usage in usages['usages']:
-            usage_type = usage_types_cache.get(
-                usage['symbol'],
-                UsageType.objects.get(symbol=usage['symbol'])
-            )
+            try:
+                usage_type = usage_types_cache[usage['symbol']]
+            except KeyError:
+                usage_type = UsageType.objects.get(symbol=usage['symbol'])
             usage_types_cache[usage['symbol']] = usage_type
             daily_pricing_object = (
                 usages['pricing_object'].get_daily_pricing_object(
@@ -419,6 +472,11 @@ def get_usages_for_save(pricing_service_usage):
 
 
 def remove_previous_daily_usages(overwrite, date, usages_dp_objs):
+    """Handler for 'overwrite' option that can be added to the incoming data.
+    For detailed description (with examples) of what this option does, see the
+    docs for our REST API. Please note, that 'no' variant is deliberately
+    ignored here, because that's default behavior.
+    """
     if overwrite in ('values_only', 'delete_all_previous'):
         logger.debug('Remove previous values ({})'.format(overwrite))
         for ut, dp_objs in usages_dp_objs.iteritems():

@@ -84,8 +84,9 @@ Pushing usages data
 Send your usages data to ``/scrooge/api/v0.9/pricingserviceusages/``
 endpoint, using POST method. Your data should be in JSON format, with
 the structure described below. Authorization is done with
-``Authorization`` HTTP header containing your user name and API key
-generated in Scrooge's Admin.
+``Authorization`` HTTP header::
+
+  Authorization: ApiKey <user name>:<API key from Scrooge Admin>
 
 
 """""""""""""""""""""""
@@ -103,7 +104,7 @@ Expected data structure
         {
             "pricing_object": "<pricing_object_name>" |
             (
-              ("service": "<service name>" | "service_id": <service ID> | "service_uid": "<service UID>"),
+              ("service": "<service name>" | "service_id": <service ID (in Scrooge)> | "service_uid": "<service UID>"),
               "environment": "<environent name>",
             )
             "usages": [
@@ -134,7 +135,7 @@ Example::
 
   POST http://localhost:8080/scrooge/api/v0.9/pricingserviceusages/
   Content-Type: application/json
-  Authorization: ApiKey <user name>:<API key from Scrooge Admin>
+  Authorization: ApiKey my_technical_user:401f7ac837da42b97f613d789819ff93537bee6a
   {
       "pricing_service": "pricing_service1",
       "date": "2016-09-02",
@@ -206,7 +207,7 @@ The aforementioned ``overwrite`` field defines a way how to treat
 previous service usage values uploaded for the same date and usage
 type. There are three possible actions here:
 
-* ``delete_all_previous`` - all previously upladed daily usages for
+* ``delete_all_previous`` - all previously uploaded daily usages for
   the same date, with the same usage type should be deleted - only
   usages from the 2nd upload should remain, despite the fact that 1st
   upload contained daily usage for different service environment than
@@ -224,6 +225,7 @@ type. There are three possible actions here:
 
 * ``values_only`` - all previously uploaded daily usages from the same
   date, with the same usage type *and the same service environment*
+  (or pricing object - see remark at the bottom of this section)
   should be replaced by the new daily usage - the ones with different
   service environment should remain untouched. Example::
 
@@ -264,8 +266,8 @@ Possible responses (HTTP codes)
 
 201 - everything OK, data is saved successfully.
 
-400 - invalid symbol or name (e.g. usage type or service) - such error
-will will contain an additional information about invalid data.
+400 - invalid or mis-shaped data - such error will will contain an
+additional description of what is wrong.
 
 401 - authorization/authentication error.
 
@@ -288,7 +290,7 @@ sending a GET request to:
 Example::
 
   GET http://localhost:8080/scrooge/api/v0.9/pricingserviceusages/111/2016-09-02/
-  Authorization: ApiKey <user name>:<API key from Scrooge Admin>
+  Authorization: ApiKey my_technical_user:401f7ac837da42b97f613d789819ff93537bee6a
   {
     "pricing_service": "pricing_service1",
     "pricing_service_id": 111,

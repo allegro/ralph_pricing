@@ -960,11 +960,13 @@ class TestPricingServiceUsages(TestCase):
 
         env1 = self.pricing_object1.service_environment.environment.name
         service1 = self.pricing_object1.service_environment.service.name
-        service_id1 = self.pricing_object1.service_environment.service_id
+        service1_id = self.pricing_object1.service_environment.service_id
+        service1_uid = self.pricing_object1.service_environment.service.ci_uid
 
         env2 = self.pricing_object2.service_environment.environment.name
         service2 = self.pricing_object2.service_environment.service.name
-        service_id2 = self.pricing_object2.service_environment.service_id
+        service2_id = self.pricing_object2.service_environment.service_id
+        service2_uid = self.pricing_object2.service_environment.service.ci_uid
 
         expected_response = {
             "date": self.date_as_str,
@@ -975,7 +977,8 @@ class TestPricingServiceUsages(TestCase):
                     "environment": env1,
                     "pricing_object": self.pricing_object1.name,
                     "service": service1,
-                    "service_id": service_id1,
+                    "service_id": service1_id,
+                    "service_uid": service1_uid,
                     "usages": [
                         {
                             "symbol": self.usage_type.symbol,
@@ -987,7 +990,8 @@ class TestPricingServiceUsages(TestCase):
                     "environment": env2,
                     "pricing_object": self.pricing_object2.name,
                     "service": service2,
-                    "service_id": service_id2,
+                    "service_id": service2_id,
+                    "service_uid": service2_uid,
                     "usages": [
                         {
                             "symbol": self.usage_type.symbol,
