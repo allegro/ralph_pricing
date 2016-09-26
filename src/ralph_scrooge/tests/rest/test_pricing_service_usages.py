@@ -969,7 +969,7 @@ class TestPricingServiceUsages(TestCase):
         expected_response = {
             "date": self.date_as_str,
             "pricing_service": self.pricing_service.name,
-            "pricing_service_id": None,
+            "pricing_service_id": self.pricing_service.id,
             "usages": [
                 {
                     "environment": env1,

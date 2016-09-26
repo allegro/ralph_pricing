@@ -312,8 +312,8 @@ def list_pricing_service_usages(
             "Service with ID {} does not exist.".format(pricing_service_id)
         )
         return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
-    result = get_usages(usages_date, pricing_service_id)
-    return Response(PricingServiceUsageSerializer(result).data)
+    usages = get_usages(usages_date, pricing_service_id)
+    return Response(PricingServiceUsageSerializer(usages).data)
 
 
 def get_usages(usages_date, pricing_service_id):
@@ -322,11 +322,11 @@ def get_usages(usages_date, pricing_service_id):
     )
     ps = new_pricing_service_usage(
         pricing_service=pricing_service.name,
+        pricing_service_id=pricing_service.id,
         date=usages_date,
     )
     usages_dict = defaultdict(list)
 
-    # iterate through pricing service usage types
     for usage_type in pricing_service.usage_types.all():
         daily_usages = usage_type.dailyusage_set.filter(
             date=usages_date
@@ -341,7 +341,6 @@ def get_usages(usages_date, pricing_service_id):
                 (daily_usage.type.symbol, daily_usage.value)
             )
 
-    # save usages
     for dpo, u in usages_dict.iteritems():
         se = dpo.service_environment
         usages = new_usages(
