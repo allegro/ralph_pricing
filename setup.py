@@ -38,7 +38,7 @@ setup(
         'djangorestframework==2.4.3',
         'django-filter==0.11',
         'django-nose==1.3',
-        'South==0.7.6',
+        'south==1.0.2',
         'djangorestframework==2.4.3',
         'django-rq==0.4.5',
         'MySQL-python==1.2.3',
