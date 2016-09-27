@@ -82,7 +82,8 @@ LOGIN_URL = '/login/'
 ROOT_URLCONF = 'ralph_scrooge.urls'
 
 RQ_QUEUE_LIST = (
-    'reports_pricing', 'scrooge_costs_master', 'scrooge_costs', 'scrooge_repor'
+    'reports_pricing', 'scrooge_costs_master', 'scrooge_costs',
+    'scrooge_report'
 )
 RQ_QUEUES = {
     'default': {
@@ -306,17 +307,7 @@ EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        }
-    },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler',
-        },
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -345,24 +336,14 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['file', 'mail_admins'],
+            'handlers': ['file'],
             'level': 'ERROR',
             'propagate': True,
         },
-        'plugins': {
+        'ralph_scrooge': {
             'handlers': ['file', 'console'],
             'propagate': True,
             'level': 'DEBUG',
-        },
-        'ralph_scrooge.management.commands.scrooge_sync': {
-            'handlers': ['file', 'console'],
-            'propagate': True,
-            'level': 'DEBUG',
-        },
-        'critical_only': {
-            'handlers': ['file', 'mail_admins'],
-            'level': 'CRITICAL',
-            'propagate': False,
         },
     },
 }

@@ -40,8 +40,6 @@ else:
         }
     }
 
-PLUGGABLE_APPS = ['scrooge']
-
 SOUTH_TESTS_MIGRATE = False
 
 LOGGING['handlers']['file']['filename'] = 'scrooge.log'  # noqa
