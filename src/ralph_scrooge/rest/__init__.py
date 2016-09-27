@@ -30,6 +30,7 @@ __all__ = [
     'CostCardContent',
     'LeftMenuAPIView',
     'ObjectCostsContent',
+    'PricingServiceUsages',
     'ServicesCostsReportContent',
     'UsagesReportContent',
     'UsageTypesViewSet',

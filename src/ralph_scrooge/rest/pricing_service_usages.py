@@ -1,0 +1,488 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+import logging
+from collections import defaultdict
+
+from django.db.transaction import commit_on_success
+from django.http import HttpResponse
+from rest_framework import status
+from rest_framework import serializers
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.exceptions import (
+    AuthenticationFailed
+)
+from rest_framework.authentication import (
+    TokenAuthentication,
+    get_authorization_header,
+)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.serializers import Serializer
+
+from ralph_scrooge.models import (
+    PRICING_OBJECT_TYPES,
+    DailyUsage,
+    PricingObject,
+    PricingService,
+    ServiceEnvironment,
+    UsageType,
+)
+
+logger = logging.getLogger(__name__)
+
+
+# TODO(xor-xor): Consider some better naming for dicts in this hierarchy:
+# pricing_service_usage -> usages -> usage
+# (especially for usages).
+
+# TODO(xor-xor) Consider separate endpoints for usages associated with:
+# * service + environment
+# * service_id + environment
+# * service_uid + environment
+# * pricing_object
+# instead of a "polymorphic" one
+
+# TODO(xor-xor): Consider json-schema based approach instead of all of those
+# nested serializers, see:
+# https://richardtier.com/2014/03/24/json-schema-validation-with-django-rest-framework/  # noqa
+
+# TODO(xor-xor): Consider moving *all* exceptions used by Scrooge into a single
+# module.
+class ServiceEnvironmentDoesNotExistError(Exception):
+    pass
+
+
+class MultipleServiceEnvironmentsReturned(Exception):
+    pass
+
+
+def new_usage(symbol=None, value=None):
+    return {
+        'symbol': symbol,
+        'value': value,
+    }
+
+
+class UsageSerializer(Serializer):
+    symbol = serializers.CharField()
+    value = serializers.FloatField()
+
+
+class UsageDeserializer(UsageSerializer):
+    symbol = serializers.CharField(required=True)
+    value = serializers.FloatField(required=True)
+
+    def validate_symbol(self, attrs, source):
+        if not UsageType.objects.filter(symbol=attrs[source]).exists():
+            err = (
+                'usage type for symbol "{}" does not exist'
+                .format(attrs[source])
+            )
+            raise serializers.ValidationError(err)
+        return attrs
+
+
+def new_usages(
+        service=None,
+        service_id=None,
+        service_uid=None,
+        environment=None,
+        pricing_object=None,
+        usages=None,
+):
+    return {
+        'service': service,
+        'service_id': service_id,
+        'service_uid': service_uid,
+        'environment': environment,
+        'pricing_object': pricing_object,
+        'usages': usages or [],
+    }
+
+
+class UsagesSerializer(Serializer):
+    service = serializers.CharField()
+    service_id = serializers.IntegerField()
+    service_uid = serializers.CharField()
+    environment = serializers.CharField()
+    pricing_object = serializers.CharField()
+    usages = UsageSerializer(many=True)
+
+
+class UsagesDeserializer(UsagesSerializer):
+    service = serializers.CharField(required=False)
+    service_id = serializers.IntegerField(required=False)
+    service_uid = serializers.CharField(required=False)
+    environment = serializers.CharField(required=False)
+    pricing_object = serializers.CharField(required=False)
+    usages = UsageDeserializer(many=True, required=True)
+
+    def validate_usages(self, attrs, source):
+        usages = attrs[source]
+        if usages is None or len(usages) == 0:
+            raise serializers.ValidationError("This field cannot be empty.")
+        return attrs
+
+    def _get_service_env(self, attrs):
+        """Fetch ServiceEnvironment basing on the attrs (environment name
+        + serivce ID/UID/name) from the incoming request. Since our API allows
+        specifying service by its ID, UID or name, these variants are checked
+        in that order.
+        """
+        se_params = {
+            'environment__name': attrs.get('environment'),
+        }
+        if attrs.get('service_id'):
+            se_params['service_id'] = attrs['service_id']
+        elif attrs.get('service_uid'):
+            se_params['service__ci_uid'] = attrs['service_uid']
+        else:
+            se_params['service__name'] = attrs['service']
+        try:
+            se = ServiceEnvironment.objects.get(**se_params)
+        except ServiceEnvironment.DoesNotExist:
+            params = ", ".join(
+                ["{}={}".format(k, v) for k, v in se_params.items()]
+            )
+            raise ServiceEnvironmentDoesNotExistError(
+                'query params: {}'.format(params)
+            )
+        except ServiceEnvironment.MultipleObjectsReturned:
+            params = ", ".join(
+                ["{}={}".format(k, v) for k, v in se_params.items()]
+            )
+            raise MultipleServiceEnvironmentsReturned(
+                'query params: {}'.format(params)
+            )
+        return se
+
+    def validate(self, attrs):
+        # TODO(xor-xor): Get rid of "non_field_errors" header from error
+        # message generated by DjRF.
+        pricing_obj = attrs.get('pricing_object')
+        service = attrs.get('service')
+        service_id = attrs.get('service_id')
+        service_uid = attrs.get('service_uid')
+        env = attrs.get('environment')
+        err = None
+
+        # check for the invalid combinations of fields
+        if pricing_obj and any((service, service_id, service_uid, env)):
+            err = (
+                "pricing_object shouldn't be used with any of: service, "
+                "service_id, service_uid, environment"
+            )
+        elif service and any((service_id, service_uid)):
+            err = (
+                "service shouldn't be used with any of: service_id, "
+                "service_uid"
+            )
+        elif service_id and service_uid:
+            err = "service_id shouldn't be used with service_uid"
+        elif env and not any((service, service_id, service_uid)):
+            err = (
+                "environment requires service or service_id or service_uid"
+            )
+        if err is not None:
+            msg = "Invalid combination of fields: {}.".format(err)
+            raise serializers.ValidationError(msg)
+
+        # get pricing_object
+        # XXX (xor-xor): I don't really like the idea of validating and filling
+        # ("cleaning") attrs both at the same time, but maybe it's just me.
+        if pricing_obj:
+            try:
+                attrs['pricing_object'] = PricingObject.objects.get(
+                    name=pricing_obj
+                )
+            except PricingObject.DoesNotExist:
+                err = "pricing_object {} does not exist".format(pricing_obj)
+        else:
+            try:
+                service_env = self._get_service_env(attrs)
+            except ServiceEnvironmentDoesNotExistError as e:
+                err = (
+                    "service environment does not exist ({})".format(e.message)
+                )
+            except MultipleServiceEnvironmentsReturned as e:
+                err = (
+                    "multiple service environments returned, while there "
+                    "should be only one ({})".format(e.message)
+                )
+            else:
+                attrs['pricing_object'] = service_env.dummy_pricing_object
+        if err is not None:
+            raise serializers.ValidationError(err)
+
+        return attrs
+
+
+def new_pricing_service_usage(
+        pricing_service=None,
+        pricing_service_id=None,
+        usages=None,
+        date=None,
+        overwrite='no',
+):
+    return {
+        'pricing_service': pricing_service,
+        'pricing_service_id': pricing_service_id,
+        'usages': usages or [],
+        'date': date,
+        'overwrite': overwrite,
+    }
+
+
+class PricingServiceUsageSerializer(Serializer):
+    pricing_service = serializers.CharField()
+    pricing_service_id = serializers.IntegerField()
+    date = serializers.DateField()
+    usages = UsagesSerializer(many=True)
+
+
+class PricingServiceUsageDeserializer(PricingServiceUsageSerializer):
+    pricing_service_id = serializers.IntegerField(required=False)
+    overwrite = serializers.CharField(required=False, default='no')
+    usages = UsagesDeserializer(many=True, required=True)
+
+    def validate_usages(self, attrs, source):
+        usages = attrs[source]
+        if usages is None or len(usages) == 0:
+            raise serializers.ValidationError("This field cannot be empty.")
+        return attrs
+
+    def validate_overwrite(self, attrs, source):
+        value = attrs[source]
+        if value not in ('no', 'delete_all_previous', 'values_only'):
+            raise serializers.ValidationError(
+                "Invalid value: {}".format(value)
+            )
+        return attrs
+
+    def validate_pricing_service(self, attrs, source):
+        value = attrs[source]
+        try:
+            PricingService.objects.get(name=value)
+        except PricingService.DoesNotExist:
+            raise serializers.ValidationError(
+                "Unknown service name: {}".format(value)
+            )
+        return attrs
+
+
+class TastyPieLikeTokenAuthentication(TokenAuthentication):
+    """
+    A subclass of TokenAuthentication, which also supports TastyPie-like
+    auth tokens, i.e.:
+
+        Authorization: ApiKey username:401f7ac837da42b97f613d789819ff93537bee6a
+
+    and
+
+        Authorization: Token 401f7ac837da42b97f613d789819ff93537bee6a
+
+    instead of just the latter (DjRF-like). In the former case, the "username:"
+    component is silently discarded.
+    """
+    keywords = ('ApiKey', 'Token')
+
+    def authenticate(self, request):
+        auth = get_authorization_header(request).split()
+
+        for keyword in self.keywords:
+            if auth and auth[0].lower() == keyword.lower().encode():
+                break
+        else:
+            return None
+
+        if len(auth) == 1:
+            msg = 'Invalid token header. No credentials provided.'
+            raise AuthenticationFailed(msg)
+        elif len(auth) > 2:
+            msg = (
+                'Invalid token header. Token string should not contain spaces.'
+            )
+            raise AuthenticationFailed(msg)
+
+        try:
+            token = auth[1].split(':')[-1].decode()
+        except UnicodeError:
+            msg = (
+                'Invalid token header. Token string should not contain '
+                'invalid characters.'
+            )
+            raise AuthenticationFailed(msg)
+
+        return self.authenticate_credentials(token)
+
+
+@api_view(['GET'])
+@authentication_classes((TastyPieLikeTokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def list_pricing_service_usages(
+        request, usages_date, pricing_service_id, *args, **kwargs
+):
+    try:
+        pricing_service = PricingService.objects.get(id=pricing_service_id)
+    except PricingService.DoesNotExist:
+        msg = (
+            "Pricing Service with ID {} does not exist."
+            .format(pricing_service_id)
+        )
+        return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
+    usages = get_usages(usages_date, pricing_service)
+    return Response(PricingServiceUsageSerializer(usages).data)
+
+
+def get_usages(usages_date, pricing_service):
+    """Create pricing service usage dict (i.e. the most "outer" one when
+    looking at the JSON returned with the HTTP response), and fill it with
+    the usages by going through these steps:
+    1) For every usage type associated with given pricing service, fetch
+       daily usages for a given date (`usages_date`) and store them in a dict
+       keyed by daily pricing object, where the value is a list of tulpes
+       (symbol, value) designating the actual usages (i.e. the most "inner"
+       ones).
+    2) By iterating over the structure from the previous step, wrap the "inner"
+       usages into a structure containing the information re: the service and
+       environment (or the pricing object).
+    3) The list dicts from the previous step are finally added into a top-level
+       (the most "outer" one) dict, under the "usages" key.
+    """
+    ps = new_pricing_service_usage(
+        pricing_service=pricing_service.name,
+        pricing_service_id=pricing_service.id,
+        date=usages_date,
+    )
+    usages_dict = defaultdict(list)
+
+    for usage_type in pricing_service.usage_types.all():
+        daily_usages = usage_type.dailyusage_set.filter(
+            date=usages_date
+        ).select_related(
+            'service_environment',
+            'service_environment__service',
+            'service_environment__environment',
+            'pricing_object'
+        )
+        for daily_usage in daily_usages:
+            usages_dict[daily_usage.daily_pricing_object].append(
+                (daily_usage.type.symbol, daily_usage.value)
+            )
+
+    for dpo, u in usages_dict.iteritems():
+        se = dpo.service_environment
+        usages = new_usages(
+            service=se.service.name,
+            service_id=se.service.id,
+            service_uid=se.service.ci_uid,
+            environment=se.environment.name,
+        )
+        if dpo.pricing_object != PRICING_OBJECT_TYPES.DUMMY:
+            usages['pricing_object'] = dpo.pricing_object.name
+        usages['usages'] = [
+            new_usage(symbol=k, value=v) for k, v in u
+        ]
+        ps['usages'].append(usages)
+    return ps
+
+
+@api_view(['POST'])
+@authentication_classes((TastyPieLikeTokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def create_pricing_service_usages(request, *args, **kwargs):
+    deserializer = PricingServiceUsageDeserializer(data=request.DATA)
+    if deserializer.is_valid():
+        save_usages(deserializer.object)
+        return HttpResponse(status=201)
+    return Response(deserializer.errors, status=400)
+
+
+@commit_on_success
+def save_usages(pricing_service_usage):
+    """This combines three "low-level" steps:
+    1) The transformation of the incoming pricing_service_usage dict into
+       a data structure needed by next two steps.
+    2) Removing previous usages associated with a given day.
+    3) The actual save of the incoming usages.
+    """
+    logger.info("Saving usages for service {}".format(
+        pricing_service_usage['pricing_service']
+    ))
+    daily_usages, usages_daily_pricing_objects = get_usages_for_save(
+        pricing_service_usage
+    )
+    remove_previous_daily_usages(
+        pricing_service_usage['overwrite'],
+        pricing_service_usage['date'],
+        usages_daily_pricing_objects,
+    )
+    DailyUsage.objects.bulk_create(daily_usages)
+
+
+def get_usages_for_save(pricing_service_usage):
+    """This function transforms incoming pricing_service_usage dict into a
+    tuple, where the first element is a list containing DailyUsage object(s),
+    and the second is a dict keyed by UsageType, where the value is a list
+    of DailyPricingObject(s)
+
+    Only the first element of this tuple is actually used for saving usages to
+    database - the second one is needed for removing previous daily usages for
+    a given day (see `remove_previous_daily_usages` function`).
+    """
+    usage_types_cache = {}
+    daily_usages = []
+    usages_daily_pricing_objects = defaultdict(list)
+
+    for usages in pricing_service_usage['usages']:
+        for usage in usages['usages']:
+            try:
+                usage_type = usage_types_cache[usage['symbol']]
+            except KeyError:
+                usage_type = UsageType.objects.get(symbol=usage['symbol'])
+            usage_types_cache[usage['symbol']] = usage_type
+            daily_pricing_object = (
+                usages['pricing_object'].get_daily_pricing_object(
+                    pricing_service_usage['date']
+                )
+            )
+            daily_usage = DailyUsage(
+                date=pricing_service_usage['date'],
+                type=usage_type,
+                value=usage['value'],
+                daily_pricing_object=daily_pricing_object,
+                service_environment=(
+                    daily_pricing_object.service_environment
+                ),
+            )
+            daily_usages.append(daily_usage)
+            usages_daily_pricing_objects[usage_type].append(
+                daily_pricing_object
+            )
+    return (daily_usages, usages_daily_pricing_objects)
+
+
+def remove_previous_daily_usages(overwrite, date, usages_dp_objs):
+    """Handler for 'overwrite' option that can be added to the incoming data.
+    For detailed description (with examples) of what this option does, see the
+    docs for our REST API. Please note, that 'no' variant is deliberately
+    ignored here, because that's default behavior.
+    """
+    if overwrite in ('values_only', 'delete_all_previous'):
+        logger.debug('Remove previous values ({})'.format(overwrite))
+        for ut, dp_objs in usages_dp_objs.iteritems():
+            previous_usages = DailyUsage.objects.filter(date=date, type=ut)
+            if overwrite == 'values_only':
+                previous_usages = previous_usages.filter(
+                    daily_pricing_object__in=dp_objs
+                )
+            previous_usages.delete()
