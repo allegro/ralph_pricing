@@ -1061,3 +1061,18 @@ class TestPricingServiceUsages(TestCase):
                 received_response['usages'][i]['usages'][0]['value'],
                 expected_response['usages'][i]['usages'][0]['value']
             )
+
+    def test_for_error_when_invalid_date_in_correct_format_given_in_URL(self):
+        invalid_date = '2016-09-33'
+        resp = self.client.get(
+            reverse(
+                'list_pricing_service_usages',
+                kwargs={
+                    'pricing_service_id': PricingService.objects.all()[0].id,
+                    'usages_date': invalid_date,
+                }
+            )
+        )
+        self.assertEquals(resp.status_code, 400)
+        self.assertIn(invalid_date, resp.content)
+        self.assertIn("invalid date", resp.content)
