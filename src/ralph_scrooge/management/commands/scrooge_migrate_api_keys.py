@@ -14,7 +14,7 @@ from rest_framework.authtoken.models import Token
 try:
     from tastypie.models import ApiKey
 except ImportError:
-    print('Tastypie is not installed. Please instal it.')
+    print('Tastypie is not installed. Please install it.')
 
 logger = logging.getLogger(__name__)
 
