@@ -11,7 +11,10 @@ from django.core.management.base import BaseCommand
 from django.db.transaction import commit_on_success
 
 from rest_framework.authtoken.models import Token
-from tastypie.models import ApiKey
+try:
+    from tastypie.models import ApiKey
+except ImportError:
+    print('Tastypie is not installed. Please instal it.')
 
 logger = logging.getLogger(__name__)
 
