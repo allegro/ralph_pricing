@@ -43,7 +43,6 @@ setup(
         'django-rq==0.4.5',
         'MySQL-python==1.2.3',
         'rq>=0.3.7',
-        'rq-scheduler==0.3.6',
         'dj.choices==0.9.2',
         'SQLAlchemy==0.7.8',
         'ipaddr==2.1.11',
