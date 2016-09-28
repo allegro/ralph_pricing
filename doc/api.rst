@@ -88,6 +88,23 @@ the structure described below. Authorization is done with
 
   Authorization: ApiKey <user name>:<API key from Scrooge Admin>
 
+If, for some reason, Scrooge Admin doesn't show your API key, you can
+obtain it by sending a POST request with your user's credentials to
+``/scrooge/api-token-auth/`` endpoint. Example::
+
+  POST http://localhost:8000/scrooge/api-token-auth/
+  Content-Type: application/json
+  {
+      "username": "my_technical_user",
+      "password": "my_technical_user_password"
+  }
+
+Response::
+
+  {
+    "token": "401f7ac837da42b97f613d789819ff93537bee6a"
+  }
+
 
 """""""""""""""""""""""
 Expected data structure
