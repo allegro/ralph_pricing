@@ -25,7 +25,10 @@ from ralph_scrooge.models import (
     TeamCost,
     TeamServiceEnvironmentPercent,
 )
-from ralph_scrooge.rest.auth import TastyPieLikeTokenAuthentication
+from ralph_scrooge.rest.auth import (
+    IsTeamLeader,
+    TastyPieLikeTokenAuthentication,
+)
 from ralph_scrooge.rest.common import get_dates
 
 
@@ -131,7 +134,7 @@ def new_team_time_division(team_id, year, month, division):
 
 @api_view(['GET'])
 @authentication_classes((TastyPieLikeTokenAuthentication,))
-@permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated, IsTeamLeader))
 def list_team_time_division(request, year, month, team_id, *args, **kwargs):
     year = int(year)
     month = int(month)
@@ -144,7 +147,7 @@ def list_team_time_division(request, year, month, team_id, *args, **kwargs):
 
 @api_view(['POST'])
 @authentication_classes((TastyPieLikeTokenAuthentication,))
-@permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated, IsTeamLeader))
 def create_team_time_division(request, *args, **kwargs):
     serializer = TeamTimeDivisionSerializer(data=request.DATA)
     if serializer.is_valid():

@@ -62,6 +62,12 @@ class TastyPieLikeTokenAuthentication(TokenAuthentication):
 
 
 class IsTeamLeader(permissions.BasePermission):
+    """
+    """
 
     def has_permission(self, request, view):
-        pass
+        from ralph_scrooge.models import Team, TeamManager
+        team_id = view.kwargs['team_id']
+        # XXX to be implemented
+        from IPython import embed; embed(); assert False
+        return True
