@@ -31,7 +31,6 @@ def superuser_permission(view_func):
 
 
 def _has_permission_to_service(user, service):
-    # check for superuser or accountant, which have access to all services
     if user.is_superuser:
         return True
     return ServiceOwnership.objects.filter(
@@ -41,7 +40,6 @@ def _has_permission_to_service(user, service):
 
 
 def _has_permission_to_team(user, team):
-    # check for superuser or accountant, which have access to all services
     if user.is_superuser:
         return True
     return TeamManager.objects.filter(
