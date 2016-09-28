@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 from collections import defaultdict
+from datetime import datetime
 
 from django.db.transaction import commit_on_success
 from django.http import HttpResponse
@@ -339,14 +340,28 @@ class TastyPieLikeTokenAuthentication(TokenAuthentication):
 def list_pricing_service_usages(
         request, usages_date, pricing_service_id, *args, **kwargs
 ):
+    err_msg = None
     try:
         pricing_service = PricingService.objects.get(id=pricing_service_id)
     except PricingService.DoesNotExist:
-        msg = (
+        err_msg = (
             "Pricing Service with ID {} does not exist."
             .format(pricing_service_id)
         )
-        return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
+
+    # We can't catch invalid dates like '2016-09-33' in URL patterns, so we
+    # have to do that here.
+    try:
+        datetime.strptime(usages_date, '%Y-%m-%d')
+    except ValueError:
+        err_msg = (
+            '"{}" has the correct format, but is an invalid date.'
+            .format(usages_date)
+        )
+
+    if err_msg is not None:
+        return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
     usages = get_usages(usages_date, pricing_service)
     return Response(PricingServiceUsageSerializer(usages).data)
 
