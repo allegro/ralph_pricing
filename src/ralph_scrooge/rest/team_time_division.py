@@ -8,6 +8,12 @@ from __future__ import unicode_literals
 from django.db.transaction import commit_on_success
 from django.http import HttpResponse
 from rest_framework import serializers
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
@@ -123,24 +129,28 @@ def new_team_time_division(team_id, year, month, division):
         'division': division or [],
     }
 
+@api_view(['GET'])
+@authentication_classes((TastyPieLikeTokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def list_team_time_division(request, year, month, team_id, *args, **kwargs):
+    year = int(year)
+    month = int(month)
+    team_id = int(team_id)
+    first_day, last_day, days_in_month = get_dates(year, month)
+    percents = _get_percents(team_id, first_day, last_day)
+    division = new_team_time_division(team_id, year, month, percents)
+    serializer = TeamTimeDivisionSerializer(division)
+    return Response(serializer.data)
 
-class TeamTimeDivision(APIView):
-    def get(self, request, year, month, team_id, *args, **kwargs):
-        year = int(year)
-        month = int(month)
-        team_id = int(team_id)
-        first_day, last_day, days_in_month = get_dates(year, month)
-        percents = _get_percents(team_id, first_day, last_day)
-        division = new_team_time_division(team_id, year, month, percents)
-        serializer = TeamTimeDivisionSerializer(division)
-        return Response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        serializer = TeamTimeDivisionSerializer(data=request.DATA)
-        if serializer.is_valid():
-            save_team_time_division(serializer.object)
-            return HttpResponse(status=201)
-        return Response(serializer.errors, status=400)
+@api_view(['POST'])
+@authentication_classes((TastyPieLikeTokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def create_team_time_division(request, *args, **kwargs):
+    serializer = TeamTimeDivisionSerializer(data=request.DATA)
+    if serializer.is_valid():
+        save_team_time_division(serializer.object)
+        return HttpResponse(status=201)
+    return Response(serializer.errors, status=400)
 
 
 @commit_on_success()

@@ -15,7 +15,10 @@ from ralph_scrooge.rest.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
-from ralph_scrooge.rest.team_time_division import TeamTimeDivision
+from ralph_scrooge.rest.team_time_division import (
+    create_team_time_division,
+    list_team_time_division,
+)
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
@@ -30,13 +33,13 @@ urlpatterns = patterns(
     # to this '/api/' hierarchy.
     url(
         r'^api/teamtimedivision/?$',
-        TeamTimeDivision.as_view(),
-        name='team_time_division',
+        create_team_time_division,
+        name='create_team_time_division',
     ),
     url(
         r'^api/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
-        TeamTimeDivision.as_view(),
-        name='team_time_division',
+        list_team_time_division,
+        name='list_team_time_division',
     ),
 
     url(r'^scrooge/api-token-auth/', views.obtain_auth_token),
