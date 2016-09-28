@@ -1,8 +1,9 @@
 #
 # A testing profile.
 #
-import os
+from ralph_scrooge.settings.base import *  # noqa
 
+import os
 TEST_DATABASE_ENGINE = os.environ.get('TEST_DATABASE_ENGINE')
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -39,17 +40,18 @@ else:
         }
     }
 
-PLUGGABLE_APPS = ['assets', 'scrooge', 'cmdb']
-
 SOUTH_TESTS_MIGRATE = False
+
+LOGGING['handlers']['file']['filename'] = 'scrooge.log'  # noqa
+
 try:
-    INSTALLED_APPS += ('django_nose',)
+    INSTALLED_APPS += ('django_nose',)  # noqa
     TEST_RUNNER = str('django_nose.NoseTestSuiteRunner')
     NOSE_ARGS = ['--with-doctest', '-s']
 except NameError:
     print('Cannot use nose test runner')
 
 try:
-    execfile(os.path.expanduser("~/.ralph/settings-test-scrooge-local"))
+    execfile(os.path.expanduser("~/.scrooge/settings-test-scrooge-local"))  # noqa
 except IOError:
     pass

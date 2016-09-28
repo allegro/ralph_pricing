@@ -41,3 +41,4 @@ node_modules/
 typings/
 src/ralph_scrooge/media/scrooge/dist/
 src/ralph_scrooge/media/scrooge/lib/
+scrooge.log

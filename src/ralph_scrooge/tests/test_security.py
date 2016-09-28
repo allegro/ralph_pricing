@@ -6,11 +6,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
+from ralph_scrooge.models.owner import UserProfile
 from django.test import TestCase
 from rest_framework.test import APIClient
-from ralph.account.models import Perm
 
-from ralph_scrooge.app import Scrooge
 from ralph_scrooge.models import ServiceOwnership, TeamManager
 from ralph_scrooge.tests.utils.factory import (
     OwnerFactory,
@@ -28,29 +27,29 @@ class TestSecurity(TestCase):
             username='accountant',
             password='12345'
         )
-        self.accountant.profile.boundperm_set.create(
-            perm=Perm.has_scrooge_access
-        )
-
+        UserProfile.objects.create(user=self.accountant)
         self.owner = User.objects.create_user(
             username='owner',
             password='12345'
         )
+        UserProfile.objects.create(user=self.owner)
         self.team_manager = User.objects.create_user(
             username='team_manager',
             password='12345'
         )
+        UserProfile.objects.create(user=self.team_manager)
         self.superuser = User.objects.create_user(
             username='superuser',
             password='12345',
         )
         self.superuser.is_superuser = True
         self.superuser.save()
+        UserProfile.objects.create(user=self.superuser)
 
         # create services (and assign one of them to owner)
         self.se1 = ServiceEnvironmentFactory()
         self.service1 = self.se1.service
-        scrooge_owner = OwnerFactory(profile=self.owner.profile)
+        scrooge_owner = OwnerFactory(profile=self.owner.get_profile())
         ServiceOwnership.objects.create(
             service=self.service1,
             owner=scrooge_owner
@@ -61,7 +60,7 @@ class TestSecurity(TestCase):
 
         # create teams
         self.team1 = TeamFactory()
-        team_manager = OwnerFactory(profile=self.team_manager.profile)
+        team_manager = OwnerFactory(profile=self.team_manager.get_profile())
         TeamManager.objects.create(team=self.team1, manager=team_manager)
         self.team2 = TeamFactory()
 
@@ -69,17 +68,19 @@ class TestSecurity(TestCase):
         self.client.login(username=user, password='12345')
 
     def _get_components(self, se):
-        return self.client.get('/{}/rest/components/{}/{}/2014/10/1/'.format(
-            Scrooge.url_prefix,
-            se.service.id,
-            se.environment.id,
-        ))
+        return self.client.get(
+            '/scrooge/rest/components/{}/{}/2014/10/1/'.format(
+                se.service.id,
+                se.environment.id,
+            )
+        )
 
     def _get_team_allocation(self, team):
-        return self.client.get('/{}/rest/allocationclient/{}/2014/10/'.format(
-            Scrooge.url_prefix,
-            team.id,
-        ))
+        return self.client.get(
+            '/scrooge/rest/allocationclient/{}/2014/10/'.format(
+                team.id,
+            )
+        )
 
     def test_components_superuser_access(self):
         self._login_as('superuser')
@@ -88,10 +89,10 @@ class TestSecurity(TestCase):
         response = self._get_components(self.se2)
         self.assertEquals(response.status_code, 200)
 
-    def test_components_accountant_access(self):
+    def test_components_accountant_permission_denied(self):
         self._login_as('accountant')
         response = self._get_components(self.se1)
-        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.status_code, 403)
 
     def test_components_owner_access(self):
         self._login_as('owner')

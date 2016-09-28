@@ -1,42 +1,87 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
 
-class Migration(DataMigration):
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        """Deleted because we don't use models from ralph asset."""
-        pass
+        # Changing field 'HistoricalService.modified_by'
+        db.alter_column('ralph_scrooge_historicalservice', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'HistoricalService.created_by'
+        db.alter_column('ralph_scrooge_historicalservice', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+        # Deleting field 'Owner.cmdb_id'
+        db.delete_column(u'ralph_scrooge_owner', 'cmdb_id')
+
+        # Changing field 'Owner.profile'
+        db.alter_column(u'ralph_scrooge_owner', 'profile_id', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['ralph_scrooge.UserProfile'], unique=True))
+
+        # Changing field 'Warehouse.modified_by'
+        db.alter_column(u'ralph_scrooge_warehouse', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'Warehouse.created_by'
+        db.alter_column(u'ralph_scrooge_warehouse', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'Service.modified_by'
+        db.alter_column(u'ralph_scrooge_service', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'Service.created_by'
+        db.alter_column(u'ralph_scrooge_service', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'Team.modified_by'
+        db.alter_column(u'ralph_scrooge_team', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'Team.created_by'
+        db.alter_column(u'ralph_scrooge_team', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'PricingObject.modified_by'
+        db.alter_column(u'ralph_scrooge_pricingobject', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
+
+        # Changing field 'PricingObject.created_by'
+        db.alter_column(u'ralph_scrooge_pricingobject', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['ralph_scrooge.UserProfile'], null=True))
 
     def backwards(self, orm):
-        "Write your backwards methods here."
-        raise RuntimeError("Cannot reverse this migration.")
+
+        # Changing field 'HistoricalService.modified_by'
+        db.alter_column('ralph_scrooge_historicalservice', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'HistoricalService.created_by'
+        db.alter_column('ralph_scrooge_historicalservice', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # User chose to not deal with backwards NULL issues for 'Owner.cmdb_id'
+        raise RuntimeError("Cannot reverse this migration. 'Owner.cmdb_id' and its values cannot be restored.")
+
+        # Changing field 'Owner.profile'
+        db.alter_column(u'ralph_scrooge_owner', 'profile_id', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['account.Profile'], unique=True))
+
+        # Changing field 'Warehouse.modified_by'
+        db.alter_column(u'ralph_scrooge_warehouse', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'Warehouse.created_by'
+        db.alter_column(u'ralph_scrooge_warehouse', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'Service.modified_by'
+        db.alter_column(u'ralph_scrooge_service', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'Service.created_by'
+        db.alter_column(u'ralph_scrooge_service', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'Team.modified_by'
+        db.alter_column(u'ralph_scrooge_team', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'Team.created_by'
+        db.alter_column(u'ralph_scrooge_team', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'PricingObject.modified_by'
+        db.alter_column(u'ralph_scrooge_pricingobject', 'modified_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
+
+        # Changing field 'PricingObject.created_by'
+        db.alter_column(u'ralph_scrooge_pricingobject', 'created_by_id', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, to=orm['account.Profile'], null=True))
 
     models = {
-        'account.profile': {
-            'Meta': {'object_name': 'Profile'},
-            'activation_token': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '40', 'blank': 'True'}),
-            'birth_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'city': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'company': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
-            'cost_center': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'blank': 'True'}),
-            'country': ('django.db.models.fields.PositiveIntegerField', [], {'default': '153'}),
-            'department': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
-            'employee_id': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
-            'gender': ('django.db.models.fields.PositiveIntegerField', [], {'default': '2'}),
-            'home_page': (u'dj.choices.fields.ChoiceField', [], {'unique': 'False', 'primary_key': 'False', 'db_column': 'None', 'blank': 'False', u'default': '1', 'null': 'False', '_in_south': 'True', 'db_index': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'location': ('django.db.models.fields.CharField', [], {'max_length': '128', 'blank': 'True'}),
-            'manager': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'blank': 'True'}),
-            'nick': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '30', 'blank': 'True'}),
-            'profit_center': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'blank': 'True'}),
-            'segment': ('django.db.models.fields.CharField', [], {'max_length': '256', 'blank': 'True'}),
-            'time_zone': ('django.db.models.fields.FloatField', [], {'default': '1.0'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
-        },
         'auth.group': {
             'Meta': {'object_name': 'Group'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -75,15 +120,17 @@ class Migration(DataMigration):
         },
         u'ralph_scrooge.assetinfo': {
             'Meta': {'object_name': 'AssetInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
-            'asset_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'asset_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'barcode': ('django.db.models.fields.CharField', [], {'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'device_id': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
+            'ralph3_asset_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'sn': ('django.db.models.fields.CharField', [], {'max_length': '200', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'warehouse': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ralph_scrooge.Warehouse']"})
         },
         u'ralph_scrooge.baseusage': {
             'Meta': {'object_name': 'BaseUsage'},
+            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'divide_by': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
@@ -93,10 +140,11 @@ class Migration(DataMigration):
         },
         u'ralph_scrooge.businessline': {
             'Meta': {'object_name': 'BusinessLine'},
-            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.costdatestatus': {
             'Meta': {'object_name': 'CostDateStatus'},
@@ -201,10 +249,11 @@ class Migration(DataMigration):
         },
         u'ralph_scrooge.environment': {
             'Meta': {'ordering': "[u'name']", 'object_name': 'Environment'},
-            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.extracost': {
             'Meta': {'object_name': 'ExtraCost'},
@@ -226,10 +275,10 @@ class Migration(DataMigration):
             u'active_from': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             u'active_to': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(9999, 12, 31, 0, 0)'}),
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'ci_id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
             'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             u'history_date': ('django.db.models.fields.DateTimeField', [], {}),
             u'history_id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             u'history_type': ('django.db.models.fields.CharField', [], {'max_length': '1'}),
@@ -237,30 +286,30 @@ class Migration(DataMigration):
             'id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True', 'blank': 'True'}),
             'manually_allocate_costs': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'pricing_service': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'+'", 'null': 'True', 'to': u"orm['ralph_scrooge.PricingService']"}),
             'profit_center': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'related_name': "u'+'", 'to': u"orm['ralph_scrooge.ProfitCenter']"}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
             'symbol': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.owner': {
             'Meta': {'ordering': "[u'profile__nick']", 'object_name': 'Owner'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'cmdb_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'profile': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['account.Profile']", 'unique': 'True'})
+            'profile': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.UserProfile']", 'unique': 'True'})
         },
         u'ralph_scrooge.pricingobject': {
             'Meta': {'object_name': 'PricingObject'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'pricing_objects'", 'null': 'True', 'to': u"orm['ralph_scrooge.PricingObjectModel']"}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'remarks': ('django.db.models.fields.TextField', [], {'default': "u''", 'blank': 'True'}),
             'service_environment': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'pricing_objects'", 'to': u"orm['ralph_scrooge.ServiceEnvironment']"}),
@@ -273,6 +322,7 @@ class Migration(DataMigration):
             'manufacturer': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'model_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'ralph3_model_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'default': '255', 'related_name': "u'pricing_object_models'", 'to': u"orm['ralph_scrooge.PricingObjectType']"})
         },
         u'ralph_scrooge.pricingobjecttype': {
@@ -295,28 +345,30 @@ class Migration(DataMigration):
         u'ralph_scrooge.profitcenter': {
             'Meta': {'object_name': 'ProfitCenter'},
             'business_line': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'related_name': "u'profit_centers'", 'to': u"orm['ralph_scrooge.BusinessLine']"}),
-            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'default': 'None', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '75'}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.service': {
             'Meta': {'ordering': "[u'name']", 'object_name': 'Service'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'ci_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'ci_uid': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'environments': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceEnvironment']", 'to': u"orm['ralph_scrooge.Environment']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manually_allocate_costs': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'ownership': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "u'services'", 'symmetrical': 'False', 'through': u"orm['ralph_scrooge.ServiceOwnership']", 'to': u"orm['ralph_scrooge.Owner']"}),
             'pricing_service': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'services'", 'null': 'True', 'to': u"orm['ralph_scrooge.PricingService']"}),
             'profit_center': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'related_name': "u'services'", 'to': u"orm['ralph_scrooge.ProfitCenter']"}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'symbol': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.serviceenvironment': {
@@ -380,11 +432,10 @@ class Migration(DataMigration):
             'billing_type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'excluded_services': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_teams'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['ralph_scrooge.Service']"}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
-            'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'show_percent_column': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         },
         u'ralph_scrooge.teamcost': {
@@ -414,7 +465,8 @@ class Migration(DataMigration):
             'Meta': {'object_name': 'TenantInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
             'device_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
-            'tenant_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100', 'db_index': 'True'})
+            'ralph3_tenant_id': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '100', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'tenant_id': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '100', 'unique': 'True', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.usageprice': {
             'Meta': {'ordering': "(u'type', u'-start')", 'object_name': 'UsagePrice'},
@@ -437,37 +489,56 @@ class Migration(DataMigration):
             'excluded_services': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "u'excluded_usage_types'", 'null': 'True', 'symmetrical': 'False', 'to': u"orm['ralph_scrooge.Service']"}),
             'is_manually_type': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'show_in_devices_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'show_in_services_report': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_value_percentage': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'usage_type': ('django.db.models.fields.CharField', [], {'default': "u'SU'", 'max_length': '2'})
         },
+        u'ralph_scrooge.userprofile': {
+            'Meta': {'object_name': 'UserProfile', 'db_table': "u'account_profile'"},
+            'activation_token': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '40', 'blank': 'True'}),
+            'birth_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
+            'city': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'company': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
+            'cost_center': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'blank': 'True'}),
+            'country': ('django.db.models.fields.PositiveIntegerField', [], {'default': '153'}),
+            'department': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
+            'employee_id': ('django.db.models.fields.CharField', [], {'max_length': '64', 'blank': 'True'}),
+            'gender': ('django.db.models.fields.PositiveIntegerField', [], {'default': '2'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'location': ('django.db.models.fields.CharField', [], {'max_length': '128', 'blank': 'True'}),
+            'manager': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'blank': 'True'}),
+            'nick': ('django.db.models.fields.CharField', [], {'default': "u''", 'max_length': '30', 'blank': 'True'}),
+            'profit_center': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'blank': 'True'}),
+            'segment': ('django.db.models.fields.CharField', [], {'max_length': '256', 'blank': 'True'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
+        },
         u'ralph_scrooge.vipinfo': {
             'Meta': {'object_name': 'VIPInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
+            'external_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True'}),
             'ip_info': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'vip'", 'to': u"orm['ralph_scrooge.PricingObject']"}),
             'load_balancer': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "u'vips'", 'null': 'True', 'to': u"orm['ralph_scrooge.PricingObject']"}),
             'port': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
-            'vip_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'})
+            'vip_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True'})
         },
         u'ralph_scrooge.virtualinfo': {
             'Meta': {'object_name': 'VirtualInfo', '_ormbases': [u'ralph_scrooge.PricingObject']},
-            'device_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
-            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'})
+            'device_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True'}),
+            'pricingobject_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['ralph_scrooge.PricingObject']", 'unique': 'True', 'primary_key': 'True'}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'})
         },
         u'ralph_scrooge.warehouse': {
             'Meta': {'object_name': 'Warehouse'},
             'cache_version': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'id_from_assets': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'id_from_assets': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': "orm['account.Profile']", 'blank': 'True', 'null': 'True'}),
+            'modified_by': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'+'", 'on_delete': 'models.SET_NULL', 'default': 'None', 'to': u"orm['ralph_scrooge.UserProfile']", 'blank': 'True', 'null': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '75', 'db_index': 'True'}),
+            'ralph3_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'show_in_report': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         }
     }
 
     complete_apps = ['ralph_scrooge']
-    symmetrical = True

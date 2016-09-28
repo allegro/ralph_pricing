@@ -135,7 +135,6 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
         )
         # add new technical owner
         self.data['technical_owners'].append({
-            'id': self.owners[5].cmdb_id,
             'username': self.owners[5].profile.user.username,
         })
         created, service = self._create_and_test_service(self.data)

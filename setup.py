@@ -12,7 +12,7 @@ with open(os.path.join(current_dir, 'README.rst')) as readme_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
 sys.path.insert(0, current_dir + os.sep + 'src')
-from ralph_scrooge import VERSION
+from ralph_scrooge import VERSION  # noqa
 release = ".".join(str(num) for num in VERSION)
 
 setup(
@@ -31,15 +31,28 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
-        'ralph>=2.3.1',
-        'ralph_assets>=2.5.1',
-        'pyhermes>=0.1.3',
+        'django==1.4.22',
         'pymongo>=2.7.2',
         'python-novaclient==2.17.0',
         'django-simple-history==1.6.3',
         'djangorestframework==2.4.3',
         'django-filter==0.11',
         'django-nose==1.3',
+        'south==1.0.2',
+        'djangorestframework==2.4.3',
+        'django-rq==0.4.5',
+        'MySQL-python==1.2.3',
+        'rq>=0.3.7',
+        'dj.choices==0.9.2',
+        'SQLAlchemy==0.7.8',
+        'ipaddr==2.1.11',
+        'paramiko==1.9.0',
+        'pyhermes>=0.1.2',
+        'mock==0.8.0',
+        'mock-django==0.6.6',
+        'factory-boy==2.3.1',
+        'pyyaml==3.12',
+        'django-auth-ldap==1.1.3'
     ],
     entry_points={
         'django.pluggable_app': [
@@ -48,9 +61,11 @@ setup(
         'scrooge.collect_plugins': [
             'scrooge = ralph_scrooge.plugins.collect',
         ],
-        'ralph.demo_data_module': [
-            'ralph = ralph_scrooge.utils.demo',
-        ],
+        'console_scripts': [
+            'scrooge = ralph_scrooge.__main__:prod',
+            'dev_scrooge = ralph_scrooge.__main__:dev',
+            'test_scrooge = ralph_scrooge.__main__:test',
+         ]
     },
     classifiers=[
         'Development Status :: 4 - Beta',
