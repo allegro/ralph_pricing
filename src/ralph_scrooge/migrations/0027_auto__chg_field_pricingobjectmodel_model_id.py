@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import datetime
+from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -8,22 +8,18 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'VIPInfo.external_id'
-        db.add_column(u'ralph_scrooge_vipinfo', 'external_id',
-                      self.gf('django.db.models.fields.IntegerField')(unique=True, null=True),
-                      keep_default=False)
 
-
-        # Changing field 'VIPInfo.vip_id'
-        db.alter_column(u'ralph_scrooge_vipinfo', 'vip_id', self.gf('django.db.models.fields.IntegerField')(unique=True, null=True))
+        # Changing field 'PricingObjectModel.model_id'
+        db.alter_column(u'ralph_scrooge_pricingobjectmodel', 'model_id', self.gf('django.db.models.fields.IntegerField')(null=True))
 
     def backwards(self, orm):
-        # Deleting field 'VIPInfo.external_id'
-        db.delete_column(u'ralph_scrooge_vipinfo', 'external_id')
 
-
-        # User chose to not deal with backwards NULL issues for 'VIPInfo.vip_id'
-        raise RuntimeError("Cannot reverse this migration. 'VIPInfo.vip_id' and its values cannot be restored.")
+        # User chose to not deal with backwards NULL issues for 'PricingObjectModel.model_id'
+        raise RuntimeError("Cannot reverse this migration. 'PricingObjectModel.model_id' and its values cannot be restored.")
+        
+        # The following code is provided here to aid in writing a correct migration
+        # Changing field 'PricingObjectModel.model_id'
+        db.alter_column(u'ralph_scrooge_pricingobjectmodel', 'model_id', self.gf('django.db.models.fields.IntegerField')())
 
     models = {
         'account.profile': {
@@ -286,7 +282,7 @@ class Migration(SchemaMigration):
             'category': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manufacturer': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'model_id': ('django.db.models.fields.IntegerField', [], {}),
+            'model_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'ralph3_model_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.related.ForeignKey', [], {'default': '255', 'related_name': "u'pricing_object_models'", 'to': u"orm['ralph_scrooge.PricingObjectType']"})
