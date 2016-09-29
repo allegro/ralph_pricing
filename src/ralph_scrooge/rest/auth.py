@@ -64,13 +64,15 @@ class TastyPieLikeTokenAuthentication(TokenAuthentication):
 
 
 class IsTeamLeader(permissions.BasePermission):
-    """XXX
+    """A permission class that is an equivalent of `team_permission` wrapper
+    (from ralph_scrooge.utils.security) that is meant to use with API - the
+    difference between these two is that in case of failue (i.e. when user
+    doesn't have required permissions), the former redirects to login page,
+    while the latter responds with 403.
     """
 
     def has_permission(self, request, view):
         team_id = view.kwargs.get('team_id')
         if team_id is None:
-            # XXX(xor-xor): ralph_scrooge.utils.security.team_permission
-            # returns True in such case!
-            return False
+            return True
         return has_permission_to_team(request.user, team_id)

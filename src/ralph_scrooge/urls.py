@@ -15,12 +15,7 @@ from ralph_scrooge.rest.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
-from ralph_scrooge.rest.team_time_division import (
-    # create_team_time_division,
-    # list_team_time_division,
-    TeamTimeDivision,
-)
-# from ralph_scrooge.utils.security import team_permission  # XXX
+from ralph_scrooge.rest.team_time_division import TeamTimeDivision
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
