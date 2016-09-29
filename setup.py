@@ -31,28 +31,29 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
-        'django==1.4.22',
-        'pymongo>=2.7.2',
-        'python-novaclient==2.17.0',
-        'django-simple-history==1.6.3',
-        'djangorestframework==2.4.3',
+        'dj.choices==0.9.2',
+        'django-auth-ldap==1.1.3',
         'django-filter==0.11',
         'django-nose==1.3',
-        'south==1.0.2',
-        'djangorestframework==2.4.3',
         'django-rq==0.4.5',
-        'MySQL-python==1.2.3',
-        'rq>=0.3.7',
-        'dj.choices==0.9.2',
-        'SQLAlchemy==0.7.8',
+        'django-simple-history==1.6.3',
+        'django==1.4.22',
+        'djangorestframework==2.4.3',
+        'factory-boy==2.3.1',
+        'gunicorn==0.14.6',
         'ipaddr==2.1.11',
+        'mock-django==0.6.6',
+        'mock==0.8.0',
+        'MySQL-python==1.2.3',
         'paramiko==1.9.0',
         'pyhermes>=0.1.2',
-        'mock==0.8.0',
-        'mock-django==0.6.6',
-        'factory-boy==2.3.1',
+        'pymongo>=2.7.2',
+        'python-dateutil==2.5.3',
+        'python-novaclient==2.17.0',
         'pyyaml==3.12',
-        'django-auth-ldap==1.1.3'
+        'rq>=0.3.7',
+        'south==1.0.2',
+        'SQLAlchemy==0.7.8',
     ],
     entry_points={
         'django.pluggable_app': [
@@ -65,7 +66,7 @@ setup(
             'scrooge = ralph_scrooge.__main__:prod',
             'dev_scrooge = ralph_scrooge.__main__:dev',
             'test_scrooge = ralph_scrooge.__main__:test',
-         ]
+        ]
     },
     classifiers=[
         'Development Status :: 4 - Beta',

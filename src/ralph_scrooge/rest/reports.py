@@ -5,9 +5,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import dateutil
 import itertools
 import logging
+from dateutil import parser
 
 from ralph_scrooge.csvutil import make_csv_response
 from rest_framework.exceptions import ParseError
@@ -109,7 +109,7 @@ class BaseReportContent(APIView):
         params = {}
         for date in ['start', 'end']:
             try:
-                params[date] = dateutil.parser.parse(
+                params[date] = parser.parse(
                     request.QUERY_PARAMS.get(date)
                 )
             except ValueError:
