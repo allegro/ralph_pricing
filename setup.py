@@ -39,7 +39,6 @@ setup(
         'django-simple-history==1.6.3',
         'django==1.4.22',
         'djangorestframework==2.4.3',
-        'djangorestframework==2.4.3',
         'factory-boy==2.3.1',
         'gunicorn==0.14.6',
         'ipaddr==2.1.11',
