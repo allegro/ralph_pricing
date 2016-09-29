@@ -33,13 +33,12 @@ urlpatterns = patterns(
 
     # Foundations for the new, public REST API. New endpoints should be added
     # to this '/api/' hierarchy.
+    url(r'^api/api-token-auth/', views.obtain_auth_token),
     url(
         r'^api/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         TeamTimeDivision.as_view(),
         name='team_time_division',
     ),
-
-    url(r'^scrooge/api-token-auth/', views.obtain_auth_token),
 
     # TODO(xor-xor): These two URLs below are intentionally added here (instead
     # of ralph_scrooge.rest.urls) to provide backward compatibility with old,
@@ -47,17 +46,19 @@ urlpatterns = patterns(
     # TODO(xor-xor): Add some permission handling mechanism here once we
     # separate Scrooge from Ralph.
     url(
-        r'^scrooge/api/v0.9/pricingserviceusages/?$',
+        r'^api/v0.9/pricingserviceusages/?$',
         create_pricing_service_usages,
         name='create_pricing_service_usages'
     ),
     url(
-        r'^scrooge/api/v0.9/pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa
+        r'^api/v0.9/pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa
         list_pricing_service_usages,
         name='list_pricing_service_usages'
     ),
 
-    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
+    # Internal REST API, that should be used only for GUI.
+    url(r'^rest/', include('ralph_scrooge.rest.urls')),
+
     url(
         r'^$',
         login_required(BootstrapAngular.as_view()),
