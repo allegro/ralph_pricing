@@ -47,7 +47,8 @@ class PercentSerializer(Serializer):
     def validate(self, attrs):
         err = None
 
-        # validate service environment
+        # Validate service environment (given indirectly by service_uid and
+        # env).
         service_uid = attrs.get('service_uid')
         env = attrs.get('environment')
         if not ServiceEnvironment.objects.filter(
@@ -90,21 +91,7 @@ def _get_percents(team, start, end):
 
 
 class TeamTimeDivisionSerializer(Serializer):
-    team_id = serializers.IntegerField(required=True)
-    year = serializers.IntegerField(required=True)
-    month = serializers.IntegerField(required=True)
     division = PercentSerializer(many=True, required=True)
-
-    def validate_team_id(self, attrs, source):
-        team_id = attrs[source]
-        try:
-            team = Team.objects.get(id=team_id)
-        except Team.DoesNotExist:
-            err = "Team with ID {} does not exist.".format(team_id)
-            raise serializers.ValidationError(err)
-        # XXX(xor-xor) I don't like filling it here (team_id vs team).
-        attrs[source] = team
-        return attrs
 
     def validate(self, attrs):
         err = None
@@ -138,9 +125,14 @@ class TeamTimeDivision(APIView):
     permission_classes = (IsAuthenticated, IsTeamLeader)
 
     def get(self, request, year, month, team_id, *args, **kwargs):
-        year = int(year)
-        month = int(month)
-        team_id = int(team_id)
+        year, month, team_id = _args_to_int(year, month, team_id)
+        try:
+            team = Team.objects.get(id=team_id)
+        except Team.DoesNotExist:
+            err = "Team with ID {} does not exist.".format(team_id)
+            return Response(
+                {'error': err_msg}, status=status.HTTP_400_BAD_REQUEST
+            )
         first_day, last_day, days_in_month = get_dates(year, month)
         percents = _get_percents(team_id, first_day, last_day)
         division = new_team_time_division(team_id, year, month, percents)
@@ -148,31 +140,48 @@ class TeamTimeDivision(APIView):
         return Response(serializer.data)
 
     def post(self, request, year, month, team_id, *args, **kwargs):
+        year, month, team_id = _args_to_int(year, month, team_id)
+        try:
+            team = Team.objects.get(id=team_id)
+        except Team.DoesNotExist:
+            err = "Team with ID {} does not exist.".format(team_id)
+            return Response(
+                {'error': err_msg}, status=status.HTTP_400_BAD_REQUEST
+            )
         serializer = TeamTimeDivisionSerializer(data=request.DATA)
         if serializer.is_valid():
-            save_team_time_division(serializer.object)
+            save_team_time_division(
+                serializer.object['division'],
+                year,
+                month,
+                team_id
+            )
             return HttpResponse(status=201)
         return Response(serializer.errors, status=400)
 
 
+def _args_to_int(*args):
+    return tuple([int(arg) for arg in args])
+
+
 @commit_on_success()
-def save_team_time_division(ttd):
-    first_day, last_day, days_in_month = get_dates(ttd['year'], ttd['month'])
+def save_team_time_division(division, year, month, team_id):
+    first_day, last_day, days_in_month = get_dates(year, month)
 
     # Previously uploaded division(s) for a given team and dates should be
     # removed.
     TeamServiceEnvironmentPercent.objects.filter(
-        team_cost__team=ttd['team_id'],
+        team_cost__team=team_id,
         team_cost__start=first_day,
         team_cost__end=last_day,
     ).delete()
 
     team_cost = TeamCost.objects.get_or_create(
-        team=ttd['team_id'],
+        team=team_id,
         start=first_day,
         end=last_day,
     )[0]
-    for percent in ttd['division']:
+    for percent in division:
         service_environment = ServiceEnvironment.objects.get(
             service__ci_uid=percent.get('service_uid'),
             environment__name=percent.get('environment')
