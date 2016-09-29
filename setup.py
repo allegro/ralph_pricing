@@ -41,6 +41,7 @@ setup(
         'djangorestframework==2.4.3',
         'djangorestframework==2.4.3',
         'factory-boy==2.3.1',
+        'gunicorn==0.14.6',
         'ipaddr==2.1.11',
         'mock-django==0.6.6',
         'mock==0.8.0',
