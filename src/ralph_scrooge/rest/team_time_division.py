@@ -8,11 +8,7 @@ from __future__ import unicode_literals
 from django.db.transaction import commit_on_success
 from django.http import HttpResponse
 from rest_framework import serializers
-from rest_framework.decorators import (
-    api_view,
-    authentication_classes,
-    permission_classes,
-)
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -119,19 +115,19 @@ def new_team_time_division(team_id, year, month, division):
         'division': division or [],
     }
 
-class TeamTimeDivision(APIView):
 
+class TeamTimeDivision(APIView):
     authentication_classes = (TastyPieLikeTokenAuthentication,)
     permission_classes = (IsAuthenticated, IsTeamLeader)
 
     def get(self, request, year, month, team_id, *args, **kwargs):
         year, month, team_id = _args_to_int(year, month, team_id)
         try:
-            team = Team.objects.get(id=team_id)
+            Team.objects.get(id=team_id)
         except Team.DoesNotExist:
             err = "Team with ID {} does not exist.".format(team_id)
             return Response(
-                {'error': err_msg}, status=status.HTTP_400_BAD_REQUEST
+                {'error': err}, status=status.HTTP_400_BAD_REQUEST
             )
         first_day, last_day, days_in_month = get_dates(year, month)
         percents = _get_percents(team_id, first_day, last_day)
@@ -142,11 +138,11 @@ class TeamTimeDivision(APIView):
     def post(self, request, year, month, team_id, *args, **kwargs):
         year, month, team_id = _args_to_int(year, month, team_id)
         try:
-            team = Team.objects.get(id=team_id)
+            Team.objects.get(id=team_id)
         except Team.DoesNotExist:
             err = "Team with ID {} does not exist.".format(team_id)
             return Response(
-                {'error': err_msg}, status=status.HTTP_400_BAD_REQUEST
+                {'error': err}, status=status.HTTP_400_BAD_REQUEST
             )
         serializer = TeamTimeDivisionSerializer(data=request.DATA)
         if serializer.is_valid():
