@@ -28,9 +28,11 @@ urlpatterns = patterns(
 
     # Foundations for the new, public REST API. New endpoints should be added
     # to this '/api/' hierarchy.
-    url(r'^api/api-token-auth/', views.obtain_auth_token),
+    # TODO(xor-xor): Consider adding versioning component to URLs below,
+    # and porting `pricingserviceusages` from v0.9 to v0.10.
+    url(r'^scrooge/api/api-token-auth/', views.obtain_auth_token),
     url(
-        r'^api/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
+        r'^scrooge/api/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         TeamTimeDivision.as_view(),
         name='team_time_division',
     ),
@@ -41,18 +43,18 @@ urlpatterns = patterns(
     # TODO(xor-xor): Add some permission handling mechanism here once we
     # separate Scrooge from Ralph.
     url(
-        r'^api/v0.9/pricingserviceusages/?$',
+        r'^scrooge/api/v0.9/pricingserviceusages/?$',
         create_pricing_service_usages,
         name='create_pricing_service_usages'
     ),
     url(
-        r'^api/v0.9/pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa
+        r'^scrooge/api/v0.9/pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa
         list_pricing_service_usages,
         name='list_pricing_service_usages'
     ),
 
     # Internal REST API, that should be used only for GUI.
-    url(r'^rest/', include('ralph_scrooge.rest.urls')),
+    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
 
     url(
         r'^$',

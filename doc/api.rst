@@ -90,9 +90,9 @@ the structure described below. Authorization is done with
 
 If, for some reason, Scrooge Admin doesn't show your API key, you can
 obtain it by sending a POST request with your user's credentials to
-``/scrooge/api-token-auth/`` endpoint. Example::
+``/scrooge/api/api-token-auth/`` endpoint. Example::
 
-  POST http://localhost:8000/scrooge/api-token-auth/
+  POST http://localhost:8000/scrooge/api/api-token-auth/
   Content-Type: application/json
   {
       "username": "my_technical_user",
