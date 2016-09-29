@@ -89,6 +89,11 @@ def _get_percents(team, start, end):
 class TeamTimeDivisionSerializer(Serializer):
     division = PercentSerializer(many=True, required=True)
 
+    def validate_division(self, attrs, source):
+        division = attrs[source]
+        if division is None or len(division) == 0:
+            raise serializers.ValidationError("This field cannot be empty.")
+
     def validate(self, attrs):
         err = None
 
@@ -96,7 +101,7 @@ class TeamTimeDivisionSerializer(Serializer):
         percent_total = 0
         for d in attrs.get('division'):
             percent_total += d['percent']
-        if percent_total < 100:
+        if percent_total != 100:
             err = (
                 "Percents should sum to 100, now it's {}."
                 .format(percent_total)
