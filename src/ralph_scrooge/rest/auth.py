@@ -14,6 +14,8 @@ from rest_framework.exceptions import (
     AuthenticationFailed
 )
 
+from ralph_scrooge.utils.security import has_permission_to_team
+
 
 class TastyPieLikeTokenAuthentication(TokenAuthentication):
     """
@@ -66,8 +68,15 @@ class IsTeamLeader(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        from ralph_scrooge.models import Team, TeamManager
-        team_id = view.kwargs['team_id']
-        # XXX to be implemented
-        from IPython import embed; embed(); assert False
-        return True
+        if request.method == 'GET':
+            team_id = view.kwargs.get('team_id')
+        elif request.method == 'POST':
+            # XXX(xor-xor): I don't like the idea of touching request.DATA
+            # here, but we need to obtain team_id somehow (maybe it should
+            # be given in URL, as in GET case..?).
+            team_id = request.DATA.get('team_id')
+        if team_id is None:
+            # XXX(xor-xor): ralph_scrooge.utils.security.team_permission
+            # returns True in such case!
+            return False
+        return has_permission_to_team(request.user, team_id)

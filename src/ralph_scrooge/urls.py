@@ -19,6 +19,7 @@ from ralph_scrooge.rest.team_time_division import (
     create_team_time_division,
     list_team_time_division,
 )
+# from ralph_scrooge.utils.security import team_permission  # XXX
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
@@ -33,12 +34,14 @@ urlpatterns = patterns(
     # to this '/api/' hierarchy.
     url(
         r'^api/teamtimedivision/?$',
+        # team_permission(create_team_time_division),
         create_team_time_division,
         name='create_team_time_division',
     ),
     url(
         r'^api/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         list_team_time_division,
+        # team_permission(list_team_time_division),
         name='list_team_time_division',
     ),
 

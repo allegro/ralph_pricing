@@ -15,6 +15,9 @@ from django.http import HttpResponseForbidden
 from ralph_scrooge.models import ServiceOwnership, TeamManager
 
 
+# TODO(xor-xor): Consider moving contents of this module into
+# ralph_scrooge.rest.auth.
+
 def superuser_permission(view_func):
     """
     Check if user is superuser.
@@ -39,7 +42,9 @@ def _has_permission_to_service(user, service):
     ).exists()
 
 
-def _has_permission_to_team(user, team):
+# TODO(xor-xor): Make it "private" again, once this module get merged into
+# ralph_scrooge.rest.auth.
+def has_permission_to_team(user, team):
     if user.is_superuser:
         return True
     return TeamManager.objects.filter(
@@ -80,7 +85,7 @@ def team_permission(view_func):
         if (
             (
                 'team' in kwargs and
-                _has_permission_to_team(request.user, kwargs['team'])
+                has_permission_to_team(request.user, kwargs['team'])
             ) or
             'team' not in kwargs
         ):

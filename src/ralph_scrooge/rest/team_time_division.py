@@ -16,7 +16,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
-from rest_framework.views import APIView
+# from rest_framework.views import APIView  # XXX
 
 from ralph_scrooge.models import (
     Service,
@@ -132,6 +132,7 @@ def new_team_time_division(team_id, year, month, division):
         'division': division or [],
     }
 
+
 @api_view(['GET'])
 @authentication_classes((TastyPieLikeTokenAuthentication,))
 @permission_classes((IsAuthenticated, IsTeamLeader))
@@ -144,6 +145,7 @@ def list_team_time_division(request, year, month, team_id, *args, **kwargs):
     division = new_team_time_division(team_id, year, month, percents)
     serializer = TeamTimeDivisionSerializer(division)
     return Response(serializer.data)
+
 
 @api_view(['POST'])
 @authentication_classes((TastyPieLikeTokenAuthentication,))
