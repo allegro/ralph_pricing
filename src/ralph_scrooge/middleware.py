@@ -4,7 +4,7 @@ import logging
 
 from django.conf import settings
 
-request_logger = logging.getLogger('ralph.request_user')
+request_logger = logging.getLogger('scrooge.request_user')
 
 
 class LogRequestUser(object):
