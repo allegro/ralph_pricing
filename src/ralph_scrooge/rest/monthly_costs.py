@@ -144,8 +144,7 @@ class MonthlyCosts(APIView, WorkerJob):
         :param forecast: True, if forecast costs
         :type forecast: bool
         """
-        collector = Collector()
-        collector.save_period_costs(start, end, forecast, data)
+        Collector.save_period_costs(start, end, forecast, data)
 
     @classmethod
     def _process_daily_result(self, data, date, forecast):
@@ -161,8 +160,7 @@ class MonthlyCosts(APIView, WorkerJob):
         :param forecast: True, if forecast costs
         :type forecast: bool
         """
-        collector = Collector()
-        return collector._create_daily_costs(date, data, forecast)
+        return Collector._create_daily_costs(date, data, forecast)
 
     @classmethod
     def run(cls, start, end, forecast=False, **kwargs):
@@ -253,10 +251,9 @@ class DailyCostsJob(WorkerJob):
         """
         Run collecting costs for one day.
         """
-        collector = Collector()
         result = {}
         try:
-            result = collector.process(day, forecast)
+            result = Collector.process(day, forecast)
             success = True
         except Exception as e:
             logger.exception(e)

@@ -86,8 +86,8 @@ class Collector(object):
             },
     }
     """
+    @staticmethod
     def process_period(
-        self,
         start,
         end,
         forecast,
@@ -96,10 +96,10 @@ class Collector(object):
     ):
         # calculate costs only if were not calculated for some date, unless
         # force_recalculation is True
-        dates = self._get_dates(start, end, forecast, force_recalculation)
+        dates = Collector._get_dates(start, end, forecast, force_recalculation)
         for day in dates:
             try:
-                self.process(
+                Collector.process(
                     day,
                     forecast=forecast,
                     **kwargs
@@ -109,7 +109,8 @@ class Collector(object):
                 logger.exception(e)
                 yield day, False
 
-    def _get_dates(self, start, end, forecast, force_recalculation):
+    @staticmethod
+    def _get_dates(start, end, forecast, force_recalculation):
         """
         Return dates between start and end for which costs were not previously
         calculated.
@@ -128,8 +129,8 @@ class Collector(object):
                 **{'forecast_calculated' if forecast else 'calculated': True}
             ).values_list('date', flat=True)))
 
+    @staticmethod
     def process(
-        self,
         date,
         forecast=False,
         delete_verified=False,
@@ -149,8 +150,8 @@ class Collector(object):
             forecast,
             date,
         ))
-        self._verify_accepted_costs(date, forecast, delete_verified)
-        costs = self._collect_costs(
+        Collector._verify_accepted_costs(date, forecast, delete_verified)
+        costs = Collector._collect_costs(
             date=date,
             forecast=forecast,
             plugins=plugins,
@@ -158,18 +159,20 @@ class Collector(object):
         logger.info('Costs calculated for date {}'.format(date))
         return costs
 
-    def save_period_costs(self, start, end, forecast, costs):
+    @staticmethod
+    def save_period_costs(start, end, forecast, costs):
         """
         Save costs for period of time.
 
         :param costs: list of DailyCost instances
         """
-        self._delete_daily_period_costs(start, end, forecast)
-        self._save_costs(costs)
-        self._update_status_period(start, end, forecast)
+        Collector._delete_daily_period_costs(start, end, forecast)
+        Collector._save_costs(costs)
+        Collector._update_status_period(start, end, forecast)
         logger.info('Costs saved for dates {}-{}'.format(start, end))
 
-    def _delete_daily_period_costs(self, start, end, forecast):
+    @staticmethod
+    def _delete_daily_period_costs(start, end, forecast):
         """
         Delete previously saved costs between start and end (including forecast
         flag).
@@ -187,7 +190,8 @@ class Collector(object):
             [start, end, forecast]
         )
 
-    def _verify_accepted_costs(self, date, forecast, delete_verified):
+    @staticmethod
+    def _verify_accepted_costs(date, forecast, delete_verified):
         """
         Verify if costs were already accepted for passed day. If yes and
         recalculation isn't forces VerifiedDailyCostsExistsError exception is
@@ -199,7 +203,8 @@ class Collector(object):
         ):
             raise VerifiedDailyCostsExistsError()
 
-    def _create_daily_costs(self, date, costs, forecast):
+    @staticmethod
+    def _create_daily_costs(date, costs, forecast):
         """
         For every service environment in costs create DailyCost instance to
         save it in database.
@@ -217,7 +222,8 @@ class Collector(object):
             ))
         return daily_costs
 
-    def _save_costs(self, daily_costs):
+    @staticmethod
+    def _save_costs(daily_costs):
         """
         Save daily_costs in database.
 
@@ -229,7 +235,8 @@ class Collector(object):
             batch_size=settings.DAILY_COST_CREATE_BATCH_SIZE,
         )
 
-    def _update_status(self, date, forecast):
+    @staticmethod
+    def _update_status(date, forecast):
         """
         Update status for given date that costs were caculated (including
         forecast flag).
@@ -242,16 +249,17 @@ class Collector(object):
             status.calculated = True
         status.save()
 
-    def _update_status_period(self, start, end, forecast):
+    @staticmethod
+    def _update_status_period(start, end, forecast):
         """
         Update status between start and end that costs were caculated
         (including forecast flag).
         """
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
-            self._update_status(day, forecast)
+            Collector._update_status(day, forecast)
 
+    @staticmethod
     def _collect_costs(
-        self,
         date,
         forecast=False,
         plugins=None
@@ -262,7 +270,7 @@ class Collector(object):
         logger.debug("Getting report date")
         old_queries_count = len(connection.queries)
         data = defaultdict(list)
-        for i, plugin in enumerate(plugins or self.get_plugins()):
+        for i, plugin in enumerate(plugins or Collector.get_plugins()):
             try:
                 plugin_old_queries_count = len(connection.queries)
                 plugin_report = plugin_runner.run_plugin(
@@ -301,8 +309,8 @@ class Collector(object):
             logger.debug('Total SQL queries: {0}'.format(queries_count))
         return data
 
-    @classmethod
-    def _get_services_environments(cls):
+    @staticmethod
+    def _get_services_environments():
         """
         This function return all ventures for which report will be ganarated
 
@@ -315,29 +323,29 @@ class Collector(object):
         logger.debug("Got {0} services".format(services.count()))
         return services
 
-    @classmethod
+    @staticmethod
     @memoize
-    def get_plugins(cls):
+    def get_plugins():
         """
         Returns list of plugins to call, with information and extra cost about
         each, such as name and arguments
         """
-        extra_cost_types_plugins = cls._get_extra_cost_types_plugins()
-        support_plugins = cls._get_support_plugins()
+        extra_cost_types_plugins = Collector._get_extra_cost_types_plugins()
+        support_plugins = Collector._get_support_plugins()
         dynamic_extra_cost_types_plugins = (
-            cls._get_dynamic_extra_cost_types_plugins()
+            Collector._get_dynamic_extra_cost_types_plugins()
         )
-        base_usage_types_plugins = cls._get_base_usage_types_plugins()
-        regular_usage_types_plugins = cls._get_regular_usage_types_plugins()
-        services_plugins = cls._get_pricing_services_plugins()
-        teams_plugins = cls._get_teams_plugins()
+        base_usage_types_plugins = Collector._get_base_usage_types_plugins()
+        regular_usage_types_plugins = Collector._get_regular_usage_types_plugins()  # noqa
+        services_plugins = Collector._get_pricing_services_plugins()
+        teams_plugins = Collector._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
                    teams_plugins + support_plugins + extra_cost_types_plugins +
                    dynamic_extra_cost_types_plugins + services_plugins)
         return plugins
 
-    @classmethod
-    def _get_base_usage_types(cls, filter_=None):
+    @staticmethod
+    def _get_base_usage_types(filter_=None):
         """
         Returns base usage types which should be visible on report
         """
@@ -349,12 +357,12 @@ class Collector(object):
             query = query.filter(**filter_)
         return query.order_by('-order', 'name')
 
-    @classmethod
-    def _get_base_usage_types_plugins(cls, filter_=None):
+    @staticmethod
+    def _get_base_usage_types_plugins(filter_=None):
         """
         Returns plugins information (name and arguments) for base usage types
         """
-        base_usage_types = cls._get_base_usage_types(filter_)
+        base_usage_types = Collector._get_base_usage_types(filter_)
         result = []
         for but in base_usage_types:
             but_info = AttributeDict(
@@ -367,8 +375,8 @@ class Collector(object):
             result.append(but_info)
         return result
 
-    @classmethod
-    def _get_regular_usage_types(cls, filter_=None):
+    @staticmethod
+    def _get_regular_usage_types(filter_=None):
         """
         Returns regular usage types which should be visible on report
         """
@@ -379,13 +387,13 @@ class Collector(object):
             query = query.filter(**filter_)
         return query.order_by('-order', 'name')
 
-    @classmethod
-    def _get_regular_usage_types_plugins(cls, filter_=None):
+    @staticmethod
+    def _get_regular_usage_types_plugins(filter_=None):
         """
         Returns plugins information (name and arguments) for regular usage
         types
         """
-        regular_usage_types = cls._get_regular_usage_types(filter_)
+        regular_usage_types = Collector._get_regular_usage_types(filter_)
         result = []
         for rut in regular_usage_types:
             rut_info = AttributeDict(
@@ -398,19 +406,19 @@ class Collector(object):
             result.append(rut_info)
         return result
 
-    @classmethod
-    def _get_pricing_services(cls):
+    @staticmethod
+    def _get_pricing_services():
         """
         Returns services which should be visible on report
         """
         return PricingService.objects.order_by('id')
 
-    @classmethod
-    def _get_pricing_services_plugins(cls):
+    @staticmethod
+    def _get_pricing_services_plugins():
         """
         Returns plugins information (name and arguments) for services
         """
-        pricing_services = cls._get_pricing_services()
+        pricing_services = Collector._get_pricing_services()
         result = []
         for pricing_service in pricing_services:
             pricing_service_info = AttributeDict(
@@ -423,19 +431,19 @@ class Collector(object):
             result.append(pricing_service_info)
         return result
 
-    @classmethod
-    def _get_teams(cls):
+    @staticmethod
+    def _get_teams():
         """
         Returns teams which should be visible on report
         """
         return Team.objects.order_by('name')
 
-    @classmethod
-    def _get_teams_plugins(cls):
+    @staticmethod
+    def _get_teams_plugins():
         """
         Returns information about team plugins for each team
         """
-        teams = cls._get_teams()
+        teams = Collector._get_teams()
         result = []
         for team in teams:
             team_info = AttributeDict(
@@ -448,8 +456,8 @@ class Collector(object):
             result.append(team_info)
         return result
 
-    @classmethod
-    def _get_extra_cost_types(cls):
+    @staticmethod
+    def _get_extra_cost_types():
         """
         Returns all extra costs (excluding supports)
         """
@@ -458,12 +466,12 @@ class Collector(object):
             pk=2
         ).order_by('name')
 
-    @classmethod
-    def _get_extra_cost_types_plugins(cls):
+    @staticmethod
+    def _get_extra_cost_types_plugins():
         """
         Returns information about extra cost plugins for each extra cost
         """
-        extra_costs = cls._get_extra_cost_types()
+        extra_costs = Collector._get_extra_cost_types()
         result = []
         for extra_cost in extra_costs:
             extra_cost_info = AttributeDict(
@@ -476,8 +484,8 @@ class Collector(object):
             result.append(extra_cost_info)
         return result
 
-    @classmethod
-    def _get_support_plugins(cls):
+    @staticmethod
+    def _get_support_plugins():
         return [
             AttributeDict(
                 name='support',
@@ -486,8 +494,8 @@ class Collector(object):
             )
         ]
 
-    @classmethod
-    def _get_dynamic_extra_cost_types(cls):
+    @staticmethod
+    def _get_dynamic_extra_cost_types():
         """
         Returns all extra costs
         """
@@ -495,12 +503,12 @@ class Collector(object):
             'name'
         )
 
-    @classmethod
-    def _get_dynamic_extra_cost_types_plugins(cls):
+    @staticmethod
+    def _get_dynamic_extra_cost_types_plugins():
         """
         Returns information about extra cost plugins for each extra cost
         """
-        dynamic_extra_costs = cls._get_dynamic_extra_cost_types()
+        dynamic_extra_costs = Collector._get_dynamic_extra_cost_types()
         result = []
         for dynamic_extra_cost in dynamic_extra_costs:
             dynamic_extra_cost_info = AttributeDict(
