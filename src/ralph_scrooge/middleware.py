@@ -37,13 +37,13 @@ class LogRequestUser(object):
                 method=request.method,
                 response_code=response.status_code,
                 source_ip=self._get_client_ip(request),
-                ralph_host=request.get_host(),
+                scrooge_host=request.get_host(),
                 user_agent=request.META.get('HTTP_USER_AGENT'),
             )
             request_logger.info(
                 "Request: user: {user_pk} / {username} ; path: {path} ; "
                 "method: {method} ; response code: {response_code} ; "
-                "IP: {source_ip}; Ralph Host: {ralph_host}, "
+                "IP: {source_ip}; Scrooge Host: {scrooge_host}, "
                 "User agent: {user_agent}".format(
                     **params
                 ),
