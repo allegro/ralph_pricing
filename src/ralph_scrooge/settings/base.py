@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django_rq',
     'south',
     'rest_framework',
+    'rest_framework.authtoken',
     'ralph_scrooge'
 ]
 
