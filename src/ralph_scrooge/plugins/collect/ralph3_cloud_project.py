@@ -54,11 +54,16 @@ def save_tenant_info(ralph_tenant, unknown_service_env):
             ralph3_tenant_id=ralph_tenant['id'],
         )
     except TenantInfo.DoesNotExist:
-        created = True
-        tenant_info = TenantInfo(
-            ralph3_tenant_id=ralph_tenant['id'],
-            type_id=PRICING_OBJECT_TYPES.TENANT,
-        )
+        # try to get tenant by it's id in cloud provider
+        try:
+            tenant_info = TenantInfo.objects.get(
+                tenant_id=ralph_tenant['project_id'])
+        except TenantInfo.DoesNotExist:
+            created = True
+            tenant_info = TenantInfo(
+                ralph3_tenant_id=ralph_tenant['id'],
+                type_id=PRICING_OBJECT_TYPES.TENANT,
+            )
     tenant_info.name = ralph_tenant['name']
     tenant_info.remarks = ralph_tenant['remarks']
     tenant_info.tenant_id = ralph_tenant['project_id']
