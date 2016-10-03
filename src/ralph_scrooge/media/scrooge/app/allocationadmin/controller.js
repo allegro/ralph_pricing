@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.allocationadmin', []);
 
-scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 'stats', function ($scope, $routeParams, $http, stats) {
+scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 'stats', 'REST_URLS', function ($scope, $routeParams, $http, stats, REST_URLS) {
     if (typeof($routeParams.tab) !== 'undefined') {
         stats.changeTab($routeParams.tab);
     }
@@ -34,5 +34,39 @@ scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 's
     };
     $scope.removeRow = function (index, currentList) {
         currentList.splice(index, 1);
+    };
+
+    $scope.uploadErrors = [];
+
+    $scope.onUpload = function(extraCostType) {
+        $scope.extraCostType = extraCostType;
+        $('#upload_modal').modal('show');
+    };
+
+    $scope.uploadFile = function() {
+        $scope.uploadErrors = [];
+        var urlAdminChunks = [REST_URLS.ALLOCATION_ADMIN]
+        urlAdminChunks.push(stats.menuStats['year']['current']);
+        urlAdminChunks.push(stats.menuStats['month']['current']);
+        urlAdminChunks.push('extracosts/save/');
+
+        var uploadUrl = urlAdminChunks.join('/');
+        var file = $scope.myFile;
+        if (file) {
+            var fd = new FormData();
+            fd.append('file', file);
+            fd.append('extra_cost_type_id', $scope.extraCostType);
+            $http.post(uploadUrl, fd, {
+                transformRequest: angular.identity,
+                headers: {'Content-Type': undefined}
+            }).success(function(data) {
+                if (data['status'] == true) {
+                    $('#upload_modal').modal('hide');
+                    stats.refreshCurrentSubpage();
+                } else {
+                    $scope.uploadErrors = data['errors'];
+                }
+            }).error(function(){});
+        }
     };
 }]);

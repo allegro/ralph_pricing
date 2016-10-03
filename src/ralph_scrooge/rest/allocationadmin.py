@@ -7,7 +7,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from decimal import Decimal as D
-import json
 
 from django.db.transaction import commit_on_success
 from rest_framework.views import APIView
@@ -26,6 +25,7 @@ from ralph_scrooge.models import (
     UsageType,
     Warehouse,
 )
+from ralph_scrooge.csvutil import parse_csv
 
 
 class NoUsageTypeError(Exception):
@@ -50,6 +50,48 @@ class NoExtraCostError(Exception):
 
 class ServiceEnvironmentDoesNotExistError(Exception):
     pass
+
+
+def get_allocationadmin_from_file(file):
+    file_results = []
+    data_results = parse_csv(file)
+    errors = []
+    for row in data_results:
+        query = {}
+        if row.get('service_env_id'):
+            query['pk'] = row['service_env_id']
+        else:
+            if row.get('service_uid'):
+                query['service__ci_uid'] = row['service_uid']
+            else:
+                query['service__name'] = row['service_name']
+
+            query['environment__name'] = row['environment']
+
+        try:
+            service_env = ServiceEnvironment.objects.get(**query)
+        except ServiceEnvironment.DoesNotExist:
+            error = (
+                'Service environment for service: {}, environment: '
+                '{} does not exist.'
+            ).format(
+                row.get('service_uid', row.get('service_name')),
+                row['environment']
+            )
+            errors.append(error)
+            service_env = ''
+
+        row_data = {
+            'service': service_env,
+            'env': service_env,
+            'forecast_cost': row['forecast_cost'],
+            'cost': row['cost']
+        }
+        if len(row.get('id', '')) > 1:
+            row_data.update({'id': row['id']})
+        file_results.append(row_data)
+
+    return (file_results, errors)
 
 
 class AllocationAdminContent(APIView):
@@ -246,19 +288,22 @@ class AllocationAdminContent(APIView):
                         'env' in ec_row and
                         ec_row['service'] and
                         ec_row['env']):
-                    try:
-                        service_environment = ServiceEnvironment.objects.get(
-                            service_id=ec_row['service'],
-                            environment_id=ec_row['env']
-                        )
-                    except ServiceEnvironment.DoesNotExist:
-                        raise ServiceEnvironmentDoesNotExistError(
-                            'No service environment with service id {0}'
-                            ' and environment id {1}'.format(
-                                ec_row['service'],
-                                ec_row['env']
+                    if isinstance(ec_row['service'], ServiceEnvironment):
+                        service_environment = ec_row['service']
+                    else:
+                        try:
+                            service_environment = ServiceEnvironment.objects.get(  # noqa
+                                service_id=ec_row['service'],
+                                environment_id=ec_row['env']
                             )
-                        )
+                        except ServiceEnvironment.DoesNotExist:
+                            raise ServiceEnvironmentDoesNotExistError(
+                                'No service environment with service id {0}'
+                                ' and environment id {1}'.format(
+                                    ec_row['service'],
+                                    ec_row['env']
+                                )
+                            )
                     if 'id' in ec_row:
                         try:
                             extra_cost = ExtraCost.objects.get(
@@ -337,7 +382,22 @@ class AllocationAdminContent(APIView):
 
     @commit_on_success()
     def post(self, request, year, month, allocate_type, *args, **kwargs):
-        post_data = json.loads(request.raw_post_data)
+        if request.FILES and allocate_type == 'extracosts':
+            rows, errors = get_allocationadmin_from_file(request.FILES['file'])
+            if errors:
+                return Response({'status': False, 'errors': errors})
+
+            post_data = {
+                'rows': [{
+                    'extra_cost_type': {
+                        'id': int(request.POST['extra_cost_type_id'])
+                    },
+                    'extra_costs': rows
+                }]
+            }
+        else:
+            post_data = request.DATA
+
         first_day, last_day, days_in_month = get_dates(year, month)
         if allocate_type == 'baseusages':
             self._save_base_usages(first_day, last_day, post_data)

@@ -6,8 +6,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
-
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,11 +29,49 @@ from ralph_scrooge.models import (
     TeamServiceEnvironmentPercent,
     UsageType,
 )
+from ralph_scrooge.csvutil import parse_csv
 
 
 class CannotDetermineValidServiceUsageTypeError(APIException):
     status_code = 400
     default_detail = 'Cannot determine valid (single!) service usage type'
+
+
+def get_allocation_from_file(file):
+    file_results = []
+    data_results = parse_csv(file)
+    errors = []
+    for row in data_results:
+        query = {}
+        if row.get('service_env_id'):
+            query['pk'] = row['service_env_id']
+        else:
+            if row.get('service_uid'):
+                query['service__ci_uid'] = row['service_uid']
+            else:
+                query['service__name'] = row['service_name']
+
+            query['environment__name'] = row['environment']
+
+        try:
+            service_env = ServiceEnvironment.objects.get(**query)
+        except ServiceEnvironment.DoesNotExist:
+            error = (
+                'Service environment for service: {}, environment: '
+                '{} does not exist.'
+            ).format(
+                row.get('service_uid', row.get('service_name')),
+                row['environment']
+            )
+            errors.append(error)
+            service_env = ''
+
+        file_results.append({
+            'service': service_env,
+            'env': service_env,
+            'value': row['value']
+        })
+    return (file_results, errors)
 
 
 class AllocationClientService(APIView):
@@ -206,7 +242,17 @@ class AllocationClientService(APIView):
 
     @commit_on_success()
     def post(self, request, year, month, service, env, *args, **kwargs):
-        post_data = json.loads(request.raw_post_data)
+        if request.FILES and kwargs.get('allocate_type') == 'servicedivision':
+            rows, errors = get_allocation_from_file(request.FILES['file'])
+            if errors:
+                return Response({'status': False, 'errors': errors})
+
+            post_data = {
+                'rows': rows
+            }
+        else:
+            post_data = request.DATA
+
         first_day, last_day, days_in_month = get_dates(year, month)
         if kwargs.get('allocate_type') == 'servicedivision':
             service_usage_type = self._get_service_usage_type(
@@ -221,10 +267,13 @@ class AllocationClientService(APIView):
                 last_day,
             )
             for row in post_data['rows']:
-                service_environment = ServiceEnvironment.objects.get(
-                    service__id=row['service'],
-                    environment__id=row['env']
-                )
+                if isinstance(row['service'], ServiceEnvironment):
+                    service_environment = row['service']
+                else:
+                    service_environment = ServiceEnvironment.objects.get(
+                        service__id=row['service'],
+                        environment__id=row['env']
+                    )
                 for day in xrange(days_in_month):
                     iter_date = first_day + timedelta(days=day)
                     dpo = (
@@ -300,7 +349,17 @@ class AllocationClientPerTeam(APIView):
 
     @commit_on_success()
     def post(self, request, year, month, team, *args, **kwargs):
-        post_data = json.loads(request.raw_post_data)
+        if request.FILES and team:
+            rows, errors = get_allocation_from_file(request.FILES['file'])
+            if errors:
+                return Response({'status': False, 'errors': errors})
+
+            post_data = {
+                'rows': rows
+            }
+        else:
+            post_data = request.DATA
+
         first_day, last_day, days_in_month = get_dates(year, month)
 
         try:
@@ -318,10 +377,13 @@ class AllocationClientPerTeam(APIView):
             end=last_day,
         )[0]
         for row in post_data['rows']:
-            service_environment = ServiceEnvironment.objects.get(
-                service__id=row.get('service'),
-                environment__id=row.get('env')
-            )
+            if isinstance(row['service'], ServiceEnvironment):
+                service_environment = row['service']
+            else:
+                service_environment = ServiceEnvironment.objects.get(
+                    service__id=row.get('service'),
+                    environment__id=row.get('env')
+                )
             tsep = TeamServiceEnvironmentPercent.objects.get_or_create(
                 team_cost=team_cost,
                 service_environment=service_environment,
