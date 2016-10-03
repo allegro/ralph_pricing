@@ -26,22 +26,15 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
 
-    # Foundations for the new, public REST API. New endpoints should be added
-    # to this '/api/' hierarchy.
-    # TODO(xor-xor): Consider adding versioning component to URLs below,
-    # and porting `pricingserviceusages` from v0.9 to v0.10.
-    url(r'^scrooge/api/api-token-auth/', views.obtain_auth_token),
+    # Public REST API.
+    # TODO(xor-xor): Create proper dir/file structure for API-related modules
+    # (i.e., separate public from private, separate dir for v0.9 etc.
+    url(r'^scrooge/api/v0.9/api-token-auth/', views.obtain_auth_token),
     url(
-        r'^scrooge/api/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
+        r'^scrooge/api/v0.9/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
         TeamTimeDivision.as_view(),
         name='team_time_division',
     ),
-
-    # TODO(xor-xor): These two URLs below are intentionally added here (instead
-    # of ralph_scrooge.rest.urls) to provide backward compatibility with old,
-    # TastyPie-based API.
-    # TODO(xor-xor): Add some permission handling mechanism here once we
-    # separate Scrooge from Ralph.
     url(
         r'^scrooge/api/v0.9/pricingserviceusages/?$',
         create_pricing_service_usages,
