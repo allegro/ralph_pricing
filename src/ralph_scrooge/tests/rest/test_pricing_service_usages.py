@@ -1026,7 +1026,6 @@ class TestPricingServiceUsages(TestCase):
         # The order of returned objects depends on DB backend, so we have to
         # manually sort them here before we compare them.
         received_response['usages'].sort(key=lambda d: d['service_id'])
-        # Abbreviations for convenience.
         self.assertEquals(received_response['date'], expected_response['date'])
         self.assertEquals(
             received_response['pricing_service'],

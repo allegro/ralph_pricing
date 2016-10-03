@@ -15,6 +15,7 @@ from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
 from ralph_scrooge.models import (
+    Environment,
     Service,
     ServiceEnvironment,
     Team,
@@ -37,6 +38,13 @@ class PercentSerializer(Serializer):
         uid = attrs[source]
         if not Service.objects.filter(ci_uid=uid).exists():
             err = 'Service with UID {} does not exist.'.format(uid)
+            raise serializers.ValidationError(err)
+        return attrs
+
+    def validate_environment(self, attrs, source):
+        env_name = attrs[source]
+        if not Environment.objects.filter(name=env_name).exists():
+            err = 'Environment {} does not exist.'.format(env_name)
             raise serializers.ValidationError(err)
         return attrs
 
@@ -90,22 +98,25 @@ class TeamTimeDivisionSerializer(Serializer):
     division = PercentSerializer(many=True, required=True)
 
     def validate_division(self, attrs, source):
-        division = attrs[source]
-        if division is None or len(division) == 0:
+        division_ = attrs[source]
+        if division_ is None or len(division_) == 0:
             raise serializers.ValidationError("This field cannot be empty.")
+        return attrs
 
     def validate(self, attrs):
         err = None
 
         # validate percents (if they sum up to 100)
         percent_total = 0
-        for d in attrs.get('division'):
-            percent_total += d['percent']
-        if percent_total != 100:
-            err = (
-                "Percents should sum to 100, now it's {}."
-                .format(percent_total)
-            )
+        division_ = attrs.get('division')
+        if division_ is not None:
+            for d in division_:
+                percent_total += d['percent']
+            if percent_total != 100:
+                err = (
+                    "Percents should sum to 100, now it's {}."
+                    .format(percent_total)
+                )
 
         if err is not None:
             raise serializers.ValidationError(err)
@@ -178,7 +189,7 @@ def save_team_time_division(division, year, month, team_id):
     ).delete()
 
     team_cost = TeamCost.objects.get_or_create(
-        team=team_id,
+        team_id=team_id,
         start=first_day,
         end=last_day,
     )[0]
