@@ -159,9 +159,13 @@ def vip(event_data):
     if errors:
         msg = (
             'Error(s) detected in event data: {}. Ignoring received '
-            'refreshVipEvent.'
+            'refreshVipEvent (VIP name: "{}", IP: "{}").'
         )
-        logger.error(msg.format('; '.join(errors)))
+        logger.error(msg.format(
+            '; '.join(errors),
+            event_data.get('name'),
+            event_data.get('ip'),
+        ))
         return
 
     date = datetime.date.today()
@@ -169,7 +173,7 @@ def vip(event_data):
         vip_info = save_vip_info(event_data)
     except UnknownServiceEnvironmentNotConfiguredError:
         msg = (
-            'Unknown service environment not configured for "vip" plugin'
+            'UNKNOWN_SERVICE_ENVIRONMENTS not configured for "vip" plugin'
         )
         logger.error(msg)
         return
