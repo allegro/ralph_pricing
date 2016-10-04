@@ -226,6 +226,7 @@ class TenantInfoFactory(PricingObjectFactory):
 
     tenant_id = Sequence(lambda n: n)
     ralph3_tenant_id = Sequence(lambda n: n)
+    type_id = models.PRICING_OBJECT_TYPES.TENANT
 
 
 class DailyTenantInfoFactory(DailyPricingObjectFactory):
