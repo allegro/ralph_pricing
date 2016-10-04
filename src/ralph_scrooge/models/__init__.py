@@ -10,7 +10,7 @@ from ralph_scrooge.models.extra_cost import (
     ExtraCostType,
     SupportCost,
 )
-
+from ralph_scrooge.models.user import ScroogeUser
 from ralph_scrooge.models.owner import (
     OwnershipType,
     Owner,
@@ -105,6 +105,7 @@ __all__ = [
     'PRICING_OBJECT_TYPES',
     'PricingService',
     'PricingServicePlugin',
+    'ScroogeUser',
     'Service',
     'ServiceEnvironment',
     'ServiceOwnership',

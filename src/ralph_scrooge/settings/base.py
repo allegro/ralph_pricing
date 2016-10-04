@@ -34,6 +34,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+SECRET_KEY = 'change me'
+
 TEMPLATE_DIRS = (BASE_DIR + "templates",)
 
 INSTALLED_APPS = [
@@ -95,8 +97,7 @@ RQ_QUEUES = {
 for queue in RQ_QUEUE_LIST:
     RQ_QUEUES[queue] = dict(RQ_QUEUES['default'])
 
-AUTH_PROFILE_MODULE = 'ralph_scrooge.UserProfile'
-
+AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
 
 CACHES = dict(
     default=dict(
@@ -302,7 +303,7 @@ LOAD_BALANCER_TYPES_MAPPING = {
     'HAPROXY': 'HA Proxy',
 }
 
-EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
+EDITOR_TRACKABLE_MODEL = AUTH_USER_MODEL
 
 LOGGING = {
     'version': 1,
