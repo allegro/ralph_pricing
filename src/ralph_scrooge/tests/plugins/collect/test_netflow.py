@@ -181,6 +181,17 @@ class TestNetwork(TestCase):
             None
         )
 
+    @override_settings(NFSEN_CLASS_ADDRESS=['2001:db8::1428:0/112'])
+    def test_extract_ip_and_bytes_for_ipv6(self):
+        self.assertEqual(
+            netflow.extract_ip_and_bytes(
+                '2001:db8::1428:57ab | 20.20.20.20 | 80 | 443 | tcp | 30',
+                ['src', 'srcip'],
+                settings.NFSEN_CLASS_ADDRESS,
+            ),
+            (u'2001:db8::1428:57ab', '80', 30),
+        )
+
     def test_get_network_usage_when_ip_and_byte_is_none(self):
         self.assertEqual(
             netflow.get_network_usage(
