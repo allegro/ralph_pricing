@@ -693,3 +693,42 @@ class TestTeamTimeDivision(TestCase):
         self.assertEquals(resp.status_code, 400)
         self.assertIn("division", resp.content)
         self.assertIn("cannot be empty", resp.content)
+
+    def test_for_error_when_service_uid_and_env_pairs_are_repeated(self):
+        division = {
+            "division": [
+                {
+                    "service_uid": self.service1_uid,
+                    "environment": self.service1_env_name,
+                    "percent": 70.0,
+                },
+                {
+                    "service_uid": self.service2_uid,
+                    "environment": self.service2_env_name,
+                    "percent": 20.0,
+                },
+                {
+                    "service_uid": self.service2_uid,
+                    "environment": self.service2_env_name,
+                    "percent": 10.0,
+                }
+            ]
+        }
+        offending_pair = "{}/{}".format(
+            self.service2_uid, self.service2_env_name
+        )
+        resp = self.client.post(
+            reverse(
+                'team_time_division',
+                kwargs={
+                    'year': self.date.year,
+                    'month': self.date.month,
+                    'team_id': self.team.id,
+                },
+            ),
+            json.dumps(division),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 400)
+        self.assertIn("Repeated service_uid/environment", resp.content)
+        self.assertIn(offending_pair, resp.content)

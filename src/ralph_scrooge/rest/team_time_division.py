@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import Counter
+
 from django.db.transaction import commit_on_success
 from django.http import HttpResponse
 from rest_framework import serializers
@@ -105,18 +107,36 @@ class TeamTimeDivisionSerializer(Serializer):
 
     def validate(self, attrs):
         err = None
+        division = attrs.get('division')
+        if division is None:
+            return attrs
 
         # validate percents (if they sum up to 100)
         percent_total = 0
-        division = attrs.get('division')
-        if division is not None:
-            for d in division:
-                percent_total += d['percent']
-            if percent_total != 100:
-                err = (
-                    "Percents should sum to 100, now it's {}."
-                    .format(percent_total)
-                )
+        for d in division:
+            percent_total += d['percent']
+        if percent_total != 100:
+            err = (
+                "Percents should sum to 100, now it's {}."
+                .format(percent_total)
+            )
+
+        # validate uniqueness of service_uid/environment per single division
+        uids_and_envs = [
+            "{}/{}".format(
+                d['service_uid'], d['environment']
+            ) for d in division
+        ]
+        counter = Counter(uids_and_envs)
+        non_unique = []
+        for c in counter.items():
+            if c[1] > 1:
+                non_unique.append(c[0])
+        if len(non_unique) > 0:
+            err = (
+                "Repeated service_uid/environment combination(s): {}."
+                .format(', '.join(non_unique))
+            )
 
         if err is not None:
             raise serializers.ValidationError(err)
