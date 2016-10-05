@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'south',
     'rest_framework',
     'rest_framework.authtoken',
-    'ralph_scrooge'
+    'ralph_scrooge',
 ]
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -98,6 +98,8 @@ for queue in RQ_QUEUE_LIST:
     RQ_QUEUES[queue] = dict(RQ_QUEUES['default'])
 
 AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
+# Temporary for users migrations
+AUTH_PROFILE_MODULE = 'ralph_scrooge.UserProfile'
 
 CACHES = dict(
     default=dict(
