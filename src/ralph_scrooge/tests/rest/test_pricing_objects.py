@@ -9,7 +9,7 @@ import datetime
 import json
 from decimal import Decimal
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
@@ -91,7 +91,9 @@ class TestPricingObjects(TestCase):
         self.maxDiff = None
 
     def test_pricing_objects_view_returns_data_from_pricing_objects(self):
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         client = APIClient()
         client.login(username='test', password='test')
         resp = client.get(
@@ -121,7 +123,9 @@ class TestPricingObjects(TestCase):
             value=99,
             cost=99,
         )
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         client = APIClient()
         client.login(username='test', password='test')
         resp = client.get(

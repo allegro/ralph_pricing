@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
@@ -21,7 +21,7 @@ class UserProfile(db.Model):
         db_table = 'account_profile'
         app_label = 'ralph_scrooge'
 
-    user = db.OneToOneField(User)
+    user = db.OneToOneField(get_user_model())
     nick = db.CharField(
         verbose_name=_("visible nick"), blank=True, default='', max_length=30,
         help_text=_((
