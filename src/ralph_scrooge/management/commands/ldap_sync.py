@@ -6,7 +6,7 @@ import sys
 import logging
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from ldap.controls import SimplePagedResultsControl
 
@@ -31,7 +31,7 @@ def _truncate_surname(ldap_dict):
     which is 30 chars.
     """
     if 'sn' in ldap_dict:
-        max_length = User._meta.get_field('last_name').max_length
+        max_length = get_user_model()._meta.get_field('last_name').max_length
         ldap_dict['sn'] = [surname[:max_length] for surname in ldap_dict['sn']]
 
 

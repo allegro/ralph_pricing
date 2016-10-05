@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import json
 import datetime
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -27,7 +27,9 @@ from ralph_scrooge.tests.utils import factory
 
 class TestAllocationAdmin(TestCase):
     def setUp(self):
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         self.client = APIClient()
         self.client.login(username='test', password='test')
 

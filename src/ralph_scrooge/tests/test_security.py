@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from ralph_scrooge.models.owner import UserProfile
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -23,22 +23,22 @@ class TestSecurity(TestCase):
         self.client = APIClient()
 
         # users
-        self.accountant = User.objects.create_user(
+        self.accountant = get_user_model().objects.create_user(
             username='accountant',
             password='12345'
         )
         UserProfile.objects.create(user=self.accountant)
-        self.owner = User.objects.create_user(
+        self.owner = get_user_model().objects.create_user(
             username='owner',
             password='12345'
         )
         UserProfile.objects.create(user=self.owner)
-        self.team_manager = User.objects.create_user(
+        self.team_manager = get_user_model().objects.create_user(
             username='team_manager',
             password='12345'
         )
         UserProfile.objects.create(user=self.team_manager)
-        self.superuser = User.objects.create_user(
+        self.superuser = get_user_model().objects.create_user(
             username='superuser',
             password='12345',
         )

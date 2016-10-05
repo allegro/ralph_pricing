@@ -9,7 +9,7 @@ import datetime
 import random
 
 import factory
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from factory import (
     fuzzy,
     Iterator,
@@ -141,7 +141,7 @@ class DailyVirtualInfoFactory(DailyPricingObjectFactory):
 
 
 class UserFactory(DjangoModelFactory):
-    FACTORY_FOR = User
+    FACTORY_FOR = get_user_model()
     username = Sequence(lambda n: 'user_{0}'.format(n))
     first_name = Sequence(lambda n: 'John {0}'.format(n))
     last_name = Sequence(lambda n: 'Snow {0}'.format(n))
@@ -157,7 +157,7 @@ class Ralph3UserFactory(DjangoModelFactory):
     # TODO(xor-xor): This factory shouldn't be used to create more than
     # 6 users, otherwise you'll get an IntegrityError. But this will be
     # ironed-out once we switch to Ralph 3 exclusively.
-    FACTORY_FOR = User
+    FACTORY_FOR = get_user_model()
     first_name = Iterator([
         'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
     ])

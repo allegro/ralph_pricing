@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from datetime import datetime
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
@@ -21,13 +21,15 @@ except ImportError:
     now = datetime.now
 
 
-EDITOR_TRACKABLE_MODEL = getattr(settings, 'EDITOR_TRACKABLE_MODEL', User)
+EDITOR_TRACKABLE_MODEL = getattr(
+    settings, 'EDITOR_TRACKABLE_MODEL', get_user_model()
+)
 DIRTY_MARK = object()
 
 
 @memoize
 def model_is_user(model):
-    return model in (User, 'auth.User')
+    return model in (get_user_model(), 'auth.User')
 
 
 class Named(db.Model):
