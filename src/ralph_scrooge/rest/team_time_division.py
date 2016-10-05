@@ -17,8 +17,6 @@ from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
 from ralph_scrooge.models import (
-    Environment,
-    Service,
     ServiceEnvironment,
     Team,
     TeamCost,
@@ -204,7 +202,7 @@ def save_team_time_division(division, year, month, team_id):
             service__ci_uid=percent.get('service_uid'),
             environment__name=percent.get('environment')
         )
-        tsep = TeamServiceEnvironmentPercent.objects.create(
+        TeamServiceEnvironmentPercent.objects.create(
             team_cost=team_cost,
             service_environment=service_environment,
             percent=percent.get('percent'),
