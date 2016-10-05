@@ -309,7 +309,7 @@ class TestTeamTimeDivision(TestCase):
             json.dumps(division),
             content_type='application/json',
         )
-        self.assertEquals(resp.status_code, 400)
+        self.assertEquals(resp.status_code, 404)
         self.assertIn(str(non_existing_team_id), resp.content)
         self.assertIn("does not exist", resp.content)
 
@@ -530,7 +530,10 @@ class TestTeamTimeDivision(TestCase):
             content_type='application/json',
         )
         self.assertEquals(resp.status_code, 400)
-        self.assertIn("Service with UID", resp.content)
+        # Scrooge checks for the existence of a given service
+        # indirectly, i.e. by checking if service env exists - hence
+        # assertion below.
+        self.assertIn("Service environment", resp.content)
         self.assertIn("does not exist", resp.content)
         self.assertIn(non_existing_service_uid, resp.content)
 
@@ -637,7 +640,10 @@ class TestTeamTimeDivision(TestCase):
             content_type='application/json',
         )
         self.assertEquals(resp.status_code, 400)
-        self.assertIn("Environment", resp.content)
+        # Scrooge checks for the existence of a given environment
+        # indirectly, i.e. by checking if service env exists - hence
+        # assertion below.
+        self.assertIn("Service environment", resp.content)
         self.assertIn("does not exist", resp.content)
         self.assertIn(non_existing_env_name, resp.content)
 

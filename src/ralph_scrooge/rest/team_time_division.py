@@ -36,20 +36,6 @@ class PercentSerializer(Serializer):
     environment = serializers.CharField(required=True)
     percent = serializers.FloatField(required=True)
 
-    def validate_service_uid(self, attrs, source):
-        uid = attrs[source]
-        if not Service.objects.filter(ci_uid=uid).exists():
-            err = 'Service with UID {} does not exist.'.format(uid)
-            raise serializers.ValidationError(err)
-        return attrs
-
-    def validate_environment(self, attrs, source):
-        env_name = attrs[source]
-        if not Environment.objects.filter(name=env_name).exists():
-            err = 'Environment {} does not exist.'.format(env_name)
-            raise serializers.ValidationError(err)
-        return attrs
-
     def validate(self, attrs):
         err = None
 
@@ -79,10 +65,10 @@ def new_percent(service_uid, environment, percent):
     }
 
 
-def _get_percents(team, start, end):
+def _get_percents(team_id, start, end):
     percents = []
     for tsep in TeamServiceEnvironmentPercent.objects.filter(
-        team_cost__team__id=team,
+        team_cost__team=team_id,
         team_cost__start=start,
         team_cost__end=end,
     ).select_related("service_environment"):
@@ -163,7 +149,7 @@ class TeamTimeDivision(APIView):
         except Team.DoesNotExist:
             err = "Team with ID {} does not exist.".format(team_id)
             return Response(
-                {'error': err}, status=status.HTTP_400_BAD_REQUEST
+                {'error': err}, status=status.HTTP_404_NOT_FOUND
             )
         first_day, last_day, days_in_month = get_dates(year, month)
         percents = _get_percents(team_id, first_day, last_day)
@@ -178,7 +164,7 @@ class TeamTimeDivision(APIView):
         except Team.DoesNotExist:
             err = "Team with ID {} does not exist.".format(team_id)
             return Response(
-                {'error': err}, status=status.HTTP_400_BAD_REQUEST
+                {'error': err}, status=status.HTTP_404_NOT_FOUND
             )
         serializer = TeamTimeDivisionSerializer(data=request.DATA)
         if serializer.is_valid():
@@ -218,11 +204,8 @@ def save_team_time_division(division, year, month, team_id):
             service__ci_uid=percent.get('service_uid'),
             environment__name=percent.get('environment')
         )
-        tsep, created = TeamServiceEnvironmentPercent.objects.get_or_create(
+        tsep = TeamServiceEnvironmentPercent.objects.create(
             team_cost=team_cost,
             service_environment=service_environment,
-            defaults=dict(percent=percent.get('percent'))
+            percent=percent.get('percent'),
         )
-        if not created:
-            tsep.percent = percent.get('percent')
-            tsep.save()
