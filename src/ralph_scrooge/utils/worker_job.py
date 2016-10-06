@@ -9,7 +9,7 @@ import logging
 import urllib
 
 import django_rq
-from django.core.cache import get_cache
+from django.core.cache import caches as dj_caches
 from django.core.cache.backends.dummy import DummyCache
 from rq.job import Job
 
@@ -36,7 +36,7 @@ class WorkerJob(object):
 
     @classmethod
     def _clear_cache(cls, **kwargs):
-        cache = get_cache(cls.cache_name)
+        cache = dj_caches[cls.cache_name]
         key = _get_cache_key(cls.cache_section, **kwargs)
         cache.set(key, None)
 
@@ -51,7 +51,7 @@ class WorkerJob(object):
         return Job.fetch(job_id, connection)
 
     def run_on_worker(self, **kwargs):
-        cache = get_cache(self.cache_name)
+        cache = dj_caches[self.cache_name]
         if isinstance(cache, DummyCache):
             # No caching or queues with dummy cache.
             data = self._worker_func(**kwargs)
@@ -99,7 +99,7 @@ class WorkerJob(object):
         Main method executed on worker, which run user defined worker function,
         check for progress and store results in cache.
         """
-        cache = get_cache(cls.cache_name)
+        cache = dj_caches[cls.cache_name]
         key = _get_cache_key(cls.cache_section, **kwargs)
         cached = cache.get(key)
         if cached is not None:

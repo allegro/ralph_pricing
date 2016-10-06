@@ -17,6 +17,7 @@ logging.disable(logging.CRITICAL)
 
 class ScroogeTestCaseMixin(object):
     maxDiff = None
+    fixtures = ['initial_data']
 
     def _fix_dates(self, date1, date2):
         if isinstance(date1, datetime) and isinstance(date2, datetime):

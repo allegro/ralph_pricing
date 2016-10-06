@@ -67,7 +67,7 @@ class BaseReportContent(APIView):
             self._format_header()
 
         self.progress = round(self.progress, 0)
-        if request.QUERY_PARAMS.get('report_format', '').lower() == 'csv':
+        if request.query_params.get('report_format', '').lower() == 'csv':
             if self.progress == 100:
                 self.header = format_csv_header(self.header)
                 return make_csv_response(
@@ -110,7 +110,7 @@ class BaseReportContent(APIView):
         for date in ['start', 'end']:
             try:
                 params[date] = parser.parse(
-                    request.QUERY_PARAMS.get(date)
+                    request.query_params.get(date)
                 )
             except ValueError:
                 raise ParseError('Invalid value for {} param'.format(
@@ -119,7 +119,7 @@ class BaseReportContent(APIView):
         return params
 
     def _parse_bool_param(self, request, param):
-        return str(request.QUERY_PARAMS.get(param)) in ('1', 'true')
+        return str(request.query_params.get(param)) in ('1', 'true')
 
 
 class UsagesReportContent(BaseReportContent):
@@ -130,7 +130,7 @@ class UsagesReportContent(BaseReportContent):
         params = self._parse_start_end(request)
         try:
             params['usage_types'] = UsageType.objects.filter(
-                pk__in=request.QUERY_PARAMS.getlist('usage_types')
+                pk__in=request.query_params.getlist('usage_types')
             )
         except ValueError:
             raise ParseError('Invalid value for usage_types param')

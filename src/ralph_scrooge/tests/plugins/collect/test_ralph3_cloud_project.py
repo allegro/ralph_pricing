@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge.models import PRICING_OBJECT_TYPES
@@ -20,6 +19,7 @@ from ralph_scrooge.plugins.collect.ralph3_cloud_project import (
     UnknownServiceEnvironmentNotConfiguredError,
 )
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     ServiceEnvironmentFactory,
     TenantInfoFactory,
@@ -33,7 +33,7 @@ TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS = dict(
 )
 
 
-class TestServiceCollectPlugin(TestCase):
+class TestServiceCollectPlugin(ScroogeTestCase):
     def setUp(self):
         ServiceEnvironmentFactory.reset_sequence()
         self.service_environment = ServiceEnvironmentFactory()

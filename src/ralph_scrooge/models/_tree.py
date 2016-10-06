@@ -42,6 +42,12 @@ class NamedtupleDjangoModelMeta(ModelBase):
         return new_class
 
 
+class MultiPathNodeQuerySet(db.QuerySet):
+    def _populate_pk_values(self, objs):
+        # this requires _meta on single object which is missing for namedtuple
+        pass
+
+
 class MultiPathNode(db.Model):
     __metaclass__ = NamedtupleDjangoModelMeta
     _path_link = '/'

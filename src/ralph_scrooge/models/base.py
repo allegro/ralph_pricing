@@ -22,8 +22,8 @@ class BaseUsageType(Choices):
 
 
 class BaseUsageManager(db.Manager):
-    def get_query_set(self):
-        return super(BaseUsageManager, self).get_query_set().filter(
+    def get_queryset(self):
+        return super(BaseUsageManager, self).get_queryset().filter(
             active=True,
         )
 

@@ -9,10 +9,9 @@ import csv
 import logging
 import sys
 import textwrap
-from optparse import make_option
 
 from django.core.management.base import BaseCommand
-from django.db.transaction import commit_on_success
+from django.db import transaction
 
 from ralph_scrooge.models import (
     AssetInfo,
@@ -47,22 +46,22 @@ class Command(BaseCommand):
 
     help = textwrap.dedent(__doc__).strip()
     requires_model_validation = True
-    option_list = BaseCommand.option_list + (
-        make_option(
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '-m', '--model',
             dest='model',
             help="Model name",
-            choices=MODEL_MAPPING.keys(),
-        ),
-        make_option(
+            choices=MODEL_MAPPING.keys()
+        )
+        parser.add_argument(
             '-f', '--file',
             dest='file',
             help="CSV file with mapping Ralph2 (U)ID;Ralph3 ID",
             metavar="FILE"
-        ),
-    )
+        )
 
-    @commit_on_success
+    @transaction.atomic
     def handle(self, *args, **options):
         if not options.get('model') or not options.get('file'):
             print('Model and file params are required')

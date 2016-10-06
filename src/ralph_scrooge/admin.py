@@ -10,7 +10,7 @@ from django.contrib import admin
 from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.forms import UserChangeForm, UsernameField
 from django.utils.translation import ugettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -36,6 +36,8 @@ class UpdateReadonlyMixin(object):
 class ScroogeUserChangeForm(UserChangeForm):
     class Meta:
         model = models.ScroogeUser
+        fields = '__all__'
+        field_classes = {'username': UsernameField}
 
 
 @register(models.ScroogeUser)
@@ -175,6 +177,7 @@ class PricingObjectAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
 class UsageTypeForm(forms.ModelForm):
     class Meta:
         model = models.UsageType
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }
@@ -217,6 +220,7 @@ class DynamicExtraCostInline(admin.TabularInline):
 class DynamicExtraTypeForm(forms.ModelForm):
     class Meta:
         model = models.DynamicExtraCostType
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }
@@ -281,6 +285,7 @@ class ServiceAdmin(UpdateReadonlyMixin, SimpleHistoryAdmin):
 class PricingServiceForm(forms.ModelForm):
     class Meta:
         model = models.PricingService
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }
@@ -333,6 +338,7 @@ class TeamCostInline(admin.TabularInline):
 class TeamForm(forms.ModelForm):
     class Meta:
         model = models.Team
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }

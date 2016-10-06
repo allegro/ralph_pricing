@@ -28,7 +28,7 @@ def superuser_permission(view_func):
             return view_func(request, *args, **kwargs)
         return HttpResponseForbidden(
             json.dumps({'message': 'No permission to service'}),
-            mimetype="application/json"
+            content_type="application/json"
         )
     return login_required(_wrapped_view)
 
@@ -70,7 +70,7 @@ def service_permission(view_func):
             return view_func(request, *args, **kwargs)
         return HttpResponseForbidden(
             json.dumps({'message': 'No permission to service'}),
-            mimetype="application/json"
+            content_type="application/json"
         )
     return login_required(_wrapped_view)
 
@@ -92,6 +92,6 @@ def team_permission(view_func):
             return view_func(request, *args, **kwargs)
         return HttpResponseForbidden(
             json.dumps({'message': 'No permission to team'}),
-            mimetype="application/json"
+            content_type="application/json"
         )
     return login_required(_wrapped_view)

@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge.models import DailyUsage
@@ -20,10 +19,11 @@ from ralph_scrooge.plugins.collect.ralph3_blade_server import (
     update_blade_server,
     update_usage,
 )
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import AssetInfoFactory
 
 
-class TestBladeServerCollectPlugin(TestCase):
+class TestBladeServerCollectPlugin(ScroogeTestCase):
     def setUp(self):
         self.today = datetime.date(2014, 7, 1)
         self.blade_server_usage_type = get_usage_type()

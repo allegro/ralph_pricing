@@ -11,14 +11,15 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from rest_framework.test import APIClient
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils import factory
 from ralph_scrooge import models
 
 
-class TestAllocationClient(TestCase):
+class TestAllocationClient(ScroogeTestCase):
+
     def setUp(self):
         get_user_model().objects.create_superuser(
             'test', 'test@test.test', 'test'

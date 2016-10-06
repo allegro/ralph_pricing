@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import logging
 import math
 from datetime import date, datetime, timedelta
-from optparse import make_option
 
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
@@ -32,55 +31,53 @@ class Command(ScroogeBaseCommand):
     Generate report with tenants instances and cost of particular flavors
     (if tenants are billed based on ceilometer) or simple usages.
     """
-    option_list = ScroogeBaseCommand.option_list + (
-        make_option(
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '-s', '--start',
             dest='start',
             default=None,
-            help=_('Date from which generate report for'),
-        ),
-        make_option(
+            help=_('Date from which generate report for')
+        )
+        parser.add_argument(
             '--end',
             dest='end',
             default=None,
-            help=_('Date to which generate report for'),
-        ),
-        make_option(
+            help=_('Date to which generate report for')
+        )
+        parser.add_argument(
             '--warehouse',
             dest='warehouse',
             default=None,
-            help=_('Warehouse name to filter by'),
-        ),
-        make_option(
+            help=_('Warehouse name to filter by')
+        )
+        parser.add_argument(
             '--type-prefix',
             dest='type_prefix',
             default=None,
-            help=_('OpenStack usage type prefix'),
-        ),
-        make_option(
+            help=_('OpenStack usage type prefix')
+        )
+        parser.add_argument(
             '--forecast',
             dest='forecast',
             default=False,
             action='store_true',
-            help=_('Set to use forecast prices and costs'),
-        ),
-        make_option(
+            help=_('Set to use forecast prices and costs')
+        )
+        parser.add_argument(
             '-p',
             dest='plugins',
             action='append',
-            type='str',
             default=[],
-            help=_('Plugins to calculate missing costs'),
-        ),
-        make_option(
+            help=_('Plugins to calculate missing costs')
+        )
+        parser.add_argument(
             '-t',
             dest='type',
-            type='choice',
             choices=['simple_usage', 'ceilometer', 'nova', 'volume'],
             default='ceilometer',
-            help=_('Type of OpenStack usage'),
-        ),
-    )
+            help=_('Type of OpenStack usage')
+        )
 
     def __init__(self, *args, **kwargs):
         self.type = 'ceilometer'

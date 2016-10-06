@@ -53,7 +53,7 @@ class CostCardContent(APIView):
                 },
                 status=HTTP_404_NOT_FOUND
             )
-        forecast = request.QUERY_PARAMS.get('forecast', False)
+        forecast = bool(request.query_params.get('forecast', False))
         dates = CostDateStatus.objects.filter(
             date__gte=first_day,
             date__lte=last_day,

@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 
 # TODO(xor-xor): BusinessLine should be renamed to BusinessSegment (this also
 # applies to other occurrences of this name in this plugin).
@@ -19,7 +19,7 @@ from ralph_scrooge.plugins.collect.utils import get_from_ralph
 logger = logging.getLogger(__name__)
 
 
-@commit_on_success
+@transaction.atomic
 def update_profit_center(pc, default_business_line):
     if pc['business_segment'] is not None:
         business_line = BusinessLine.objects.get(

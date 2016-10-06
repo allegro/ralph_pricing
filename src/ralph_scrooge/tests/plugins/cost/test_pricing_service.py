@@ -9,7 +9,6 @@ from dateutil import rrule
 from decimal import Decimal as D
 import mock
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge import models
@@ -32,7 +31,8 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestPricingServicePlugin(TestCase):
+class TestPricingServicePlugin(ScroogeTestCase):
+
     def setUp(self):
         self.maxDiff = None
         self.today = date(2013, 10, 10)
@@ -668,10 +668,11 @@ class TestPricingServicePlugin(TestCase):
         })
 
 
-class TestPricingServiceDependency(TestCase):
+class TestPricingServiceDependency(ScroogeTestCase):
     """
     Specific test cases to test pricing services dependency
     """
+
     def setUp(self):
         self.start = date(2014, 10, 1)
         self.end = date(2014, 10, 31)
@@ -933,7 +934,8 @@ class TestPricingServiceDependency(TestCase):
                     self.assertEquals(str(expected_call), str(actual_call))
 
 
-class TestPricingServiceDiffCharging(TestCase):
+class TestPricingServiceDiffCharging(ScroogeTestCase):
+
     def setUp(self):
         self.today = date(2014, 11, 10)
 

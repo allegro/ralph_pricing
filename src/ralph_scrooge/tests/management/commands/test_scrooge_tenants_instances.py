@@ -9,12 +9,11 @@ import mock
 from datetime import date
 from dateutil import rrule
 
-from django.test import TestCase
-
 from ralph_scrooge.management.commands.scrooge_tenants_instances import (
     Command
 )
 from ralph_scrooge.models import DailyCost, PRICING_OBJECT_TYPES
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     DailyCostFactory,
     DailyUsageFactory,
@@ -25,7 +24,7 @@ from ralph_scrooge.tests.utils.factory import (
 from ralph_scrooge.utils.common import AttributeDict
 
 
-class TestScroogeTenantsInstances(TestCase):
+class TestScroogeTenantsInstances(ScroogeTestCase):
     def setUp(self):
         self.maxDiff = None
         self.start = date(2014, 11, 12)
