@@ -9,7 +9,6 @@ import logging
 import math
 import textwrap
 from datetime import datetime, date, timedelta
-from optparse import make_option
 
 from collections import OrderedDict
 
@@ -31,48 +30,48 @@ class Command(BaseCommand):
 
     help = textwrap.dedent(__doc__).strip()
     requires_model_validation = True
-    option_list = BaseCommand.option_list + (
-        make_option(
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '-e',
             dest='only_errors',
             action='store_true',
             default=False,
-            help="Show errors",
-        ),
-        make_option(
+            help="Show errors"
+        )
+        parser.add_argument(
             '-w',
             dest='only_warnings',
             action='store_true',
             default=False,
             help="Show warnings",
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '-b',
             dest='only_base',
             action='store_true',
             default=False,
             help="Show base date statistics",
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '-c',
             dest='only_compare',
             action='store_true',
             default=False,
             help="Show compare date statistics",
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '--base',
             dest='base',
             default=None,
             help="Base date to compare",
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '--compare',
             dest='compare',
             default=None,
             help="Date to compare",
-        ),
-    )
+        )
 
     def _draw_statistics(self, statistics, flags, base_date, compare_date):
         '''

@@ -49,7 +49,6 @@ class Team(TimeTrackable, EditorTrackable, BaseUsage):
         verbose_name=_("Excluded services"),
         related_name='excluded_teams',
         blank=True,
-        null=True,
     )
 
     objects_admin = db.Manager()

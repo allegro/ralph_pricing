@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from decimal import Decimal as D
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -347,7 +347,7 @@ class AllocationAdminContent(APIView):
             team_cost.members_count = row['members']
             team_cost.save()
 
-    @commit_on_success()
+    @transaction.atomic
     def post(self, request, year, month, allocate_type, *args, **kwargs):
         from_csv = False
         if request.FILES and allocate_type == 'extracosts':
@@ -367,7 +367,7 @@ class AllocationAdminContent(APIView):
             }
             from_csv = True
         else:
-            post_data = request.DATA
+            post_data = request.data
 
         first_day, last_day, days_in_month = get_dates(year, month)
         if allocate_type == 'baseusages':

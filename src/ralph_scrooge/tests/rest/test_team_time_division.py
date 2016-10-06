@@ -695,7 +695,7 @@ class TestTeamTimeDivision(TestCase):
             )
         self.assertEquals(resp.status_code, 400)
         self.assertIn("division", resp.content)
-        self.assertIn("cannot be empty", resp.content)
+        self.assertIn("may not be null", resp.content)
 
     def test_for_error_when_service_uid_and_env_pairs_are_repeated(self):
         division = {

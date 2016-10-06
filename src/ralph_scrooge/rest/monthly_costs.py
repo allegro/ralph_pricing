@@ -10,7 +10,7 @@ import time
 from dateutil import rrule
 
 from django.conf import settings
-from django.core.cache import get_cache
+from django.core.cache import caches as dj_caches
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from rq import get_current_job
@@ -33,11 +33,11 @@ class AcceptMonthlyCosts(APIView):
 
     def post(self, request, *args, **kwargs):
         result = {'status': 'failed', 'message': ''}
-        serializer = MonthlyCostsSerializer(data=request.DATA)
+        serializer = MonthlyCostsSerializer(data=request.data)
         if serializer.is_valid():
-            start = serializer.data['start']
-            end = serializer.data['end']
-            forecast = bool(serializer.data['forecast'])
+            start = serializer.validated_data['start']
+            end = serializer.validated_data['end']
+            forecast = serializer.validated_data['forecast']
             calculated_costs = CostDateStatus.objects.filter(
                 date__gte=start,
                 date__lte=end,
@@ -77,7 +77,7 @@ class MonthlyCosts(APIView, WorkerJob):
 
     def post(self, request, *args, **kwargs):
         """Recalculate costs."""
-        serializer = MonthlyCostsSerializer(data=request.DATA)
+        serializer = MonthlyCostsSerializer(data=request.data)
         if serializer.is_valid():
             if serializer.data["start"] > serializer.data["end"]:
                 return Response(
@@ -123,14 +123,14 @@ class MonthlyCosts(APIView, WorkerJob):
         :param end: end date
         :type end: datetime.date
         """
-        cache = get_cache(cls.cache_name)
+        cache = dj_caches[cls.cache_name]
         for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
             key = _get_cache_key(cls.cache_section, day=day, **kwargs)
             cached = cache.get(key)
             cache.set(key, cached, timeout=cls.cache_all_done_timeout)
 
     @classmethod
-    @transaction.commit_on_success
+    @transaction.atomic
     def _save_costs(self, data, start, end, forecast):
         """
         Save costs between start and end.

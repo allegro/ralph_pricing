@@ -143,23 +143,27 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         blank=False,
         default=1,
         related_name='services',
+        related_query_name='services',
         verbose_name=_('profit center'),
     )
     ownership = db.ManyToManyField(
         'Owner',
         through='ServiceOwnership',
         related_name='services',
+        related_query_name='services',
         verbose_name=_("ownership"),
     )
     environments = db.ManyToManyField(
         Environment,
         through='ServiceEnvironment',
         related_name='services',
+        related_query_name='services',
         verbose_name=_("environments"),
     )
     pricing_service = db.ForeignKey(
         'PricingService',
         related_name='services',
+        related_query_name='services',
         null=True,
         blank=True,
         verbose_name=_("pricing service"),
@@ -196,6 +200,7 @@ class PricingService(BaseUsage):
         'UsageType',
         through='ServiceUsageTypes',
         related_name='services',
+        related_query_name='services',
         verbose_name=_("usage types"),
     )
     excluded_services = db.ManyToManyField(
@@ -207,7 +212,6 @@ class PricingService(BaseUsage):
             'type excluded services)'
         ),
         blank=True,
-        null=True,
     )
     excluded_base_usage_types = db.ManyToManyField(
         'UsageType',
@@ -216,7 +220,6 @@ class PricingService(BaseUsage):
             'usage_type': 'BU',
         },
         blank=True,
-        null=True,
         verbose_name=_("excluded base usage types"),
     )
     regular_usage_types = db.ManyToManyField(
@@ -226,7 +229,6 @@ class PricingService(BaseUsage):
             'usage_type': 'RU',
         },
         blank=True,
-        null=True,
         verbose_name=_("regular usage types"),
     )
     charge_diff_to_real_costs = db.ForeignKey(

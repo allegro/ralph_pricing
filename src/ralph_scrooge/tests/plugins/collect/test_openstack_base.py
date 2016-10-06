@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge.plugins.collect._openstack_base import (
@@ -16,6 +15,7 @@ from ralph_scrooge.plugins.collect._openstack_base import (
     TenantNotFoundError,
 )
 from ralph_scrooge.models import DailyUsage
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.plugins.collect.samples.openstack import (
     SAMPLE_OPENSTACK,
 )
@@ -42,7 +42,7 @@ TEST_SETTINGS_SCROOGE_OPENSTACK_CEILOMETER = {
 }
 
 
-class TestOpenStackBasePlugin(TestCase):
+class TestOpenStackBasePlugin(ScroogeTestCase):
     def setUp(self):
         self.today = datetime.date(2014, 7, 1)
         self.yesterday = self.today - datetime.timedelta(days=1)

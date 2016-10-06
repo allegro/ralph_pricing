@@ -7,8 +7,6 @@ from __future__ import unicode_literals
 
 from copy import deepcopy
 
-from django.test import TestCase
-
 from ralph_scrooge.models import (
     Environment,
     OwnershipType,
@@ -19,6 +17,7 @@ from ralph_scrooge.plugins.collect.ralph3_service_environment import (
     update_service,
     update_environment,
 )
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     ProfitCenterFactory,
     Ralph3OwnerFactory,
@@ -30,7 +29,7 @@ from ralph_scrooge.tests.plugins.collect.samples.ralph3_service_environment impo
 )
 
 
-class TestServiceEnvironmentCollectPlugin(TestCase):
+class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
     def setUp(self):
         self.data = deepcopy(SAMPLE_SERVICES[0])
         self.default_profit_center = ProfitCenter(pk=1)

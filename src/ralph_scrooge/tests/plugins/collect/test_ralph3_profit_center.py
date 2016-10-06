@@ -7,20 +7,19 @@ from __future__ import unicode_literals
 
 import mock
 
-from django.test import TestCase
-
 from ralph_scrooge.models import BusinessLine, ProfitCenter
 from ralph_scrooge.plugins.collect.ralph3_profit_center import (
     ralph3_profit_center as profit_center_plugin,
     update_profit_center
 )
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.plugins.collect.samples.ralph3_profit_center import (
     SAMPLE_PROFIT_CENTERS,
 )
 from ralph_scrooge.tests.utils.factory import BusinessLineFactory
 
 
-class TestProfitCenterPlugin(TestCase):
+class TestProfitCenterPlugin(ScroogeTestCase):
     def setUp(self):
         self.default_business_line = BusinessLine.objects.get(pk=1)
         self.business_line1 = BusinessLineFactory(

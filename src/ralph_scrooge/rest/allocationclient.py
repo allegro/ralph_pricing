@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.rest.common import get_dates
@@ -301,7 +301,7 @@ class AllocationClientService(APIView):
 
         return Response(response)
 
-    @commit_on_success()
+    @transaction.atomic
     def post(self, request, year, month, service, env, *args, **kwargs):
         if request.FILES and kwargs.get('allocate_type') == 'servicedivision':
             rows, errors = get_allocation_from_file(request.FILES['file'])
@@ -312,7 +312,7 @@ class AllocationClientService(APIView):
                 'rows': rows
             }
         else:
-            post_data = request.DATA
+            post_data = request.data
 
         first_day, last_day, days_in_month = get_dates(year, month)
         if kwargs.get('allocate_type') == 'servicedivision':
@@ -408,7 +408,7 @@ class AllocationClientPerTeam(APIView):
             }
         })
 
-    @commit_on_success()
+    @transaction.atomic
     def post(self, request, year, month, team, *args, **kwargs):
         if request.FILES and team:
             rows, errors = get_allocation_from_file(request.FILES['file'])
@@ -419,7 +419,7 @@ class AllocationClientPerTeam(APIView):
                 'rows': rows
             }
         else:
-            post_data = request.DATA
+            post_data = request.data
 
         first_day, last_day, days_in_month = get_dates(year, month)
 
