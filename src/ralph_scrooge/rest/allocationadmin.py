@@ -53,6 +53,27 @@ class ServiceEnvironmentDoesNotExistError(Exception):
 
 
 def get_allocationadmin_from_file(file):
+    """
+    Parse CSV files from Python File object (file())
+    It then search ServiceEnvironment based on the values in the service field.
+    Returns list of usages (compatible with JSON sent by Scroge GUI)
+
+    Args:
+        file: Python File Object with structures:
+            cost;forecast_cost;service_uid or service_env_id;environment
+            1;1;sc-001;prod
+    Return:
+        list: Example data:
+            [
+                {
+                    'service': service_environment,
+                    'env': service_environment,
+                    'forecast_cost': '1',
+                    'cost': '1'
+                },
+                ...
+            ]
+    """
     file_results = []
     data_results = parse_csv(file)
     errors = []
@@ -297,13 +318,14 @@ class AllocationAdminContent(APIView):
                                 environment_id=ec_row['env']
                             )
                         except ServiceEnvironment.DoesNotExist:
-                            raise ServiceEnvironmentDoesNotExistError(
-                                'No service environment with service id {0}'
-                                ' and environment id {1}'.format(
-                                    ec_row['service'],
-                                    ec_row['env']
-                                )
-                            )
+                            raise ServiceEnvironmentDoesNotExistError((
+                                'Service environment does not exist for '
+                                'service with ID {0} and environment with '
+                                'ID {1}'
+                            ).format(
+                                ec_row['service'],
+                                ec_row['env']
+                            ))
                     if 'id' in ec_row:
                         try:
                             extra_cost = ExtraCost.objects.get(

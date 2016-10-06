@@ -38,6 +38,27 @@ class CannotDetermineValidServiceUsageTypeError(APIException):
 
 
 def get_allocation_from_file(file):
+    """
+    Parse CSV files from Python File object (file())
+    It then search ServiceEnvironment based on the values in the service field.
+    Returns list of usages (compatible with JSON sent by Scroge GUI)
+
+    Args:
+        file: Python File Object with structures:
+            service_uid or service_env_id;environment;value
+            sc-001;prod;10.0
+            sc-002;prod;90.0
+    Return:
+        list: Example data:
+            [
+                {
+                    'service': service_environment,
+                    'env': service_environment,
+                    'value': '10.00',
+                },
+                ...
+            ]
+    """
     file_results = []
     data_results = parse_csv(file)
     errors = []
