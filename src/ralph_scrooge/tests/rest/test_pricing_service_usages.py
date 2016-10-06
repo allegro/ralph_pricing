@@ -10,7 +10,6 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
-from django.test import TestCase
 from rest_framework.test import APIClient
 
 from ralph_scrooge.models import (
@@ -21,6 +20,7 @@ from ralph_scrooge.models import (
     ServiceUsageTypes,
     UsageType,
 )
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     PricingObjectFactory,
     PricingServiceFactory,
@@ -28,7 +28,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestPricingServiceUsages(TestCase):
+class TestPricingServiceUsages(ScroogeTestCase):
 
     def setUp(self):
         self.date = datetime.date(2016, 9, 8)
@@ -585,7 +585,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 400)
         errors = json.loads(resp.content)['usages'][0]['usages']
         self.assertEquals(len(errors), 1)
-        self.assertIn('This field cannot be empty', errors[0])
+        self.assertIn('This field may not be null', errors[0])
 
         # "outer" usages
         pricing_service_usage = {
@@ -601,7 +601,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 400)
         errors = json.loads(resp.content)['usages']
         self.assertEquals(len(errors), 1)
-        self.assertIn('This field cannot be empty', errors[0])
+        self.assertIn('This field may not be null', errors[0])
 
     def test_usages_are_appended_when_not_overwriting_by_default_opt_is_chosen(self):  # noqa
         # 1st POST (same day, same usage type):

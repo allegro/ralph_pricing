@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 from datetime import date
 from mock import MagicMock, patch
 
-from django.test import TestCase
 from django.conf import settings
 from django.test.utils import override_settings
 
@@ -18,6 +17,7 @@ from ralph_scrooge.models import (
     UsageType,
 )
 from ralph_scrooge.plugins.collect import netflow
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     DailyPricingObjectFactory,
     PricingObjectFactory,
@@ -55,7 +55,7 @@ def get_ssh_client_mock(address, login, password):
     )
 
 
-class TestNetwork(TestCase):
+class TestNetwork(ScroogeTestCase):
     def setUp(self):
         settings.NFSEN_CLASS_ADDRESS = []
         settings.SSH_NFSEN_CREDENTIALS = {}

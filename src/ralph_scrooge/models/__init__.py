@@ -14,7 +14,6 @@ from ralph_scrooge.models.owner import (
     OwnershipType,
     ServiceOwnership,
     TeamManager,
-    UserProfile,
     ScroogeUser
 )
 
@@ -119,7 +118,6 @@ __all__ = [
     'TeamServiceEnvironmentPercent',
     'TenantInfo',
     'UsageType',
-    'UserProfile',
     'UsagePrice',
     'VIPInfo',
     'VirtualInfo',

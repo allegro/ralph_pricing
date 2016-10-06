@@ -9,9 +9,9 @@ import datetime
 from mock import call, patch
 
 from django.core.management import call_command
-from django.test import TestCase
 from django.test.utils import override_settings
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.management.commands import scrooge_sync
 
@@ -20,7 +20,7 @@ COLLECT_PLUGINS = ['ralph3_data_center', 'ralph3_business_segment']
 COMMAND_NAME = scrooge_sync.Command.__module__.split('.')[-1]
 
 
-class TestScroogeSync(TestCase):
+class TestScroogeSync(ScroogeTestCase):
     def test_load_plugins(self):
         scrooge_sync._load_plugins()
         self.assertTrue(scrooge_sync.PLUGINS_LOADED)

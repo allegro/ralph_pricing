@@ -33,6 +33,54 @@ class WarehouseFactory(DjangoModelFactory):
     ralph3_id = Sequence(lambda n: n)
 
 
+class UserFactory(DjangoModelFactory):
+    FACTORY_FOR = get_user_model()
+    username = Sequence(lambda n: 'user_{0}'.format(n))
+    first_name = Sequence(lambda n: 'John {0}'.format(n))
+    last_name = Sequence(lambda n: 'Snow {0}'.format(n))
+
+
+class Ralph3UserFactory(DjangoModelFactory):
+    # TODO(xor-xor): This factory shouldn't be used to create more than
+    # 6 users, otherwise you'll get an IntegrityError. But this will be
+    # ironed-out once we switch to Ralph 3 exclusively.
+    FACTORY_FOR = get_user_model()
+    first_name = Iterator([
+        'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
+    ])
+    last_name = Iterator([
+        'Smith', 'Wilson', 'Thomas', 'Roberts', 'Johnson', 'Williams',
+    ])
+    username = LazyAttribute(
+        lambda u: '{}_{}'.format(u.first_name, u.last_name).lower()
+    )
+
+
+@factory.sequence
+def get_ralph3_user(n):
+    return Ralph3UserFactory()
+
+
+class BusinessLineFactory(DjangoModelFactory):
+    FACTORY_FOR = models.BusinessLine
+
+    name = Sequence(lambda n: 'Business Line%s' % n)
+    ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
+    ci_uid = Sequence(lambda n: n)
+
+
+class ProfitCenterFactory(DjangoModelFactory):
+    FACTORY_FOR = models.ProfitCenter
+
+    name = Sequence(lambda n: 'Profit Center%s' % n)
+    description = Sequence(lambda n: 'Profit Center%s description' % n)
+    ci_id = Sequence(lambda n: n)
+    ralph3_id = Sequence(lambda n: n)
+    ci_uid = Sequence(lambda n: n)
+    business_line = SubFactory(BusinessLineFactory)
+
+
 class ServiceFactory(DjangoModelFactory):
     FACTORY_FOR = models.Service
 
@@ -41,6 +89,7 @@ class ServiceFactory(DjangoModelFactory):
     ci_id = Sequence(lambda n: n)
     ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
+    profit_center = SubFactory(ProfitCenterFactory)
 
 
 class EnvironmentFactory(DjangoModelFactory):
@@ -105,6 +154,32 @@ class DailyPricingObjectFactory(DjangoModelFactory):
     service_environment = SubFactory(ServiceEnvironmentFactory)
 
 
+class TenantInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.TenantInfo
+
+    tenant_id = Sequence(lambda n: n)
+    ralph3_tenant_id = Sequence(lambda n: n)
+    type_id = models.PRICING_OBJECT_TYPES.TENANT
+
+
+class DailyTenantInfoFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyTenantInfo
+
+    tenant_info = SubFactory(TenantInfoFactory)
+    enabled = True
+
+
+class DailyUsageFactory(DjangoModelFactory):
+    FACTORY_FOR = models.DailyUsage
+
+    date = datetime.date.today()
+    service_environment = SubFactory(ServiceEnvironmentFactory)
+    daily_pricing_object = SubFactory(DailyPricingObjectFactory)
+    value = fuzzy.FuzzyDecimal(0, 1000)
+    warehouse = SubFactory(WarehouseFactory)
+    type = SubFactory(UsageTypeFactory)
+
+
 class AssetInfoFactory(PricingObjectFactory):
     FACTORY_FOR = models.AssetInfo
 
@@ -114,6 +189,23 @@ class AssetInfoFactory(PricingObjectFactory):
     asset_id = Sequence(lambda n: n)
     ralph3_asset_id = Sequence(lambda n: n)
     warehouse = SubFactory(WarehouseFactory)
+
+
+class VIPInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.VIPInfo
+
+    vip_id = Sequence(lambda n: n)
+    ip_info = SubFactory(PricingObjectFactory)
+    type_id = models.PRICING_OBJECT_TYPES.VIP
+    port = 80
+    load_balancer = SubFactory(AssetInfoFactory)
+
+
+class DailyVIPFactory(DailyPricingObjectFactory):
+    FACTORY_FOR = models.DailyVIPInfo
+
+    vip_info = SubFactory(VIPInfoFactory)
+    ip_info = SubFactory(PricingObjectFactory)
 
 
 class VirtualInfoFactory(PricingObjectFactory):
@@ -138,97 +230,6 @@ class DailyVirtualInfoFactory(DailyPricingObjectFactory):
 
     virtual_info = SubFactory(VirtualInfoFactory)
     hypervisor = SubFactory(DailyAssetInfoFactory)
-
-
-class UserFactory(DjangoModelFactory):
-    FACTORY_FOR = get_user_model()
-    username = Sequence(lambda n: 'user_{0}'.format(n))
-    first_name = Sequence(lambda n: 'John {0}'.format(n))
-    last_name = Sequence(lambda n: 'Snow {0}'.format(n))
-
-
-class Ralph3UserFactory(DjangoModelFactory):
-    # TODO(xor-xor): This factory shouldn't be used to create more than
-    # 6 users, otherwise you'll get an IntegrityError. But this will be
-    # ironed-out once we switch to Ralph 3 exclusively.
-    FACTORY_FOR = get_user_model()
-    first_name = Iterator([
-        'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
-    ])
-    last_name = Iterator([
-        'Smith', 'Wilson', 'Thomas', 'Roberts', 'Johnson', 'Williams',
-    ])
-    username = LazyAttribute(
-        lambda u: '{}_{}'.format(u.first_name, u.last_name).lower()
-    )
-
-
-@factory.sequence
-def get_ralph3_user(n):
-    return Ralph3UserFactory()
-
-
-class BusinessLineFactory(DjangoModelFactory):
-    FACTORY_FOR = models.BusinessLine
-
-    name = Sequence(lambda n: 'Business Line%s' % n)
-    ci_id = Sequence(lambda n: n)
-    ralph3_id = Sequence(lambda n: n)
-    ci_uid = Sequence(lambda n: n)
-
-
-class ProfitCenterFactory(DjangoModelFactory):
-    FACTORY_FOR = models.ProfitCenter
-
-    name = Sequence(lambda n: 'Profit Center%s' % n)
-    description = Sequence(lambda n: 'Profit Center%s description' % n)
-    ci_id = Sequence(lambda n: n)
-    ralph3_id = Sequence(lambda n: n)
-    ci_uid = Sequence(lambda n: n)
-    business_line = SubFactory(BusinessLineFactory)
-
-
-class TenantInfoFactory(PricingObjectFactory):
-    FACTORY_FOR = models.TenantInfo
-
-    tenant_id = Sequence(lambda n: n)
-    ralph3_tenant_id = Sequence(lambda n: n)
-    type_id = models.PRICING_OBJECT_TYPES.TENANT
-
-
-class DailyTenantInfoFactory(DailyPricingObjectFactory):
-    FACTORY_FOR = models.DailyTenantInfo
-
-    tenant_info = SubFactory(TenantInfoFactory)
-    enabled = True
-
-
-class VIPInfoFactory(PricingObjectFactory):
-    FACTORY_FOR = models.VIPInfo
-
-    vip_id = Sequence(lambda n: n)
-    ip_info = SubFactory(PricingObjectFactory)
-    type_id = models.PRICING_OBJECT_TYPES.VIP
-    port = 80
-    load_balancer = SubFactory(AssetInfoFactory)
-
-
-class DailyVIPFactory(DailyPricingObjectFactory):
-    FACTORY_FOR = models.DailyVIPInfo
-
-    vip_info = SubFactory(VIPInfoFactory)
-    ip_info = SubFactory(PricingObjectFactory)
-
-
-class DailyUsageFactory(DjangoModelFactory):
-    FACTORY_FOR = models.DailyUsage
-
-    date = datetime.date.today()
-    service_environment = SubFactory(ServiceEnvironmentFactory)
-    daily_pricing_object = SubFactory(DailyPricingObjectFactory)
-    value = fuzzy.FuzzyDecimal(0, 1000)
-    warehouse = SubFactory(WarehouseFactory)
-    type = SubFactory(UsageTypeFactory)
 
 
 class OpenstackUsageTypeFactory(UsageTypeFactory):

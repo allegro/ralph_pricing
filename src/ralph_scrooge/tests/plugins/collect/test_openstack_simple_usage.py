@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-from django.test import TestCase
 
 from ralph_scrooge.plugins.collect.openstack_simple_usage import (
     save_usage,
@@ -16,6 +15,7 @@ from ralph_scrooge.plugins.collect.openstack_simple_usage import (
     USAGE_SYMBOL_TMPL,
 )
 from ralph_scrooge.models import DailyUsage
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     DailyUsageFactory,
     TenantInfoFactory,
@@ -44,7 +44,7 @@ TEST_SETTINGS = dict(
 )
 
 
-class TestOpenStackSimpleUsage(TestCase):
+class TestOpenStackSimpleUsage(ScroogeTestCase):
     def setUp(self):
         self.today = datetime.date(2014, 7, 1)
         self.yesterday = self.today - datetime.timedelta(days=1)

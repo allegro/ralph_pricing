@@ -9,8 +9,8 @@ from datetime import date, timedelta
 from dateutil import rrule
 import mock
 
-from django.test import TestCase
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.tests.utils.factory import (
     CostDateStatusFactory,
@@ -18,7 +18,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestCollector(TestCase):
+class TestCollector(ScroogeTestCase):
     def setUp(self):
         self.today = date(2013, 10, 11)
         self.checkpoint = date(2013, 10, 15)

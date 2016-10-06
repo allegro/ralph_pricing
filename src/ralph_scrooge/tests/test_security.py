@@ -6,9 +6,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from rest_framework.test import APIClient
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.models import ServiceOwnership, TeamManager
 from ralph_scrooge.tests.utils.factory import (
     ServiceEnvironmentFactory,
@@ -16,7 +16,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestSecurity(TestCase):
+class TestSecurity(ScroogeTestCase):
     def setUp(self):
         self.client = APIClient()
 

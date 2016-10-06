@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 from collections import Counter
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 from django.http import HttpResponse
 from rest_framework import serializers
 from rest_framework import status
@@ -83,11 +83,11 @@ def _get_percents(team_id, start, end):
 class TeamTimeDivisionSerializer(Serializer):
     division = PercentSerializer(many=True, required=True)
 
-    def validate_division(self, attrs, source):
-        division = attrs[source]
+    def validate_division(self, value):
+        division = value
         if division is None or len(division) == 0:
             raise serializers.ValidationError("This field cannot be empty.")
-        return attrs
+        return value
 
     def validate(self, attrs):
         err = None
@@ -164,10 +164,10 @@ class TeamTimeDivision(APIView):
             return Response(
                 {'error': err}, status=status.HTTP_404_NOT_FOUND
             )
-        serializer = TeamTimeDivisionSerializer(data=request.DATA)
+        serializer = TeamTimeDivisionSerializer(data=request.data)
         if serializer.is_valid():
             save_team_time_division(
-                serializer.object['division'],
+                serializer.data['division'],
                 year,
                 month,
                 team_id
@@ -180,7 +180,7 @@ def _args_to_int(*args):
     return tuple([int(arg) for arg in args])
 
 
-@commit_on_success()
+@transaction.atomic
 def save_team_time_division(division, year, month, team_id):
     first_day, last_day, days_in_month = get_dates(year, month)
 

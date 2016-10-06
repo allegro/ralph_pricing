@@ -9,7 +9,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import serializers
@@ -80,14 +80,14 @@ class UsageDeserializer(UsageSerializer):
     symbol = serializers.CharField(required=True)
     value = serializers.FloatField(required=True)
 
-    def validate_symbol(self, attrs, source):
-        if not UsageType.objects.filter(symbol=attrs[source]).exists():
+    def validate_symbol(self, value):
+        if not UsageType.objects.filter(symbol=value).exists():
             err = (
                 'usage type for symbol "{}" does not exist'
-                .format(attrs[source])
+                .format(value)
             )
             raise serializers.ValidationError(err)
-        return attrs
+        return value
 
 
 def new_usages(
@@ -125,25 +125,16 @@ class UsagesDeserializer(UsagesSerializer):
     pricing_object = serializers.CharField(required=False)
     usages = UsageDeserializer(many=True, required=True)
 
-    def field_from_native(self, data, *args, **kwargs):
-        self.context['ignore_unknown_services'] = data.get(
-            'ignore_unknown_services', False
-        )
-        super(UsagesDeserializer, self).field_from_native(
-            data, *args, **kwargs
-        )
-
-    def validate_usages(self, attrs, source):
-        usages = attrs[source]
-        if usages is None or len(usages) == 0:
+    def validate_usages(self, value):
+        if value is None or len(value) == 0:
             raise serializers.ValidationError("This field cannot be empty.")
-        return attrs
+        return value
 
-    def validate_pricing_object(self, attrs, source):
-        pricing_object_name = attrs.get(source)
+    def validate_pricing_object(self, value):
+        pricing_object_name = value
         if pricing_object_name is not None:
             try:
-                attrs[source] = PricingObject.objects.get(
+                value = PricingObject.objects.get(
                     name=pricing_object_name
                 )
             except PricingObject.DoesNotExist:
@@ -153,7 +144,7 @@ class UsagesDeserializer(UsagesSerializer):
                     )
                 )
                 raise serializers.ValidationError(msg)
-        return attrs
+        return value
 
     def validate(self, attrs):
         pricing_obj = attrs.get('pricing_object')
@@ -202,7 +193,7 @@ class UsagesDeserializer(UsagesSerializer):
             else:
                 attrs['pricing_object'] = service_env.dummy_pricing_object
             if err is not None:
-                if self.context['ignore_unknown_services']:
+                if self.root.initial_data.get('ignore_unknown_services'):
                     attrs['pricing_object'] = IGNORE_USAGE_PRICING_OBJECT
                     attrs['_ignore_error'] = err
                 else:
@@ -275,29 +266,26 @@ class PricingServiceUsageDeserializer(PricingServiceUsageSerializer):
     )
     usages = UsagesDeserializer(many=True, required=True)
 
-    def validate_usages(self, attrs, source):
-        usages = attrs[source]
-        if usages is None or len(usages) == 0:
+    def validate_usages(self, value):
+        if value is None or len(value) == 0:
             raise serializers.ValidationError("This field cannot be empty.")
-        return attrs
+        return value
 
-    def validate_overwrite(self, attrs, source):
-        value = attrs[source]
+    def validate_overwrite(self, value):
         if value not in ('no', 'delete_all_previous', 'values_only'):
             raise serializers.ValidationError(
                 "Invalid value: {}".format(value)
             )
-        return attrs
+        return value
 
-    def validate_pricing_service(self, attrs, source):
-        value = attrs[source]
+    def validate_pricing_service(self, value):
         try:
             PricingService.objects.get(name=value)
         except PricingService.DoesNotExist:
             raise serializers.ValidationError(
                 "Unknown service name: {}".format(value)
             )
-        return attrs
+        return value
 
 
 @api_view(['GET'])
@@ -361,7 +349,7 @@ def get_usages(usages_date, pricing_service):
             'service_environment',
             'service_environment__service',
             'service_environment__environment',
-            'pricing_object'
+            'daily_pricing_object'
         )
         for daily_usage in daily_usages:
             usages_dict[daily_usage.daily_pricing_object].append(
@@ -389,14 +377,14 @@ def get_usages(usages_date, pricing_service):
 @authentication_classes((TastyPieLikeTokenAuthentication,))
 @permission_classes((IsAuthenticated,))
 def create_pricing_service_usages(request, *args, **kwargs):
-    deserializer = PricingServiceUsageDeserializer(data=request.DATA)
+    deserializer = PricingServiceUsageDeserializer(data=request.data)
     if deserializer.is_valid():
-        save_usages(deserializer.object)
+        save_usages(deserializer.validated_data)
         return HttpResponse(status=201)
     return Response(deserializer.errors, status=400)
 
 
-@commit_on_success
+@transaction.atomic
 def save_usages(pricing_service_usage):
     """This combines three "low-level" steps:
     1) The transformation of the incoming pricing_service_usage dict into

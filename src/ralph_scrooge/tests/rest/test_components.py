@@ -10,10 +10,10 @@ import json
 
 from django.contrib.auth import get_user_model
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge import models
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.rest.components import ComponentsContent
 from ralph_scrooge.tests.utils.factory import (
     DailyAssetInfoFactory,
@@ -22,7 +22,8 @@ from ralph_scrooge.tests.utils.factory import (
 from rest_framework.test import APIClient
 
 
-class TestComponents(TestCase):
+class TestComponents(ScroogeTestCase):
+
     def setUp(self):
         self.components = ComponentsContent()
         self.se1 = ServiceEnvironmentFactory()
@@ -85,7 +86,7 @@ class TestComponents(TestCase):
         result = self.components.get_field(models.DailyPricingObject, path)
         self.assertEquals(
             result,
-            models.ProfitCenter._meta.get_field_by_name('name')[0]
+            models.ProfitCenter._meta.get_field('name')
         )
 
     def test_get_field_one_to_one(self):
@@ -93,7 +94,7 @@ class TestComponents(TestCase):
         result = self.components.get_field(models.DailyAssetInfo, path)
         self.assertEquals(
             result,
-            models.Service._meta.get_field_by_name('name')[0]
+            models.Service._meta.get_field('name')
         )
 
     def test_get_field_error(self):
@@ -130,7 +131,9 @@ class TestComponents(TestCase):
         })
 
     def test_get_headers_with_alias(self):
-        fields = ['id', 'name', 'assetinfo.sn', ('assetinfo.barcode', 'Alias')]
+        fields = [
+            'id', 'name', 'assetinfo.sn', ('assetinfo.barcode', 'Alias')
+        ]
         headers = self.components.get_headers(
             models.DailyAssetInfo,
             fields,

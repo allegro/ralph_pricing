@@ -7,8 +7,7 @@ from __future__ import unicode_literals
 
 import mock
 
-from django.test import TestCase
-
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.models import BusinessLine
 from ralph_scrooge.plugins.collect.ralph3_business_segment import (
     ralph3_business_segment as business_segment_plugin,
@@ -19,7 +18,7 @@ from ralph_scrooge.tests.plugins.collect.samples.ralph3_business_segment import 
 )
 
 
-class TestBusinessLineCollectPlugin(TestCase):
+class TestBusinessLineCollectPlugin(ScroogeTestCase):
     def _compare_business_line(self, business_line, sample_data):
         self.assertEquals(business_line.name, sample_data['name'])
         self.assertEquals(business_line.ralph3_id, sample_data['id'])

@@ -19,4 +19,4 @@ class History(ModelDiffMixin, db.Model):
     history = IntervalHistoricalRecords()
 
     class Meta:
-        app_label = 'ralph_scrooge'
+        app_label = 'tests'
