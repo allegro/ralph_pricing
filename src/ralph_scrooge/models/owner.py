@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import User, AbstractUser
+from django.contrib.auth.models import AbstractUser
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
@@ -50,6 +50,7 @@ class ScroogeUser(AbstractUser):
         verbose_name = _('user')
         verbose_name_plural = _('users')
         app_label = 'ralph_scrooge'
+        db_table = 'scrooge_user'
 
 
 class UserProfile(db.Model):
