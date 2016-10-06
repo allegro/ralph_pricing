@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import abc
 import logging
 import textwrap
+import sys
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
@@ -49,6 +50,14 @@ class ScroogeBaseCommand(BaseCommand):
             default=None,
             help="Name of file of generated report",
         ),
+        # New options because Django 1.5 has not 'stdout' parameter in
+        # call_command function.
+        # used in ralph_scrooge/tests/management/commands/test_scrooge_base.py
+        make_option(
+            '-s', '--stdout',
+            dest='stdout',
+            default=None,
+        ),
     )
 
     @property
@@ -79,6 +88,7 @@ class ScroogeBaseCommand(BaseCommand):
 
         :param string delimiter: Delimiter for csv format
         """
+        self.stdout = options.get('stdout') or sys.stdout
         # apply default encoding depending on output type
         if not options.get('encoding'):
             if options['file_path']:

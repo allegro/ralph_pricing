@@ -9,6 +9,8 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserChangeForm
 from django.utils.translation import ugettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -29,6 +31,31 @@ class UpdateReadonlyMixin(object):
         if obj:  # editing an existing object
             return list(self.readonly_fields) + list(self.readonly_when_update)
         return self.readonly_fields
+
+
+class ScroogeUserChangeForm(UserChangeForm):
+    class Meta:
+        model = models.ScroogeUser
+
+
+@register(models.ScroogeUser)
+class ScroogeUserAdmin(UserAdmin):
+
+    form = ScroogeUserChangeForm
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
+                                       'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+        (_('Profile'), {
+            'fields': [
+                'nick', 'birth_date', 'gender', 'country', 'city', 'company',
+                'employee_id', 'profit_center', 'cost_center', 'department',
+                'manager', 'location', 'segment',
+            ]
+        })
+    )
 
 
 # =============================================================================

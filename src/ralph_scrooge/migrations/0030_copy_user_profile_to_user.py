@@ -4,6 +4,7 @@ from south.db import db
 from south.v2 import DataMigration
 from django.db import models
 
+
 class Migration(DataMigration):
 
     def forwards(self, orm):
@@ -13,12 +14,25 @@ class Migration(DataMigration):
             'cost_center', 'department', 'manager', 'location', 'segment'
         ]
         for user_profile in orm['ralph_scrooge.UserProfile'].objects.all():
-            user = orm['ralph_scrooge.ScroogeUser'].objects.get(
-                id=user_profile.user_id
+            old_user = orm['auth.User'].objects.get(pk=user_profile.user_id)
+            old_user_dict = old_user.__dict__.copy()
+            user_id = old_user_dict.pop('id')
+            username = old_user_dict.pop('username')
+            del old_user_dict['_state']
+            new_user, _ = orm['ralph_scrooge.ScroogeUser'].objects.get_or_create(
+                id=user_id,
+                username=username,
+                defaults=old_user_dict
             )
-            for fiel_name in fields_to_copy:
-                setattr(user, field_name, getattr(user_profile, field_name))
-            user.save()
+            for field_name in fields_to_copy:
+                setattr(
+                    new_user, field_name, getattr(user_profile, field_name)
+                )
+            new_user.save()
+            for perm in old_user.user_permissions.all():
+                new_user.user_permissions.add(perm)
+            for group in old_user.groups.all():
+                new_user.groups.add(group)
 
     def backwards(self, orm):
         "Write your backwards methods here."
