@@ -162,14 +162,13 @@ class PricingObject(TimeTrackable, EditorTrackable):
     # asset or virtual type
 
     def get_daily_pricing_object(self, date):
-        try:
-            return self.daily_pricing_objects.get(date=date)
-        except DailyPricingObject.DoesNotExist:
-            return DailyPricingObject.objects.create(
-                pricing_object=self,
-                date=date,
+        return self.daily_pricing_objects.get_or_create(
+            date=date,
+            defaults=dict(
                 service_environment=self.service_environment,
+                pricing_object=self,
             )
+        )[0]
 
     def save(self, *args, **kwargs):
         # TODO: check if model type is the same as object type
@@ -248,15 +247,14 @@ class AssetInfo(PricingObject):
         app_label = 'ralph_scrooge'
 
     def get_daily_pricing_object(self, date):
-        try:
-            return self.dailyassetinfo_set.get(date=date)
-        except DailyAssetInfo.DoesNotExist:
-            return DailyAssetInfo.objects.create(
+        return self.dailyassetinfo_set.get_or_create(
+            date=date,
+            defaults=dict(
                 pricing_object=self,
                 asset_info=self,
-                date=date,
                 service_environment=self.service_environment,
             )
+        )[0]
 
 
 class DailyAssetInfo(DailyPricingObject):
@@ -316,15 +314,14 @@ class VirtualInfo(PricingObject):
         app_label = 'ralph_scrooge'
 
     def get_daily_pricing_object(self, date):
-        try:
-            return self.daily_virtuals.get(date=date)
-        except DailyVirtualInfo.DoesNotExist:
-            return DailyVirtualInfo.objects.create(
+        return self.daily_virtuals.get_or_create(
+            date=date,
+            defaults=dict(
                 pricing_object=self,
                 virtual_info=self,
-                date=date,
                 service_environment=self.service_environment,
             )
+        )[0]
 
 
 class DailyVirtualInfo(DailyPricingObject):
@@ -372,15 +369,14 @@ class TenantInfo(PricingObject):
         app_label = 'ralph_scrooge'
 
     def get_daily_pricing_object(self, date):
-        try:
-            return self.daily_tenants.get(date=date)
-        except DailyTenantInfo.DoesNotExist:
-            return DailyTenantInfo.objects.create(
+        return self.daily_tenants.get_or_create(
+            date=date,
+            defaults=dict(
                 pricing_object=self,
                 tenant_info=self,
-                date=date,
                 service_environment=self.service_environment,
             )
+        )[0]
 
 
 class DailyTenantInfo(DailyPricingObject):
@@ -425,16 +421,15 @@ class VIPInfo(PricingObject):
         app_label = 'ralph_scrooge'
 
     def get_daily_pricing_object(self, date):
-        try:
-            return self.daily_vips.get(date=date)
-        except DailyVIPInfo.DoesNotExist:
-            return DailyVIPInfo.objects.create(
+        return self.daily_vips.get_or_create(
+            date=date,
+            defaults=dict(
                 pricing_object=self,
                 vip_info=self,
-                date=date,
                 service_environment=self.service_environment,
                 ip_info=self.ip_info,
             )
+        )[0]
 
 
 class DailyVIPInfo(DailyPricingObject):
@@ -470,15 +465,14 @@ class DatabaseInfo(PricingObject):
         app_label = 'ralph_scrooge'
 
     def get_daily_pricing_object(self, date):
-        try:
-            return self.daily_databases.get(date=date)
-        except DailyDatabaseInfo.DoesNotExist:
-            return DailyDatabaseInfo.objects.create(
+        return self.daily_databases.get_or_create(
+            date=date,
+            defaults=dict(
                 pricing_object=self,
                 database_info=self,
-                date=date,
                 service_environment=self.service_environment,
             )
+        )[0]
 
 
 class DailyDatabaseInfo(DailyPricingObject):
