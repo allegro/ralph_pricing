@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ralph_scrooge.rest.common import get_dates
+from ralph_scrooge.rest.allocationclient import get_allocation_from_file
 from ralph_scrooge.models import (
     DynamicExtraCost,
     DynamicExtraCostType,
@@ -25,7 +26,6 @@ from ralph_scrooge.models import (
     UsageType,
     Warehouse,
 )
-from ralph_scrooge.csvutil import parse_csv
 
 
 class NoUsageTypeError(Exception):
@@ -50,69 +50,6 @@ class NoExtraCostError(Exception):
 
 class ServiceEnvironmentDoesNotExistError(Exception):
     pass
-
-
-def get_allocationadmin_from_file(file):
-    """
-    Parse CSV files from Python File object (file())
-    It then search ServiceEnvironment based on the values in the service field.
-    Returns list of usages (compatible with JSON sent by Scroge GUI)
-
-    Args:
-        file: Python File Object with structures:
-            cost;forecast_cost;service_uid or service_env_id;environment
-            1;1;sc-001;prod
-    Return:
-        list: Example data:
-            [
-                {
-                    'service': service_environment,
-                    'env': service_environment,
-                    'forecast_cost': '1',
-                    'cost': '1'
-                },
-                ...
-            ]
-    """
-    file_results = []
-    data_results = parse_csv(file)
-    errors = []
-    for row in data_results:
-        query = {}
-        if row.get('service_env_id'):
-            query['pk'] = row['service_env_id']
-        else:
-            if row.get('service_uid'):
-                query['service__ci_uid'] = row['service_uid']
-            else:
-                query['service__name'] = row['service_name']
-
-            query['environment__name'] = row['environment']
-
-        try:
-            service_env = ServiceEnvironment.objects.get(**query)
-        except ServiceEnvironment.DoesNotExist:
-            error = (
-                'Service environment for service: {}, environment: '
-                '{} does not exist.'
-            ).format(
-                row.get('service_uid', row.get('service_name')),
-                row['environment']
-            )
-            errors.append(error)
-            service_env = ''
-
-        row_data = {
-            'service': service_env,
-            'env': service_env,
-            'forecast_cost': row['forecast_cost'],
-            'cost': row['cost']
-        }
-        if len(row.get('id', '')) > 1:
-            row_data.update({'id': row['id']})
-        file_results.append(row_data)
-
-    return (file_results, errors)
 
 
 class AllocationAdminContent(APIView):
@@ -405,7 +342,9 @@ class AllocationAdminContent(APIView):
     @commit_on_success()
     def post(self, request, year, month, allocate_type, *args, **kwargs):
         if request.FILES and allocate_type == 'extracosts':
-            rows, errors = get_allocationadmin_from_file(request.FILES['file'])
+            rows, errors = get_allocation_from_file(
+                request.FILES['file'], allocation_admin=True
+            )
             if errors:
                 return Response({'status': False, 'errors': errors})
 

@@ -119,13 +119,23 @@ csv.register_dialect('scrooge', scrooge_dialect)
 
 
 def parse_csv(file):
+    """
+    Parse CSV file.
+
+    Args:
+        file: Python file object
+
+    Returns:
+        tuple: result list, headers from first line.
+    """
     reader = UnicodeReader(file, dialect=scrooge_dialect)
     result = []
     rows = list(reader)
+    headers = rows[0]
     for row in rows[1:]:
         line = {}
-        for i, item in enumerate(rows[0]):
+        for i, item in enumerate(headers):
             line[item] = row[i]
         result.append(line)
 
-    return result
+    return (result, headers)

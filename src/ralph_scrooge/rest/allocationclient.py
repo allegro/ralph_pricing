@@ -14,6 +14,7 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 
 from django.db.transaction import commit_on_success
+from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.rest.common import get_dates
 from ralph_scrooge.models import (
@@ -37,7 +38,7 @@ class CannotDetermineValidServiceUsageTypeError(APIException):
     default_detail = 'Cannot determine valid (single!) service usage type'
 
 
-def get_allocation_from_file(file):
+def get_allocation_from_file(file, allocation_admin=False):
     """
     Parse CSV files from Python File object (file())
     It then search ServiceEnvironment based on the values in the service field.
@@ -45,9 +46,11 @@ def get_allocation_from_file(file):
 
     Args:
         file: Python File Object with structures:
-            service_uid or service_env_id;environment;value
+            service_uid or service_env_id;environment;value;forecast_cost;cost
             sc-001;prod;10.0
             sc-002;prod;90.0
+        allocation_admin: Validate allocation admin columns header,
+            if Falase validate allocation client columns
     Return:
         list: Example data:
             [
@@ -60,8 +63,30 @@ def get_allocation_from_file(file):
             ]
     """
     file_results = []
-    data_results = parse_csv(file)
+    data_results, headers = parse_csv(file)
     errors = []
+
+    if not (
+        'service_env_id' in headers or
+        (
+            ('service_uid' in headers or 'service_name' in headers) and
+            'environment' in headers
+        )
+    ):
+        errors.append(
+            _('Missing columns: service_env_id or service_uid and environment')
+        )
+
+    if allocation_admin:
+        if 'cost' not in headers:
+            errors.append(_('Cost column not found in file headers.'))
+    else:
+        if 'value' not in headers:
+            errors.append(_('Value column not found in file headers.'))
+
+    if errors:
+        return ({}, errors)
+
     for row in data_results:
         query = {}
         if row.get('service_env_id'):
@@ -87,11 +112,21 @@ def get_allocation_from_file(file):
             errors.append(error)
             service_env = ''
 
-        file_results.append({
+        row_data = {
             'service': service_env,
-            'env': service_env,
-            'value': row['value']
-        })
+            'env': service_env
+        }
+        if row.get('value'):
+            row_data.update({'value': row['value']})
+        if row.get('forecast_cost'):
+            # get(.., 0) or 0 because forecast_cost may be empty
+            row_data.update({
+                'forecast_cost': row.get('forecast_cost', 0) or 0
+            })
+        if row.get('cost'):
+            row_data.update({'cost': row['cost']})
+        file_results.append(row_data)
+
     return (file_results, errors)
 
 
