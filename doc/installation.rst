@@ -11,7 +11,7 @@ Install Scrooge from pip
 ------------------------
 A fast and easy way is to install Scrooge from pip::
 
-  (ralph)$ pip install scrooge
+  (scrooge_env)$ pip install scrooge
 
 That's it.
 
@@ -19,57 +19,57 @@ Install Scrooge from sources
 ----------------------------
 It is also possible to install Scrooge from sources. To do this, first, you need to download Scrooge from github::
 
-  (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
+  (scrooge_env)$ git clone git://github.com/allegro/ralph_pricing.git ralph_scrooge
 
 Enter to the project folder::
 
-  (ralph)$ cd ralph_scrooge
+  (scrooge_env)$ cd ralph_scrooge
 
 and install it::
 
-  (ralph)$ pip install -e .
+  (scrooge_env)$ pip install -e .
 
-The Scrooge requirements (ralph, ralph_assets) will be installed automatically
+The Scrooge requirements will be installed automatically
 
 
 Upgrade existing installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To upgrade Scrooge, you need to stop any Ralph processes that are running. It is good practice not to upgrade the old version, but create a separate virtual environment and install everything from the begin, but if you need to upgrade the old version, be sure that everything is stopped.
+To upgrade Scrooge, you need to stop any Scrooge processes that are running. It is good practice not to upgrade the old version, but create a separate virtual environment and install everything from the begin, but if you need to upgrade the old version, be sure that everything is stopped.
 
 
 Upgrade Scrooge from pip
 ------------------------
 If you installed Scrooge from pip, then you can simply::
 
-    (ralph)$ pip install --upgrade scrooge
+  (scrooge_env)$ pip install --upgrade scrooge
 
 After it is finished, upgrade the static files::
 
-    (ralph)$ ralph collectstatic
+  (scrooge_env)$ scrooge collectstatic
 
 Upgrade Scrooge from sources
 ----------------------------
 First, you need to download Scrooge from github::
 
-  (ralph)$ git clone git://github.com/allegro/ralph_pricing.git
+  (scrooge_env)$ git clone git://github.com/allegro/ralph_pricing.git
 
 Enter to the project folder::
 
-  (ralph)$ cd ralph_scrooge
+  (scrooge_env)$ cd ralph_scrooge
 
 and upgrade it::
 
-  (ralph)$ pip install --upgrade -e .
+  (scrooge_env)$ pip install --upgrade -e .
 
 Finally, you need to upgrade the static files::
 
-    (ralph)$ ralph collectstatic
+  (scrooge_env)$ scrooge collectstatic
 
 Migrate the database
 ~~~~~~~~~~~~~~~~~~~~
 Some of updates require database migrations. To migrate a database, you need to run::
 
-    (ralph)$ ralph migrate ralph_scrooge
+  (scrooge_env)$ scrooge migrate ralph_scrooge
 
 Be sure that you have a backup of your database. Sometimes you can migrate data or create some complicated and unwanted changes.
 
@@ -81,4 +81,4 @@ Testing if it works
 ~~~~~~~~~~~~~~~~~~~
 To be sure that everything work fine, is recommended to run unit tests. To do this, run::
 
-  (ralph)$ DJANGO_SETTINGS_PROFILE=test-pricing ralph test ralph_scrooge
+  (scrooge_env)$ test_scrooge test
