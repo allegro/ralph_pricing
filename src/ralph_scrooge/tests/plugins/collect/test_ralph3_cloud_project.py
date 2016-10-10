@@ -78,6 +78,27 @@ class TestServiceCollectPlugin(TestCase):
             self.service_environment
         )
 
+    def test_save_tenant_info_found_by_tenant_id(self):
+        sample_tenant = self._get_sample_tenant()
+        ti = TenantInfoFactory(tenant_id=sample_tenant['project_id'])
+        sample_tenant['service_env']['environment'] = (
+            self.service_environment.environment.name
+        )
+        sample_tenant['service_env']['service_uid'] = (
+            self.service_environment.service.ci_uid
+        )
+        created, tenant_info = save_tenant_info(
+            sample_tenant,
+            self.unknown_service_environment
+        )
+        self.assertFalse(created)
+        self.assertEqual(ti.id, tenant_info.id)
+        self._compare_tenants(sample_tenant, tenant_info)
+        self.assertEquals(
+            tenant_info.service_environment,
+            self.service_environment
+        )
+
     def test_save_tenant_info_invalid_service_environment(self):
         sample_tenant = self._get_sample_tenant()
         sample_tenant['service_env']['environment'] = 'does_not_exist'
