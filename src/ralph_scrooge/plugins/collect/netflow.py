@@ -181,17 +181,21 @@ def extract_ip_and_bytes(row, input_output, class_addresses):
                     bytes_list[1],
                 )
             )
-
+    logger.debug('Processing row "{}"'.format(row))
     split_row = [cell.replace('\x01', '').strip() for cell in row.split('|')]
     ip_address = split_row[0]
     port = split_row[2]
     if input_output[0] == 'dst':
         ip_address = split_row[1]
         port = split_row[3]
-
-    for class_address in class_addresses:
-        if ipaddr.IPv4Address(ip_address) in ipaddr.IPv4Network(class_address):
-            return (ip_address, port, unification(split_row[-1]))
+    try:
+        for class_address in class_addresses:
+            if ipaddr.IPAddress(ip_address) in ipaddr.IPNetwork(class_address):
+                return (ip_address, port, unification(split_row[-1]))
+    except ValueError:
+        logger.warning(
+            'Error processing IP: {} and port: {}'.format(ip_address, port)
+        )
 
 
 def get_network_usage(
