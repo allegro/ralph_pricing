@@ -253,10 +253,10 @@ class OwnerAdmin(admin.ModelAdmin):
     search_fields = ('first_name', 'last_name')
 
     def first_name(self, obj):
-        return obj.profile.user.first_name
+        return obj.user.first_name
 
     def last_name(self, obj):
-        return obj.profile.user.last_name
+        return obj.user.last_name
 
 
 class ServiceOwnershipInline(admin.TabularInline):
