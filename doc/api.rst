@@ -454,12 +454,8 @@ Response::
 
 .. note:: ``teamtimedivision`` endpoint is only accessible to team
    managers (both for read and write). A team manager in Scrooge's is
-   a person who is associated with a given team, and is marked as an
-   owner of some (zero or more) services, so this term has a little
-   bit different meaning than in the real world. In practice however,
-   it boils down to make these two aforementioned changes (i.e., make
-   someone an owner and associate this person with given team) to any
-   regular user in Scrooge Admin.
+   a person who is associated with a given team, and is allowed to
+   allocate team resources (i.e. time) to services.
 
 
 .. [#] Pricing Service is financial extension to regular service. It
