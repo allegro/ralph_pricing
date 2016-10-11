@@ -40,6 +40,10 @@ from ralph_scrooge.models import (
 
 logger = logging.getLogger(__name__)
 
+# special object for ignoring rows with unknown pricing object when
+# `ignore_unknown_services` is set to true
+IGNORE_USAGE_PRICING_OBJECT = object()
+
 
 # TODO(xor-xor): Consider some better naming for dicts in this hierarchy:
 # pricing_service_usage -> usages -> usage
@@ -127,6 +131,14 @@ class UsagesDeserializer(UsagesSerializer):
     pricing_object = serializers.CharField(required=False)
     usages = UsageDeserializer(many=True, required=True)
 
+    def field_from_native(self, data, *args, **kwargs):
+        self.context['ignore_unknown_services'] = data.get(
+            'ignore_unknown_services', False
+        )
+        super(UsagesDeserializer, self).field_from_native(
+            data, *args, **kwargs
+        )
+
     def validate_usages(self, attrs, source):
         usages = attrs[source]
         if usages is None or len(usages) == 0:
@@ -156,7 +168,6 @@ class UsagesDeserializer(UsagesSerializer):
         service_uid = attrs.get('service_uid')
         env = attrs.get('environment')
         err = None
-
         # check for the invalid combinations of fields
         if pricing_obj and any((service, service_id, service_uid, env)):
             err = (
@@ -197,7 +208,11 @@ class UsagesDeserializer(UsagesSerializer):
             else:
                 attrs['pricing_object'] = service_env.dummy_pricing_object
             if err is not None:
-                raise serializers.ValidationError(err)
+                if self.context['ignore_unknown_services']:
+                    attrs['pricing_object'] = IGNORE_USAGE_PRICING_OBJECT
+                    attrs['_ignore_error'] = err
+                else:
+                    raise serializers.ValidationError(err)
 
         return attrs
 
@@ -261,6 +276,9 @@ class PricingServiceUsageSerializer(Serializer):
 class PricingServiceUsageDeserializer(PricingServiceUsageSerializer):
     pricing_service_id = serializers.IntegerField(required=False)
     overwrite = serializers.CharField(required=False, default='no')
+    ignore_unknown_services = serializers.BooleanField(
+        required=False, default=False
+    )
     usages = UsagesDeserializer(many=True, required=True)
 
     def validate_usages(self, attrs, source):
@@ -473,6 +491,14 @@ def get_usages_for_save(pricing_service_usage):
             except KeyError:
                 usage_type = UsageType.objects.get(symbol=usage['symbol'])
             usage_types_cache[usage['symbol']] = usage_type
+            if usages['pricing_object'] is IGNORE_USAGE_PRICING_OBJECT:
+                logger.warning(
+                    'Ignoring usages for pricing service {}: {}'.format(
+                        pricing_service_usage['pricing_service'],
+                        usages['_ignore_error']
+                    )
+                )
+                continue
             daily_pricing_object = (
                 usages['pricing_object'].get_daily_pricing_object(
                     pricing_service_usage['date']

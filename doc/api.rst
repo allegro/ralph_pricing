@@ -117,6 +117,7 @@ Expected data structure
     "pricing_service": "<pricing service name or ID>",
     "date": "<date>",
     ["overwrite: "no | values_only | delete_all_previous"],
+    ["ignore_unknown_services": "true | false"],
     "usages": [
         {
             "pricing_object": "<pricing_object_name>" |
@@ -136,8 +137,9 @@ Expected data structure
     ]
   }
 
-As you can see, the ``overwrite`` field is optional - its default
-value is ``no`` (see below for the description of all of its values).
+As you can see, ``overwrite`` and ``ignore_unknown_services`` field are
+optional - their default value are ``no`` and ``false`` respectively (see below
+for the description of all of their values).
 
 Please note that you could provide here either service being charged
 (given either by its name, ID or UID), which will be charged directly,
@@ -276,6 +278,16 @@ type. There are three possible actions here:
 Please note that in case of uploading your data via pricing object
 (instead of service and environment, see expected-data-structure_),
 its service environment is implicitly given.
+
+"""""""""""""""""""""""""
+Ignoring unknown services
+"""""""""""""""""""""""""
+
+You could use field ``ignore_unknown_services`` to handle the case, when
+incoming data might be invalid, ex. some of provided service-environment does
+not exist. By default (or when this field is set to ``false``) this will result
+in ``400`` error (Bad request). When you set it to ``true``, all invalid rows
+will be ignored and their values will not be saved to Scrooge.
 
 """""""""""""""""""""""""""""""
 Possible responses (HTTP codes)
