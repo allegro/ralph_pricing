@@ -61,7 +61,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
             set(
                 saved_service.serviceownership_set.filter(
                     type=OwnershipType.business
-                ).values_list('owner__profile__user__username', flat=True)
+                ).values_list('owner__user__username', flat=True)
             ),
             set([o['username'] for o in data['business_owners']])
         )
@@ -69,7 +69,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
             set(
                 saved_service.serviceownership_set.filter(
                     type=OwnershipType.technical
-                ).values_list('owner__profile__user__username', flat=True)
+                ).values_list('owner__user__username', flat=True)
             ),
             set([o['username'] for o in data['technical_owners']])
         )
@@ -135,7 +135,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
         )
         # add new technical owner
         self.data['technical_owners'].append({
-            'username': self.owners[5].profile.user.username,
+            'username': self.owners[5].user.username,
         })
         created, service = self._create_and_test_service(self.data)
         self.assertFalse(created)

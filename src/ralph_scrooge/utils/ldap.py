@@ -11,8 +11,6 @@ import logging
 
 import ldap
 
-from dj.choices import Country
-
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +18,6 @@ try:
     from django_auth_ldap.config import ActiveDirectoryGroupType
     from django_auth_ldap.backend import (
         populate_user,
-        populate_user_profile,
         LDAPSettings,
     )
 except ImportError:
@@ -42,33 +39,6 @@ else:
         user.is_superuser = 'superuser' in ldap_user.group_names
         user.is_staff = 'staff' in ldap_user.group_names
         user.is_active = 'active' in ldap_user.group_names
-
-    @receiver(populate_user_profile)
-    def manager_country_attribute_populate(
-        sender, profile, ldap_user, **kwargs
-    ):
-        try:
-            profile_map = settings.AUTH_LDAP_PROFILE_ATTR_MAP
-        except AttributeError:
-            profile_map = {}
-        if 'manager' in profile_map:
-            if profile_map['manager'] in ldap_user.attrs:
-                manager_ref = ldap_user.attrs[profile_map['manager']][0]
-                # CN=John Smith,OU=TOR,OU=Corp-Users,DC=mydomain,DC=internal
-                # prevent UnicodeEncodeError
-                if not isinstance(manager_ref, unicode):
-                    manager_ref = manager_ref.decode('utf-8')
-                cn = manager_ref.split(',')[0][3:]
-                profile.manager = cn
-        # raw value from LDAP is in profile.country for this reason we assign
-        # some correct value
-        profile.country = Country.pl.id
-        if 'country' in profile_map:
-            if profile_map['country'] in ldap_user.attrs:
-                country = ldap_user.attrs[profile_map['country']][0]
-                if len(country) == 2:
-                    # assign None if `country` doesn't exist in Country
-                    profile.country = getattr(Country, country.lower(), None)
 
     class MappedGroupOfNamesType(ActiveDirectoryGroupType):
 

@@ -147,12 +147,6 @@ class UserFactory(DjangoModelFactory):
     last_name = Sequence(lambda n: 'Snow {0}'.format(n))
 
 
-class UserProfileFactory(DjangoModelFactory):
-    FACTORY_FOR = models.UserProfile
-
-    user = factory.SubFactory(UserFactory)
-
-
 class Ralph3UserFactory(DjangoModelFactory):
     # TODO(xor-xor): This factory shouldn't be used to create more than
     # 6 users, otherwise you'll get an IntegrityError. But this will be
@@ -170,35 +164,20 @@ class Ralph3UserFactory(DjangoModelFactory):
 
 
 @factory.sequence
-def get_profile(n):
-    """Due to strange logic in lck.django we can't use subfactories to create
-    profiles."""
-    user = UserFactory()
-    user.profile = UserProfileFactory(user=user)
-    user.save()
-    return user.profile
-
-
-@factory.sequence
-def get_ralph3_profile(n):
-    """Due to strange logic in lck.django we can't use subfactories to create
-    profiles."""
-    user = Ralph3UserFactory()
-    user.profile = UserProfileFactory(user=user)
-    user.save()
-    return user.profile
+def get_ralph3_user(n):
+    return Ralph3UserFactory()
 
 
 class OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
-    profile = get_profile
+    user = factory.SubFactory(UserFactory)
 
 
 class Ralph3OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
-    profile = get_ralph3_profile
+    user = get_ralph3_user
 
 
 class BusinessLineFactory(DjangoModelFactory):
