@@ -63,7 +63,7 @@ def get_allocation_from_file(file, allocation_admin=False):
             ]
     """
     file_results = []
-    data_results, headers = parse_csv(file)
+    headers, data_results = parse_csv(file)
     errors = []
 
     if not (

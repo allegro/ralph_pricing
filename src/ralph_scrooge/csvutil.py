@@ -126,7 +126,7 @@ def parse_csv(file):
         file: Python file object
 
     Returns:
-        tuple: result list, headers from first line.
+        tuple: headers from first line, result list.
     """
     reader = UnicodeReader(file, dialect=scrooge_dialect)
     result = []
@@ -138,4 +138,4 @@ def parse_csv(file):
             line[item] = row[i]
         result.append(line)
 
-    return (result, headers)
+    return (headers, result)
