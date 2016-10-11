@@ -137,7 +137,7 @@ Expected data structure
     ]
   }
 
-As you can see, ``overwrite`` and ``ignore_unknown_services`` field are
+As you can see, ``overwrite`` and ``ignore_unknown_services`` fields are
 optional - their default value are ``no`` and ``false`` respectively (see below
 for the description of all of their values).
 
