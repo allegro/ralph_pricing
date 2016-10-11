@@ -1076,3 +1076,70 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 400)
         self.assertIn(invalid_date, resp.content)
         self.assertIn("invalid date", resp.content)
+
+    def test_save_usages_successfully_when_ignoring_unknown_services(self):
+        service1_uid = self.pricing_object1.service_environment.service.ci_uid
+        env1 = self.pricing_object1.service_environment.environment.name
+        service2_uid = self.pricing_object2.service_environment.service.ci_uid
+        env2 = self.pricing_object2.service_environment.environment.name
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "ignore_unknown_services": True,
+            "usages": [
+                {
+                    "service_uid": service1_uid,
+                    "environment": env1,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+                {
+                    "service_uid": 'unknown',
+                    "environment": 'prod',
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 30,
+                        },
+                    ],
+                },
+                {
+                    "service_uid": service2_uid,
+                    "environment": env2,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 20,
+                        },
+                    ],
+                },
+            ]
+        }
+
+        self.assertEquals(DailyUsage.objects.all().count(), 0)
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        daily_usages = DailyUsage.objects.order_by('id')
+        self.assertEquals(daily_usages.count(), 2)
+        self.assertEquals(
+            daily_usages[0].service_environment,
+            self.service_environment1
+        )
+        self.assertEquals(daily_usages[0].date, self.date)
+        self.assertEquals(daily_usages[0].type, self.usage_type)
+        self.assertEquals(daily_usages[0].value, 40)
+        self.assertEquals(
+            daily_usages[1].service_environment,
+            self.service_environment2
+        )
+        self.assertEquals(daily_usages[1].date, self.date)
+        self.assertEquals(daily_usages[1].type, self.usage_type)
+        self.assertEquals(daily_usages[1].value, 20)
