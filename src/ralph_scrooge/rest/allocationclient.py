@@ -107,22 +107,19 @@ def get_allocation_from_file(file, allocation_admin=False):
                 '{} does not exist.'
             ).format(
                 row.get('service_uid', row.get('service_name')),
-                row['environment']
+                row.get('environment')
             )
             errors.append(error)
             service_env = ''
 
         row_data = {
             'service': service_env,
-            'env': service_env
+            'env': service_env,
+            # get(.., 0) or 0 because forecast_cost may be empty
+            'forecast_cost': row.get('forecast_cost', 0) or 0
         }
         if row.get('value'):
             row_data.update({'value': row['value']})
-        if row.get('forecast_cost'):
-            # get(.., 0) or 0 because forecast_cost may be empty
-            row_data.update({
-                'forecast_cost': row.get('forecast_cost', 0) or 0
-            })
         if row.get('cost'):
             row_data.update({'cost': row['cost']})
         file_results.append(row_data)
