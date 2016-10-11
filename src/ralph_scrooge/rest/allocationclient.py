@@ -102,14 +102,22 @@ def get_allocation_from_file(file, allocation_admin=False):
         try:
             service_env = ServiceEnvironment.objects.get(**query)
         except ServiceEnvironment.DoesNotExist:
-            error = (
-                'Service environment for service: {}, environment: '
-                '{} does not exist.'
-            ).format(
-                row.get('service_uid', row.get('service_name')),
-                row.get('environment')
-            )
-            errors.append(error)
+            if row.get('service_env_id'):
+                errors.append(
+                    'Service environment not found for ID: {}'.format(
+                        row.get('service_env_id')
+                    )
+                )
+            else:
+                errors.append(
+                    (
+                        'Service environment not found for service: {},'
+                        ' environment: {}'
+                    ).format(
+                        row.get('service_uid', row.get('service_name')),
+                        row.get('environment')
+                    )
+                )
             service_env = ''
 
         row_data = {
