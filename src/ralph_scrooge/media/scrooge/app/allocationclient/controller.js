@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.allocationclient', []);
 
-scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', 'menuService', 'stats', function ($scope, $routeParams, $http, menuService, stats) {
+scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', 'menuService', 'stats', 'REST_URLS', function ($scope, $routeParams, $http, menuService, stats, REST_URLS) {
     // Base configuration
     if (typeof($routeParams.tab) !== 'undefined') {
         stats.changeTab($routeParams.tab);
@@ -23,6 +23,46 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
      */
     $scope.addRow = function (costList) {
         costList.push({'service': false, 'value': 0, '_empty': true});
+    };
+    $scope.uploadErrors = [];
+
+    $scope.onUpload = function() {
+        $('#upload_modal').modal('show');
+    };
+
+    $scope.uploadFile = function() {
+        $scope.uploadErrors = [];
+        var urlClientChunks = [REST_URLS.ALLOCATION_CLIENT]
+        if (stats.currentTab == 'teamDivision') {
+            urlClientChunks.push(stats.menuStats['team']['current']);
+            urlClientChunks.push(stats.menuStats['year']['current']);
+            urlClientChunks.push(stats.menuStats['month']['current']);
+            urlClientChunks.push('teamdivision/save/');
+        } else {
+            urlClientChunks.push(stats.menuStats['service']['current']);
+            urlClientChunks.push(stats.menuStats['env']['current']);
+            urlClientChunks.push(stats.menuStats['year']['current']);
+            urlClientChunks.push(stats.menuStats['month']['current']);
+            urlClientChunks.push('servicedivision/save/');
+        }
+
+        var uploadUrl = urlClientChunks.join('/');
+        var file = $scope.myFile;
+        if (file) {
+            var fd = new FormData();
+            fd.append('file', file);
+            $http.post(uploadUrl, fd, {
+                transformRequest: angular.identity,
+                headers: {'Content-Type': undefined}
+            }).success(function(data) {
+                if (data['status'] == true) {
+                    $('#upload_modal').modal('hide');
+                    stats.refreshCurrentSubpage();
+                } else {
+                    $scope.uploadErrors = data['errors'];
+                }
+            }).error(function(){});
+        }
     };
 
     /**

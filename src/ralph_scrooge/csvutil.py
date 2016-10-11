@@ -108,3 +108,34 @@ def make_csv_response(data=[], filename='export.csv', encoding='cp1250'):
     disposition = 'attachment; filename=%s' % filename
     response['Content-Disposition'] = disposition
     return response
+
+
+class scrooge_dialect(csv.excel):
+
+    delimiter = str(';')
+
+
+csv.register_dialect('scrooge', scrooge_dialect)
+
+
+def parse_csv(file):
+    """
+    Parse CSV file.
+
+    Args:
+        file: Python file object
+
+    Returns:
+        tuple: headers from first line, result list.
+    """
+    reader = UnicodeReader(file, dialect=scrooge_dialect)
+    result = []
+    rows = list(reader)
+    headers = rows[0]
+    for row in rows[1:]:
+        line = {}
+        for i, item in enumerate(headers):
+            line[item] = row[i]
+        result.append(line)
+
+    return (headers, result)

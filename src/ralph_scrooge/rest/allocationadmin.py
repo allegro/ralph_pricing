@@ -7,13 +7,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from decimal import Decimal as D
-import json
 
 from django.db.transaction import commit_on_success
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ralph_scrooge.rest.common import get_dates
+from ralph_scrooge.rest.allocationclient import get_allocation_from_file
 from ralph_scrooge.models import (
     DynamicExtraCost,
     DynamicExtraCostType,
@@ -246,19 +246,23 @@ class AllocationAdminContent(APIView):
                         'env' in ec_row and
                         ec_row['service'] and
                         ec_row['env']):
-                    try:
-                        service_environment = ServiceEnvironment.objects.get(
-                            service_id=ec_row['service'],
-                            environment_id=ec_row['env']
-                        )
-                    except ServiceEnvironment.DoesNotExist:
-                        raise ServiceEnvironmentDoesNotExistError(
-                            'No service environment with service id {0}'
-                            ' and environment id {1}'.format(
+                    if isinstance(ec_row['service'], ServiceEnvironment):
+                        service_environment = ec_row['service']
+                    else:
+                        try:
+                            service_environment = ServiceEnvironment.objects.get(  # noqa
+                                service_id=ec_row['service'],
+                                environment_id=ec_row['env']
+                            )
+                        except ServiceEnvironment.DoesNotExist:
+                            raise ServiceEnvironmentDoesNotExistError((
+                                'Service environment does not exist for '
+                                'service with ID {0} and environment with '
+                                'ID {1}'
+                            ).format(
                                 ec_row['service'],
                                 ec_row['env']
-                            )
-                        )
+                            ))
                     if 'id' in ec_row:
                         try:
                             extra_cost = ExtraCost.objects.get(
@@ -337,7 +341,24 @@ class AllocationAdminContent(APIView):
 
     @commit_on_success()
     def post(self, request, year, month, allocate_type, *args, **kwargs):
-        post_data = json.loads(request.raw_post_data)
+        if request.FILES and allocate_type == 'extracosts':
+            rows, errors = get_allocation_from_file(
+                request.FILES['file'], allocation_admin=True
+            )
+            if errors:
+                return Response({'status': False, 'errors': errors})
+
+            post_data = {
+                'rows': [{
+                    'extra_cost_type': {
+                        'id': int(request.POST['extra_cost_type_id'])
+                    },
+                    'extra_costs': rows
+                }]
+            }
+        else:
+            post_data = request.DATA
+
         first_day, last_day, days_in_month = get_dates(year, month)
         if allocate_type == 'baseusages':
             self._save_base_usages(first_day, last_day, post_data)
