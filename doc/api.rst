@@ -111,8 +111,8 @@ Before uploading your usages, you need to do two things:
      ``/admin/ralph_scrooge/usagetype/add/``. Remember that every
      service usage type must have a unique symbol.
 
-    * leave "Show usage type in report" checked.
-    * select "Service usage type".
+    * leave "Show usage type in report" checked. (XXX such field doesn't exist?)
+    * In "Type" field select "Service usage type".
 
   2. Create Pricing Service by visiting
      ``/admin/ralph_scrooge/pricingservice/add/``. Possible options
