@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -17,7 +17,6 @@ from ralph_scrooge.models import (
     Environment,
     Service,
     ServiceEnvironment,
-    UserProfile,
 )
 from ralph_scrooge.models import (
     Team,
@@ -34,7 +33,7 @@ from ralph_scrooge.tests.utils.factory import (
 class TestTeamTimeDivision(TestCase):
 
     def setUp(self):
-        superuser = User.objects.create_superuser(
+        superuser = get_user_model().objects.create_superuser(
             'test', 'test@test.test', 'test'
         )
         self.client = APIClient()
@@ -314,10 +313,9 @@ class TestTeamTimeDivision(TestCase):
         self.assertIn("does not exist", resp.content)
 
     def test_if_only_team_manager_can_upload_divisions(self):
-        regular_user = User.objects.create_user(
+        regular_user = get_user_model().objects.create_user(
             'test2', 'test2@test.test', 'test2'
         )
-        UserProfile.objects.create(user=regular_user)
         self.client.force_authenticate(regular_user)
         division = {
             "division": [
@@ -355,7 +353,7 @@ class TestTeamTimeDivision(TestCase):
         # Let's promote regular_user to Owner and then to TeamManager (we
         # silently assume that all team managers are also owners - but not
         # the other way around).
-        owner = OwnerFactory(profile=regular_user.get_profile())
+        owner = OwnerFactory(user=regular_user)
         TeamManager.objects.create(team=self.team, manager=owner)
 
         resp = self.client.post(url, payload, content_type='application/json')
@@ -399,16 +397,15 @@ class TestTeamTimeDivision(TestCase):
         self.assertEquals(TeamServiceEnvironmentPercent.objects.count(), 3)
 
         # Then try to fetch this data as a regular user.
-        regular_user = User.objects.create_user(
+        regular_user = get_user_model().objects.create_user(
             'test2', 'test2@test.test', 'test2'
         )
-        UserProfile.objects.create(user=regular_user)
         self.client.force_authenticate(regular_user)
         resp = self.client.get(url)
         self.assertEquals(resp.status_code, 403)
 
         # Try again with regular_user promoted to TeamManager.
-        owner = OwnerFactory(profile=regular_user.get_profile())
+        owner = OwnerFactory(user=regular_user)
         TeamManager.objects.create(team=self.team, manager=owner)
         resp = self.client.get(url)
         self.assertEquals(resp.status_code, 200)
