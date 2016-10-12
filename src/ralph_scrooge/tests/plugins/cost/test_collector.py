@@ -25,7 +25,6 @@ class TestCollector(TestCase):
         self.start = date(2013, 10, 1)
         self.end = date(2013, 10, 30)
         self.service_environments = ServiceEnvironmentFactory.create_batch(2)
-        self.collector = Collector()
 
         self.dates1 = self._dates_between(self.start, self.checkpoint)
         self.dates2 = self._dates_between(
@@ -42,25 +41,25 @@ class TestCollector(TestCase):
         )]
 
     def test_get_dates_force_recalculation(self):
-        dates = self.collector._get_dates(self.start, self.end, True, True)
+        dates = Collector._get_dates(self.start, self.end, True, True)
         self.assertEquals(dates, self.dates)
 
     def test_get_dates_forecast(self):
         for days, calculated in [(self.dates1, True), (self.dates2, False)]:
             for day in days:
                 CostDateStatusFactory(date=day, forecast_calculated=calculated)
-        dates = self.collector._get_dates(self.start, self.end, True, False)
+        dates = Collector._get_dates(self.start, self.end, True, False)
         self.assertEquals(dates, self.dates2)
 
     def test_get_dates(self):
         for days, calculated in [(self.dates1, True), (self.dates2, False)]:
             for day in days:
                 CostDateStatusFactory(date=day, calculated=calculated)
-        dates = self.collector._get_dates(self.start, self.end, False, False)
+        dates = Collector._get_dates(self.start, self.end, False, False)
         self.assertEquals(dates, self.dates2)
 
     def test_get_services_environments(self):
-        se = self.collector._get_services_environments()
+        se = Collector._get_services_environments()
         self.assertEquals(list(se), [
             self.service_environments[0],
             self.service_environments[1],
@@ -73,7 +72,7 @@ class TestCollector(TestCase):
         get_dates_mock.return_value = self.dates1
         process_mock.return_value = None
         get_se_mock.return_value = self.service_environments
-        for day, success in self.collector.process_period(
+        for day, success in Collector.process_period(
             self.start,
             self.end,
             True,

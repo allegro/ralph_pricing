@@ -126,13 +126,12 @@ class Command(ScroogeBaseCommand):
         """
         Calculate costs for dates on which costs were not previously calculated
         """
-        collector = Collector()
-        dates_to_calculate = collector._get_dates(start, end, forecast, False)
-        plugins = [pl for pl in collector.get_plugins() if pl.name in plugins]
+        dates_to_calculate = Collector._get_dates(start, end, forecast, False)
+        plugins = [pl for pl in Collector.get_plugins() if pl.name in plugins]
         for day in dates_to_calculate:
-            costs = collector.process(day, forecast, plugins=plugins)
-            processed = collector._create_daily_costs(day, costs, forecast)
-            collector.save_period_costs(day, day, forecast, processed)
+            costs = Collector.process(day, forecast, plugins=plugins)
+            processed = Collector._create_daily_costs(day, costs, forecast)
+            Collector.save_period_costs(day, day, forecast, processed)
 
     @memoize(skip_first=True)
     def _get_usage_prices(self, type_id, start, end, forecast):

@@ -111,10 +111,6 @@ class ModelDiffMixin(object):
     to know what fields have been changed.
     """
 
-    class Meta:
-        abstract = True
-        app_label = 'ralph_scrooge'
-
     def __init__(self, *args, **kwargs):
         super(ModelDiffMixin, self).__init__(*args, **kwargs)
         self.__initial = self._dict
