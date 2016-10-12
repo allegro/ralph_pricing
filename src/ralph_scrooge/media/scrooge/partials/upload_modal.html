@@ -1,14 +1,15 @@
 <div id="upload_modal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-sm" role="document">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         Upload usages
       </div>
       <div class="modal-body">
+        <div class="alert alert-info" role="alert" ng-bind-html="uploadInfo">
+        </div>
         <div class="alert alert-danger" role="alert" ng-if="uploadErrors">
           <p ng-repeat="error in uploadErrors">{{ error }}</p>
         </div>
-
         <input type="file" file-model="myFile"/>
       </div>
       <div class="modal-footer">

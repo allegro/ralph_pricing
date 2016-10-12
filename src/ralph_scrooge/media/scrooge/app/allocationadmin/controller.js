@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.allocationadmin', []);
 
-scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 'stats', 'REST_URLS', function ($scope, $routeParams, $http, stats, REST_URLS) {
+scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 'stats', 'REST_URLS', '$sce', function ($scope, $routeParams, $http, stats, REST_URLS, $sce) {
     if (typeof($routeParams.tab) !== 'undefined') {
         stats.changeTab($routeParams.tab);
     }
@@ -37,6 +37,13 @@ scrooge.controller('allocationAdminCtrl', ['$scope', '$routeParams', '$http', 's
     };
 
     $scope.uploadErrors = [];
+    $scope.uploadInfo = $sce.trustAsHtml(`
+        <strong>Accepted headers:</strong>
+        <br />service_env_id;cost[;forecast_cost*]
+        <br />service_uid;environment;cost[;forecast_cost*]
+        <br />service_name;environment;cost[;forecast_cost*]
+        <br />* - forecast_cost is optional
+    `);
 
     $scope.onUpload = function(extraCostType) {
         $scope.extraCostType = extraCostType;
