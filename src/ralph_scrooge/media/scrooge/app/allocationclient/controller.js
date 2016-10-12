@@ -2,7 +2,7 @@
 
 var scrooge = angular.module('scrooge.controller.allocationclient', []);
 
-scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', 'menuService', 'stats', 'REST_URLS', function ($scope, $routeParams, $http, menuService, stats, REST_URLS) {
+scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', 'menuService', 'stats', 'REST_URLS', '$sce', function ($scope, $routeParams, $http, menuService, stats, REST_URLS, $sce) {
     // Base configuration
     if (typeof($routeParams.tab) !== 'undefined') {
         stats.changeTab($routeParams.tab);
@@ -25,6 +25,12 @@ scrooge.controller('allocationClientCtrl', ['$scope', '$routeParams', '$http', '
         costList.push({'service': false, 'value': 0, '_empty': true});
     };
     $scope.uploadErrors = [];
+    $scope.uploadInfo = $sce.trustAsHtml(`
+        <strong>Accepted headers:</strong>
+        <br />service_env_id;value
+        <br />service_uid;environment;value
+        <br />service_name;environment;value
+    `);
 
     $scope.onUpload = function() {
         $('#upload_modal').modal('show');

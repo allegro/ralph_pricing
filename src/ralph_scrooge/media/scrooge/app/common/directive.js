@@ -33,6 +33,7 @@ scrooge
             scope: {
                 uploadFile: "&",
                 uploadErrors: "=",
+                uploadInfo: "=",
                 myFile: "="
             }
 	    };
