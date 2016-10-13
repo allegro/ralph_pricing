@@ -14,17 +14,20 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from ralph_scrooge.models import (
-    DailyUsage,
+    DailyCost,
     Environment,
     Owner,
     OwnershipType,
-    PricingService,
     Service,
     ServiceOwnership,
     ServiceEnvironment,
     ServiceUsageTypes,
     UsageType,
     UserProfile,
+)
+from ralph_scrooge.rest.service_environments_costs import (
+    USAGE_COST_NUM_DIGITS,
+    USAGE_VALUE_NUM_DIGITS,
 )
 from ralph_scrooge.tests.utils.factory import (
     PricingObjectFactory,
@@ -37,7 +40,7 @@ from ralph_scrooge.tests.utils.factory import (
 class TestPricingServiceUsages(TestCase):
 
     def setUp(self):
-        self.date1 = datetime.date(2016, 8, 1)  # XXX needed?
+        self.date1 = datetime.date(2016, 8, 1)
         self.date1_as_str = self.date1.strftime("%Y-%m-%d")
         self.date2 = datetime.date(2016, 10, 1)
         self.date2_as_str = self.date2.strftime("%Y-%m-%d")
@@ -63,6 +66,22 @@ class TestPricingServiceUsages(TestCase):
             pricing_service=self.pricing_service,
             start=datetime.date.min,
             end=datetime.date.max,
+        )
+        self.daily_cost1 = DailyCostFactory(
+            type=self.usage_type1,
+            pricing_object=self.pricing_object1,
+            service_environment=self.service_environment1,
+            date=self.date1,
+            value=10,
+            cost=20,
+        )
+        self.daily_cost2 = DailyCostFactory(
+            type=self.usage_type2,
+            pricing_object=self.pricing_object1,
+            service_environment=self.service_environment1,
+            date=self.date1,
+            value=11,
+            cost=22,
         )
 
         superuser = User.objects.create_superuser(
@@ -164,42 +183,32 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(self.environment1, resp.content)
 
     def test_if_grouped_date_has_correct_format_when_group_by_month_given(self):  # noqa
-        pass
+        self.payload['date_from'] = "2016-10-01"
+        self.payload['date_to'] = "2016-10-01"
+        self.payload['group_by'] = "month"
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        date_expected = "2016-10"
+        date_received = json.loads(resp.content)['costs'][0]['grouped_date']
+        self.assertEquals(date_received, date_expected)
 
     def test_if_grouped_date_has_correct_format_when_group_by_day_given(self):
-        pass
-
-    def test_if_costs_and_usage_values_are_rounded_to_given_precision(self):
-        pass
-
-    def test_if_expected_total_cost_is_returned_when_group_by_day(self):
-        pass
-
-    def test_if_expected_total_cost_is_returned_when_group_by_month(self):
-        pass
-
-    def test_if_costs_and_usage_values_are_returned_for_all_selected_usage_types(self):  # noqa
-        pass
-
-    def test_if_multiple_validation_errors_are_aggregated_into_one(self):
-        pass
-
-    def test_if_months_range_returns_xxx(self):
-        pass
+        self.payload['date_from'] = "2016-10-01"
+        self.payload['date_to'] = "2016-10-01"
+        self.payload['group_by'] = "day"
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        date_expected = "2016-10-01"
+        date_received = json.loads(resp.content)['costs'][0]['grouped_date']
+        self.assertEquals(date_received, date_expected)
 
     def test_if_only_superuser_and_service_owner_can_fetch_costs_and_usage_values(self):  # noqa
+        # Unauthenticated user.
         self.client = APIClient()
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 401)
 
-        superuser = User.objects.create_superuser(
-            'username1', 'username1@test.test', 'pass1'
-        )
-        self.client = APIClient()
-        self.client.force_authenticate(superuser)
-        resp = self.send_post_request()
-        self.assertEquals(resp.status_code, 200)
-
+        # Regular user (i.e. not superuser or owner).
         regular_user = User.objects.create_user(
             'username2', 'username2@test.test', 'pass2'
         )
@@ -208,6 +217,16 @@ class TestPricingServiceUsages(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 403)
 
+        # Superuser.
+        superuser = User.objects.create_superuser(
+            'username1', 'username1@test.test', 'pass1'
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(superuser)
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+
+        # Owner.
         user_profile = UserProfile.objects.create(user=regular_user)
         owner = Owner.objects.create(profile=user_profile)
         ServiceOwnership.objects.create(
@@ -220,3 +239,60 @@ class TestPricingServiceUsages(TestCase):
         self.client.force_authenticate(regular_user)
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
+
+    def test_if_costs_and_usage_values_are_returned_for_all_selected_usage_types(self):  # noqa
+        self.payload['date_from'] = self.date1_as_str
+        self.payload['date_to'] = self.date1_as_str
+
+        for usage_types in [
+            [self.usage_type1.name, self.usage_type2.name],
+            [self.usage_type1.name],
+        ]:
+            self.payload['usage_types'] = usage_types
+            resp = self.send_post_request()
+            self.assertEquals(resp.status_code, 200)
+            costs = json.loads(resp.content)
+            for ut in UsageType.objects.filter(
+                    name__in=self.payload['usage_types']
+            ):
+                daily_cost = DailyCost.objects.get(type=ut)
+                self.assertEquals(
+                    costs['costs'][0]['usages'][ut.name]['cost'],
+                    daily_cost.cost
+                )
+                self.assertEquals(
+                    costs['costs'][0]['usages'][ut.name]['usage_value'],
+                    daily_cost.value
+                )
+
+    def test_if_costs_and_usage_values_are_rounded_to_given_precision(self):
+        usage_type_name = self.usage_type1.name
+        self.payload['date_from'] = self.date1_as_str
+        self.payload['date_to'] = self.date1_as_str
+        self.payload['usage_types'] = [usage_type_name]
+
+        self.daily_cost1.value = 1.123456789
+        self.daily_cost1.cost = 1.123456789
+        self.daily_cost1.save()
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(
+            costs['costs'][0]['usages'][usage_type_name]['cost'],
+            round(self.daily_cost1.cost, USAGE_COST_NUM_DIGITS)
+        )
+        self.assertEquals(
+            costs['costs'][0]['usages'][usage_type_name]['usage_value'],
+            round(self.daily_cost1.value, USAGE_VALUE_NUM_DIGITS)
+        )
+
+    def test_if_expected_total_cost_is_returned_when_group_by_day(self):
+        pass
+
+    def test_if_expected_total_cost_is_returned_when_group_by_month(self):
+        pass
+
+    def test_if_costs_and_usage_values_are_properly_aggregated(self):
+        # XXX separate tests for day/month
+        pass
