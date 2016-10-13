@@ -12,6 +12,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
 from drf_compound_fields.fields import DictField, ListField
 from rest_framework import serializers
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -22,7 +23,10 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     UsageType,
 )
-from ralph_scrooge.rest.auth import TastyPieLikeTokenAuthentication
+from ralph_scrooge.rest.auth import (
+    IsServiceOwner,
+    TastyPieLikeTokenAuthentication,
+)
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
@@ -75,6 +79,7 @@ class ServiceEnvironmentsCostsDeserializer(Serializer):
     def validate(self, attrs):
         errors = []
 
+        # Validate correctness of date range.
         date_from = attrs.get('date_from')
         date_to = attrs.get('date_to')
         if date_from > date_to:
@@ -267,8 +272,8 @@ def fetch_costs(params_dict):
 
 
 class ServiceEnvironmentsCosts(APIView):
-    authentication_classes = (TastyPieLikeTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, IsServiceOwner)
 
     def post(self, request, *args, **kwargs):
         deserializer = ServiceEnvironmentsCostsDeserializer(data=request.DATA)

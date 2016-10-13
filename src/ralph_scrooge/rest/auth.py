@@ -14,7 +14,10 @@ from rest_framework.exceptions import (
     AuthenticationFailed
 )
 
-from ralph_scrooge.utils.security import has_permission_to_team
+from ralph_scrooge.utils.security import(
+    has_permission_to_team,
+    has_permission_to_service,
+)
 
 
 class TastyPieLikeTokenAuthentication(TokenAuthentication):
@@ -68,7 +71,8 @@ class IsTeamLeader(permissions.BasePermission):
     (from ralph_scrooge.utils.security) that is meant to use with API - the
     difference between these two is that in case of failue (i.e. when user
     doesn't have required permissions), the former redirects to login page,
-    while the latter responds with 403.
+    while the latter responds with 403. Can be extended to get service_uid
+    from request's payload, if needed.
     """
 
     def has_permission(self, request, view):
@@ -76,3 +80,18 @@ class IsTeamLeader(permissions.BasePermission):
         if team_id is None:
             return True
         return has_permission_to_team(request.user, team_id)
+
+
+class IsServiceOwner(permissions.BasePermission):
+    """Checks if given user is an owner of the service given by service_uid
+    that is coming in request's payload. Can easily be extended to get
+    service_uid from URL.
+    """
+
+    def has_permission(self, request, view):
+        service_uid = request.DATA.get('service_uid')
+        if service_uid is None:
+            return True
+        return has_permission_to_service(
+            request.user, service_uid, check_by_uid=True
+        )
