@@ -55,7 +55,7 @@ urlpatterns = [
 
     # Public REST API, v0.10
     url(
-        r'^scrooge/api/v0.10/service-environments-costs/$',  # noqa
+        r'^scrooge/api/v0.10/service-environments-costs/$',
         ServiceEnvironmentsCosts.as_view(),
         name='service_environments_costs',
     ),

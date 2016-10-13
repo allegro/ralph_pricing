@@ -23,10 +23,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     UsageType,
 )
-from ralph_scrooge.rest.auth import (
-    IsServiceOwner,
-    TastyPieLikeTokenAuthentication,
-)
+from ralph_scrooge.rest.auth import IsServiceOwner
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
@@ -103,7 +100,7 @@ class ServiceEnvironmentsCostsDeserializer(Serializer):
             attrs['_service_environment'] = service_env
 
         if len(errors) > 0:
-            err_msg = '{}.'.format('; '.join(errors)).capitalize()
+            err_msg = '{}.'.format('; '.join(errors))
             raise serializers.ValidationError(err_msg)
         return attrs
 
@@ -159,6 +156,17 @@ def months_range(start, stop):
         start += a_month
 
 
+# XXX check those rounding below for some decimals that cannot be converted
+# to float.
+def round_safe(value, precision):
+    """Standard `round` function raises TypeError when None is given as value
+    to be rounded. This function just ignores such values.
+    """
+    if value is None:
+        return value
+    return round(value, precision)
+
+
 # XXX(xor-xor): This function is ugly as hell...
 def fetch_costs_per_month(params_dict):
     costs = {
@@ -207,17 +215,19 @@ def fetch_costs_per_month(params_dict):
 
             current_day += a_day
 
-        # XXX check those rounding below for some decimals that cannot be
-        # converted to float.
         for k, v in usages_dict.iteritems():
             usages_dict[k] = {
-                'cost': round(v['cost'], USAGE_COST_NUM_DIGITS),
-                'usage_value': round(v['usage_value'], USAGE_VALUE_NUM_DIGITS),
+                'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
+                'usage_value': round_safe(
+                    v['usage_value'], USAGE_VALUE_NUM_DIGITS
+                ),
             }
 
         cost = {
             'grouped_date': date_month,
-            'total_cost': round(total_cost_for_month, USAGE_COST_NUM_DIGITS),
+            'total_cost': round_safe(
+                total_cost_for_month, USAGE_COST_NUM_DIGITS
+            ),
             'usages': usages_dict,
         }
 
@@ -248,17 +258,19 @@ def fetch_costs_per_day(params_dict):
             ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
             usages_and_costs[usage_type] = cost_and_value
 
-        # XXX check those rounding below for some decimals that cannot be
-        # converted to float.
         cost = {
             'grouped_date': current_day,
-            'total_cost': round(total_cost_for_day, USAGE_COST_NUM_DIGITS),
+            'total_cost': round_safe(
+                total_cost_for_day, USAGE_COST_NUM_DIGITS
+            ),
             'usages': {},
         }
         for k, v in usages_and_costs.iteritems():
             cost['usages'][k] = {
-                'cost': round(v['cost'], USAGE_COST_NUM_DIGITS),
-                'usage_value': round(v['usage_value'], USAGE_VALUE_NUM_DIGITS),
+                'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
+                'usage_value': round_safe(
+                    v['usage_value'], USAGE_VALUE_NUM_DIGITS
+                ),
             }
         costs['costs'].append(cost)
     return costs
@@ -277,6 +289,15 @@ class ServiceEnvironmentsCosts(APIView):
 
     def post(self, request, *args, **kwargs):
         deserializer = ServiceEnvironmentsCostsDeserializer(data=request.DATA)
+
+        # A workaround for ListField validation (from drf_compound_fields) that
+        # for some reason can't handle nulls gracefully (it gives TypeError
+        # instead of ValidationError or something like that).
+        # This workaround can be removed once we switch to DjRF 3.x and get rid
+        # of drf_compound_fields.
+        if request.DATA.get('usage_types') is None:
+            request.DATA['usage_types'] = []
+
         if deserializer.is_valid():
             if deserializer.object['group_by'] == 'day':
                 costs = fetch_costs_per_day(deserializer.object)
