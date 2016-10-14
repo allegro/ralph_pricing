@@ -14,7 +14,7 @@ from rest_framework.exceptions import (
     AuthenticationFailed
 )
 
-from ralph_scrooge.utils.security import(
+from ralph_scrooge.utils.security import (
     has_permission_to_team,
     has_permission_to_service,
 )

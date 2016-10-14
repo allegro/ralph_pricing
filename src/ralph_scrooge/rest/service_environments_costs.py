@@ -210,8 +210,8 @@ def fetch_costs_per_month(service_env, usage_types, date_from, date_to):
     costs = {
         'costs': [],
     }
-    for date in month_range(date_from, date_to + relativedelta(months=1)):
-        first_day, last_day = get_month_range(start_date=date)
+    for date_ in month_range(date_from, date_to + relativedelta(months=1)):
+        first_day, last_day = get_month_range(start_date=date_)
         current_day = first_day
         a_day = timedelta(days=1)
 
@@ -257,7 +257,7 @@ def fetch_costs_per_month(service_env, usage_types, date_from, date_to):
             }
 
         cost = {
-            'grouped_date': date,
+            'grouped_date': date_,
             'total_cost': round_safe(
                 total_cost_for_month, USAGE_COST_NUM_DIGITS
             ),
@@ -280,23 +280,23 @@ def fetch_costs_per_day(service_env, usage_types, date_from, date_to):
         'costs': [],
     }
 
-    for current_day in date_range(date_from, date_to + timedelta(days=1)):
+    for date_ in date_range(date_from, date_to + timedelta(days=1)):
         total_cost_for_day = DailyCost.objects.filter(
             service_environment=service_env,
-            date=current_day,
+            date=date_,
         ).aggregate(Sum('cost'))['cost__sum']
 
         usages_and_costs = {}
         for usage_type in usage_types:
             cost_and_value = DailyCost.objects_tree.filter(
                 service_environment=service_env,
-                date=current_day,
+                date=date_,
                 type=usage_type
             ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
             usages_and_costs[usage_type] = cost_and_value
 
         cost = {
-            'grouped_date': current_day,
+            'grouped_date': date_,
             'total_cost': round_safe(
                 total_cost_for_day, USAGE_COST_NUM_DIGITS
             ),
