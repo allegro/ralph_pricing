@@ -172,7 +172,9 @@ def round_safe(value, precision):
     return round(value, precision)
 
 
-def fetch_costs_per_month(service_env, usage_types, date_from, date_to):
+def fetch_costs_per_month(
+        service_env, usage_types, date_from, date_to, round_to_month=False
+):
     """Fetch DailyCosts associated with given `service_env` and
     `usage_types`, in range defined by `date_from` and `date_to`, and
     summarize them per-month (i.e. their `value` and `cost` fields).
@@ -203,6 +205,17 @@ def fetch_costs_per_month(service_env, usage_types, date_from, date_to):
     combination - so if there are no such "other" costs, this value should be
     equal to the sum of `cost` fields above.
 
+    The `round_to_month` param, when set to True, rounds `date_from` and
+    `date_to` to month boundaries, i.e. costs from periods:
+
+        <first day of the month> to `date_from`
+
+    and:
+
+        `date_to` to <last day of the month>
+
+    ...are also taken into calculations.
+
     It is also worth mentioning, that precision of fields `total_cost`, `cost`
     and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
     `USAGE_VALUE_NUM_DIGITS` defined in this module.
@@ -210,13 +223,27 @@ def fetch_costs_per_month(service_env, usage_types, date_from, date_to):
     costs = {
         'costs': [],
     }
-    for date_ in month_range(date_from, date_to + relativedelta(months=1)):
+    a_month = relativedelta(months=1)
+    a_day = timedelta(days=1)
+    for date_ in month_range(date_from, date_to + a_month):
         first_day, last_day = get_month_range(start_date=date_)
+
+        if not round_to_month:
+            if (
+                first_day.year == date_from.year and
+                first_day.month == date_from.month and
+                date_from.day > first_day.day
+            ):
+                first_day = date_from
+            if (
+                (last_day - a_day).year == date_to.year and
+                (last_day - a_day).month == date_to.month and
+                date_to.day < (last_day - a_day).day
+            ):
+                last_day = (date_to + a_day)
+
         current_day = first_day
-        a_day = timedelta(days=1)
-
         total_cost_for_month = 0
-
         usages_dict = {}
         for usage_type in usage_types:
             usages_dict[usage_type] = {
