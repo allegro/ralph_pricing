@@ -133,6 +133,10 @@ class ServiceEnvironmentsMonthlyCostsSerializer(Serializer):
 
 # Taken from "Python Cookbook" (3rd edition).
 def get_month_range(start_date=None):
+    """Returns tuple (start_date, end_date), where the `end_date` is
+    `start_date` plus one month. If `start_date` is not given, the first day
+    of the current month (as per date.today()) is taken.
+    """
     if start_date is None:
         start_date = date.today().replace(day=1)
     _, days_in_month = calendar.monthrange(start_date.year, start_date.month)
@@ -142,6 +146,9 @@ def get_month_range(start_date=None):
 
 # Taken from "Python Cookbook" (3rd edition).
 def date_range(start, stop, step=timedelta(days=1)):
+    """This function is similar to "normal" `range`, but it operates on dates
+    instead of numbers.
+    """
     while start < stop:
         yield start
         start += step
@@ -160,7 +167,7 @@ def months_range(start, stop):
 # to float.
 def round_safe(value, precision):
     """Standard `round` function raises TypeError when None is given as value
-    to be rounded. This function just ignores such values.
+    to. This function just ignores such values (i.e., returns them unmodified).
     """
     if value is None:
         return value
