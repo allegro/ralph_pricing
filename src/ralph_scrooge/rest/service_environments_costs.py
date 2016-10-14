@@ -59,7 +59,7 @@ class ServiceEnvironmentsCostsDeserializer(Serializer):
         unknown_values = []
         for ut in usage_types:
             try:
-                # XXX `name` or `symbol`..?
+                # XXX @mkurek: Should we fetch them by `name` or by `symbol`?
                 usage_types_validated.append(UsageType.objects.get(name=ut))
             except UsageType.DoesNotExist:
                 unknown_values.append(ut)
@@ -154,17 +154,15 @@ def date_range(start, stop, step=timedelta(days=1)):
         start += step
 
 
-def months_range(start, stop):
+def month_range(start, stop):
+    """A variant of `date_range`, with `step` param set to 1 month.
+    The `start` and `stop` dates will have `day` component reset to `1`.
+    """
     start = start.replace(day=1)
     stop = stop.replace(day=1)
-    a_month = relativedelta(months=1)
-    while start < stop:
-        yield start
-        start += a_month
+    return date_range(start, stop, step=relativedelta(months=1))
 
 
-# XXX check those rounding below for some decimals that cannot be converted
-# to float.
 def round_safe(value, precision):
     """Standard `round` function raises TypeError when None is given as value
     to. This function just ignores such values (i.e., returns them unmodified).
@@ -174,25 +172,53 @@ def round_safe(value, precision):
     return round(value, precision)
 
 
-# XXX(xor-xor): This function is ugly as hell...
-def fetch_costs_per_month(params_dict):
+def fetch_costs_per_month(service_env, usage_types, date_from, date_to):
+    """Fetch DailyCosts associated with given `service_env` and
+    `usage_types`, in range defined by `date_from` and `date_to`, and
+    summarize them per-month (i.e. their `value` and `cost` fields).
+    The result of such single summarization looks like this:
+
+        {
+            "grouped_date": "2016-10",
+            "total_cost": 14143.68,
+            "usages": {
+                "some_usage_type1": {
+                    "cost": 35.68,
+                    "usage_value": 35.68
+                },
+                "some_usage_type2": {
+                    "cost": 14108.0,
+                    "usage_value": 7054.0
+                }
+                ...
+            }
+        }
+
+    Such results are collected into a list, and that list is wrapped into a
+    dict, under the `costs` key  - and that dict is returned as a final result.
+
+    And while the aforementioned costs are summarized only for selected usage
+    types, the value in `total_cost` field contains sum of costs associated
+    with *all* usage types for a given service environment / date range
+    combination - so if there are no such "other" costs, this value should be
+    equal to the sum of `cost` fields above.
+
+    It is also worth mentioning, that precision of fields `total_cost`, `cost`
+    and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
+    `USAGE_VALUE_NUM_DIGITS` defined in this module.
+    """
     costs = {
         'costs': [],
     }
-
-    for date_month in months_range(
-            params_dict['date_from'],
-            params_dict['date_to'] + relativedelta(months=1)
-    ):
-
-        first_day, last_day = get_month_range(start_date=date_month)
+    for date in month_range(date_from, date_to + relativedelta(months=1)):
+        first_day, last_day = get_month_range(start_date=date)
         current_day = first_day
         a_day = timedelta(days=1)
 
         total_cost_for_month = 0
 
         usages_dict = {}
-        for usage_type in params_dict['usage_types']:
+        for usage_type in usage_types:
             usages_dict[usage_type] = {
                 'cost': 0,
                 'usage_value': 0,
@@ -200,15 +226,15 @@ def fetch_costs_per_month(params_dict):
 
         while (current_day < last_day):
             total_cost_for_day = DailyCost.objects.filter(
-                service_environment=params_dict['_service_environment'],
+                service_environment=service_env,
                 date=current_day,
             ).aggregate(Sum('cost'))['cost__sum']
             if total_cost_for_day is not None:
                 total_cost_for_month += total_cost_for_day
 
-            for usage_type in params_dict['usage_types']:
+            for usage_type in usage_types:
                 cost_and_value = DailyCost.objects_tree.filter(
-                    service_environment=params_dict['_service_environment'],
+                    service_environment=service_env,
                     date=current_day,
                     type=usage_type
                 ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
@@ -231,7 +257,7 @@ def fetch_costs_per_month(params_dict):
             }
 
         cost = {
-            'grouped_date': date_month,
+            'grouped_date': date,
             'total_cost': round_safe(
                 total_cost_for_month, USAGE_COST_NUM_DIGITS
             ),
@@ -242,24 +268,28 @@ def fetch_costs_per_month(params_dict):
     return costs
 
 
-def fetch_costs_per_day(params_dict):
+def fetch_costs_per_day(service_env, usage_types, date_from, date_to):
+    """A simpified variant of `fetch_costs_per_month` that summarizes
+    costs per-day. The only difference in resulting data structures,
+    apart values, is the format of `grouped_date` field - in
+    `fetch_costs_per_month` it will look like "2016-10-01", but here,
+    the day component is stripped, so it will be "2016-10" instead.
+
+    """
     costs = {
         'costs': [],
     }
 
-    for current_day in date_range(
-            params_dict['date_from'],
-            params_dict['date_to'] + timedelta(days=1)
-    ):
+    for current_day in date_range(date_from, date_to + timedelta(days=1)):
         total_cost_for_day = DailyCost.objects.filter(
-            service_environment=params_dict['_service_environment'],
+            service_environment=service_env,
             date=current_day,
         ).aggregate(Sum('cost'))['cost__sum']
 
         usages_and_costs = {}
-        for usage_type in params_dict['usage_types']:
+        for usage_type in usage_types:
             cost_and_value = DailyCost.objects_tree.filter(
-                service_environment=params_dict['_service_environment'],
+                service_environment=service_env,
                 date=current_day,
                 type=usage_type
             ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
@@ -283,13 +313,6 @@ def fetch_costs_per_day(params_dict):
     return costs
 
 
-def fetch_costs(params_dict):
-    if params_dict['group_by'] == 'day':
-        return fetch_costs_per_day(params_dict)
-    if params_dict['group_by'] == 'month':
-        return fetch_costs_per_month(params_dict)
-
-
 class ServiceEnvironmentsCosts(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated, IsServiceOwner)
@@ -306,14 +329,24 @@ class ServiceEnvironmentsCosts(APIView):
             request.DATA['usage_types'] = []
 
         if deserializer.is_valid():
+            service_env = deserializer.object['_service_environment']
+            usage_types = deserializer.object['usage_types']
+            date_from = deserializer.object['date_from']
+            date_to = deserializer.object['date_to']
+
             if deserializer.object['group_by'] == 'day':
-                costs = fetch_costs_per_day(deserializer.object)
+                costs = fetch_costs_per_day(
+                    service_env, usage_types, date_from, date_to
+                )
                 return Response(
                     ServiceEnvironmentsDailyCostsSerializer(costs).data
                 )
             if deserializer.object['group_by'] == 'month':
-                costs = fetch_costs_per_month(deserializer.object)
+                costs = fetch_costs_per_month(
+                    service_env, usage_types, date_from, date_to
+                )
                 return Response(
                     ServiceEnvironmentsMonthlyCostsSerializer(costs).data
                 )
+
         return Response(deserializer.errors, status=400)
