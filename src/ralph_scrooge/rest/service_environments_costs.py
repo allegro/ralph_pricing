@@ -59,8 +59,7 @@ class ServiceEnvironmentsCostsDeserializer(Serializer):
         unknown_values = []
         for ut in usage_types:
             try:
-                # XXX @mkurek: Should we fetch them by `name` or by `symbol`?
-                usage_types_validated.append(UsageType.objects.get(name=ut))
+                usage_types_validated.append(UsageType.objects.get(symbol=ut))
             except UsageType.DoesNotExist:
                 unknown_values.append(ut)
         if len(unknown_values) > 0:
@@ -246,7 +245,7 @@ def fetch_costs_per_month(
         total_cost_for_month = 0
         usages_dict = {}
         for usage_type in usage_types:
-            usages_dict[usage_type] = {
+            usages_dict[usage_type.symbol] = {
                 'cost': 0,
                 'usage_value': 0,
             }
@@ -269,9 +268,9 @@ def fetch_costs_per_month(
                 cost = cost_and_value['cost']
                 usage_value = cost_and_value['usage_value']
                 if cost is not None:
-                    usages_dict[usage_type]['cost'] += cost
+                    usages_dict[usage_type.symbol]['cost'] += cost
                 if usage_value is not None:
-                    usages_dict[usage_type]['usage_value'] += usage_value
+                    usages_dict[usage_type.symbol]['usage_value'] += usage_value  # noqa: E501
 
             current_day += a_day
 
@@ -320,7 +319,7 @@ def fetch_costs_per_day(service_env, usage_types, date_from, date_to):
                 date=date_,
                 type=usage_type
             ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
-            usages_and_costs[usage_type] = cost_and_value
+            usages_and_costs[usage_type.symbol] = cost_and_value
 
         cost = {
             'grouped_date': date_,
