@@ -84,7 +84,7 @@ class TestPricingServiceUsages(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date2_as_str,
             "group_by": "day",
-            "usage_types": [self.usage_type1.name, self.usage_type2.name]
+            "usage_types": [self.usage_type1.symbol, self.usage_type2.symbol]
         }
 
     def create_daily_costs(
@@ -146,7 +146,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         usage_types_used = set(costs['costs'][0]['usages'].keys())
-        usage_types_expected = set([ut.name for ut in UsageType.objects.all()])
+        usage_types_expected = set([ut.symbol for ut in UsageType.objects.all()])
         self.assertEquals(usage_types_used, usage_types_expected)
 
     def test_for_error_when_unknown_group_by_given(self):
@@ -264,8 +264,8 @@ class TestPricingServiceUsages(TestCase):
         ))
 
         for usage_types in [
-            [self.usage_type1.name, self.usage_type2.name],
-            [self.usage_type1.name],
+            [self.usage_type1.symbol, self.usage_type2.symbol],
+            [self.usage_type1.symbol],
         ]:
             self.payload['usage_types'] = usage_types
             resp = self.send_post_request()
@@ -285,10 +285,10 @@ class TestPricingServiceUsages(TestCase):
                 )
 
     def test_if_costs_and_usage_values_are_rounded_to_given_precision(self):
-        usage_type_name = self.usage_type1.name
+        usage_type_symbol = self.usage_type1.symbol
         self.payload['date_from'] = self.date1_as_str
         self.payload['date_to'] = self.date1_as_str
-        self.payload['usage_types'] = [usage_type_name]
+        self.payload['usage_types'] = [usage_type_symbol]
         self.create_daily_costs((
             (self.usage_type1, self.date1, 1.123456789, 1.123456789),
         ))
@@ -297,11 +297,11 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         self.assertEquals(
-            costs['costs'][0]['usages'][usage_type_name]['usage_value'],
+            costs['costs'][0]['usages'][usage_type_symbol]['usage_value'],
             round(self.daily_cost1.value, USAGE_VALUE_NUM_DIGITS)
         )
         self.assertEquals(
-            costs['costs'][0]['usages'][usage_type_name]['cost'],
+            costs['costs'][0]['usages'][usage_type_symbol]['cost'],
             round(self.daily_cost1.cost, USAGE_COST_NUM_DIGITS)
         )
 
@@ -335,16 +335,16 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(len(costs['costs']), 2)
         for c in costs['costs']:
             self.assertEquals(
-                c['usages'][self.usage_type1.name]['usage_value'], 30.0
+                c['usages'][self.usage_type1.symbol]['usage_value'], 30.0
             )
             self.assertEquals(
-                c['usages'][self.usage_type1.name]['cost'], 60.0
+                c['usages'][self.usage_type1.symbol]['cost'], 60.0
             )
             self.assertEquals(
-                c['usages'][self.usage_type2.name]['usage_value'], 33.0
+                c['usages'][self.usage_type2.symbol]['usage_value'], 33.0
             )
             self.assertEquals(
-                c['usages'][self.usage_type2.name]['cost'], 66.0
+                c['usages'][self.usage_type2.symbol]['cost'], 66.0
             )
 
     def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_month(self):  # noqa
@@ -363,7 +363,7 @@ class TestPricingServiceUsages(TestCase):
         self.payload['date_from'] = date_from
         self.payload['date_to'] = date_to
         self.payload['group_by'] = 'month'
-        self.payload['usage_types'] = [self.usage_type1.name]
+        self.payload['usage_types'] = [self.usage_type1.symbol]
 
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
@@ -372,11 +372,11 @@ class TestPricingServiceUsages(TestCase):
         expected_usage_value = usage_value * 31
         expected_cost = cost * 31
         self.assertEquals(
-            costs['costs'][0]['usages'][self.usage_type1.name]['usage_value'],
+            costs['costs'][0]['usages'][self.usage_type1.symbol]['usage_value'],
             expected_usage_value
         )
         self.assertEquals(
-            costs['costs'][0]['usages'][self.usage_type1.name]['cost'],
+            costs['costs'][0]['usages'][self.usage_type1.symbol]['cost'],
             expected_cost
         )
 
