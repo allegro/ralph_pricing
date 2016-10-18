@@ -228,8 +228,9 @@ class AllocationAdminContent(APIView):
             usage_price.forecast_cost = row.get('forecast_cost', 0)
             usage_price.save()
 
-    def _save_extra_costs(self, start, end, post_data):
+    def _save_extra_costs(self, start, end, post_data, from_csv=False):
         saved_costs = []
+        extra_cost_type = None
         for row in post_data['rows']:
             try:
                 extra_cost_type = ExtraCostType.objects_admin.get(
@@ -288,8 +289,15 @@ class AllocationAdminContent(APIView):
                             forecast_cost=ec_row['forecast_cost']
                         )
                     saved_costs.append(extra_cost.id)
+
+        filter_kwargs = {'start': start, 'end': end}
+        if from_csv and extra_cost_type:
+            filter_kwargs.update({'extra_cost_type': extra_cost_type})
+
         # delete extra costs that were missing in the form
-        ExtraCost.objects.filter(start=start, end=end).exclude(
+        ExtraCost.objects.filter(
+            **filter_kwargs
+        ).exclude(
             pk__in=saved_costs
         ).delete()
 
@@ -341,6 +349,7 @@ class AllocationAdminContent(APIView):
 
     @commit_on_success()
     def post(self, request, year, month, allocate_type, *args, **kwargs):
+        from_csv = False
         if request.FILES and allocate_type == 'extracosts':
             rows, errors = get_allocation_from_file(
                 request.FILES['file'], allocation_admin=True
@@ -356,6 +365,7 @@ class AllocationAdminContent(APIView):
                     'extra_costs': rows
                 }]
             }
+            from_csv = True
         else:
             post_data = request.DATA
 
@@ -363,7 +373,7 @@ class AllocationAdminContent(APIView):
         if allocate_type == 'baseusages':
             self._save_base_usages(first_day, last_day, post_data)
         if allocate_type == 'extracosts':
-            self._save_extra_costs(first_day, last_day, post_data)
+            self._save_extra_costs(first_day, last_day, post_data, from_csv)
         if allocate_type == 'dynamicextracosts':
             self._save_dynamic_extra_costs(first_day, last_day, post_data)
         if allocate_type == 'teamcosts':
