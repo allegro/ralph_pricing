@@ -234,6 +234,10 @@ def fetch_costs_per_month(
                 date_from.day > first_day.day
             ):
                 first_day = date_from
+            # This "arithmetic" on days below comes from the fact that
+            # `month_range` is semantically close to "normal" `range` (i.e.
+            # the end value is excluded - hence `date_to + a_month` as a 2nd
+            # argument), so we are always +1 here on days.
             if (
                 (last_day - a_day).year == date_to.year and
                 (last_day - a_day).month == date_to.month and

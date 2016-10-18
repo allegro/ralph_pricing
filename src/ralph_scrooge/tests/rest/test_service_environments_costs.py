@@ -427,3 +427,53 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(costs['costs'][0]['total_cost'], expected_total_cost)
         requested_usage_types = costs['costs'][0]['usages'].keys()
         self.assertNotIn(other_usage_type.name, requested_usage_types)
+
+    def test_if_costs_and_values_are_not_rounded_to_month_boundaries(self):
+        # This test is strictly related to `round_to_month` param in
+        # `fetch_costs_per_month` - see its docstring for additional info.
+        date1 = '2016-10-01'
+        date2 = '2016-10-07'
+        date3 = '2016-10-31'
+        cost1 = 10
+        cost2 = 20
+        cost3 = 30
+        cost4 = 40  # some "other" cost
+        daily_costs = (
+            (self.usage_type1, strptime(date1, '%Y-%m-%d').date(), 1, cost1),
+            (self.usage_type1, strptime(date2, '%Y-%m-%d').date(), 1, cost2),
+            (self.usage_type1, strptime(date3, '%Y-%m-%d').date(), 1, cost3),
+            (self.usage_type2, strptime(date3, '%Y-%m-%d').date(), 1, cost4),
+        )
+        self.create_daily_costs(daily_costs)
+
+        self.payload['date_from'] = date1
+        self.payload['date_to'] = date3
+        self.payload['group_by'] = 'month'
+        self.payload['usage_types'] = [self.usage_type1.symbol]
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(
+            costs['costs'][0]['total_cost'],
+            cost1 + cost2 + cost3 + cost4
+        )
+        self.assertEquals(
+            costs['costs'][0]['usages'][self.usage_type1.symbol]['cost'],
+            cost1 + cost2 + cost3
+        )
+
+        self.payload['date_from'] = date2
+        self.payload['date_to'] = date2
+        self.payload['group_by'] = 'month'
+        self.payload['usage_types'] = [self.usage_type1.symbol]
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(
+            costs['costs'][0]['total_cost'],
+            cost2
+        )
+        self.assertEquals(
+            costs['costs'][0]['usages'][self.usage_type1.symbol]['cost'],
+            cost2
+        )
