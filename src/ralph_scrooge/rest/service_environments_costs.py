@@ -34,7 +34,7 @@ class ServiceEnvironmentsCostsDeserializer(Serializer):
     environment = serializers.CharField()
     date_from = serializers.DateField()
     date_to = serializers.DateField()
-    group_by = serializers.CharField()
+    group_by = serializers.CharField(default='day')
     usage_types = ListField(serializers.CharField(), required=False)
 
     def validate_group_by(self, attrs, source):
