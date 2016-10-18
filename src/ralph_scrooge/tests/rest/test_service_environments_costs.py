@@ -146,7 +146,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         usage_types_used = set(costs['costs'][0]['usages'].keys())
-        usage_types_expected = set([ut.symbol for ut in UsageType.objects.all()])
+        usage_types_expected = set([ut.symbol for ut in UsageType.objects.all()])  # noqa: E501
         self.assertEquals(usage_types_used, usage_types_expected)
 
     def test_for_error_when_unknown_group_by_given(self):
@@ -197,7 +197,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(self.service_uid2, resp.content)
         self.assertIn(self.environment1, resp.content)
 
-    def test_if_grouped_date_has_correct_format_when_group_by_month_given(self):  # noqa
+    def test_if_grouped_date_has_correct_format_when_group_by_month_given(self):  # noqa: E501
         self.payload['date_from'] = "2016-10-01"
         self.payload['date_to'] = "2016-10-01"
         self.payload['group_by'] = "month"
@@ -217,7 +217,7 @@ class TestPricingServiceUsages(TestCase):
         date_received = json.loads(resp.content)['costs'][0]['grouped_date']
         self.assertEquals(date_received, date_expected)
 
-    def test_if_only_superuser_and_service_owner_can_fetch_costs_and_usage_values(self):  # noqa
+    def test_if_only_superuser_and_service_owner_can_fetch_costs_and_usage_values(self):  # noqa: E501
         # Unauthenticated user.
         self.client = APIClient()
         resp = self.send_post_request()
@@ -255,7 +255,7 @@ class TestPricingServiceUsages(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
 
-    def test_if_costs_and_usage_values_are_returned_for_all_selected_usage_types(self):  # noqa
+    def test_if_costs_and_usage_values_are_returned_for_all_selected_usage_types(self):  # noqa: E501
         self.payload['date_from'] = self.date1_as_str
         self.payload['date_to'] = self.date1_as_str
         self.create_daily_costs((
@@ -311,7 +311,7 @@ class TestPricingServiceUsages(TestCase):
     def test_if_expected_total_cost_is_returned_when_group_by_month(self):
         pass
 
-    def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_day(self):  # noqa
+    def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_day(self):  # noqa: E501
         dates = ('2016-10-07', '2016-10-08')
         daily_costs = (
             (self.usage_type1, strptime(dates[0], '%Y-%m-%d').date(), 10, 20),
@@ -347,7 +347,7 @@ class TestPricingServiceUsages(TestCase):
                 c['usages'][self.usage_type2.symbol]['cost'], 66.0
             )
 
-    def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_month(self):  # noqa
+    def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_month(self):  # noqa: E501
         date_from = '2016-10-01'
         date_to = '2016-10-31'
         usage_value = 10
@@ -372,7 +372,7 @@ class TestPricingServiceUsages(TestCase):
         expected_usage_value = usage_value * 31
         expected_cost = cost * 31
         self.assertEquals(
-            costs['costs'][0]['usages'][self.usage_type1.symbol]['usage_value'],
+            costs['costs'][0]['usages'][self.usage_type1.symbol]['usage_value'],  # noqa: E501
             expected_usage_value
         )
         self.assertEquals(
