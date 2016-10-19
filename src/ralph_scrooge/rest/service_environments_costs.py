@@ -19,11 +19,13 @@ from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
 from ralph_scrooge.models import (
+    BaseUsage,
     DailyCost,
     ServiceEnvironment,
     UsageType,
 )
 from ralph_scrooge.rest.auth import IsServiceOwner
+from pprint import pprint  # XXX
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
@@ -59,7 +61,7 @@ class ServiceEnvironmentsCostsDeserializer(Serializer):
         unknown_values = []
         for ut in usage_types:
             try:
-                usage_types_validated.append(UsageType.objects.get(symbol=ut))
+                usage_types_validated.append(BaseUsage.objects.get(symbol=ut))
             except UsageType.DoesNotExist:
                 unknown_values.append(ut)
         if len(unknown_values) > 0:
@@ -109,9 +111,19 @@ class ComponentCostSerializer(Serializer):
     usage_value = serializers.FloatField()
 
 
+# Not very elegant, but DjRF doesn't allow declaring recursive fields in
+# "normal" way. BTW, this workaround allows only one level of recursion,
+# but it is enough for our usage-case. In case you'd need more, you may be
+# better off with `django-rest-framework-recursive` package, or something
+# like that.
+ComponentCostSerializer.base_fields['subcosts'] = DictField(
+    ComponentCostSerializer()
+)
+
+
 class CostsSerializer(Serializer):
     total_cost = serializers.FloatField()
-    usages = DictField(ComponentCostSerializer())
+    costs = DictField(ComponentCostSerializer())
 
 
 class DailyCostsSerializer(CostsSerializer):
@@ -123,11 +135,11 @@ class MonthlyCostsSerializer(CostsSerializer):
 
 
 class ServiceEnvironmentsDailyCostsSerializer(Serializer):
-    costs = DailyCostsSerializer(many=True)
+    service_environment_costs = DailyCostsSerializer(many=True)
 
 
 class ServiceEnvironmentsMonthlyCostsSerializer(Serializer):
-    costs = MonthlyCostsSerializer(many=True)
+    service_environment_costs = MonthlyCostsSerializer(many=True)
 
 
 # Taken from "Python Cookbook" (3rd edition).
@@ -298,6 +310,58 @@ def fetch_costs_per_month(
     return costs
 
 
+def _fetch_subcosts(parent_qs, service_env, date_):
+    """`depth == 0` means that we are dealing with a potential parent, so we
+    need to check if it has any children - and for that we employ the fact
+    that children's `path` always start with parent's path.
+    We also assume three things here:
+    1) that the maximum possible nesting in costs is one level;
+    2) that all members of the queryset `parent_qs` have `depth` == 0;
+    3) that all members of the queryset `parent_qs` have the same `path`
+       component (i.e., they are the same BaseUsage objects; BTW, the numbers
+       visible in `path` field - e.g. "484/483" are the IDs of BaseUsage).
+    """
+    if parent_qs.exists() and parent_qs[0].depth == 0:
+        # Fetch all children, ignore differences in usage_type for now.
+        subcosts_qs = DailyCost.objects_tree.filter(
+            service_environment=service_env,
+            date=date_,
+            path__startswith=parent_qs[0].path,
+            depth=1
+        )
+
+        # Filter `subcosts_qs` by usage_type and preform cost/usage_value
+        # aggregation as in "normal" (i.e. top-level) costs.
+        usage_types = set([subcost.type.usagetype for subcost in subcosts_qs])
+        subcosts = {}
+        for usage_type in usage_types:
+            qs = subcosts_qs.filter(
+                service_environment=service_env,
+                date=date_,
+                type=usage_type
+            )
+            cost_and_value = qs.aggregate(
+                usage_value=Sum('value'), cost=Sum('cost')
+            )
+            subcosts[usage_type.symbol] = cost_and_value
+        return subcosts
+
+
+def _round_recursive(usages_and_costs):
+    """XXX"""
+    rounded = {}
+    if usages_and_costs is not None:
+        for k, v in usages_and_costs.iteritems():
+            rounded[k] = {
+                'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
+                'usage_value': round_safe(
+                    v['usage_value'], USAGE_VALUE_NUM_DIGITS
+                ),
+                'subcosts': _round_recursive(v.get('subcosts', {})),
+            }
+    return rounded
+
+
 def fetch_costs_per_day(service_env, usage_types, date_from, date_to):
     """A simpified variant of `fetch_costs_per_month` that summarizes
     costs per-day. The only difference in resulting data structures,
@@ -306,8 +370,9 @@ def fetch_costs_per_day(service_env, usage_types, date_from, date_to):
     the day component is stripped, so it will be "2016-10" instead.
 
     """
+
     costs = {
-        'costs': [],
+        'service_environment_costs': [],
     }
 
     for date_ in date_range(date_from, date_to + timedelta(days=1)):
@@ -318,11 +383,17 @@ def fetch_costs_per_day(service_env, usage_types, date_from, date_to):
 
         usages_and_costs = {}
         for usage_type in usage_types:
-            cost_and_value = DailyCost.objects_tree.filter(
+            qs = DailyCost.objects_tree.filter(
                 service_environment=service_env,
                 date=date_,
                 type=usage_type
-            ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
+            )
+            cost_and_value = qs.aggregate(
+                usage_value=Sum('value'), cost=Sum('cost')
+            )
+            cost_and_value['subcosts'] = _fetch_subcosts(
+                qs, service_env, date_
+            )
             usages_and_costs[usage_type.symbol] = cost_and_value
 
         cost = {
@@ -330,16 +401,9 @@ def fetch_costs_per_day(service_env, usage_types, date_from, date_to):
             'total_cost': round_safe(
                 total_cost_for_day, USAGE_COST_NUM_DIGITS
             ),
-            'usages': {},
+            'costs': _round_recursive(usages_and_costs),
         }
-        for k, v in usages_and_costs.iteritems():
-            cost['usages'][k] = {
-                'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
-                'usage_value': round_safe(
-                    v['usage_value'], USAGE_VALUE_NUM_DIGITS
-                ),
-            }
-        costs['costs'].append(cost)
+        costs['service_environment_costs'].append(cost)
     return costs
 
 
