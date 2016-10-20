@@ -16,8 +16,8 @@ from ralph_scrooge.rest.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
-from ralph_scrooge.rest.service_environments_costs import (
-    ServiceEnvironmentsCosts,
+from ralph_scrooge.rest.service_environment_costs import (
+    ServiceEnvironmentCosts,
 )
 from ralph_scrooge.rest.team_time_division import TeamTimeDivision
 from ralph_scrooge.views.bootstrapangular import (
@@ -55,9 +55,9 @@ urlpatterns = [
 
     # Public REST API, v0.10
     url(
-        r'^scrooge/api/v0.10/service-environments-costs/$',
-        ServiceEnvironmentsCosts.as_view(),
-        name='service_environments_costs',
+        r'^scrooge/api/v0.10/service-environment-costs/$',
+        ServiceEnvironmentCosts.as_view(),
+        name='service_environment_costs',
     ),
 
     # Internal REST API, that should be used only for GUI.

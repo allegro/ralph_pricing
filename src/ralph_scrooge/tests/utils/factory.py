@@ -119,7 +119,7 @@ class DailyCostFactory(DjangoModelFactory):
 
     service_environment = SubFactory(ServiceEnvironmentFactory)
     type = SubFactory(BaseUsageFactory)
-    path = Sequence(lambda n: n)  # XXX
+    path = Sequence(lambda n: n)
 
 
 class UsageTypeFactory(DjangoModelFactory):

@@ -30,7 +30,7 @@ USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
 
 
-class ServiceEnvironmentsCostsDeserializer(Serializer):
+class ServiceEnvironmentCostsDeserializer(Serializer):
     service_uid = serializers.CharField()
     environment = serializers.CharField()
     date_from = serializers.DateField()
@@ -133,11 +133,11 @@ class MonthlyCostsSerializer(CostsSerializer):
     grouped_date = serializers.DateField(format='%Y-%m')
 
 
-class ServiceEnvironmentsDailyCostsSerializer(Serializer):
+class ServiceEnvironmentDailyCostsSerializer(Serializer):
     service_environment_costs = DailyCostsSerializer(many=True)
 
 
-class ServiceEnvironmentsMonthlyCostsSerializer(Serializer):
+class ServiceEnvironmentMonthlyCostsSerializer(Serializer):
     service_environment_costs = MonthlyCostsSerializer(many=True)
 
 
@@ -399,12 +399,12 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     return final_result
 
 
-class ServiceEnvironmentsCosts(APIView):
+class ServiceEnvironmentCosts(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated, IsServiceOwner)
 
     def post(self, request, *args, **kwargs):
-        deserializer = ServiceEnvironmentsCostsDeserializer(data=request.DATA)
+        deserializer = ServiceEnvironmentCostsDeserializer(data=request.DATA)
 
         # A workaround for ListField validation (from drf_compound_fields) that
         # for some reason can't handle nulls gracefully (it gives TypeError
@@ -427,14 +427,14 @@ class ServiceEnvironmentsCosts(APIView):
                     service_env, usage_types, date_from, date_to, group_by
                 )
                 return Response(
-                    ServiceEnvironmentsDailyCostsSerializer(costs).data
+                    ServiceEnvironmentDailyCostsSerializer(costs).data
                 )
             if group_by == 'month':
                 costs = fetch_costs(
                     service_env, usage_types, date_from, date_to, group_by
                 )
                 return Response(
-                    ServiceEnvironmentsMonthlyCostsSerializer(costs).data
+                    ServiceEnvironmentMonthlyCostsSerializer(costs).data
                 )
 
         return Response(deserializer.errors, status=400)

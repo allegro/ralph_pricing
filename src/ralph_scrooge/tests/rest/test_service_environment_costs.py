@@ -25,7 +25,7 @@ from ralph_scrooge.models import (
     UsageType,
     UserProfile,
 )
-from ralph_scrooge.rest.service_environments_costs import (
+from ralph_scrooge.rest.service_environment_costs import (
     USAGE_COST_NUM_DIGITS,
     USAGE_VALUE_NUM_DIGITS,
     date_range,
@@ -37,11 +37,11 @@ from ralph_scrooge.tests.utils.factory import (
     DailyCostFactory,
 )
 
-
+# Let's abbreviate this name for convenience.
 strptime = datetime.datetime.strptime
 
 
-class TestPricingServiceUsages(TestCase):
+class TestServiceEnvironmentCosts(TestCase):
 
     def setUp(self):
         self.date1 = datetime.date(2016, 8, 1)
@@ -116,7 +116,7 @@ class TestPricingServiceUsages(TestCase):
 
     def send_post_request(self):
         return self.client.post(
-            reverse('service_environments_costs'),
+            reverse('service_environment_costs'),
             json.dumps(self.payload),
             content_type='application/json',
         )
@@ -491,3 +491,5 @@ class TestPricingServiceUsages(TestCase):
             costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['cost'],  # noqa: E501
             cost2
         )
+
+    # TODO(xor-xor): Add test(s) for subcosts.
