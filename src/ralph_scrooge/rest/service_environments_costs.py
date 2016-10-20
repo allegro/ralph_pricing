@@ -183,22 +183,19 @@ def round_safe(value, precision):
     return round(value, precision)
 
 
-def aggregate_costs(qs, usage_type, results):
-    truncate_date_to_month = connection.ops.date_trunc_sql('month', 'date')  # XXX needed?
-    qs = qs.extra({'month': truncate_date_to_month})  # XXX needed?
-
-    # tc_qs = qs.values('month').annotate(Sum('cost')).order_by('month')
-
+def aggregate_costs(qs, usage_type, results, group_by):
+    truncate_date = connection.ops.date_trunc_sql(group_by, 'date')  # XXX needed?
+    qs = qs.extra({group_by: truncate_date})  # XXX needed?
     qs_by_usage_type = qs.filter(type=usage_type)
     if qs_by_usage_type.exists():
         # We assume that all elements in `qs_by_usage_type` have the same
         # `path` attribute - hence we need to check only the first one of them.
         path = qs_by_usage_type[0].path
-    results_by_date = qs_by_usage_type.values('month').annotate(
+    results_by_date = qs_by_usage_type.values(group_by).annotate(
         Sum('cost'), Sum('value')
-    ).order_by('month')
+    ).order_by(group_by)
     for r in results_by_date:
-        d = r['month'].date()
+        d = r[group_by].date()
         cost_and_usage_dict = {
             path: {
                 '_usage_type_symbol': usage_type.symbol,
@@ -226,13 +223,13 @@ def merge_costs_with_subcosts(costs, subcosts):
     return merged_costs
 
 
-def get_total_costs(qs):
+def get_total_costs(qs, group_by):
     total_costs = {}
-    results = qs.filter(depth=0).values('month').annotate(
+    results = qs.filter(depth=0).values(group_by).annotate(
         Sum('cost')
-    ).order_by('month')
+    ).order_by(group_by)
     for r in results:
-        d = r['month'].date()
+        d = r[group_by].date()
         total_costs[d] = r['cost__sum']
     return total_costs
 
@@ -241,19 +238,19 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     # TODO(xor-xor): After switching to Django >= 1.10 `date_trunc_sql` and
     # `extra` won't be available, so use this:
     # http://stackoverflow.com/a/8746532/5768173.
-    truncate_date_to_month = connection.ops.date_trunc_sql('month', 'date')
+    truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
     initial_qs = DailyCost.objects_tree.filter(
         service_environment=service_env,
         date__gte=date_from,
         date__lte=date_to,
     )
-    qs = initial_qs.extra({'month': truncate_date_to_month})
-    total_costs = get_total_costs(qs)
+    qs = initial_qs.extra({group_by: truncate_date})
+    total_costs = get_total_costs(qs, group_by)
     results = {}
     for usage_type in usage_types:
-        aggregate_costs(qs, usage_type, results)
+        aggregate_costs(qs, usage_type, results, group_by)
 
-    # check for subcosts basing on usage_types present initial_qs
+    # Check for subcosts basing on usage types present in `initial_qs`.
     if initial_qs.exists() and initial_qs[0].depth == 0:
         subcosts_qs = initial_qs.filter(
             path__startswith=initial_qs[0].path,
@@ -262,27 +259,42 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
         usage_types = set([subcost.type.usagetype for subcost in subcosts_qs])
         results_subcosts = {}
         for usage_type in usage_types:
-            aggregate_costs(subcosts_qs, usage_type, results_subcosts)
+            aggregate_costs(
+                subcosts_qs, usage_type, results_subcosts, group_by
+            )
 
-    # Construct final result (fill missing months, round values, match subcosts
-    # with their parents etc.).
+    # Construct final result (fill missing days/months, round values, match
+    # subcosts with their parents etc.).
     final_result = {
         'service_environment_costs': []
     }
-    a_month = relativedelta(months=1)
-    for date_ in month_range(date_from, date_to + a_month):
-        total_cost_for_month = total_costs.get(date_, 0)
+    if group_by == 'month':
+        delta = relativedelta(months=1)
+        date_range_ = date_range(
+            date_from.replace(day=1),
+            date_to.replace(day=1) + delta,
+            step=delta
+        )
+    else:  # 'day' is default for `group_by` anyway
+        delta = timedelta(days=1)
+        date_range_ = date_range(
+            date_from,
+            date_to + delta,
+            step=delta
+        )
+    for date_ in date_range_:
+        total_cost_for_date = total_costs.get(date_, 0)
         costs = merge_costs_with_subcosts(
             results.get(date_, {}), results_subcosts.get(date_, {})
         )
-        monthly_costs = {
+        costs_for_date = {
             'grouped_date': date_,
             'total_cost': round_safe(
-                total_cost_for_month, USAGE_COST_NUM_DIGITS
+                total_cost_for_date, USAGE_COST_NUM_DIGITS
             ),
             'costs': _round_recursive(costs),
         }
-        final_result['service_environment_costs'].append(monthly_costs)
+        final_result['service_environment_costs'].append(costs_for_date)
     return final_result
 
 
