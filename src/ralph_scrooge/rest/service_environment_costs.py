@@ -175,7 +175,14 @@ def _get_truncated_date(date_):
 
 
 def _get_total_costs(qs, group_by):
-    """XXX"""
+    """Sums `cost` fields by time period given as `group_by` (i.e. "day",
+    "month"), in queryset given as `qs`.
+
+    Please note that only top-level costs (i.e. with `depth` == 0),
+    even those that are not selected explicitly with `usage_types`
+    (see `fetch_costs`) are taken into account here - hence "total
+    costs" in its name.
+    """
     total_costs = {}
     results = qs.filter(depth=0).values(group_by).annotate(
         Sum('cost')
@@ -186,14 +193,19 @@ def _get_total_costs(qs, group_by):
     return total_costs
 
 
-def _aggregate_costs(qs, usage_type, results, group_by):
+def _aggregate_costs(qs, usage_type, group_by, results):
+    """Aggregate costs from queryset `qs`, which is filtered by `usage_type`
+    and then grouped by date period given as `group_by` (e.g., "day", "month").
+    `results` argument is a dictionary, where results of this function are
+    appended (i.e., this function doesn't return anything).
+    """
     # XXX(xor-xor): Check if truncate_date is really needed here.
     truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
-    qs = qs.extra({group_by: truncate_date})
-    qs_by_usage_type = qs.filter(type=usage_type)
+    qs_with_truncate_date = qs.extra({group_by: truncate_date})
+    qs_by_usage_type = qs_with_truncate_date.filter(type=usage_type)
     if qs_by_usage_type.exists():
         # We assume that all elements in `qs_by_usage_type` have the same
-        # `path` attribute - hence we need to check only the first one of them.
+        # `path` attribute - hence `qs_by_usage_type[0]`.
         path = qs_by_usage_type[0].path
     results_by_date = qs_by_usage_type.values(group_by).annotate(
         Sum('cost'), Sum('value')
@@ -214,7 +226,11 @@ def _aggregate_costs(qs, usage_type, results, group_by):
 
 
 def _merge_costs_with_subcosts(costs, subcosts):
-    """XXX"""
+    """Merge `costs` and `subcosts` dicts, where matching is done via
+    `path` attribute. E.g., having subcost with path "484/483" and
+    cost with path "484", it means that the former should be merged
+    with the latter.
+    """
     merged_costs = {}
     for cost_path, cost_dict in costs.iteritems():
         usage_type_symbol = cost_dict.pop('_usage_type_symbol')
@@ -229,15 +245,14 @@ def _merge_costs_with_subcosts(costs, subcosts):
 
 
 def _fetch_subcosts(parent_qs, service_env, date_):
-    """`depth == 0` means that we are dealing with a potential parent, so we
-    need to check if it has any children - and for that we employ the fact
-    that children's `path` always start with parent's path.
-    We also assume three things here:
+    """Fetches (and aggregate) subcosts basing on the fact that children's
+    `path` always start with parent's `path` (e.g., "484/483" and "484").
+
+    We assume three things here:
     1) that the maximum possible nesting in costs is one level;
     2) that all members of the queryset `parent_qs` have `depth` == 0;
     3) that all members of the queryset `parent_qs` have the same `path`
-       component (i.e., they are the same BaseUsage objects; BTW, the numbers
-       visible in `path` field - e.g. "484/483" are the IDs of BaseUsage).
+       component (i.e., they are the same BaseUsage objects).
     """
     if parent_qs.exists() and parent_qs[0].depth == 0:
         # Fetch all children, ignore differences in usage_type for now.
@@ -288,6 +303,7 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     `usage_types`, in range defined by `date_from` and `date_to`, and
     summarize them (i.e. their `value` and `cost` fields) per period given by
     `group_by` (e.g. "day" or "month").
+
     The result of such single summarization looks like this:
 
         {
@@ -349,7 +365,7 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     total_costs = _get_total_costs(qs, group_by)
     results = {}
     for usage_type in usage_types:
-        _aggregate_costs(qs, usage_type, results, group_by)
+        _aggregate_costs(qs, usage_type, group_by, results)
 
     # Check for subcosts basing on usage types present in `initial_qs`.
     results_subcosts = {}
@@ -361,7 +377,7 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
         usage_types = set([subcost.type.usagetype for subcost in subcosts_qs])
         for usage_type in usage_types:
             _aggregate_costs(
-                subcosts_qs, usage_type, results_subcosts, group_by
+                subcosts_qs, usage_type, group_by, results_subcosts
             )
 
     # Construct final result (fill missing days/months, round values, match
@@ -421,20 +437,15 @@ class ServiceEnvironmentCosts(APIView):
             date_to = deserializer.object['date_to']
             group_by = deserializer.object['group_by']
 
-            # XXX
+            costs = fetch_costs(
+                service_env, usage_types, date_from, date_to, group_by
+            )
             if group_by == 'day':
-                costs = fetch_costs(
-                    service_env, usage_types, date_from, date_to, group_by
-                )
                 return Response(
                     ServiceEnvironmentDailyCostsSerializer(costs).data
                 )
-            if group_by == 'month':
-                costs = fetch_costs(
-                    service_env, usage_types, date_from, date_to, group_by
-                )
+            elif group_by == 'month':
                 return Response(
                     ServiceEnvironmentMonthlyCostsSerializer(costs).data
                 )
-
         return Response(deserializer.errors, status=400)
