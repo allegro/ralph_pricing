@@ -5,8 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import date, datetime, timedelta
-import calendar
+from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 from django.db import connection
@@ -142,7 +141,6 @@ class ServiceEnvironmentsMonthlyCostsSerializer(Serializer):
     service_environment_costs = MonthlyCostsSerializer(many=True)
 
 
-
 def date_range(start, stop, step=timedelta(days=1)):
     """This function is similar to "normal" `range`, but it operates on dates
     instead of numbers. Taken from "Python Cookbook, 3rd ed.".
@@ -189,8 +187,9 @@ def _get_total_costs(qs, group_by):
 
 
 def _aggregate_costs(qs, usage_type, results, group_by):
-    truncate_date = connection.ops.date_trunc_sql(group_by, 'date')  # XXX needed?
-    qs = qs.extra({group_by: truncate_date})  # XXX needed?
+    # XXX(xor-xor): Check if truncate_date is really needed here.
+    truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
+    qs = qs.extra({group_by: truncate_date})
     qs_by_usage_type = qs.filter(type=usage_type)
     if qs_by_usage_type.exists():
         # We assume that all elements in `qs_by_usage_type` have the same
@@ -209,7 +208,7 @@ def _aggregate_costs(qs, usage_type, results, group_by):
             }
         }
         if results.get(d) is not None:
-             results[d].update(cost_and_usage_dict)
+            results[d].update(cost_and_usage_dict)
         else:
             results[d] = cost_and_usage_dict
 
