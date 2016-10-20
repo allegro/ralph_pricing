@@ -139,13 +139,17 @@ class TestPricingServiceUsages(TestCase):
         self.assertIn(unknown_usage_type, resp.content)
 
     def test_if_all_usage_types_are_used_by_default(self):
-        self.payload['date_from'] = '2016-10-01'
-        self.payload['date_to'] = '2016-10-01'
+        self.create_daily_costs((
+            (self.usage_type1, self.date1, 10, 20),
+            (self.usage_type2, self.date1, 11, 21),
+        ))
+        self.payload['date_from'] = self.date1_as_str
+        self.payload['date_to'] = self.date1_as_str
         self.payload.pop('usage_types')
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
-        usage_types_used = set(costs['costs'][0]['usages'].keys())
+        usage_types_used = set(costs['service_environment_costs'][0]['costs'].keys())
         usage_types_expected = set([ut.symbol for ut in UsageType.objects.all()])  # noqa: E501
         self.assertEquals(usage_types_used, usage_types_expected)
 
@@ -204,7 +208,7 @@ class TestPricingServiceUsages(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         date_expected = "2016-10"
-        date_received = json.loads(resp.content)['costs'][0]['grouped_date']
+        date_received = json.loads(resp.content)['service_environment_costs'][0]['grouped_date']
         self.assertEquals(date_received, date_expected)
 
     def test_if_grouped_date_has_correct_format_when_group_by_day_given(self):
@@ -214,7 +218,7 @@ class TestPricingServiceUsages(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         date_expected = "2016-10-01"
-        date_received = json.loads(resp.content)['costs'][0]['grouped_date']
+        date_received = json.loads(resp.content)['service_environment_costs'][0]['grouped_date']
         self.assertEquals(date_received, date_expected)
 
     def test_if_only_superuser_and_service_owner_can_fetch_costs_and_usage_values(self):  # noqa: E501
@@ -276,11 +280,11 @@ class TestPricingServiceUsages(TestCase):
             ):
                 daily_cost = DailyCost.objects.get(type=ut)
                 self.assertEquals(
-                    costs['costs'][0]['usages'][ut.name]['usage_value'],
+                    costs['service_environment_costs'][0]['costs'][ut.name]['usage_value'],
                     daily_cost.value
                 )
                 self.assertEquals(
-                    costs['costs'][0]['usages'][ut.name]['cost'],
+                    costs['service_environment_costs'][0]['costs'][ut.name]['cost'],
                     daily_cost.cost
                 )
 
@@ -297,11 +301,11 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         self.assertEquals(
-            costs['costs'][0]['usages'][usage_type_symbol]['usage_value'],
+            costs['service_environment_costs'][0]['costs'][usage_type_symbol]['usage_value'],
             round(self.daily_cost1.value, USAGE_VALUE_NUM_DIGITS)
         )
         self.assertEquals(
-            costs['costs'][0]['usages'][usage_type_symbol]['cost'],
+            costs['service_environment_costs'][0]['costs'][usage_type_symbol]['cost'],
             round(self.daily_cost1.cost, USAGE_COST_NUM_DIGITS)
         )
 
@@ -332,19 +336,19 @@ class TestPricingServiceUsages(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
-        self.assertEquals(len(costs['costs']), 2)
-        for c in costs['costs']:
+        self.assertEquals(len(costs['service_environment_costs']), 2)
+        for c in costs['service_environment_costs']:
             self.assertEquals(
-                c['usages'][self.usage_type1.symbol]['usage_value'], 30.0
+                c['costs'][self.usage_type1.symbol]['usage_value'], 30.0
             )
             self.assertEquals(
-                c['usages'][self.usage_type1.symbol]['cost'], 60.0
+                c['costs'][self.usage_type1.symbol]['cost'], 60.0
             )
             self.assertEquals(
-                c['usages'][self.usage_type2.symbol]['usage_value'], 33.0
+                c['costs'][self.usage_type2.symbol]['usage_value'], 33.0
             )
             self.assertEquals(
-                c['usages'][self.usage_type2.symbol]['cost'], 66.0
+                c['costs'][self.usage_type2.symbol]['cost'], 66.0
             )
 
     def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_month(self):  # noqa: E501
@@ -368,15 +372,15 @@ class TestPricingServiceUsages(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
-        self.assertEquals(len(costs['costs']), 1)
+        self.assertEquals(len(costs['service_environment_costs']), 1)
         expected_usage_value = usage_value * 31
         expected_cost = cost * 31
         self.assertEquals(
-            costs['costs'][0]['usages'][self.usage_type1.symbol]['usage_value'],  # noqa: E501
+            costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['usage_value'],  # noqa: E501
             expected_usage_value
         )
         self.assertEquals(
-            costs['costs'][0]['usages'][self.usage_type1.symbol]['cost'],
+            costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['cost'],
             expected_cost
         )
 
@@ -397,7 +401,7 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         expected_total_cost = cost1 + cost2
-        self.assertEquals(costs['costs'][0]['total_cost'], expected_total_cost)
+        self.assertEquals(costs['service_environment_costs'][0]['total_cost'], expected_total_cost)
 
         self.assertEquals(UsageType.objects.count(), 2)
         # Create new cost, not associated with usage types being the subject
@@ -424,8 +428,8 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         expected_total_cost = cost1 + cost2 + other_cost
-        self.assertEquals(costs['costs'][0]['total_cost'], expected_total_cost)
-        requested_usage_types = costs['costs'][0]['usages'].keys()
+        self.assertEquals(costs['service_environment_costs'][0]['total_cost'], expected_total_cost)
+        requested_usage_types = costs['service_environment_costs'][0]['costs'].keys()
         self.assertNotIn(other_usage_type.name, requested_usage_types)
 
     def test_if_costs_and_values_are_not_rounded_to_month_boundaries(self):
@@ -454,11 +458,11 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         self.assertEquals(
-            costs['costs'][0]['total_cost'],
+            costs['service_environment_costs'][0]['total_cost'],
             cost1 + cost2 + cost3 + cost4
         )
         self.assertEquals(
-            costs['costs'][0]['usages'][self.usage_type1.symbol]['cost'],
+            costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['cost'],
             cost1 + cost2 + cost3
         )
 
@@ -470,10 +474,10 @@ class TestPricingServiceUsages(TestCase):
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
         self.assertEquals(
-            costs['costs'][0]['total_cost'],
+            costs['service_environment_costs'][0]['total_cost'],
             cost2
         )
         self.assertEquals(
-            costs['costs'][0]['usages'][self.usage_type1.symbol]['cost'],
+            costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['cost'],
             cost2
         )

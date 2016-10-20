@@ -5,7 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import calendar
 
 from dateutil.relativedelta import relativedelta
@@ -62,7 +62,7 @@ class ServiceEnvironmentsCostsDeserializer(Serializer):
         for ut in usage_types:
             try:
                 usage_types_validated.append(BaseUsage.objects.get(symbol=ut))
-            except UsageType.DoesNotExist:
+            except BaseUsage.DoesNotExist:
                 unknown_values.append(ut)
         if len(unknown_values) > 0:
             err = (
@@ -195,7 +195,7 @@ def aggregate_costs(qs, usage_type, results, group_by):
         Sum('cost'), Sum('value')
     ).order_by(group_by)
     for r in results_by_date:
-        d = r[group_by].date()
+        d = _get_truncated_date(r[group_by])
         cost_and_usage_dict = {
             path: {
                 '_usage_type_symbol': usage_type.symbol,
@@ -223,13 +223,28 @@ def merge_costs_with_subcosts(costs, subcosts):
     return merged_costs
 
 
+def _get_truncated_date(date_):
+    """This function is just a workaround for sqlite, where
+    `date_trunc_sql` has slightly different result than on e.g. MySQL
+    (returned date is a string, not a datetime object).
+    Considering that `date_trunc_sql` has been replaced with
+    functions like TruncMonth in Django 1.10, this workaround should
+    be considered as temporary.
+    """
+    try:
+        d = date_.date()
+    except AttributeError:
+        d = datetime.strptime(date_, '%Y-%m-%d %H:%M:%S').date()
+    return d
+
+
 def get_total_costs(qs, group_by):
     total_costs = {}
     results = qs.filter(depth=0).values(group_by).annotate(
         Sum('cost')
     ).order_by(group_by)
     for r in results:
-        d = r[group_by].date()
+        d = _get_truncated_date(r[group_by])
         total_costs[d] = r['cost__sum']
     return total_costs
 
@@ -251,13 +266,13 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
         aggregate_costs(qs, usage_type, results, group_by)
 
     # Check for subcosts basing on usage types present in `initial_qs`.
+    results_subcosts = {}
     if initial_qs.exists() and initial_qs[0].depth == 0:
         subcosts_qs = initial_qs.filter(
             path__startswith=initial_qs[0].path,
             depth=1
         )
         usage_types = set([subcost.type.usagetype for subcost in subcosts_qs])
-        results_subcosts = {}
         for usage_type in usage_types:
             aggregate_costs(
                 subcosts_qs, usage_type, results_subcosts, group_by
@@ -298,144 +313,145 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     return final_result
 
 
-def fetch_costs_per_month(
-        service_env, usage_types, date_from, date_to, round_to_month=False
-):
-    """Fetch DailyCosts associated with given `service_env` and
-    `usage_types`, in range defined by `date_from` and `date_to`, and
-    summarize them per-month (i.e. their `value` and `cost` fields).
-    The result of such single summarization looks like this:
+# def fetch_costs_per_month(
+#         service_env, usage_types, date_from, date_to, round_to_month=False
+# ):
 
-        {
-            "grouped_date": "2016-10",
-            "total_cost": 1400.00,
-            "usages": {
-                "some_usage_type1": {
-                    "cost": 50.00,
-                    "usage_value": 10.00,
-                    "subcosts": {}
-                },
-                "some_usage_type2": {
-                    "cost": 300.0,
-                    "usage_value": 0.0
-                    "subcosts": {
-                        # we assume that only one level of nesting is possible
-                        # here (i.e., that there are no sub-subcosts)
-                        "some_usage_type3": {
-                            "cost": 100.00,
-                            "usage_value": 10.00
-                        },
-                        "some_usage_type4": {
-                            "cost": 200.00,
-                            "usage_value": 20.10
-                        }
-                    }
-                }
-                ...
-            }
-        }
+#      """Fetch DailyCosts associated with given `service_env` and
+#     `usage_types`, in range defined by `date_from` and `date_to`, and
+#     summarize them per-month (i.e. their `value` and `cost` fields).
+#     The result of such single summarization looks like this:
 
-    Such results are collected into a list, and that list is wrapped into a
-    dict, under the `service-environment-costs` key  - and that dict is returned as a final result.
+#         {
+#             "grouped_date": "2016-10",
+#             "total_cost": 1400.00,
+#             "usages": {
+#                 "some_usage_type1": {
+#                     "cost": 50.00,
+#                     "usage_value": 10.00,
+#                     "subcosts": {}
+#                 },
+#                 "some_usage_type2": {
+#                     "cost": 300.0,
+#                     "usage_value": 0.0
+#                     "subcosts": {
+#                         # we assume that only one level of nesting is possible
+#                         # here (i.e., that there are no sub-subcosts)
+#                         "some_usage_type3": {
+#                             "cost": 100.00,
+#                             "usage_value": 10.00
+#                         },
+#                         "some_usage_type4": {
+#                             "cost": 200.00,
+#                             "usage_value": 20.10
+#                         }
+#                     }
+#                 }
+#                 ...
+#             }
+#         }
 
-    And while the aforementioned costs are summarized only for selected usage
-    types, the value in `total_cost` field contains sum of costs associated
-    with *all* usage types for a given service environment / date range
-    combination - so if there are no such "other" costs, this value should be
-    equal to the sum of `cost` fields above.
+#     Such results are collected into a list, and that list is wrapped into a
+#     dict, under the `service-environment-costs` key  - and that dict is returned as a final result.
 
-    The `round_to_month` param, when set to True, rounds `date_from` and
-    `date_to` to month boundaries, i.e. costs from periods:
+#     And while the aforementioned costs are summarized only for selected usage
+#     types, the value in `total_cost` field contains sum of costs associated
+#     with *all* usage types for a given service environment / date range
+#     combination - so if there are no such "other" costs, this value should be
+#     equal to the sum of `cost` fields above.
 
-        <first day of the month> to `date_from`
+#     The `round_to_month` param, when set to True, rounds `date_from` and
+#     `date_to` to month boundaries, i.e. costs from periods:
 
-    and:
+#         <first day of the month> to `date_from`
 
-        `date_to` to <last day of the month>
+#     and:
 
-    ...are also taken into calculations.
+#         `date_to` to <last day of the month>
 
-    It is also worth mentioning, that precision of fields `total_cost`, `cost`
-    and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
-    `USAGE_VALUE_NUM_DIGITS` defined in this module.
-    """
-    costs = {
-        'costs': [],
-    }
-    a_month = relativedelta(months=1)
-    a_day = timedelta(days=1)
-    for date_ in month_range(date_from, date_to + a_month):
-        first_day, last_day = get_month_range(start_date=date_)
+#     ...are also taken into calculations.
 
-        if not round_to_month:
-            if (
-                first_day.year == date_from.year and
-                first_day.month == date_from.month and
-                date_from.day > first_day.day
-            ):
-                first_day = date_from
-            # This "arithmetic" on days below comes from the fact that
-            # `month_range` is semantically close to "normal" `range` (i.e.
-            # the end value is excluded - hence `date_to + a_month` as a 2nd
-            # argument), so we are always +1 here on days.
-            if (
-                (last_day - a_day).year == date_to.year and
-                (last_day - a_day).month == date_to.month and
-                date_to.day < (last_day - a_day).day
-            ):
-                last_day = (date_to + a_day)
+#     It is also worth mentioning, that precision of fields `total_cost`, `cost`
+#     and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
+#     `USAGE_VALUE_NUM_DIGITS` defined in this module.
+#     """
+#     costs = {
+#         'costs': [],
+#     }
+#     a_month = relativedelta(months=1)
+#     a_day = timedelta(days=1)
+#     for date_ in month_range(date_from, date_to + a_month):
+#         first_day, last_day = get_month_range(start_date=date_)
 
-        current_day = first_day
-        total_cost_for_month = 0
-        usages_dict = {}
-        for usage_type in usage_types:
-            usages_dict[usage_type.symbol] = {
-                'cost': 0,
-                'usage_value': 0,
-            }
+#         if not round_to_month:
+#             if (
+#                 first_day.year == date_from.year and
+#                 first_day.month == date_from.month and
+#                 date_from.day > first_day.day
+#             ):
+#                 first_day = date_from
+#             # This "arithmetic" on days below comes from the fact that
+#             # `month_range` is semantically close to "normal" `range` (i.e.
+#             # the end value is excluded - hence `date_to + a_month` as a 2nd
+#             # argument), so we are always +1 here on days.
+#             if (
+#                 (last_day - a_day).year == date_to.year and
+#                 (last_day - a_day).month == date_to.month and
+#                 date_to.day < (last_day - a_day).day
+#             ):
+#                 last_day = (date_to + a_day)
 
-        while (current_day < last_day):
-            total_cost_for_day = DailyCost.objects.filter(
-                service_environment=service_env,
-                date=current_day,
-            ).aggregate(Sum('cost'))['cost__sum']
-            if total_cost_for_day is not None:
-                total_cost_for_month += total_cost_for_day
+#         current_day = first_day
+#         total_cost_for_month = 0
+#         usages_dict = {}
+#         for usage_type in usage_types:
+#             usages_dict[usage_type.symbol] = {
+#                 'cost': 0,
+#                 'usage_value': 0,
+#             }
 
-            for usage_type in usage_types:
-                cost_and_value = DailyCost.objects_tree.filter(
-                    service_environment=service_env,
-                    date=current_day,
-                    type=usage_type
-                ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
+#         while (current_day < last_day):
+#             total_cost_for_day = DailyCost.objects.filter(
+#                 service_environment=service_env,
+#                 date=current_day,
+#             ).aggregate(Sum('cost'))['cost__sum']
+#             if total_cost_for_day is not None:
+#                 total_cost_for_month += total_cost_for_day
 
-                cost = cost_and_value['cost']
-                usage_value = cost_and_value['usage_value']
-                if cost is not None:
-                    usages_dict[usage_type.symbol]['cost'] += cost
-                if usage_value is not None:
-                    usages_dict[usage_type.symbol]['usage_value'] += usage_value  # noqa: E501
+#             for usage_type in usage_types:
+#                 cost_and_value = DailyCost.objects_tree.filter(
+#                     service_environment=service_env,
+#                     date=current_day,
+#                     type=usage_type
+#                 ).aggregate(usage_value=Sum('value'), cost=Sum('cost'))
 
-            current_day += a_day
+#                 cost = cost_and_value['cost']
+#                 usage_value = cost_and_value['usage_value']
+#                 if cost is not None:
+#                     usages_dict[usage_type.symbol]['cost'] += cost
+#                 if usage_value is not None:
+#                     usages_dict[usage_type.symbol]['usage_value'] += usage_value  # noqa: E501
 
-        # for k, v in usages_dict.iteritems():
-        #     usages_dict[k] = {
-        #         'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
-        #         'usage_value': round_safe(
-        #             v['usage_value'], USAGE_VALUE_NUM_DIGITS
-        #         ),
-        #     }
+#             current_day += a_day
 
-        cost = {
-            'grouped_date': date_,
-            'total_cost': round_safe(
-                total_cost_for_month, USAGE_COST_NUM_DIGITS
-            ),
-            'costs': _round_recursive(usages_dict),  # XXX usages_and_costs?
-        }
+#         # for k, v in usages_dict.iteritems():
+#         #     usages_dict[k] = {
+#         #         'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
+#         #         'usage_value': round_safe(
+#         #             v['usage_value'], USAGE_VALUE_NUM_DIGITS
+#         #         ),
+#         #     }
 
-        costs['service_environment_costs'].append(cost)
-    return costs
+#         cost = {
+#             'grouped_date': date_,
+#             'total_cost': round_safe(
+#                 total_cost_for_month, USAGE_COST_NUM_DIGITS
+#             ),
+#             'costs': _round_recursive(usages_dict),  # XXX usages_and_costs?
+#         }
+
+#         costs['service_environment_costs'].append(cost)
+#     return costs
 
 
 def _fetch_subcosts(parent_qs, service_env, date_):
