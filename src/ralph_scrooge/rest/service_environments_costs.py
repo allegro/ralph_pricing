@@ -9,6 +9,7 @@ from datetime import date, timedelta
 import calendar
 
 from dateutil.relativedelta import relativedelta
+from django.db import connection
 from django.db.models import Sum
 from drf_compound_fields.fields import DictField, ListField
 from rest_framework import serializers
@@ -25,7 +26,6 @@ from ralph_scrooge.models import (
     UsageType,
 )
 from ralph_scrooge.rest.auth import IsServiceOwner
-from pprint import pprint  # XXX
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
@@ -183,6 +183,109 @@ def round_safe(value, precision):
     return round(value, precision)
 
 
+def aggregate_costs(qs, usage_type, results):
+    truncate_date_to_month = connection.ops.date_trunc_sql('month', 'date')  # XXX needed?
+    qs = qs.extra({'month': truncate_date_to_month})  # XXX needed?
+
+    # tc_qs = qs.values('month').annotate(Sum('cost')).order_by('month')
+
+    qs_by_usage_type = qs.filter(type=usage_type)
+    if qs_by_usage_type.exists():
+        # We assume that all elements in `qs_by_usage_type` have the same
+        # `path` attribute - hence we need to check only the first one of them.
+        path = qs_by_usage_type[0].path
+    results_by_date = qs_by_usage_type.values('month').annotate(
+        Sum('cost'), Sum('value')
+    ).order_by('month')
+    for r in results_by_date:
+        d = r['month'].date()
+        cost_and_usage_dict = {
+            path: {
+                '_usage_type_symbol': usage_type.symbol,
+                'cost': r['cost__sum'],
+                'usage_value': r['value__sum']
+            }
+        }
+        if results.get(d) is not None:
+             results[d].update(cost_and_usage_dict)
+        else:
+            results[d] = cost_and_usage_dict
+
+
+def merge_costs_with_subcosts(costs, subcosts):
+    merged_costs = {}
+    for cost_path, cost_dict in costs.iteritems():
+        usage_type_symbol = cost_dict.pop('_usage_type_symbol')
+        merged_costs[usage_type_symbol] = cost_dict
+        merged_costs[usage_type_symbol]['subcosts'] = {}
+        for subcost_path, subcost_dict in subcosts.iteritems():
+            if subcost_path.split('/')[0] == cost_path:
+                merged_costs[usage_type_symbol]['subcosts'].update(
+                    {subcost_dict.pop('_usage_type_symbol'): subcost_dict}
+                )
+    return merged_costs
+
+
+def get_total_costs(qs):
+    total_costs = {}
+    results = qs.filter(depth=0).values('month').annotate(
+        Sum('cost')
+    ).order_by('month')
+    for r in results:
+        d = r['month'].date()
+        total_costs[d] = r['cost__sum']
+    return total_costs
+
+
+def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
+    # TODO(xor-xor): After switching to Django >= 1.10 `date_trunc_sql` and
+    # `extra` won't be available, so use this:
+    # http://stackoverflow.com/a/8746532/5768173.
+    truncate_date_to_month = connection.ops.date_trunc_sql('month', 'date')
+    initial_qs = DailyCost.objects_tree.filter(
+        service_environment=service_env,
+        date__gte=date_from,
+        date__lte=date_to,
+    )
+    qs = initial_qs.extra({'month': truncate_date_to_month})
+    total_costs = get_total_costs(qs)
+    results = {}
+    for usage_type in usage_types:
+        aggregate_costs(qs, usage_type, results)
+
+    # check for subcosts basing on usage_types present initial_qs
+    if initial_qs.exists() and initial_qs[0].depth == 0:
+        subcosts_qs = initial_qs.filter(
+            path__startswith=initial_qs[0].path,
+            depth=1
+        )
+        usage_types = set([subcost.type.usagetype for subcost in subcosts_qs])
+        results_subcosts = {}
+        for usage_type in usage_types:
+            aggregate_costs(subcosts_qs, usage_type, results_subcosts)
+
+    # Construct final result (fill missing months, round values, match subcosts
+    # with their parents etc.).
+    final_result = {
+        'service_environment_costs': []
+    }
+    a_month = relativedelta(months=1)
+    for date_ in month_range(date_from, date_to + a_month):
+        total_cost_for_month = total_costs.get(date_, 0)
+        costs = merge_costs_with_subcosts(
+            results.get(date_, {}), results_subcosts.get(date_, {})
+        )
+        monthly_costs = {
+            'grouped_date': date_,
+            'total_cost': round_safe(
+                total_cost_for_month, USAGE_COST_NUM_DIGITS
+            ),
+            'costs': _round_recursive(costs),
+        }
+        final_result['service_environment_costs'].append(monthly_costs)
+    return final_result
+
+
 def fetch_costs_per_month(
         service_env, usage_types, date_from, date_to, round_to_month=False
 ):
@@ -193,22 +296,35 @@ def fetch_costs_per_month(
 
         {
             "grouped_date": "2016-10",
-            "total_cost": 14143.68,
+            "total_cost": 1400.00,
             "usages": {
                 "some_usage_type1": {
-                    "cost": 35.68,
-                    "usage_value": 35.68
+                    "cost": 50.00,
+                    "usage_value": 10.00,
+                    "subcosts": {}
                 },
                 "some_usage_type2": {
-                    "cost": 14108.0,
-                    "usage_value": 7054.0
+                    "cost": 300.0,
+                    "usage_value": 0.0
+                    "subcosts": {
+                        # we assume that only one level of nesting is possible
+                        # here (i.e., that there are no sub-subcosts)
+                        "some_usage_type3": {
+                            "cost": 100.00,
+                            "usage_value": 10.00
+                        },
+                        "some_usage_type4": {
+                            "cost": 200.00,
+                            "usage_value": 20.10
+                        }
+                    }
                 }
                 ...
             }
         }
 
     Such results are collected into a list, and that list is wrapped into a
-    dict, under the `costs` key  - and that dict is returned as a final result.
+    dict, under the `service-environment-costs` key  - and that dict is returned as a final result.
 
     And while the aforementioned costs are summarized only for selected usage
     types, the value in `total_cost` field contains sum of costs associated
@@ -290,23 +406,23 @@ def fetch_costs_per_month(
 
             current_day += a_day
 
-        for k, v in usages_dict.iteritems():
-            usages_dict[k] = {
-                'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
-                'usage_value': round_safe(
-                    v['usage_value'], USAGE_VALUE_NUM_DIGITS
-                ),
-            }
+        # for k, v in usages_dict.iteritems():
+        #     usages_dict[k] = {
+        #         'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
+        #         'usage_value': round_safe(
+        #             v['usage_value'], USAGE_VALUE_NUM_DIGITS
+        #         ),
+        #     }
 
         cost = {
             'grouped_date': date_,
             'total_cost': round_safe(
                 total_cost_for_month, USAGE_COST_NUM_DIGITS
             ),
-            'usages': usages_dict,
+            'costs': _round_recursive(usages_dict),  # XXX usages_and_costs?
         }
 
-        costs['costs'].append(cost)
+        costs['service_environment_costs'].append(cost)
     return costs
 
 
@@ -348,7 +464,10 @@ def _fetch_subcosts(parent_qs, service_env, date_):
 
 
 def _round_recursive(usages_and_costs):
-    """XXX"""
+    """Performs rounding of values in `cost` and `usage_value` fields. And
+    because `usages_and_costs` dict can be actually a tree (costs having
+    subcosts), it does that in a recursive manner.
+    """
     rounded = {}
     if usages_and_costs is not None:
         for k, v in usages_and_costs.iteritems():
@@ -427,17 +546,19 @@ class ServiceEnvironmentsCosts(APIView):
             usage_types = deserializer.object['usage_types']
             date_from = deserializer.object['date_from']
             date_to = deserializer.object['date_to']
+            group_by = deserializer.object['group_by']
 
-            if deserializer.object['group_by'] == 'day':
-                costs = fetch_costs_per_day(
-                    service_env, usage_types, date_from, date_to
+            # XXX
+            if group_by == 'day':
+                costs = fetch_costs(
+                    service_env, usage_types, date_from, date_to, group_by
                 )
                 return Response(
                     ServiceEnvironmentsDailyCostsSerializer(costs).data
                 )
-            if deserializer.object['group_by'] == 'month':
-                costs = fetch_costs_per_month(
-                    service_env, usage_types, date_from, date_to
+            if group_by == 'month':
+                costs = fetch_costs(
+                    service_env, usage_types, date_from, date_to, group_by
                 )
                 return Response(
                     ServiceEnvironmentsMonthlyCostsSerializer(costs).data
