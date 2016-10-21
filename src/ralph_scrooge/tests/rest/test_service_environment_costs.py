@@ -443,8 +443,6 @@ class TestServiceEnvironmentCosts(TestCase):
         self.assertNotIn(other_usage_type.name, requested_usage_types)
 
     def test_if_costs_and_values_are_not_rounded_to_month_boundaries(self):
-        # This test is strictly related to `round_to_month` param in
-        # `fetch_costs_per_month` - see its docstring for additional info.
         date1 = '2016-10-01'
         date2 = '2016-10-07'
         date3 = '2016-10-31'
@@ -460,6 +458,7 @@ class TestServiceEnvironmentCosts(TestCase):
         )
         self.create_daily_costs(daily_costs)
 
+        # Group by month and also whole month given as date range.
         self.payload['date_from'] = date1
         self.payload['date_to'] = date3
         self.payload['group_by'] = 'month'
@@ -476,6 +475,11 @@ class TestServiceEnvironmentCosts(TestCase):
             cost1 + cost2 + cost3
         )
 
+        # Group by month, but only single day given as date range - we expect
+        # different results than those from "group by month + whole month given
+        # as range" case. In other words, when date range is smaller than the
+        # selected group by unit, we expect that only costs from this date
+        # range will be taken into account.
         self.payload['date_from'] = date2
         self.payload['date_to'] = date2
         self.payload['group_by'] = 'month'
