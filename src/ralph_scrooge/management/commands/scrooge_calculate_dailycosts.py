@@ -16,75 +16,54 @@ from ralph_scrooge.management.commands._scrooge_base import ScroogeBaseCommand
 from ralph_scrooge.plugins.cost.collector import Collector
 
 logger = logging.getLogger(__name__)
+yesterday = date.today() - timedelta(days=1)
 
 
 class Command(BaseCommand):
-    """
-    Generate report with tenants instances and cost of particular flavors
-    (if tenants are billed based on ceilometer) or simple usages.
-    """
     option_list = ScroogeBaseCommand.option_list + (
         make_option(
-            '-s', '--start',
-            dest='start',
-            default=None,
-            help=_('Date from which generate report for'),
-        ),
-        make_option(
-            '--end',
-            dest='end',
-            default=None,
-            help=_('Date to which generate report for'),
+            '--date',
+            dest='date',
+            default=yesterday,
+            help=_('Date to which calculate daily costs for'),
         ),
         make_option(
             '--forecast',
             dest='forecast',
             default=False,
             action='store_true',
-            help=_('Set to use forecast prices and costs'),
+            help=_('Set to use forecast prices and costs'),  # XXX ?
         ),
         make_option(
             '-p',
-            dest='plugins',
+            dest='pricing_services',
             action='append',
             type='str',
             default=[],
-            help=_('Plugins to calculate missing costs'),
-        ),
-        make_option(
-            '-t',
-            dest='type',
-            type='choice',
-            choices=['simple_usage', 'ceilometer', 'nova', 'volume'],
-            default='ceilometer',
-            help=_('Type of OpenStack usage'),
+            help=_('Pricing Services to which calculate daily costs for'),
         ),
     )
 
-    def _calculate_missing_dates(self, start, end, forecast, plugins):
-        """
-        Calculate costs for dates on which costs were not previously calculated
-        """
+    def _calculate_costs(self, date_, forecast, pricing_services):
         collector = Collector()
-        dates_to_calculate = collector._get_dates(start, end, forecast, False)
-        plugins = [pl for pl in collector.get_plugins() if pl.name in plugins]
-        for day in dates_to_calculate:
-            costs = collector.process(day, forecast, plugins=plugins)
-            processed = collector._create_daily_costs(day, costs, forecast)
-            collector.save_period_costs(day, day, forecast, processed)
+        plugins = [
+            p for p in collector.get_plugins() if p.name in pricing_services
+        ]
+        processed_costs = collector.process(date_, forecast, plugins=plugins)
+        daily_costs = collector._create_daily_costs(
+            date_, processed_costs, forecast
+        )
+        start = end = date_
+        collector.save_period_costs(start, end, forecast, daily_costs)
 
     def _parse_date(self, date_):
-        """
-        Parse given date or returns default (yesterday).
-        """
-        if date_:
+        if not isinstance(date_, date):
             return datetime.strptime(date_, '%Y-%m-%d').date()
         else:
-            return date.today() - timedelta(days=1)
+            return date_
 
     def handle(self, *args, **options):
-        start = self._parse_date(options['start'])
-        end = self._parse_date(options['end'])
-        self._calculate_missing_dates(
-            start, end, options['forecast'], options['plugins']
+        date_ = self._parse_date(options['date'])
+        self._calculate_costs(
+            date_, options['forecast'], options['pricing_services']
         )
