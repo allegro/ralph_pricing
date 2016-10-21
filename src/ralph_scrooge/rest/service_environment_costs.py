@@ -369,16 +369,20 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
 
     # Check for subcosts basing on usage types present in `initial_qs`.
     results_subcosts = {}
-    if initial_qs.exists() and initial_qs[0].depth == 0:
-        subcosts_qs = initial_qs.filter(
-            path__startswith=initial_qs[0].path,
-            depth=1
-        )
-        usage_types = set([subcost.type.usagetype for subcost in subcosts_qs])
-        for usage_type in usage_types:
-            _aggregate_costs(
-                subcosts_qs, usage_type, group_by, results_subcosts
+    for usage_type in usage_types:
+        qs = initial_qs.filter(type=usage_type)
+        if qs.exists() and qs[0].depth == 0:
+            subcosts_qs = initial_qs.filter(
+                path__startswith=qs[0].path,
+                depth=1
             )
+            usage_types_ = set(
+                [subcost.type.usagetype for subcost in subcosts_qs]
+            )
+            for usage_type_ in usage_types_:
+                _aggregate_costs(
+                    subcosts_qs, usage_type_, group_by, results_subcosts
+                )
 
     # Construct final result (fill missing days/months, round values, match
     # subcosts with their parents etc.).

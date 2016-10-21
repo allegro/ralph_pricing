@@ -492,4 +492,55 @@ class TestServiceEnvironmentCosts(TestCase):
             cost2
         )
 
-    # TODO(xor-xor): Add test(s) for subcosts.
+    def test_if_subcosts_show_up_in_resulting_json_if_linked_to_parent_costs(self):  # noqa: E501
+        cost1 = 10
+        cost2 = 11
+        cost3 = 21
+        usage_value1 = 1
+        usage_value2 = 2
+        # "parent" costs in 99.9% cases shouldn't have any `value` attached
+        # to them - hence 0 below.
+        usage_value3 = 0
+        daily_costs = (
+            (self.usage_type1, self.date1_as_str, usage_value1, cost1),
+            (self.usage_type2, self.date1_as_str, usage_value2, cost2),
+            (self.pricing_service, self.date1_as_str, usage_value3, cost3),
+        )
+        self.create_daily_costs(daily_costs)
+
+        # Create parent/children structure. `self.pricing_service.symbol` is
+        # parent for # `self.usage_type1` and `self.usage_type2` (it is
+        # possible because both # PricingService and UsageType inherit from
+        # BaseUsage).
+        cost_obj = DailyCost.objects.get(type=self.pricing_service)
+        subcost_obj1 = DailyCost.objects.get(type=self.usage_type1)
+        subcost_obj2 = DailyCost.objects.get(type=self.usage_type2)
+        cost_obj.path = '111'
+        subcost_obj1.depth = 1
+        subcost_obj1.path = '111/222'
+        subcost_obj2.depth = 1
+        subcost_obj2.path = '111/333'
+        cost_obj.save()
+        subcost_obj1.save()
+        subcost_obj2.save()
+        self.assertEquals(DailyCost.objects.count(), 1)  # only parent
+        self.assertEquals(DailyCost.objects_tree.count(), 3)  # all
+
+        self.payload['date_from'] = self.date1_as_str
+        self.payload['date_to'] = self.date1_as_str
+        self.payload['usage_types'] = [self.pricing_service.symbol]
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+
+        subcosts = costs['service_environment_costs'][0]['costs'][self.pricing_service.symbol]['subcosts']  # noqa: E501
+        self.assertEquals(len(subcosts.keys()), 2)
+        self.assertEquals(subcosts[self.usage_type1.symbol]['cost'], cost1)
+        self.assertEquals(
+            subcosts[self.usage_type1.symbol]['usage_value'], usage_value1
+        )
+        self.assertEquals(subcosts[self.usage_type2.symbol]['cost'], cost2)
+        self.assertEquals(
+            subcosts[self.usage_type2.symbol]['usage_value'], usage_value2
+        )
