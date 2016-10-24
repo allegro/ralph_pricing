@@ -21,7 +21,10 @@ yesterday = date.today() - timedelta(days=1)
 
 
 class Command(BaseCommand):
-    """XXX"""
+    """Calculate daily costs for a given day (defaults to yesterday) and
+    pricing service (defaults to all which are bot active and have fixed
+    price).
+    """
     option_list = ScroogeBaseCommand.option_list + (
         make_option(
             '--date',
@@ -46,6 +49,9 @@ class Command(BaseCommand):
                 'Pricing Service name(s) to which calculate daily costs for'
             ),
         ),
+        # TODO(xor-xor): Add `--force` option for re-calculating costs (which
+        # is the default now, but shouldn't be - i.e., if the costs are
+        # calculated).
     )
 
     def _calculate_costs(self, date_, forecast, pricing_service_names):
@@ -80,6 +86,8 @@ class Command(BaseCommand):
             )
             return
 
+        # Determine which plugins are needed and finally calculate & save the
+        # costs.
         plugins = []
         for p in collector.get_plugins():
             if p.name in pricing_service_names_verified:
