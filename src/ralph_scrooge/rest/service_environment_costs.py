@@ -33,6 +33,15 @@ GROUP_BY_CHOICES = (
     ('month', 'month'),
 )
 
+
+# TODO(xor-xor): Think about some better name for this function and add some
+# caching to it.
+def get_parents():
+    return BaseUsage.objects.exclude(
+        pk__in=UsageType.objects.filter(usage_type='SU')
+    )
+
+
 class ServiceEnvironmentCostsDeserializer(Serializer):
     service_uid = serializers.CharField()
     environment = serializers.CharField()
@@ -42,15 +51,16 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
     usage_types = ListField(serializers.CharField(), required=False)
 
     def validate_usage_types(self, attrs, source):
+        parents = get_parents()
         usage_types = attrs.get(source)
         if usage_types is None or len(usage_types) == 0:
-            attrs[source] = UsageType.objects.all()
+            attrs[source] = parents
             return attrs
         usage_types_validated = []
         unknown_values = []
         for ut in usage_types:
             try:
-                usage_types_validated.append(BaseUsage.objects.get(symbol=ut))
+                usage_types_validated.append(parents.get(symbol=ut))
             except BaseUsage.DoesNotExist:
                 unknown_values.append(ut)
         if len(unknown_values) > 0:
@@ -291,6 +301,36 @@ def _round_recursive(usages_and_costs):
             }
     return rounded
 
+def fetch_costs_alt(service_env, usage_types, date_from, date_to, group_by):
+
+    # aaa = DailyCost.objects_tree.filter(
+    #     date__gte=date_from,
+    #     date__lte=date_to,
+    #     service_environment=service_env,
+    # ).annotate(
+    #     cost_sum=Sum('cost'), value_sum=Sum('value')
+    # ).values_list('date', 'path', 'type__symbol', 'cost_sum', 'value_sum')
+
+    truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
+    # aaa = DailyCost.objects_tree.filter(
+    #     date__gte=date_from,
+    #     date__lte=date_to,
+    #     service_environment=service_env,
+    # ).extra({group_by: truncate_date}).annotate(
+    #     cost_sum=Sum('cost'), value_sum=Sum('value')
+    # ).values_list('date', 'path', 'type__symbol', 'cost_sum', 'value_sum')
+
+    aaa = DailyCost.objects_tree.filter(
+        date__gte=date_from,
+        date__lte=date_to,
+        service_environment=service_env,
+    ).extra({group_by: truncate_date}).annotate(
+        cost_sum=Sum('cost'), value_sum=Sum('value')
+    )
+
+    from IPython import embed; embed(); assert False
+
+
 
 def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     """Fetch DailyCosts associated with given `service_env` and
@@ -404,13 +444,6 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
         costs = _merge_costs_with_subcosts(
             results.get(date_, {}), results_subcosts.get(date_, {})
         )
-        for usage_type in usage_types:
-            if usage_type.symbol not in costs.keys():
-                costs.update({usage_type.symbol: {
-                    'cost': None,  # XXX(xor-xor) or maybe 0.0..?
-                    'usage_value': None,
-                    'subcosts': {},
-                }})
         costs_for_date = {
             'grouped_date': date_,
             'total_cost': round_safe(
@@ -444,7 +477,7 @@ class ServiceEnvironmentCosts(APIView):
             date_to = deserializer.object['date_to']
             group_by = deserializer.object['group_by']
 
-            costs = fetch_costs(
+            costs = fetch_costs_alt(
                 service_env, usage_types, date_from, date_to, group_by
             )
             if group_by == 'day':
