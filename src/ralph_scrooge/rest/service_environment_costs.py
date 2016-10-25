@@ -203,26 +203,28 @@ def _aggregate_costs(qs, usage_type, group_by, results):
     truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
     qs_with_truncate_date = qs.extra({group_by: truncate_date})
     qs_by_usage_type = qs_with_truncate_date.filter(type=usage_type)
-    if qs_by_usage_type.exists():
+    # We use `len` instead of `exists` or `count` because of a bug in older
+    # Django, see: http://stackoverflow.com/q/37446551/5768173.
+    if len(qs_by_usage_type) > 0:
         # We assume that all elements in `qs_by_usage_type` have the same
         # `path` attribute - hence `qs_by_usage_type[0]`.
         path = qs_by_usage_type[0].path
-    results_by_date = qs_by_usage_type.values(group_by).annotate(
-        Sum('cost'), Sum('value')
-    ).order_by(group_by)
-    for r in results_by_date:
-        d = _get_truncated_date(r[group_by])
-        cost_and_usage_dict = {
-            path: {
-                '_usage_type_symbol': usage_type.symbol,
-                'cost': r['cost__sum'],
-                'usage_value': r['value__sum']
+        results_by_date = qs_by_usage_type.values(group_by).annotate(
+            Sum('cost'), Sum('value')
+        ).order_by(group_by)
+        for r in results_by_date:
+            d = _get_truncated_date(r[group_by])
+            cost_and_usage_dict = {
+                path: {
+                    '_usage_type_symbol': usage_type.symbol,
+                    'cost': r['cost__sum'],
+                    'usage_value': r['value__sum']
+                }
             }
-        }
-        if results.get(d) is not None:
-            results[d].update(cost_and_usage_dict)
-        else:
-            results[d] = cost_and_usage_dict
+            if results.get(d) is not None:
+                results[d].update(cost_and_usage_dict)
+            else:
+                results[d] = cost_and_usage_dict
 
 
 def _merge_costs_with_subcosts(costs, subcosts):
@@ -254,7 +256,9 @@ def _fetch_subcosts(parent_qs, service_env, date_):
     3) that all members of the queryset `parent_qs` have the same `path`
        component (i.e., they are the same BaseUsage objects).
     """
-    if parent_qs.exists() and parent_qs[0].depth == 0:
+    # We use `len` instead of `exists` or `count` because of a bug in older
+    # Django, see: http://stackoverflow.com/q/37446551/5768173.
+    if len(parent_qs) > 0 and parent_qs[0].depth == 0:
         # Fetch all children, ignore differences in usage_type for now.
         subcosts_qs = DailyCost.objects_tree.filter(
             service_environment=service_env,
@@ -371,7 +375,9 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     results_subcosts = {}
     for usage_type in usage_types:
         qs = initial_qs.filter(type=usage_type)
-        if qs.exists() and qs[0].depth == 0:
+        # We use `len` instead of `exists` or `count` because of a bug in older
+        # Django, see: http://stackoverflow.com/q/37446551/5768173.
+        if len(qs) > 0 and qs[0].depth == 0:
             subcosts_qs = initial_qs.filter(
                 path__startswith=qs[0].path,
                 depth=1
