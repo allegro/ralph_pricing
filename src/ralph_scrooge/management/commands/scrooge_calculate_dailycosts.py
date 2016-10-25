@@ -71,13 +71,11 @@ class Command(BaseCommand):
             **{'forecast_calculated' if forecast else 'calculated': True}
         ).values_list('date', flat=True).exists()
 
-
     def _has_accepted_costs(self, date_, forecast):
         return CostDateStatus.objects.filter(
             date=date_,
             **{'forecast_accepted' if forecast else 'accepted': True}
         ).values_list('date', flat=True).exists()
-
 
     def _calculate_costs(self, date_, forecast, pricing_service_names, force):
         collector = Collector()
