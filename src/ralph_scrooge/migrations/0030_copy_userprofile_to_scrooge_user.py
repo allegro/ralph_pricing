@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
 from django.db import models
 
 
-class Migration(SchemaMigration):
-
-    no_dry_run = True
+class Migration(DataMigration):
 
     def forwards(self, orm):
         for user_profile in orm['ralph_scrooge.UserProfile'].objects.all():
