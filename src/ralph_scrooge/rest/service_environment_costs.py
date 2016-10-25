@@ -28,28 +28,18 @@ from ralph_scrooge.rest.auth import IsServiceOwner
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
-
+GROUP_BY_CHOICES = (
+    ('day', 'day'),
+    ('month', 'month'),
+)
 
 class ServiceEnvironmentCostsDeserializer(Serializer):
     service_uid = serializers.CharField()
     environment = serializers.CharField()
     date_from = serializers.DateField()
     date_to = serializers.DateField()
-    group_by = serializers.CharField(default='day')
+    group_by = serializers.ChoiceField(choices=GROUP_BY_CHOICES)
     usage_types = ListField(serializers.CharField(), required=False)
-
-    def validate_group_by(self, attrs, source):
-        allowed_values = ('month', 'day')
-        group_by = attrs[source]
-        if group_by not in allowed_values:
-            err = (
-                'Unknown value: "{}". Allowed values for this field are: {}.'
-                .format(group_by, ', '.join(
-                    ['"{}"'.format(v) for v in allowed_values]
-                ))
-            )
-            raise serializers.ValidationError(err)
-        return attrs
 
     def validate_usage_types(self, attrs, source):
         usage_types = attrs.get(source)
