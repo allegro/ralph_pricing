@@ -548,3 +548,27 @@ class TestServiceEnvironmentCosts(TestCase):
         self.assertEquals(
             subcosts[self.usage_type2.symbol]['usage_value'], usage_value2
         )
+
+    def test_dicts_with_null_values_should_be_reported_when_no_cost_for_given_date_and_usage_type(self):  # noqa: E501
+        self.create_daily_costs((
+            (self.usage_type1, self.date1, 1, 10),
+        ))
+        self.payload['date_from'] = self.date1_as_str
+        self.payload['date_to'] = self.date1_as_str
+        self.payload['usage_types'] = [
+            self.usage_type1.symbol, self.usage_type2.symbol
+        ]
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+
+        costs_ = costs['service_environment_costs'][0]['costs']
+        self.assertEquals(
+            costs_[self.usage_type1.symbol]['usage_value'], 1.0
+        )
+        self.assertEquals(
+            costs_[self.usage_type1.symbol]['cost'], 10.0
+        )
+        self.assertIsNone(costs_[self.usage_type2.symbol]['usage_value'])
+        self.assertIsNone(costs_[self.usage_type2.symbol]['cost'])

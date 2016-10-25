@@ -414,6 +414,13 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
         costs = _merge_costs_with_subcosts(
             results.get(date_, {}), results_subcosts.get(date_, {})
         )
+        for usage_type in usage_types:
+            if usage_type.symbol not in costs.keys():
+                costs.update({usage_type.symbol: {
+                    'cost': None,  # XXX(xor-xor) or maybe 0.0..?
+                    'usage_value': None,
+                    'subcosts': {},
+                }})
         costs_for_date = {
             'grouped_date': date_,
             'total_cost': round_safe(
