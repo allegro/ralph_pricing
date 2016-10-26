@@ -117,7 +117,6 @@ class DynamicExtraCostType(BaseUsage):
             'type excluded services)'
         ),
         blank=True,
-        null=True,
     )
 
     objects_admin = db.Manager()

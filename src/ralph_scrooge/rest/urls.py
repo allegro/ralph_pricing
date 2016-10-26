@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.contrib.auth.decorators import login_required
 
 from ralph_scrooge.rest import (
@@ -30,8 +30,7 @@ from ralph_scrooge.utils.security import (
     team_permission,
 )
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^', include(router_urlpatterns)),  # TODO Permissions?
     url(
         r'^leftmenu/(?P<menu_type>\S+)/$',
@@ -108,4 +107,4 @@ urlpatterns = patterns(
         superuser_permission(ServicesCostsReportContent.as_view()),
         name='services_costs_report_rest'
     ),
-)
+]

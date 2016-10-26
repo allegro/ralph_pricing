@@ -8,8 +8,7 @@ from __future__ import unicode_literals
 import json
 import datetime
 
-from django.contrib.auth.models import User
-from django.test import TestCase
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from ralph_scrooge import models
@@ -22,12 +21,16 @@ from ralph_scrooge.rest.allocationadmin import (
     TeamDoesNotExistError,
 )
 from ralph_scrooge.rest.common import get_dates
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils import factory
 
 
-class TestAllocationAdmin(TestCase):
+class TestAllocationAdmin(ScroogeTestCase):
+
     def setUp(self):
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         self.client = APIClient()
         self.client.login(username='test', password='test')
 

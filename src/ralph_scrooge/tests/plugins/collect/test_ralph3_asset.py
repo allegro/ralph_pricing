@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge.models import (
@@ -20,6 +20,7 @@ from ralph_scrooge.models import (
     UsageType,
 )
 from ralph_scrooge.plugins.collect import ralph3_asset as asset
+from ralph_scrooge.tests import ScroogeTestCaseMixin
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
     DailyAssetInfoFactory,
@@ -40,7 +41,7 @@ TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS = dict(
 
 
 @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
-class TestAssetPlugin(TestCase):
+class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
     def setUp(self):
         ServiceFactory.reset_sequence()
         EnvironmentFactory.reset_sequence()

@@ -9,11 +9,11 @@ from datetime import date
 from mock import patch
 
 from django.db.models import Sum
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge import models
 from ralph_scrooge.plugins.collect import ralph3_virtual as virtual
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
     DailyVirtualInfoFactory,
@@ -38,7 +38,8 @@ TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS = dict(
     VIRTUAL_SERVICES={'Xen': ['example_service']},
     **TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS
 )
-class TestVirtualPlugin(TestCase):
+class TestVirtualPlugin(ScroogeTestCase):
+
     usage_names = {
         'virtual_cores': 'Virtual CPU cores',
         'virtual_disk': 'Virtual disk MB',

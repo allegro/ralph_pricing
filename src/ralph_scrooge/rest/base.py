@@ -29,7 +29,7 @@ class LeftMenuAPIView(APIView):
         )
         if not request.user.is_superuser:
             service_environments = service_environments.filter(
-                service__serviceownership__owner__profile__user=request.user,
+                service__serviceownership__owner__user=request.user,
             )
 
         results = {}

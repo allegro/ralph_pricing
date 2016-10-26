@@ -9,11 +9,11 @@ import datetime
 import json
 from decimal import Decimal
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
-from django.test import TestCase
 
 from ralph_scrooge.rest.components import ComponentsContent
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     CostDateStatusFactory,
     DailyAssetInfoFactory,
@@ -25,7 +25,8 @@ from ralph_scrooge.tests.utils.factory import (
 from rest_framework.test import APIClient
 
 
-class TestPricingObjects(TestCase):
+class TestPricingObjects(ScroogeTestCase):
+
     def setUp(self):
         self.components = ComponentsContent()
         self.se1 = ServiceEnvironmentFactory()
@@ -91,7 +92,9 @@ class TestPricingObjects(TestCase):
         self.maxDiff = None
 
     def test_pricing_objects_view_returns_data_from_pricing_objects(self):
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         client = APIClient()
         client.login(username='test', password='test')
         resp = client.get(
@@ -121,7 +124,9 @@ class TestPricingObjects(TestCase):
             value=99,
             cost=99,
         )
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         client = APIClient()
         client.login(username='test', password='test')
         resp = client.get(
@@ -145,7 +150,7 @@ class TestPricingObjects(TestCase):
                 'value': [{
                     '0': daily_cost.type.name,
                     '1': 99.0,
-                    '2': '99.000000'
+                    '2': 99.0
                 }],
                 'slug': 'dummy',
                 'schema': {

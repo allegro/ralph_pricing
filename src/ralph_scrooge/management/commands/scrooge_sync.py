@@ -9,7 +9,6 @@ import datetime
 import logging
 import pkg_resources
 import textwrap
-from optparse import make_option
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -123,27 +122,27 @@ class Command(BaseCommand):
 
     help = textwrap.dedent(__doc__).strip()
     requires_model_validation = True
-    option_list = BaseCommand.option_list + (
-        make_option(
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '-y',
             dest='yesterday',
             action='store_true',
             default=False,
-            help="Generate report for yesterday",
-        ),
-        make_option(
+            help="Generate report for yesterday"
+        )
+        parser.add_argument(
             '--today',
             dest='today',
             default=None,
-            help="Save the synchronised results under the specified date.",
-        ),
-        make_option(
+            help="Save the synchronised results under the specified date."
+        )
+        parser.add_argument(
             '--run-only',
             dest='run_only',
             default=None,
-            help="Run only the selected plugin, ignore dependencies.",
-        ),
-    )
+            help="Run only the selected plugin, ignore dependencies."
+        )
 
     def handle(self, today, run_only, *args, **options):
         if today:

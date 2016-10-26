@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import datetime
 from copy import deepcopy
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge.models import PRICING_OBJECT_TYPES
@@ -20,6 +19,7 @@ from ralph_scrooge.plugins.subscribers.vip import (
     save_vip_info,
     save_daily_vip_info,
 )
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
     PricingObjectFactory,
@@ -58,7 +58,7 @@ EVENT_DATA = {
 }
 
 
-class ValidateEventDataTestCase(TestCase):
+class ValidateEventDataTestCase(ScroogeTestCase):
 
     def setUp(self):
         self.event_data = deepcopy(EVENT_DATA)
@@ -140,7 +140,7 @@ class ValidateEventDataTestCase(TestCase):
         self.assertIn('missing environment', errors)
 
 
-class TestVIPSubscribersPlugin(TestCase):
+class TestVIPSubscribersPlugin(ScroogeTestCase):
 
     # TODO(xor-xor): Set check_load_balancer=True as a default value when it
     # will be clear what to do with VIPInfo.load_balancer field.

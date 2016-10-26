@@ -7,8 +7,6 @@ from __future__ import unicode_literals
 
 from copy import deepcopy
 
-from django.test import TestCase
-
 from ralph_scrooge.models import (
     Environment,
     OwnershipType,
@@ -19,6 +17,7 @@ from ralph_scrooge.plugins.collect.ralph3_service_environment import (
     update_service,
     update_environment,
 )
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     ProfitCenterFactory,
     Ralph3OwnerFactory,
@@ -30,7 +29,7 @@ from ralph_scrooge.tests.plugins.collect.samples.ralph3_service_environment impo
 )
 
 
-class TestServiceEnvironmentCollectPlugin(TestCase):
+class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
     def setUp(self):
         self.data = deepcopy(SAMPLE_SERVICES[0])
         self.default_profit_center = ProfitCenter(pk=1)
@@ -61,7 +60,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
             set(
                 saved_service.serviceownership_set.filter(
                     type=OwnershipType.business
-                ).values_list('owner__profile__user__username', flat=True)
+                ).values_list('owner__user__username', flat=True)
             ),
             set([o['username'] for o in data['business_owners']])
         )
@@ -69,7 +68,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
             set(
                 saved_service.serviceownership_set.filter(
                     type=OwnershipType.technical
-                ).values_list('owner__profile__user__username', flat=True)
+                ).values_list('owner__user__username', flat=True)
             ),
             set([o['username'] for o in data['technical_owners']])
         )
@@ -135,7 +134,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
         )
         # add new technical owner
         self.data['technical_owners'].append({
-            'username': self.owners[5].profile.user.username,
+            'username': self.owners[5].user.username,
         })
         created, service = self._create_and_test_service(self.data)
         self.assertFalse(created)

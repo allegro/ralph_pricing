@@ -3,10 +3,6 @@ import sys
 
 
 DEBUG = False
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -34,7 +30,23 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-TEMPLATE_DIRS = (BASE_DIR + "templates",)
+SECRET_KEY = 'change me'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
@@ -45,20 +57,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django_rq',
-    'south',
     'rest_framework',
     'rest_framework.authtoken',
-    'ralph_scrooge'
+    'ralph_scrooge',
 ]
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.contrib.messages.context_processors.messages',
-)
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -95,8 +97,9 @@ RQ_QUEUES = {
 for queue in RQ_QUEUE_LIST:
     RQ_QUEUES[queue] = dict(RQ_QUEUES['default'])
 
+AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
+# Temporary for users migrations
 AUTH_PROFILE_MODULE = 'ralph_scrooge.UserProfile'
-
 
 CACHES = dict(
     default=dict(
@@ -302,7 +305,7 @@ LOAD_BALANCER_TYPES_MAPPING = {
     'HAPROXY': 'HA Proxy',
 }
 
-EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
+EDITOR_TRACKABLE_MODEL = AUTH_USER_MODEL
 
 LOGGING = {
     'version': 1,

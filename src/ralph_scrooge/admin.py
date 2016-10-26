@@ -9,6 +9,8 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.filters import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserChangeForm, UsernameField
 from django.utils.translation import ugettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -29,6 +31,33 @@ class UpdateReadonlyMixin(object):
         if obj:  # editing an existing object
             return list(self.readonly_fields) + list(self.readonly_when_update)
         return self.readonly_fields
+
+
+class ScroogeUserChangeForm(UserChangeForm):
+    class Meta:
+        model = models.ScroogeUser
+        fields = '__all__'
+        field_classes = {'username': UsernameField}
+
+
+@register(models.ScroogeUser)
+class ScroogeUserAdmin(UserAdmin):
+
+    form = ScroogeUserChangeForm
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
+                                       'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+        (_('Profile'), {
+            'fields': [
+                'nick', 'birth_date', 'gender', 'country', 'city', 'company',
+                'employee_id', 'profit_center', 'cost_center', 'department',
+                'manager', 'location', 'segment',
+            ]
+        })
+    )
 
 
 # =============================================================================
@@ -148,6 +177,7 @@ class PricingObjectAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
 class UsageTypeForm(forms.ModelForm):
     class Meta:
         model = models.UsageType
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }
@@ -190,6 +220,7 @@ class DynamicExtraCostInline(admin.TabularInline):
 class DynamicExtraTypeForm(forms.ModelForm):
     class Meta:
         model = models.DynamicExtraCostType
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }
@@ -226,10 +257,10 @@ class OwnerAdmin(admin.ModelAdmin):
     search_fields = ('first_name', 'last_name')
 
     def first_name(self, obj):
-        return obj.profile.user.first_name
+        return obj.user.first_name
 
     def last_name(self, obj):
-        return obj.profile.user.last_name
+        return obj.user.last_name
 
 
 class ServiceOwnershipInline(admin.TabularInline):
@@ -254,6 +285,7 @@ class ServiceAdmin(UpdateReadonlyMixin, SimpleHistoryAdmin):
 class PricingServiceForm(forms.ModelForm):
     class Meta:
         model = models.PricingService
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }
@@ -306,6 +338,7 @@ class TeamCostInline(admin.TabularInline):
 class TeamForm(forms.ModelForm):
     class Meta:
         model = models.Team
+        fields = '__all__'
         widgets = {
             'excluded_services': FilteredSelectMultiple('Service', False)
         }

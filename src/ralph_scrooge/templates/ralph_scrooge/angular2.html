@@ -1,5 +1,4 @@
 {% load colors_tags %}
-{% load url from future %}
 {% load i18n staticfiles %}
 <!DOCTYPE html>
   <html lang="en">
@@ -25,13 +24,13 @@
     // START SYSTEMJS CONFIGURATION
     (function (global) {
       var map = {
-        'rxjs': '{{ STATIC_URL }}scrooge/lib/rxjs',
+        'rxjs': '{% static 'scrooge/lib/rxjs' %}',
       };
 
       //packages tells the System loader how to load when no filename and/or no extension
       var packages = {
         'rxjs': {defaultExtension: 'js'},
-        '{{ STATIC_URL }}scrooge/dist': {defaultExtension: 'js'}
+        '{% static 'scrooge/dist' %}': {defaultExtension: 'js'}
       };
 
       var PackageNames = [
@@ -48,7 +47,7 @@
 
       // Add map entries for each angular package
       PackageNames.forEach(function (pkgName) {
-        map['@angular/' + pkgName] = '{{ STATIC_URL }}scrooge/lib/@angular/' + pkgName;
+        map['@angular/' + pkgName] = '{% static 'scrooge/lib/@angular/' %}' + pkgName;
       });
 
       // Add package entries for angular packages

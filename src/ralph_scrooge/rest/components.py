@@ -8,11 +8,10 @@ from __future__ import unicode_literals
 
 from datetime import date
 
+from django.apps import apps
 from django.conf import settings
-from django.db.models import get_model
 from django.db.models.fields import FieldDoesNotExist
-from django.db.models.fields.related import RelatedField
-from django.db.models.related import RelatedObject
+from django.db.models.fields.related import ForeignObjectRel, RelatedField
 from django.template.defaultfilters import slugify
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -39,7 +38,7 @@ class ComponentsContent(APIView):
         )
 
     def get_daily_pricing_objects(
-            self, year, month, day, service, env=None, **kwargs
+        self, year, month, day, service, env=None, **kwargs
     ):
         """
         Returns Daily Pricing Objects related with passed service (and
@@ -74,7 +73,7 @@ class ComponentsContent(APIView):
         splited_cell = path.split('.')
         field = None
         try:
-            field, _model, direct, m2m = model._meta.get_field_by_name(
+            field = model._meta.get_field(
                 splited_cell[0]
             )
         except FieldDoesNotExist:
@@ -83,8 +82,8 @@ class ComponentsContent(APIView):
             # get appropriate field if it's relation
             if isinstance(field, RelatedField):
                 field = field.rel.to
-            elif isinstance(field, RelatedObject):
-                field = field.model
+            elif isinstance(field, ForeignObjectRel):
+                field = field.related_model
             # call recursively if it wasn't last field on path
             if len(splited_cell) > 1:
                 field = self.get_field(field, '.'.join(splited_cell[1:]))
@@ -119,7 +118,7 @@ class ComponentsContent(APIView):
             'model',
             self.default_model,
         ).split('.')
-        model = get_model(app_label, model_name)
+        model = apps.get_model(app_label, model_name)
         # parse headers according to 'fields' list in COMPONENTS_TABLE_SCHEMA
         # for this type
         headers = self.get_headers(

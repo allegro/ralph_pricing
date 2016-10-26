@@ -31,14 +31,14 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
-        'dj.choices==0.9.2',
+        'dj.choices==0.10.0',
         'django-auth-ldap==1.1.3',
         'django-filter==0.11',
-        'django-nose==1.3',
+        'django-nose==1.4.4',
         'django-rq==0.4.5',
-        'django-simple-history==1.6.3',
-        'django==1.4.22',
-        'djangorestframework==2.4.3',
+        'django-simple-history==1.8.1',
+        'django==1.10.2',
+        'djangorestframework==3.4.7',
         'factory-boy==2.3.1',
         'gunicorn==0.14.6',
         'ipaddr==2.1.11',
@@ -52,7 +52,6 @@ setup(
         'python-novaclient==2.17.0',
         'pyyaml==3.12',
         'rq>=0.3.7',
-        'south==1.0.2',
         'SQLAlchemy==0.7.8',
     ],
     entry_points={

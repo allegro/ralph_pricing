@@ -5,8 +5,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.contrib.auth import views as auth_views
 from django.contrib import admin
-from django.conf.urls.defaults import include, patterns, url
+from django.conf.urls import include, url
 from django.contrib.auth.decorators import login_required
 from rest_framework.authtoken import views
 
@@ -21,10 +22,13 @@ from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular2
 )
 
+admin.site.site_header = 'Scrooge'
+admin.site.site_title = 'Scrooge'
+
 admin.autodiscover()
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
+    url(r'^scrooge/api-token-auth/', views.obtain_auth_token),
 
     # Public REST API.
     # TODO(xor-xor): Create proper dir/file structure for API-related modules
@@ -60,10 +64,21 @@ urlpatterns = patterns(
         name='angular2',
     ),
     url(
-        r'^login/', 'django.contrib.auth.views.login',
-        {'template_name': 'admin/login.html'}
+        r'^login/', auth_views.login, {'template_name': 'admin/login.html'}  # noqa
     ),
-    url(r'^logout/', 'django.contrib.auth.views.logout', name='logout'),
+    url(r'^logout/', auth_views.logout, name='logout'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^hermes/', include('pyhermes.apps.django.urls'))
-)
+]
+
+# TODO(xor-xor): Uncomment patterns for hermes below once Scrooge will be
+# completely separated from Ralph. And remember, that endpoint for
+# refreshVipEvent subscription will change from:
+# /hermes/events/refreshVipEvent/
+# to:
+# /scrooge/hermes/events/refreshVipEvent/.
+#
+# urlpatterns += patterns(
+#     '',
+#     url(r'^hermes/', include('pyhermes.apps.django.urls'))
+# )

@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
 from ralph_scrooge.plugins.collect._openstack_base import (
@@ -16,6 +15,7 @@ from ralph_scrooge.plugins.collect._openstack_base import (
     TenantNotFoundError,
 )
 from ralph_scrooge.models import DailyUsage
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.plugins.collect.samples.openstack import (
     SAMPLE_OPENSTACK,
 )
@@ -42,7 +42,7 @@ TEST_SETTINGS_SCROOGE_OPENSTACK_CEILOMETER = {
 }
 
 
-class TestOpenStackBasePlugin(TestCase):
+class TestOpenStackBasePlugin(ScroogeTestCase):
     def setUp(self):
         self.today = datetime.date(2014, 7, 1)
         self.yesterday = self.today - datetime.timedelta(days=1)
@@ -137,8 +137,8 @@ class TestOpenStackBasePlugin(TestCase):
             daily_tenant2.service_environment
         )
         self.assertEquals(
-            daily_tenant2_usage.daily_pricing_object,
-            daily_tenant2.dailypricingobject_ptr
+            daily_tenant2_usage.daily_pricing_object.id,
+            daily_tenant2.dailypricingobject_ptr.id
         )
         self.assertEquals(daily_tenant2_usage.value, 300)
         self.assertEquals(daily_tenant2_usage.type, instance1_usage_type)
@@ -169,8 +169,8 @@ class TestOpenStackBasePlugin(TestCase):
             daily_tenant2.service_environment
         )
         self.assertEquals(
-            daily_tenant2_usage.daily_pricing_object,
-            daily_tenant2.dailypricingobject_ptr
+            daily_tenant2_usage.daily_pricing_object.id,
+            daily_tenant2.dailypricingobject_ptr.id
         )
         self.assertEquals(daily_tenant2_usage.value, 300)
         self.assertNotEqual(daily_tenant2_usage.type, instance1_usage_type)
