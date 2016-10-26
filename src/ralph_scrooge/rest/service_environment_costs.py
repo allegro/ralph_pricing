@@ -303,33 +303,116 @@ def _round_recursive(usages_and_costs):
 
 def fetch_costs_alt(service_env, usage_types, date_from, date_to, group_by):
 
-    # aaa = DailyCost.objects_tree.filter(
-    #     date__gte=date_from,
-    #     date__lte=date_to,
-    #     service_environment=service_env,
-    # ).annotate(
-    #     cost_sum=Sum('cost'), value_sum=Sum('value')
-    # ).values_list('date', 'path', 'type__symbol', 'cost_sum', 'value_sum')
+    aggregated_costs = tuple()
+    if group_by == 'day':
+        aggregated_costs = DailyCost.objects_tree.filter(
+            date__gte=date_from,
+            date__lte=date_to,
+            service_environment=service_env,
+        ).values_list('date', 'path', 'type__symbol').annotate(
+            cost_sum=Sum('cost'), value_sum=Sum('value')
+        )
 
-    truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
-    # aaa = DailyCost.objects_tree.filter(
-    #     date__gte=date_from,
-    #     date__lte=date_to,
-    #     service_environment=service_env,
-    # ).extra({group_by: truncate_date}).annotate(
-    #     cost_sum=Sum('cost'), value_sum=Sum('value')
-    # ).values_list('date', 'path', 'type__symbol', 'cost_sum', 'value_sum')
+    elif group_by == 'month':
+        truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
+        aggregated_costs = DailyCost.objects_tree.filter(
+            date__gte=date_from,
+            date__lte=date_to,
+            service_environment=service_env,
+        ).extra({group_by: truncate_date}).values_list(
+            group_by, 'path', 'type__symbol'
+        ).annotate(
+            cost_sum=Sum('cost'), value_sum=Sum('value')
+        )
 
-    aaa = DailyCost.objects_tree.filter(
-        date__gte=date_from,
-        date__lte=date_to,
-        service_environment=service_env,
-    ).extra({group_by: truncate_date}).annotate(
-        cost_sum=Sum('cost'), value_sum=Sum('value')
-    )
+    costs_tree = _create_tree(aggregated_costs)
+    costs_tree_ = _replace_path_with_type_symbol(costs_tree)
 
-    from IPython import embed; embed(); assert False
+    final_result = {
+        'service_environment_costs': []
+    }
+    if group_by == 'month':
+        delta = relativedelta(months=1)
+        date_range_ = date_range(
+            date_from.replace(day=1),
+            date_to.replace(day=1) + delta,
+            step=delta
+        )
+    else:  # 'day' is default for `group_by` anyway
+        delta = timedelta(days=1)
+        date_range_ = date_range(
+            date_from,
+            date_to + delta,
+            step=delta
+        )
+    for date_ in date_range_:
+        total_cost_for_date = 0.0  # XXX
+        costs_for_date = {
+            'grouped_date': date_,
+            'total_cost': round_safe(
+                total_cost_for_date, USAGE_COST_NUM_DIGITS
+            ),
+            'costs': _round_recursive(costs_tree_[date_]),
+        }
+        final_result['service_environment_costs'].append(costs_for_date)
+    return final_result
 
+
+def _create_tree(aggregated_costs):
+    # ac[0]: date, e.g. datetime.datetime(2016, 10, 1, 0, 0)
+    # ac[1]: path, e.g. '484/483'
+    # ac[2]: base usage type symbol, e.g. 'mesos_cpu'
+    # ac[3]: cost, e.g. Decimal('115.450000')
+    # ac[4]: usage value, e.g. 115.45
+    costs_tree = {}
+    for ac in aggregated_costs:
+        d = {
+            ac[1]: {
+                '_type_symbol': ac[2],
+                'cost': ac[3],
+                'usage_value': ac[4],
+            }
+        }
+        if "/" in ac[1]:
+            parent = ac[1].split("/")[0]
+            if costs_tree[ac[0]].get(parent) is None:
+                costs_tree[ac[0]][parent] = {'subcosts': d}
+            else:
+                if costs_tree[ac[0]][parent].get('subcosts') is None:
+                    costs_tree[ac[0]][parent]['subcosts'] = d
+                else:
+                    costs_tree[ac[0]][parent]['subcosts'].update(d)
+        else:
+            d[ac[1]].update({'subcosts': {}})
+            if costs_tree.get(ac[0]) is None:
+                costs_tree[ac[0]] = d
+            else:
+                costs_tree[ac[0]].update(d)
+    return costs_tree
+
+
+def _replace_path_with_type_symbol(costs_tree):
+    costs_tree_ = {}
+    tmp_dict = {}
+    for k, v in costs_tree.items():
+        if k == 'subcosts':
+            for kk, vv in v.items():
+                type_symbol = vv.pop('_type_symbol')
+                d = {type_symbol: vv}
+                if tmp_dict.get(k) is not None:
+                    tmp_dict[k].update(d)
+                else:
+                    tmp_dict[k] = d
+        elif type(v) == dict:
+            for kk, vv in v.items():
+                type_symbol = vv.pop('_type_symbol')
+                costs_tree_[k] = {
+                    type_symbol: _replace_path_with_type_symbol(vv)
+                }
+        else:
+            tmp_dict[k] = v
+    costs_tree_.update(tmp_dict)
+    return costs_tree_
 
 
 def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
