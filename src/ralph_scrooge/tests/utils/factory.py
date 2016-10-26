@@ -168,18 +168,6 @@ def get_ralph3_user(n):
     return Ralph3UserFactory()
 
 
-class OwnerFactory(DjangoModelFactory):
-    FACTORY_FOR = models.Owner
-
-    user = factory.SubFactory(UserFactory)
-
-
-class Ralph3OwnerFactory(DjangoModelFactory):
-    FACTORY_FOR = models.Owner
-
-    user = get_ralph3_user
-
-
 class BusinessLineFactory(DjangoModelFactory):
     FACTORY_FOR = models.BusinessLine
 

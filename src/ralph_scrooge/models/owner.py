@@ -9,7 +9,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.utils.models import TimeTrackable
 from dj.choices import Choices, Country, Gender
 
 
@@ -72,40 +71,6 @@ class OwnershipType(Choices):
     business = _("Business owner")
 
 
-class OwnerManager(db.Manager):
-    def get_query_set(self):
-        return super(OwnerManager, self).get_query_set().select_related(
-            'user'
-        )
-
-
-class Owner(TimeTrackable):
-    objects = OwnerManager()
-    objects_raw = db.Manager()
-
-    user = db.OneToOneField(
-        ScroogeUser,
-        verbose_name=_('User'),
-        null=True,
-        blank=True
-    )
-    profile = db.OneToOneField(
-        UserProfile,
-        verbose_name=_("profile"),
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        app_label = 'ralph_scrooge'
-
-    def __unicode__(self):
-        return ' '.join([
-            self.user.first_name,
-            self.user.last_name
-        ])
-
-
 class ServiceOwnership(db.Model):
     service = db.ForeignKey(
         'Service',
@@ -114,7 +79,7 @@ class ServiceOwnership(db.Model):
         blank=False,
     )
     owner = db.ForeignKey(
-        Owner,
+        ScroogeUser,
         verbose_name=_("owner"),
         null=False,
         blank=False,
@@ -143,7 +108,7 @@ class TeamManager(db.Model):
         blank=False,
     )
     manager = db.ForeignKey(
-        Owner,
+        ScroogeUser,
         verbose_name=_("manager"),
         null=False,
         blank=False,

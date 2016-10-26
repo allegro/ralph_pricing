@@ -12,7 +12,6 @@ from ralph_scrooge.models.extra_cost import (
 )
 from ralph_scrooge.models.owner import (
     OwnershipType,
-    Owner,
     ServiceOwnership,
     TeamManager,
     UserProfile,
@@ -97,7 +96,6 @@ __all__ = [
     'ExtraCostType',
     'HistoricalService',  # dynamic model
     'OwnershipType',
-    'Owner',
     'ProfitCenter',
     'PricingObject',
     'PricingObjectModel',

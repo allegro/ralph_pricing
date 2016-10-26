@@ -12,9 +12,9 @@ from django.db.transaction import commit_on_success
 from ralph_scrooge.models import (
     Environment,
     ProfitCenter,
-    Owner,
     OwnershipType,
     Service,
+    ScroogeUser,
     ServiceEnvironment,
     ServiceOwnership,
 )
@@ -50,14 +50,14 @@ def update_service(service_from_ralph, default_profit_center):
 def _delete_obsolete_owners(current, previous, service):
     to_delete = previous - current
     service.serviceownership_set.filter(
-        owner__user__username__in=to_delete
+        owner__username__in=to_delete
     ).delete()
 
 
 def _add_new_owners(current, previous, service, owner_type):
     to_add = current - previous
     ownerships = []
-    for owner in Owner.objects.filter(user__username__in=to_add):
+    for owner in ScroogeUser.objects.filter(username__in=to_add):
         so = ServiceOwnership(
             service=service,
             type=owner_type[1],
@@ -79,7 +79,7 @@ def _update_owners(service, service_from_ralph):
         ])
         previous = set(service.serviceownership_set.filter(
             type=owner_type[1]
-        ).values_list('owner__user__username', flat=True))
+        ).values_list('owner__username', flat=True))
         _delete_obsolete_owners(current, previous, service)
         _add_new_owners(current, previous, service, owner_type)
 

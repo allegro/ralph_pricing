@@ -38,7 +38,7 @@ def _has_permission_to_service(user, service):
         return True
     return ServiceOwnership.objects.filter(
         service__id=service,
-        owner__user=user,
+        owner=user,
     ).exists()
 
 
@@ -49,7 +49,7 @@ def has_permission_to_team(user, team):
         return True
     return TeamManager.objects.filter(
         team__id=team,
-        manager__user=user,
+        manager=user,
     ).exists()
 
 

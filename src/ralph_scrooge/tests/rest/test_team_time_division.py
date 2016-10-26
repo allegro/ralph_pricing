@@ -24,7 +24,6 @@ from ralph_scrooge.models import (
     TeamServiceEnvironmentPercent,
 )
 from ralph_scrooge.tests.utils.factory import (
-    OwnerFactory,
     ServiceEnvironmentFactory,
     TeamFactory,
 )
@@ -353,8 +352,7 @@ class TestTeamTimeDivision(TestCase):
         # Let's promote regular_user to Owner and then to TeamManager (we
         # silently assume that all team managers are also owners - but not
         # the other way around).
-        owner = OwnerFactory(user=regular_user)
-        TeamManager.objects.create(team=self.team, manager=owner)
+        TeamManager.objects.create(team=self.team, manager=regular_user)
 
         resp = self.client.post(url, payload, content_type='application/json')
         self.assertEquals(resp.status_code, 201)
@@ -405,8 +403,7 @@ class TestTeamTimeDivision(TestCase):
         self.assertEquals(resp.status_code, 403)
 
         # Try again with regular_user promoted to TeamManager.
-        owner = OwnerFactory(user=regular_user)
-        TeamManager.objects.create(team=self.team, manager=owner)
+        TeamManager.objects.create(team=self.team, manager=regular_user)
         resp = self.client.get(url)
         self.assertEquals(resp.status_code, 200)
 
