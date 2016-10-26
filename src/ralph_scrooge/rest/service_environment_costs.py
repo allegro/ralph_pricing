@@ -303,6 +303,13 @@ def _round_recursive(usages_and_costs):
 
 
 def fetch_costs_alt(service_env, usage_types, date_from, date_to, group_by):
+    """An alternative version of `fetch_costs` function. The difference is that
+    it makes less DB queries, so in theory it should be faster (to be confirmed
+    with performance tests).
+    """
+    # TODO(xor-xor): Remember to remove `fetch_costs` or `fetch_costs_alt`
+    # function (with dependencies) once we have results of the aforementioned
+    # performance tests.
     truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
     initial_qs = DailyCost.objects_tree.filter(
         date__gte=date_from,
@@ -318,8 +325,8 @@ def fetch_costs_alt(service_env, usage_types, date_from, date_to, group_by):
         cost_sum=Sum('cost'), value_sum=Sum('value')
     )
 
-    costs_tree = _create_tree(aggregated_costs)
-    costs_tree_ = _replace_path_with_type_symbol(costs_tree)
+    cost_trees = _create_trees(aggregated_costs)
+    cost_trees_ = _replace_path_with_type_symbol(cost_trees)
 
     final_result = {
         'service_environment_costs': []
@@ -347,19 +354,49 @@ def fetch_costs_alt(service_env, usage_types, date_from, date_to, group_by):
             'total_cost': round_safe(
                 total_cost_for_date, USAGE_COST_NUM_DIGITS
             ),
-            'costs': _round_recursive(costs_tree_[date_]),
+            'costs': _round_recursive(cost_trees_[date_]),
         }
         final_result['service_environment_costs'].append(costs_for_date)
     return final_result
 
 
-def _create_tree(aggregated_costs):
-    # ac[0]: date, e.g. datetime.datetime(2016, 10, 1, 0, 0)
-    # ac[1]: path, e.g. '484/483'
-    # ac[2]: base usage type symbol, e.g. 'mesos_cpu'
-    # ac[3]: cost, e.g. Decimal('115.450000')
-    # ac[4]: usage value, e.g. 115.45
-    costs_tree = {}
+def _create_trees(aggregated_costs):
+    """From `aggregated_costs`, where each item (`ac`) has the following (flat)
+    structure:
+
+    ac[0]: date, e.g. datetime.datetime(2016, 10, 7, 0, 0)
+    ac[1]: path, e.g. '484/483'
+    ac[2]: base usage type symbol, e.g. 'subtype2'
+    ac[3]: cost, e.g. Decimal('222.00')
+    ac[4]: usage value, e.g. 2.0
+
+    ...create a dict `cost_trees`, where each entry is a tree with the
+    following form:
+
+    datetime.date(2016, 10, 7): {
+        '484': {
+            '_type_symbol': 'type1',
+            'cost': Decimal('333.00'),
+            'usage_value': 0.0,
+            'subcosts': {  #  subcosts are optional
+                '484/482': {
+                    '_type_symbol': 'subtype1',
+                    'cost': Decimal('111.00'),
+                    'usage_value': 1.0
+                },
+                '484/483': {
+                    '_type_symbol': 'subtype2',
+                    'cost': Decimal('222.00'),
+                    'usage_value': 2.0
+                }
+            }
+        }
+    }
+
+    The pairing between costs and subcosts is done via the path component (e.g.
+    a cost with '484/483' is a subcost of '484').
+    """
+    cost_trees = {}
     for ac in aggregated_costs:
         date_ = ac[0].date()
         d = {
@@ -371,26 +408,33 @@ def _create_tree(aggregated_costs):
         }
         if "/" in ac[1]:
             parent = ac[1].split("/")[0]
-            if costs_tree[date_].get(parent) is None:
-                costs_tree[date_][parent] = {'subcosts': d}
+            if cost_trees[date_].get(parent) is None:
+                cost_trees[date_][parent] = {'subcosts': d}
             else:
-                if costs_tree[date_][parent].get('subcosts') is None:
-                    costs_tree[date_][parent]['subcosts'] = d
+                if cost_trees[date_][parent].get('subcosts') is None:
+                    cost_trees[date_][parent]['subcosts'] = d
                 else:
-                    costs_tree[date_][parent]['subcosts'].update(d)
+                    cost_trees[date_][parent]['subcosts'].update(d)
         else:
             d[ac[1]].update({'subcosts': {}})
-            if costs_tree.get(date_) is None:
-                costs_tree[date_] = d
+            if cost_trees.get(date_) is None:
+                cost_trees[date_] = d
             else:
-                costs_tree[date_].update(d)
-    return costs_tree
+                cost_trees[date_].update(d)
+    return cost_trees
 
 
-def _replace_path_with_type_symbol(costs_tree):
-    costs_tree_ = {}
+def _replace_path_with_type_symbol(cost_trees):
+    """Having a dict with cost trees (for the description of its structure
+    see `_create_trees` function`), replace path components (e.g. '484',
+    '484/482', '484/483') with the contents of the `_type_symbol` field and
+    finally remove that field.
+    So in the case described in `create_trees`, '484' will become 'type1',
+    '484/482' will become 'subtype1' and '484/483' will be 'subtype2'.
+    """
+    cost_trees_ = {}
     tmp_dict = {}
-    for k, v in costs_tree.items():
+    for k, v in cost_trees.items():
         if k == 'subcosts':
             for kk, vv in v.items():
                 type_symbol = vv.pop('_type_symbol')
@@ -402,13 +446,13 @@ def _replace_path_with_type_symbol(costs_tree):
         elif type(v) == dict:
             for kk, vv in v.items():
                 type_symbol = vv.pop('_type_symbol')
-                costs_tree_[k] = {
+                cost_trees_[k] = {
                     type_symbol: _replace_path_with_type_symbol(vv)
                 }
         else:
             tmp_dict[k] = v
-    costs_tree_.update(tmp_dict)
-    return costs_tree_
+    cost_trees_.update(tmp_dict)
+    return cost_trees_
 
 
 def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
