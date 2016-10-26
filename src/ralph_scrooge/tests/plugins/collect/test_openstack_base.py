@@ -137,8 +137,8 @@ class TestOpenStackBasePlugin(TestCase):
             daily_tenant2.service_environment
         )
         self.assertEquals(
-            daily_tenant2_usage.daily_pricing_object,
-            daily_tenant2.dailypricingobject_ptr
+            daily_tenant2_usage.daily_pricing_object.id,
+            daily_tenant2.dailypricingobject_ptr.id
         )
         self.assertEquals(daily_tenant2_usage.value, 300)
         self.assertEquals(daily_tenant2_usage.type, instance1_usage_type)
@@ -169,8 +169,8 @@ class TestOpenStackBasePlugin(TestCase):
             daily_tenant2.service_environment
         )
         self.assertEquals(
-            daily_tenant2_usage.daily_pricing_object,
-            daily_tenant2.dailypricingobject_ptr
+            daily_tenant2_usage.daily_pricing_object.id,
+            daily_tenant2.dailypricingobject_ptr.id
         )
         self.assertEquals(daily_tenant2_usage.value, 300)
         self.assertNotEqual(daily_tenant2_usage.type, instance1_usage_type)

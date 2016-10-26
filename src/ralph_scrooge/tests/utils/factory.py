@@ -9,7 +9,7 @@ import datetime
 import random
 
 import factory
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from factory import (
     fuzzy,
     Iterator,
@@ -141,23 +141,17 @@ class DailyVirtualInfoFactory(DailyPricingObjectFactory):
 
 
 class UserFactory(DjangoModelFactory):
-    FACTORY_FOR = User
+    FACTORY_FOR = get_user_model()
     username = Sequence(lambda n: 'user_{0}'.format(n))
     first_name = Sequence(lambda n: 'John {0}'.format(n))
     last_name = Sequence(lambda n: 'Snow {0}'.format(n))
-
-
-class UserProfileFactory(DjangoModelFactory):
-    FACTORY_FOR = models.UserProfile
-
-    user = factory.SubFactory(UserFactory)
 
 
 class Ralph3UserFactory(DjangoModelFactory):
     # TODO(xor-xor): This factory shouldn't be used to create more than
     # 6 users, otherwise you'll get an IntegrityError. But this will be
     # ironed-out once we switch to Ralph 3 exclusively.
-    FACTORY_FOR = User
+    FACTORY_FOR = get_user_model()
     first_name = Iterator([
         'James', 'Michael', 'Robert', 'Maria', 'David', 'Andrew',
     ])
@@ -170,35 +164,20 @@ class Ralph3UserFactory(DjangoModelFactory):
 
 
 @factory.sequence
-def get_profile(n):
-    """Due to strange logic in lck.django we can't use subfactories to create
-    profiles."""
-    user = UserFactory()
-    user.profile = UserProfileFactory(user=user)
-    user.save()
-    return user.profile
-
-
-@factory.sequence
-def get_ralph3_profile(n):
-    """Due to strange logic in lck.django we can't use subfactories to create
-    profiles."""
-    user = Ralph3UserFactory()
-    user.profile = UserProfileFactory(user=user)
-    user.save()
-    return user.profile
+def get_ralph3_user(n):
+    return Ralph3UserFactory()
 
 
 class OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
-    profile = get_profile
+    user = factory.SubFactory(UserFactory)
 
 
 class Ralph3OwnerFactory(DjangoModelFactory):
     FACTORY_FOR = models.Owner
 
-    profile = get_ralph3_profile
+    user = get_ralph3_user
 
 
 class BusinessLineFactory(DjangoModelFactory):

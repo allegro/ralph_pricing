@@ -8,7 +8,8 @@ from __future__ import unicode_literals
 import datetime
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
 from django.test import TestCase
 from django.test.utils import override_settings
 
@@ -177,7 +178,9 @@ class TestComponents(TestCase):
         })
 
     def test_api_view_returns_data_from_pricing_objects(self):
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         client = APIClient()
         client.login(username='test', password='test')
         resp = client.get('/scrooge/rest/components/{}/{}/{}/{}/{}/'.format(

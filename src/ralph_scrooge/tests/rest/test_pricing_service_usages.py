@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -45,7 +45,7 @@ class TestPricingServiceUsages(TestCase):
             start=datetime.date.min,
             end=datetime.date.max,
         )
-        superuser = User.objects.create_superuser(
+        superuser = get_user_model().objects.create_superuser(
             'test', 'test@test.test', 'test'
         )
         self.client = APIClient()

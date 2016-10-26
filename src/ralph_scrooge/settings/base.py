@@ -34,6 +34,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+SECRET_KEY = 'change me'
+
 TEMPLATE_DIRS = (BASE_DIR + "templates",)
 
 INSTALLED_APPS = [
@@ -48,7 +50,7 @@ INSTALLED_APPS = [
     'south',
     'rest_framework',
     'rest_framework.authtoken',
-    'ralph_scrooge'
+    'ralph_scrooge',
 ]
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -95,8 +97,9 @@ RQ_QUEUES = {
 for queue in RQ_QUEUE_LIST:
     RQ_QUEUES[queue] = dict(RQ_QUEUES['default'])
 
+AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
+# Temporary for users migrations
 AUTH_PROFILE_MODULE = 'ralph_scrooge.UserProfile'
-
 
 CACHES = dict(
     default=dict(
@@ -302,7 +305,7 @@ LOAD_BALANCER_TYPES_MAPPING = {
     'HAPROXY': 'HA Proxy',
 }
 
-EDITOR_TRACKABLE_MODEL = AUTH_PROFILE_MODULE
+EDITOR_TRACKABLE_MODEL = AUTH_USER_MODEL
 
 LOGGING = {
     'version': 1,

@@ -10,7 +10,7 @@ import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -20,7 +20,9 @@ from ralph_scrooge import models
 
 class TestAllocationClient(TestCase):
     def setUp(self):
-        User.objects.create_superuser('test', 'test@test.test', 'test')
+        get_user_model().objects.create_superuser(
+            'test', 'test@test.test', 'test'
+        )
         self.client = APIClient()
         self.client.login(username='test', password='test')
 

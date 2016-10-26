@@ -5,12 +5,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
 from ralph_scrooge.utils.models import TimeTrackable
 from dj.choices import Choices, Country, Gender
+
+
+class ScroogeUser(AbstractUser):
+
+    pass
+
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+        app_label = 'ralph_scrooge'
 
 
 class UserProfile(db.Model):
@@ -21,7 +31,7 @@ class UserProfile(db.Model):
         db_table = 'account_profile'
         app_label = 'ralph_scrooge'
 
-    user = db.OneToOneField(User)
+    user = db.OneToOneField(ScroogeUser)
     nick = db.CharField(
         verbose_name=_("visible nick"), blank=True, default='', max_length=30,
         help_text=_((
@@ -65,8 +75,7 @@ class OwnershipType(Choices):
 class OwnerManager(db.Manager):
     def get_query_set(self):
         return super(OwnerManager, self).get_query_set().select_related(
-            'profile',
-            'profile__user'
+            'user'
         )
 
 
@@ -74,21 +83,26 @@ class Owner(TimeTrackable):
     objects = OwnerManager()
     objects_raw = db.Manager()
 
+    user = db.OneToOneField(
+        ScroogeUser,
+        verbose_name=_('User'),
+        null=True,
+        blank=True
+    )
     profile = db.OneToOneField(
         UserProfile,
         verbose_name=_("profile"),
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
     )
 
     class Meta:
         app_label = 'ralph_scrooge'
-        ordering = ['profile__nick']
 
     def __unicode__(self):
         return ' '.join([
-            self.profile.user.first_name,
-            self.profile.user.last_name
+            self.user.first_name,
+            self.user.last_name
         ])
 
 

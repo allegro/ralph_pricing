@@ -37,7 +37,7 @@ setup(
         'django-nose==1.3',
         'django-rq==0.4.5',
         'django-simple-history==1.6.3',
-        'django==1.4.22',
+        'django==1.5.12',
         'djangorestframework==2.4.3',
         'factory-boy==2.3.1',
         'gunicorn==0.14.6',
