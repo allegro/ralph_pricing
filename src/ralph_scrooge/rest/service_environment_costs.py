@@ -398,7 +398,7 @@ def _create_trees(aggregated_costs):
     """
     cost_trees = {}
     for ac in aggregated_costs:
-        date_ = ac[0].date()
+        date_ = _get_truncated_date(ac[0])
         d = {
             ac[1]: {
                 '_type_symbol': ac[2],
