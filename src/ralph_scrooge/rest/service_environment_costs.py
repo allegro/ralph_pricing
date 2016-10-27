@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from copy import deepcopy
 from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
@@ -306,7 +307,6 @@ def _round_recursive(usages_and_costs):
     return rounded
 
 
-# XXX types not used here..??
 def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
     """An alternative version of `fetch_costs` function. The difference is that
     it makes less DB queries, so in theory it should be faster (to be confirmed
@@ -332,6 +332,7 @@ def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
 
     cost_trees = _create_trees(aggregated_costs)
     cost_trees_ = _replace_path_with_type_symbol(cost_trees)
+    cost_trees_filtered = _filter_by_types(cost_trees_, types)
 
     final_result = {
         'service_environment_costs': []
@@ -359,7 +360,7 @@ def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
             'total_cost': round_safe(
                 total_cost_for_date, USAGE_COST_NUM_DIGITS
             ),
-            'costs': _round_recursive(cost_trees_.get(date_, {})),
+            'costs': _round_recursive(cost_trees_filtered.get(date_, {})),
         }
         final_result['service_environment_costs'].append(costs_for_date)
     return final_result
@@ -457,6 +458,19 @@ def _replace_path_with_type_symbol(cost_trees):
         else:
             tmp_dict[k] = v
     cost_trees_.update(tmp_dict)
+    return cost_trees_
+
+
+def _filter_by_types(cost_trees, types):
+    """Makes a copy of `cost_trees` and filters out top-level costs from it
+    if their types are not in `types`.
+    """
+    cost_trees_ = deepcopy(cost_trees)
+    types_ = [t.symbol for t in types]
+    for date_, parent_cost in cost_trees_.iteritems():
+        for type_ in parent_cost.keys():
+            if type_ not in types_:
+                del parent_cost[type_]
     return cost_trees_
 
 
