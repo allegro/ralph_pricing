@@ -354,7 +354,7 @@ def fetch_costs_alt(service_env, usage_types, date_from, date_to, group_by):
             'total_cost': round_safe(
                 total_cost_for_date, USAGE_COST_NUM_DIGITS
             ),
-            'costs': _round_recursive(cost_trees_[date_]),
+            'costs': _round_recursive(cost_trees_.get(date_, {})),
         }
         final_result['service_environment_costs'].append(costs_for_date)
     return final_result

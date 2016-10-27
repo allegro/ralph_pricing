@@ -15,7 +15,6 @@ from rest_framework.test import APIClient
 
 from ralph_scrooge.models import (
     BaseUsage,
-    DailyCost,
     Environment,
     Owner,
     OwnershipType,
@@ -78,33 +77,35 @@ class TestServiceEnvironmentCosts(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(superuser)
 
-    def create_daily_costs(
-        self,
-        daily_costs,
-        parent=None,
-        pricing_object=None,
-        service_environment=None
-    ):
+    def create_daily_costs(self, daily_costs, parent=None):
         """A helper method for creating DailyCost objects with given params.
 
-        `daily_costs` argument should be an iterable holding tuples of
-        the following form: (usage type, date, value, cost).
+        `daily_costs` arg should be an iterable holding tuples of the following
+        form: (usage type, date, value, cost).
 
-        XXX describe `parent` arg
+        `parent` arg should be a tuple (pricing service, date as string) - this
+        pricing service will be used as a parent for created DailyCosts.
 
-        Apart from creating DailyCost instances, this method assigns them to
-        dynamically created attributes of `self`, which will be named
-        `daily_cost1`, `daily_cost2`, ..., `daily_costN`, where N is the number
-        of elements in `daily_costs` iterable.
+        Subcosts are linked to parent costs via `path` field, e.g. a cost with
+        `path` "0/1" is a subcost of a cost with `path` "0". And also, parent
+        costs can be distinguished from subcosts by `depth` field, which will
+        be 0 in the former case, and 1 in the latter.
         """
-        if pricing_object is None:
-            pricing_object = self.pricing_object1
-        if service_environment is None:
-            service_environment = self.service_environment1
+        pricing_object = self.pricing_object1
+        service_environment = self.service_environment1
         if parent is not None:
             parent_value = parent_cost = 0
+            children = set([dc[0] for dc in daily_costs])
+            child_id_lookup = {}
+            for n, c in enumerate(children):
+                child_id_lookup[c] = n
+
         for n, dc in enumerate(daily_costs, 1):
-            setattr(self, 'daily_cost{}'.format(n), DailyCostFactory(
+            if parent is not None:
+                parent_value += dc[2]
+                parent_cost += dc[3]
+                id_ = child_id_lookup[dc[0]]
+            DailyCostFactory(
                 type=dc[0],
                 pricing_object=pricing_object,
                 service_environment=service_environment,
@@ -112,11 +113,8 @@ class TestServiceEnvironmentCosts(TestCase):
                 value=dc[2],
                 cost=dc[3],
                 depth=(1 if parent is not None else 0),
-                path=("0/{}".format(n) if parent is not None else str(n)),
-            ))
-            if parent is not None:
-                parent_value += dc[2]
-                parent_cost += dc[3]
+                path=("0/{}".format(id_) if parent is not None else str(n)),
+            )
         if parent is not None:
             parent_cost = DailyCostFactory(
                 type=parent[0],
@@ -166,35 +164,36 @@ class TestServiceEnvironmentCosts(TestCase):
         self.assertEquals(resp.status_code, 400)
         self.assertIn(unknown_usage_type, resp.content)
 
-    # XXX come back later for this tests (why I get: [<BaseUsage: Other>,
-    # <BaseUsage: Support>, <BaseUsage: Pricing Service 7>] in expected
-    # usages?).
-    # def test_if_all_base_usages_with_depth_zero_are_used_by_default(self):
-    #     costs = (
-    #         (self.usage_type1, self.date1, 10, 20),
-    #         (self.usage_type2, self.date1, 11, 21),
-    #     )
-    #     self.create_daily_costs(
-    #         costs, parent=(self.pricing_service, self.date1_as_str)
-    #     )
-    #     self.payload['date_from'] = self.date1_as_str
-    #     self.payload['date_to'] = self.date1_as_str
-    #     # self.payload['usage_types'] = [self.pricing_service.symbol]
-    #     self.payload.pop('usage_types')
+    def test_if_all_base_usages_with_depth_zero_are_used_by_default(self):
+        costs = (
+            (self.usage_type1, self.date1, 10, 20),
+            (self.usage_type2, self.date1, 11, 21),
+        )
+        self.create_daily_costs(
+            costs, parent=(self.pricing_service, self.date1_as_str)
+        )
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": self.date1_as_str,
+            "date_to": self.date1_as_str,
+            "group_by": "day",
+            "usage_types": None
+        }
 
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     usage_types_used = set(
-    #         costs['service_environment_costs'][0]['costs'].keys()
-    #     )
-    #     parent_base_usages = BaseUsage.objects.exclude(
-    #         pk__in=UsageType.objects.filter(usage_type='SU')
-    #     )
-    #     usage_types_expected = set(
-    #         [p.symbol for p in parent_base_usages]
-    #     )
-    #     self.assertEquals(usage_types_used, usage_types_expected)
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        usage_types_used = set(
+            costs['service_environment_costs'][0]['costs'].keys()
+        )
+        parent_base_usages = BaseUsage.objects.exclude(
+            pk__in=UsageType.objects.filter(usage_type='SU')
+        )
+        usage_types_from_fixtures = {'other', 'support'}
+        parent_base_usages_ = set([p.symbol for p in parent_base_usages])
+        usage_types_expected = parent_base_usages_ - usage_types_from_fixtures
+        self.assertEquals(usage_types_used, usage_types_expected)
 
     def test_for_error_when_unknown_group_by_given(self):
         unknown_group_by = "week"
@@ -384,270 +383,275 @@ class TestServiceEnvironmentCosts(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
 
-    # XXX not sure if this test is still needed
-    # def test_if_costs_and_usage_values_are_returned_for_all_selected_usage_types(self):  # noqa: E501
-    #     costs = (
-    #         (self.usage_type1, self.date1, 10, 20),
-    #         (self.usage_type2, self.date1, 11, 21),
-    #     )
-    #     self.create_daily_costs(
-    #         costs, parent=(self.pricing_service, self.date1_as_str)
-    #     )
-    #     self.payload = {
-    #         "service_uid": self.service_uid1,
-    #         "environment": self.environment1,
-    #         "date_from": self.date1_as_str,
-    #         "date_to": self.date1_as_str,
-    #         "group_by": "day",
-    #         "usage_types": [self.pricing_service.symbol]
-    #     }
+    def test_if_costs_and_usage_values_are_rounded_to_given_precision(self):
+        cost = value = 1.123456789
+        costs = (
+            (self.usage_type1, self.date1, value, cost),
+            (self.usage_type2, self.date1, cost, cost),
+        )
+        self.create_daily_costs(
+            costs, parent=(self.pricing_service, self.date1_as_str)
+        )
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": self.date1_as_str,
+            "date_to": self.date1_as_str,
+            "group_by": "day",
+            "usage_types": [self.pricing_service.symbol]
+        }
 
-    #     for usage_types in [
-    #         [self.usage_type1.symbol, self.usage_type2.symbol],
-    #         [self.usage_type1.symbol],
-    #     ]:
-    #         self.payload['usage_types'] = usage_types
-    #         resp = self.send_post_request()
-    #         print(resp.content)  # XXX
-    #         self.assertEquals(resp.status_code, 200)
-    #         costs = json.loads(resp.content)
-    #         for ut in UsageType.objects.filter(
-    #                 name__in=self.payload['usage_types']
-    #         ):
-    #             daily_cost = DailyCost.objects.get(type=ut)
-    #             self.assertEquals(
-    #                 costs['service_environment_costs'][0]['costs'][ut.name]['usage_value'],  # noqa: E501
-    #                 daily_cost.value
-    #             )
-    #             self.assertEquals(
-    #                 costs['service_environment_costs'][0]['costs'][ut.name]['cost'],  # noqa: E501
-    #                 daily_cost.cost
-    #             )
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
 
-    # XXX come back here later
-    # def test_if_costs_and_usage_values_are_rounded_to_given_precision(self):
-    #     costs = (
-    #         (self.usage_type1, self.date1, 1.123456789, 1.123456789),
-    #         (self.usage_type2, self.date1, 1.123456789, 1.123456789),
-    #     )
-    #     self.create_daily_costs(
-    #         costs, parent=(self.pricing_service, self.date1_as_str)
-    #     )
-    #     self.payload = {
-    #         "service_uid": self.service_uid1,
-    #         "environment": self.environment1,
-    #         "date_from": self.date1_as_str,
-    #         "date_to": self.date1_as_str,
-    #         "group_by": "day",
-    #         "usage_types": [self.pricing_service.symbol]
-    #     }
+        # Let's abbreviate these for convenience.
+        costs_ = costs['service_environment_costs'][0]['costs']
+        pricing_service_ = costs_[self.pricing_service.symbol]
+        usage_type1_ = pricing_service_['subcosts'][self.usage_type1.symbol]
+        usage_type2_ = pricing_service_['subcosts'][self.usage_type2.symbol]
 
-    #     usage_type_symbol = self.usage_type1.symbol
-    #     self.payload['date_from'] = self.date1_as_str
-    #     self.payload['date_to'] = self.date1_as_str
-    #     self.payload['usage_types'] = [usage_type_symbol]
-    #     self.create_daily_costs((
-    #         (self.usage_type1, self.date1, 1.123456789, 1.123456789),
-    #     ))
+        self.assertEquals(
+            pricing_service_['cost'],
+            round(cost * 2, USAGE_COST_NUM_DIGITS)
+        )
+        self.assertEquals(
+            pricing_service_['usage_value'],
+            round(value * 2, USAGE_VALUE_NUM_DIGITS)
+        )
+        self.assertEquals(
+            usage_type1_['cost'],
+            round(cost, USAGE_COST_NUM_DIGITS)
+        )
+        self.assertEquals(
+            usage_type1_['usage_value'],
+            round(value, USAGE_VALUE_NUM_DIGITS)
+        )
+        self.assertEquals(
+            usage_type2_['cost'],
+            round(cost, USAGE_COST_NUM_DIGITS)
+        )
+        self.assertEquals(
+            usage_type2_['usage_value'],
+            round(value, USAGE_VALUE_NUM_DIGITS)
+        )
 
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['costs'][usage_type_symbol]['usage_value'],  # noqa: E501
-    #         round(self.daily_cost1.value, USAGE_VALUE_NUM_DIGITS)
-    #     )
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['costs'][usage_type_symbol]['cost'],  # noqa: E501
-    #         round(self.daily_cost1.cost, USAGE_COST_NUM_DIGITS)
-    #     )
+    def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_day(self):  # noqa: E501
+        dates = ('2016-10-07', '2016-10-08')
+        daily_costs1 = (
+            (self.usage_type1, strptime(dates[0], '%Y-%m-%d').date(), 1, 10),
+            (self.usage_type1, strptime(dates[0], '%Y-%m-%d').date(), 2, 20),
+            (self.usage_type2, strptime(dates[0], '%Y-%m-%d').date(), 3, 30),
+            (self.usage_type2, strptime(dates[0], '%Y-%m-%d').date(), 4, 40),
+        )
+        daily_costs2 = (
+            (self.usage_type1, strptime(dates[1], '%Y-%m-%d').date(), 5, 50),
+            (self.usage_type1, strptime(dates[1], '%Y-%m-%d').date(), 6, 60),
+            (self.usage_type2, strptime(dates[1], '%Y-%m-%d').date(), 7, 70),
+            (self.usage_type2, strptime(dates[1], '%Y-%m-%d').date(), 8, 80),
+        )
+        self.create_daily_costs(
+            daily_costs1,
+            parent=(self.pricing_service, dates[0]),
+        )
+        self.create_daily_costs(
+            daily_costs2,
+            parent=(self.pricing_service, dates[1]),
+        )
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": dates[0],
+            "date_to": dates[1],
+            "group_by": "day",
+            "usage_types": [self.pricing_service.symbol]
+        }
 
-    # XXX wtf?
-    # def test_if_expected_total_cost_is_returned_when_group_by_day(self):
-    #     pass
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(len(costs['service_environment_costs']), 2)
 
-    # XXX wtf?
-    # def test_if_expected_total_cost_is_returned_when_group_by_month(self):
-    #     pass
+        for c in costs['service_environment_costs']:
+            pricing_service_ = c['costs'][self.pricing_service.symbol]
+            subcost1_ = pricing_service_['subcosts'][self.usage_type1.symbol]
+            subcost2_ = pricing_service_['subcosts'][self.usage_type2.symbol]
+            if c['grouped_date'] == dates[0]:
+                self.assertEquals(pricing_service_['cost'], 100.0)
+                self.assertEquals(pricing_service_['usage_value'], 10.0)
+                self.assertEquals(subcost1_['cost'], 30.0)
+                self.assertEquals(subcost1_['usage_value'], 3.0)
+                self.assertEquals(subcost2_['cost'], 70.0)
+                self.assertEquals(subcost2_['usage_value'], 7.0)
+                self.assertEquals(c['total_cost'], 100.0)
+            elif c['grouped_date'] == dates[1]:
+                self.assertEquals(pricing_service_['cost'], 260.0)
+                self.assertEquals(pricing_service_['usage_value'], 26.0)
+                self.assertEquals(subcost1_['cost'], 110.0)
+                self.assertEquals(subcost1_['usage_value'], 11.0)
+                self.assertEquals(subcost2_['cost'], 150.0)
+                self.assertEquals(subcost2_['usage_value'], 15.0)
+                self.assertEquals(c['total_cost'], 260.0)
+            else:
+                assert False  # this shouldn't happen!
 
-    # def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_day(self):  # noqa: E501
-    #     dates = ('2016-10-07', '2016-10-08')
-    #     daily_costs = (
-    #         (self.usage_type1, strptime(dates[0], '%Y-%m-%d').date(), 10, 20),
-    #         (self.usage_type1, strptime(dates[0], '%Y-%m-%d').date(), 20, 40),
-    #         (self.usage_type2, strptime(dates[0], '%Y-%m-%d').date(), 11, 22),
-    #         (self.usage_type2, strptime(dates[0], '%Y-%m-%d').date(), 22, 44),
+    def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_month(self):  # noqa: E501
+        date_from = '2016-10-01'
+        date_to = '2016-10-31'
+        usage_value = 10
+        cost = 20
+        daily_costs = [
+            (self.usage_type1, d.date(), usage_value, cost)
+            for d in date_range(
+                strptime(date_from, '%Y-%m-%d'),
+                strptime(date_to, '%Y-%m-%d') + datetime.timedelta(days=1),
+            )
+        ]
+        for dc in daily_costs:
+            self.create_daily_costs(
+                (dc,),
+                parent=(self.pricing_service, dc[1].strftime('%Y-%m-%d'))
+            )
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": date_from,
+            "date_to": date_to,
+            "group_by": "month",
+            "usage_types": [self.pricing_service.symbol]
+        }
 
-    #         (self.usage_type1, strptime(dates[1], '%Y-%m-%d').date(), 10, 20),
-    #         (self.usage_type1, strptime(dates[1], '%Y-%m-%d').date(), 20, 40),
-    #         (self.usage_type2, strptime(dates[1], '%Y-%m-%d').date(), 11, 22),
-    #         (self.usage_type2, strptime(dates[1], '%Y-%m-%d').date(), 22, 44),
-    #     )
-    #     self.create_daily_costs(daily_costs)
-    #     self.payload['date_from'] = dates[0]
-    #     self.payload['date_to'] = dates[1]
-    #     self.payload['group_by'] = 'day'
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(len(costs['service_environment_costs']), 1)
+        expected_usage_value = usage_value * 31
+        expected_cost = cost * 31
+        self.assertEquals(
+            costs['service_environment_costs'][0]['costs'][self.pricing_service.symbol]['usage_value'],  # noqa: E501
+            expected_usage_value
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][0]['costs'][self.pricing_service.symbol]['cost'],  # noqa: E501
+            expected_cost
+        )
 
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     self.assertEquals(len(costs['service_environment_costs']), 2)
-    #     for c in costs['service_environment_costs']:
-    #         self.assertEquals(
-    #             c['costs'][self.usage_type1.symbol]['usage_value'], 30.0
-    #         )
-    #         self.assertEquals(
-    #             c['costs'][self.usage_type1.symbol]['cost'], 60.0
-    #         )
-    #         self.assertEquals(
-    #             c['costs'][self.usage_type2.symbol]['usage_value'], 33.0
-    #         )
-    #         self.assertEquals(
-    #             c['costs'][self.usage_type2.symbol]['cost'], 66.0
-    #         )
+    def test_if_total_cost_includes_other_costs_if_present(self):
+        date = '2016-10-07'
+        cost1 = 20
+        cost2 = 40
+        cost3 = 100
+        costs = (
+            (self.usage_type1, strptime(date, '%Y-%m-%d').date(), 1, cost1),
+            (self.usage_type2, strptime(date, '%Y-%m-%d').date(), 1, cost2),
+        )
+        self.create_daily_costs(
+            costs, parent=(self.pricing_service, date)
+        )
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": date,
+            "date_to": date,
+            "group_by": "day",
+            "usage_types": [self.pricing_service.symbol]
+        }
 
-    # def test_if_costs_and_usage_values_are_properly_aggregated_when_group_by_month(self):  # noqa: E501
-    #     date_from = '2016-10-01'
-    #     date_to = '2016-10-31'
-    #     usage_value = 10
-    #     cost = 20
-    #     daily_costs = [
-    #         (self.usage_type1, d.date(), usage_value, cost)
-    #         for d in date_range(
-    #             strptime(date_from, '%Y-%m-%d'),
-    #             strptime(date_to, '%Y-%m-%d') + datetime.timedelta(days=1),
-    #         )
-    #     ]
-    #     self.create_daily_costs(daily_costs)
-    #     self.payload['date_from'] = date_from
-    #     self.payload['date_to'] = date_to
-    #     self.payload['group_by'] = 'month'
-    #     self.payload['usage_types'] = [self.usage_type1.symbol]
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        expected_total_cost = cost1 + cost2
+        self.assertEquals(
+            costs['service_environment_costs'][0]['total_cost'],
+            expected_total_cost
+        )
 
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     self.assertEquals(len(costs['service_environment_costs']), 1)
-    #     expected_usage_value = usage_value * 31
-    #     expected_cost = cost * 31
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['usage_value'],  # noqa: E501
-    #         expected_usage_value
-    #     )
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['cost'],  # noqa: E501
-    #         expected_cost
-    #     )
+        # Create some "other" cost.
+        self.create_daily_costs(((self.usage_type2, date, 1, cost3),))
 
-    # def test_if_total_cost_includes_other_costs_if_present(self):
-    #     date = '2016-10-07'
-    #     cost1 = 20
-    #     cost2 = 40
-    #     daily_costs = (
-    #         (self.usage_type1, strptime(date, '%Y-%m-%d').date(), 1, cost1),
-    #         (self.usage_type2, strptime(date, '%Y-%m-%d').date(), 1, cost2),
-    #     )
-    #     self.create_daily_costs(daily_costs)
-    #     self.payload['date_from'] = date
-    #     self.payload['date_to'] = date
-    #     self.payload['group_by'] = 'day'
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        expected_total_cost = cost1 + cost2 + cost3
+        self.assertEquals(
+            costs['service_environment_costs'][0]['total_cost'],
+            expected_total_cost
+        )
+        requested_usage_types = costs['service_environment_costs'][0]['costs'].keys()  # noqa: E501
+        self.assertNotIn(self.usage_type2, requested_usage_types)
 
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     expected_total_cost = cost1 + cost2
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['total_cost'],
-    #         expected_total_cost
-    #     )
+    def test_if_costs_and_values_are_not_rounded_to_month_boundaries(self):
+        date1_as_str = '2016-10-01'
+        date2_as_str = '2016-10-07'
+        date3_as_str = '2016-10-31'
+        date1 = strptime(date1_as_str, '%Y-%m-%d').date()
+        date2 = strptime(date2_as_str, '%Y-%m-%d').date()
+        date3 = strptime(date3_as_str, '%Y-%m-%d').date()
+        cost1 = 10
+        cost2 = 20
+        cost3 = 30
+        cost4 = 40  # some "other" cost
+        self.create_daily_costs(
+            ((self.usage_type1, date1, 1, cost1),),
+            parent=(self.pricing_service, date1),
+        )
+        self.create_daily_costs(
+            ((self.usage_type1, date2, 1, cost2),),
+            parent=(self.pricing_service, date2),
+        )
+        self.create_daily_costs(
+            ((self.usage_type1, date3, 1, cost3),),
+            parent=(self.pricing_service, date3),
+        )
+        self.create_daily_costs(((self.usage_type2, date3, 1, cost4),))
 
-    #     self.assertEquals(UsageType.objects.count(), 2)
-    #     # Create new cost, not associated with usage types being the subject
-    #     # of the previous query.
-    #     other_usage_type = UsageTypeFactory()
-    #     ServiceUsageTypes.objects.create(
-    #         usage_type=other_usage_type,
-    #         pricing_service=self.pricing_service,
-    #         start=datetime.date.min,
-    #         end=datetime.date.max,
-    #     )
-    #     other_cost = 100
-    #     DailyCostFactory(
-    #         type=other_usage_type,
-    #         pricing_object=self.pricing_object1,
-    #         service_environment=self.service_environment1,
-    #         date=strptime(date, '%Y-%m-%d').date(),
-    #         value=1,
-    #         cost=other_cost,
-    #     )
-    #     self.assertEquals(UsageType.objects.count(), 3)
+        # Group by month and also whole month given as date range.
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": date1_as_str,
+            "date_to": date3_as_str,
+            "group_by": "month",
+            "usage_types": [self.pricing_service.symbol]
+        }
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(
+            costs['service_environment_costs'][0]['total_cost'],
+            cost1 + cost2 + cost3 + cost4
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][0]['costs'][self.pricing_service.symbol]['cost'],  # noqa: E501
+            cost1 + cost2 + cost3
+        )
 
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     expected_total_cost = cost1 + cost2 + other_cost
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['total_cost'],
-    #         expected_total_cost
-    #     )
-    #     requested_usage_types = costs['service_environment_costs'][0]['costs'].keys()  # noqa: E501
-    #     self.assertNotIn(other_usage_type.name, requested_usage_types)
+        # Group by month, but only single day given as date range - we expect
+        # different results than those from "group by month + whole month given
+        # as range" case. In other words, when date range is smaller than the
+        # selected group by unit, we expect that only costs from this date
+        # range will be taken into account.
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": date2_as_str,
+            "date_to": date2_as_str,
+            "group_by": "month",
+            "usage_types": [self.pricing_service.symbol]
+        }
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(
+            costs['service_environment_costs'][0]['total_cost'],
+            cost2
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][0]['costs'][self.pricing_service.symbol]['cost'],  # noqa: E501
+            cost2
+        )
 
-    # def test_if_costs_and_values_are_not_rounded_to_month_boundaries(self):
-    #     date1 = '2016-10-01'
-    #     date2 = '2016-10-07'
-    #     date3 = '2016-10-31'
-    #     cost1 = 10
-    #     cost2 = 20
-    #     cost3 = 30
-    #     cost4 = 40  # some "other" cost
-    #     daily_costs = (
-    #         (self.usage_type1, strptime(date1, '%Y-%m-%d').date(), 1, cost1),
-    #         (self.usage_type1, strptime(date2, '%Y-%m-%d').date(), 1, cost2),
-    #         (self.usage_type1, strptime(date3, '%Y-%m-%d').date(), 1, cost3),
-    #         (self.usage_type2, strptime(date3, '%Y-%m-%d').date(), 1, cost4),
-    #     )
-    #     self.create_daily_costs(daily_costs)
-
-    #     # Group by month and also whole month given as date range.
-    #     self.payload['date_from'] = date1
-    #     self.payload['date_to'] = date3
-    #     self.payload['group_by'] = 'month'
-    #     self.payload['usage_types'] = [self.usage_type1.symbol]
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['total_cost'],
-    #         cost1 + cost2 + cost3 + cost4
-    #     )
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['cost'],  # noqa: E501
-    #         cost1 + cost2 + cost3
-    #     )
-
-    #     # Group by month, but only single day given as date range - we expect
-    #     # different results than those from "group by month + whole month given
-    #     # as range" case. In other words, when date range is smaller than the
-    #     # selected group by unit, we expect that only costs from this date
-    #     # range will be taken into account.
-    #     self.payload['date_from'] = date2
-    #     self.payload['date_to'] = date2
-    #     self.payload['group_by'] = 'month'
-    #     self.payload['usage_types'] = [self.usage_type1.symbol]
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['total_cost'],
-    #         cost2
-    #     )
-    #     self.assertEquals(
-    #         costs['service_environment_costs'][0]['costs'][self.usage_type1.symbol]['cost'],  # noqa: E501
-    #         cost2
-    #     )
-
-    def test_if_subcosts_show_up_in_resulting_json_if_linked_to_parent_costs(self):  # noqa: E501
+    def test_if_subcosts_show_up_in_resulting_json(self):
         cost1 = 10
         cost2 = 11
         usage_value1 = 1
@@ -682,27 +686,3 @@ class TestServiceEnvironmentCosts(TestCase):
         self.assertEquals(
             subcosts[self.usage_type2.symbol]['usage_value'], usage_value2
         )
-
-    # def test_dicts_with_null_values_should_be_reported_when_no_cost_for_given_date_and_usage_type(self):  # noqa: E501
-    #     self.create_daily_costs((
-    #         (self.usage_type1, self.date1, 1, 10),
-    #     ))
-    #     self.payload['date_from'] = self.date1_as_str
-    #     self.payload['date_to'] = self.date1_as_str
-    #     self.payload['usage_types'] = [
-    #         self.usage_type1.symbol, self.usage_type2.symbol
-    #     ]
-
-    #     resp = self.send_post_request()
-    #     self.assertEquals(resp.status_code, 200)
-    #     costs = json.loads(resp.content)
-
-    #     costs_ = costs['service_environment_costs'][0]['costs']
-    #     self.assertEquals(
-    #         costs_[self.usage_type1.symbol]['usage_value'], 1.0
-    #     )
-    #     self.assertEquals(
-    #         costs_[self.usage_type1.symbol]['cost'], 10.0
-    #     )
-    #     self.assertIsNone(costs_[self.usage_type2.symbol]['usage_value'])
-    #     self.assertIsNone(costs_[self.usage_type2.symbol]['cost'])
