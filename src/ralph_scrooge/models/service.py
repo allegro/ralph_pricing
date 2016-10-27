@@ -146,7 +146,7 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         verbose_name=_('profit center'),
     )
     ownership = db.ManyToManyField(
-        'Owner',
+        'ScroogeUser',
         through='ServiceOwnership',
         related_name='services',
         verbose_name=_("ownership"),

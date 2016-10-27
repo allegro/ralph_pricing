@@ -21,7 +21,7 @@ from ralph_scrooge.plugins.collect.ralph3_service_environment import (
 )
 from ralph_scrooge.tests.utils.factory import (
     ProfitCenterFactory,
-    Ralph3OwnerFactory,
+    Ralph3UserFactory,
     ServiceFactory,
 )
 from ralph_scrooge.tests.plugins.collect.samples.ralph3_service_environment import (  # noqa
@@ -36,10 +36,10 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
         self.default_profit_center = ProfitCenter(pk=1)
         ProfitCenterFactory.reset_sequence()
         self.profit_centers = ProfitCenterFactory.create_batch(2)
-        Ralph3OwnerFactory.reset_sequence()
+        Ralph3UserFactory.reset_sequence()
         # Don't create more than 6 owners (see remark in Ralph3UserFactory for
         # explaination).
-        self.owners = Ralph3OwnerFactory.create_batch(6)
+        self.owners = Ralph3UserFactory.create_batch(6)
 
     def _create_and_test_service(self, data):
         """
@@ -61,7 +61,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
             set(
                 saved_service.serviceownership_set.filter(
                     type=OwnershipType.business
-                ).values_list('owner__user__username', flat=True)
+                ).values_list('owner__username', flat=True)
             ),
             set([o['username'] for o in data['business_owners']])
         )
@@ -69,7 +69,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
             set(
                 saved_service.serviceownership_set.filter(
                     type=OwnershipType.technical
-                ).values_list('owner__user__username', flat=True)
+                ).values_list('owner__username', flat=True)
             ),
             set([o['username'] for o in data['technical_owners']])
         )
@@ -135,7 +135,7 @@ class TestServiceEnvironmentCollectPlugin(TestCase):
         )
         # add new technical owner
         self.data['technical_owners'].append({
-            'username': self.owners[5].user.username,
+            'username': self.owners[5].username,
         })
         created, service = self._create_and_test_service(self.data)
         self.assertFalse(created)

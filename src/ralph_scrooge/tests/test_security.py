@@ -11,7 +11,6 @@ from rest_framework.test import APIClient
 
 from ralph_scrooge.models import ServiceOwnership, TeamManager
 from ralph_scrooge.tests.utils.factory import (
-    OwnerFactory,
     ServiceEnvironmentFactory,
     TeamFactory,
 )
@@ -44,10 +43,9 @@ class TestSecurity(TestCase):
         # create services (and assign one of them to owner)
         self.se1 = ServiceEnvironmentFactory()
         self.service1 = self.se1.service
-        scrooge_owner = OwnerFactory(user=self.owner)
         ServiceOwnership.objects.create(
             service=self.service1,
-            owner=scrooge_owner
+            owner=self.owner
         )
 
         self.se2 = ServiceEnvironmentFactory()
@@ -55,8 +53,7 @@ class TestSecurity(TestCase):
 
         # create teams
         self.team1 = TeamFactory()
-        team_manager = OwnerFactory(user=self.team_manager)
-        TeamManager.objects.create(team=self.team1, manager=team_manager)
+        TeamManager.objects.create(team=self.team1, manager=self.team_manager)
         self.team2 = TeamFactory()
 
     def _login_as(self, user):
