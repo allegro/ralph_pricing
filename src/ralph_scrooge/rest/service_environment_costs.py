@@ -25,6 +25,7 @@ from ralph_scrooge.models import (
     UsageType,
 )
 from ralph_scrooge.rest.auth import IsServiceOwner
+from ralph_scrooge.utils.cache import memoize
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
@@ -34,9 +35,11 @@ GROUP_BY_CHOICES = (
 )
 
 
-# TODO(xor-xor): Think about some better name for this function and add some
-# caching to it.
-def get_parents():
+@memoize
+def get_valid_usage_types():
+    """We are interested here in all types except "SU" which is "Service usage
+    type" (see TYPE_CHOICES in ralph_scrooge.models.usage).
+    """
     return BaseUsage.objects.exclude(
         pk__in=UsageType.objects.filter(usage_type='SU')
     )
@@ -51,16 +54,16 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
     usage_types = ListField(serializers.CharField(), required=False)
 
     def validate_usage_types(self, attrs, source):
-        parents = get_parents()
+        valid_usage_types = get_valid_usage_types()
         usage_types = attrs.get(source)
         if usage_types is None or len(usage_types) == 0:
-            attrs[source] = parents
+            attrs[source] = valid_usage_types
             return attrs
         usage_types_validated = []
         unknown_values = []
         for ut in usage_types:
             try:
-                usage_types_validated.append(parents.get(symbol=ut))
+                usage_types_validated.append(valid_usage_types.get(symbol=ut))
             except BaseUsage.DoesNotExist:
                 unknown_values.append(ut)
         if len(unknown_values) > 0:
