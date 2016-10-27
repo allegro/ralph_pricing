@@ -301,6 +301,15 @@ class Collector(object):
             logger.debug('Total SQL queries: {0}'.format(queries_count))
         return data
 
+    def calculate_daily_costs_for_day(self, day, forecast, plugins):
+        """"
+        A convenience wrapper around three other methods.
+        """
+        processed_costs = self.process(day, forecast, plugins=plugins)
+        daily_costs = self._create_daily_costs(day, processed_costs, forecast)
+        start = end = day
+        self.save_period_costs(start, end, forecast, daily_costs)
+
     @classmethod
     def _get_services_environments(cls):
         """

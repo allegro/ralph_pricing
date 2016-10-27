@@ -127,18 +127,11 @@ class Command(BaseCommand):
             )
             return
 
-        # Determine which plugins are needed and finally calculate & save the
-        # costs.
-        plugins = []
-        for p in collector.get_plugins():
-            if p.name in pricing_service_names_verified:
-                plugins.append(p)
-        processed_costs = collector.process(date_, forecast, plugins=plugins)
-        daily_costs = collector._create_daily_costs(
-            date_, processed_costs, forecast
-        )
-        start = end = date_
-        collector.save_period_costs(start, end, forecast, daily_costs)
+        plugins = [
+            p for p in collector.get_plugins()
+            if p.name in pricing_service_names_verified
+        ]
+        collector.calculate_daily_costs_for_day(date_, forecast, plugins)
 
     def _parse_date(self, date_):
         if not isinstance(date_, date):
