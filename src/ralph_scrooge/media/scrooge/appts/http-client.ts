@@ -21,6 +21,7 @@ export class HttpClient {
   getHeaders(): Headers {
     let headers: Headers = new Headers();
     headers.append("Content-Type", "application/json");
+    headers.append("Accept", "application/json");
     headers.append("X-CSRFToken", this.cookieService.getCookie("csrftoken"));
     return headers;
   }
