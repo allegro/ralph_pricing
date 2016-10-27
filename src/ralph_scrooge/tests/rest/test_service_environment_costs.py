@@ -141,28 +141,28 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": '2016-10-01',
             "date_to": '2016-08-01',
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 400)
         self.assertIn('should be less or equal', resp.content)
 
     def test_for_error_when_unknown_usage_type_given(self):
-        unknown_usage_type = 'unknown usage type'
+        unknown_type = 'unknown type'
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
             "date_from": self.date1_as_str,
             "date_to": self.date2_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol, unknown_usage_type]
+            "types": [self.pricing_service.symbol, unknown_type]
         }
         self.assertFalse(
-            BaseUsage.objects.filter(name=unknown_usage_type).exists()
+            BaseUsage.objects.filter(name=unknown_type).exists()
         )
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 400)
-        self.assertIn(unknown_usage_type, resp.content)
+        self.assertIn(unknown_type, resp.content)
 
     def test_if_all_base_usages_with_depth_zero_are_used_by_default(self):
         costs = (
@@ -178,22 +178,22 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "day",
-            "usage_types": None
+            "types": None
         }
 
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         costs = json.loads(resp.content)
-        usage_types_used = set(
+        types_used = set(
             costs['service_environment_costs'][0]['costs'].keys()
         )
         parent_base_usages = BaseUsage.objects.exclude(
             pk__in=UsageType.objects.filter(usage_type='SU')
         )
-        usage_types_from_fixtures = {'other', 'support'}
+        types_from_fixtures = {'other', 'support'}
         parent_base_usages_ = set([p.symbol for p in parent_base_usages])
-        usage_types_expected = parent_base_usages_ - usage_types_from_fixtures
-        self.assertEquals(usage_types_used, usage_types_expected)
+        types_expected = parent_base_usages_ - types_from_fixtures
+        self.assertEquals(types_used, types_expected)
 
     def test_for_error_when_unknown_group_by_given(self):
         unknown_group_by = "week"
@@ -203,7 +203,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date2_as_str,
             "group_by": unknown_group_by,
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
 
         resp = self.send_post_request()
@@ -226,7 +226,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "day",
-            "usage_types": None
+            "types": None
         }
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
@@ -239,7 +239,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date2_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         self.assertFalse(
             Service.objects.filter(ci_uid=unknown_service_uid).exists()
@@ -256,7 +256,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date2_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         self.assertFalse(
             Environment.objects.filter(name=unknown_environment).exists()
@@ -272,7 +272,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date2_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         self.assertFalse(
             ServiceEnvironment.objects.filter(
@@ -343,7 +343,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
 
         # Unauthenticated user.
@@ -398,7 +398,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
 
         resp = self.send_post_request()
@@ -408,8 +408,8 @@ class TestServiceEnvironmentCosts(TestCase):
         # Let's abbreviate these for convenience.
         costs_ = costs['service_environment_costs'][0]['costs']
         pricing_service_ = costs_[self.pricing_service.symbol]
-        usage_type1_ = pricing_service_['subcosts'][self.usage_type1.symbol]
-        usage_type2_ = pricing_service_['subcosts'][self.usage_type2.symbol]
+        type1_ = pricing_service_['subcosts'][self.usage_type1.symbol]
+        type2_ = pricing_service_['subcosts'][self.usage_type2.symbol]
 
         self.assertEquals(
             pricing_service_['cost'],
@@ -420,19 +420,19 @@ class TestServiceEnvironmentCosts(TestCase):
             round(value * 2, USAGE_VALUE_NUM_DIGITS)
         )
         self.assertEquals(
-            usage_type1_['cost'],
+            type1_['cost'],
             round(cost, USAGE_COST_NUM_DIGITS)
         )
         self.assertEquals(
-            usage_type1_['usage_value'],
+            type1_['usage_value'],
             round(value, USAGE_VALUE_NUM_DIGITS)
         )
         self.assertEquals(
-            usage_type2_['cost'],
+            type2_['cost'],
             round(cost, USAGE_COST_NUM_DIGITS)
         )
         self.assertEquals(
-            usage_type2_['usage_value'],
+            type2_['usage_value'],
             round(value, USAGE_VALUE_NUM_DIGITS)
         )
 
@@ -464,7 +464,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": dates[0],
             "date_to": dates[1],
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
 
         resp = self.send_post_request()
@@ -518,7 +518,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": date_from,
             "date_to": date_to,
             "group_by": "month",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
 
         resp = self.send_post_request()
@@ -554,7 +554,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": date,
             "date_to": date,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
 
         resp = self.send_post_request()
@@ -577,8 +577,8 @@ class TestServiceEnvironmentCosts(TestCase):
             costs['service_environment_costs'][0]['total_cost'],
             expected_total_cost
         )
-        requested_usage_types = costs['service_environment_costs'][0]['costs'].keys()  # noqa: E501
-        self.assertNotIn(self.usage_type2, requested_usage_types)
+        requested_types = costs['service_environment_costs'][0]['costs'].keys()  # noqa: E501
+        self.assertNotIn(self.usage_type2, requested_types)
 
     def test_if_costs_and_values_are_not_rounded_to_month_boundaries(self):
         date1_as_str = '2016-10-01'
@@ -612,7 +612,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": date1_as_str,
             "date_to": date3_as_str,
             "group_by": "month",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
@@ -637,7 +637,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": date2_as_str,
             "date_to": date2_as_str,
             "group_by": "month",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
@@ -669,7 +669,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
 
         resp = self.send_post_request()

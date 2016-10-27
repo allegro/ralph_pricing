@@ -36,7 +36,7 @@ GROUP_BY_CHOICES = (
 
 
 @memoize
-def get_valid_usage_types():
+def get_valid_types():
     """We are interested here in all types except "SU" which is "Service usage
     type" (see TYPE_CHOICES in ralph_scrooge.models.usage).
     """
@@ -51,21 +51,24 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
     date_from = serializers.DateField()
     date_to = serializers.DateField()
     group_by = serializers.ChoiceField(choices=GROUP_BY_CHOICES)
-    usage_types = ListField(serializers.CharField(), required=False)
+    # TODO(xor-xor): Consider some less generic name for this field (it's not
+    # not that easy, though, because neither `usage_types` nor `base_usages`
+    # fit here in 100%).
+    types = ListField(serializers.CharField(), required=False)
 
-    def validate_usage_types(self, attrs, source):
-        valid_usage_types = get_valid_usage_types()
-        usage_types = attrs.get(source)
-        if usage_types is None or len(usage_types) == 0:
-            attrs[source] = valid_usage_types
+    def validate_types(self, attrs, source):
+        valid_types = get_valid_types()
+        types = attrs.get(source)
+        if types is None or len(types) == 0:
+            attrs[source] = valid_types
             return attrs
-        usage_types_validated = []
+        types_validated = []
         unknown_values = []
-        for ut in usage_types:
+        for t in types:
             try:
-                usage_types_validated.append(valid_usage_types.get(symbol=ut))
+                types_validated.append(valid_types.get(symbol=t))
             except BaseUsage.DoesNotExist:
-                unknown_values.append(ut)
+                unknown_values.append(t)
         if len(unknown_values) > 0:
             err = (
                 'Unknown value(s): {}.'.format(
@@ -73,7 +76,7 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
                 )
             )
             raise serializers.ValidationError(err)
-        attrs[source] = usage_types_validated
+        attrs[source] = types_validated
         return attrs
 
     def validate(self, attrs):
@@ -181,10 +184,8 @@ def _get_total_costs(qs, group_by):
     """Sums `cost` fields by time period given as `group_by` (i.e. "day",
     "month"), in queryset given as `qs`.
 
-    Please note that only top-level costs (i.e. with `depth` == 0),
-    even those that are not selected explicitly with `usage_types`
-    (see `fetch_costs`) are taken into account here - hence "total
-    costs" in its name.
+    Please note that "other" costs (i.e. not associated with those that are
+    selected with `type` field in HTTP request).
     """
     total_costs = {}
     results = qs.filter(depth=0).values(group_by).annotate(
@@ -196,30 +197,30 @@ def _get_total_costs(qs, group_by):
     return total_costs
 
 
-def _aggregate_costs(qs, usage_type, group_by, results):
-    """Aggregate costs from queryset `qs`, which is filtered by `usage_type`
-    and then grouped by date period given as `group_by` (e.g., "day", "month").
+def _aggregate_costs(qs, type_, group_by, results):
+    """Aggregate costs from queryset `qs`, which is filtered by `type` and then
+    grouped by date period given as `group_by` (e.g., "day", "month").
     `results` argument is a dictionary, where results of this function are
     appended (i.e., this function doesn't return anything).
     """
     # XXX(xor-xor): Check if truncate_date is really needed here.
     truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
     qs_with_truncate_date = qs.extra({group_by: truncate_date})
-    qs_by_usage_type = qs_with_truncate_date.filter(type=usage_type)
+    qs_by_type = qs_with_truncate_date.filter(type=type_)
     # We use `len` instead of `exists` or `count` because of a bug in older
     # Django, see: http://stackoverflow.com/q/37446551/5768173.
-    if len(qs_by_usage_type) > 0:
-        # We assume that all elements in `qs_by_usage_type` have the same
-        # `path` attribute - hence `qs_by_usage_type[0]`.
-        path = qs_by_usage_type[0].path
-        results_by_date = qs_by_usage_type.values(group_by).annotate(
+    if len(qs_by_type) > 0:
+        # We assume that all elements in `qs_by_type` have the same
+        # `path` attribute - hence `qs_by_type[0]`.
+        path = qs_by_type[0].path
+        results_by_date = qs_by_type.values(group_by).annotate(
             Sum('cost'), Sum('value')
         ).order_by(group_by)
         for r in results_by_date:
             d = _get_truncated_date(r[group_by])
             cost_and_usage_dict = {
                 path: {
-                    '_usage_type_symbol': usage_type.symbol,
+                    '_type_symbol': type_.symbol,
                     'cost': r['cost__sum'],
                     'usage_value': r['value__sum']
                 }
@@ -238,13 +239,13 @@ def _merge_costs_with_subcosts(costs, subcosts):
     """
     merged_costs = {}
     for cost_path, cost_dict in costs.iteritems():
-        usage_type_symbol = cost_dict.pop('_usage_type_symbol')
-        merged_costs[usage_type_symbol] = cost_dict
-        merged_costs[usage_type_symbol]['subcosts'] = {}
+        type_symbol = cost_dict.pop('_type_symbol')
+        merged_costs[type_symbol] = cost_dict
+        merged_costs[type_symbol]['subcosts'] = {}
         for subcost_path, subcost_dict in subcosts.iteritems():
             if subcost_path.split('/')[0] == cost_path:
-                merged_costs[usage_type_symbol]['subcosts'].update(
-                    {subcost_dict.pop('_usage_type_symbol'): subcost_dict}
+                merged_costs[type_symbol]['subcosts'].update(
+                    {subcost_dict.pop('_type_symbol'): subcost_dict}
                 )
     return merged_costs
 
@@ -262,7 +263,7 @@ def _fetch_subcosts(parent_qs, service_env, date_):
     # We use `len` instead of `exists` or `count` because of a bug in older
     # Django, see: http://stackoverflow.com/q/37446551/5768173.
     if len(parent_qs) > 0 and parent_qs[0].depth == 0:
-        # Fetch all children, ignore differences in usage_type for now.
+        # Fetch all children, ignore differences in `type` for now.
         subcosts_qs = DailyCost.objects_tree.filter(
             service_environment=service_env,
             date=date_,
@@ -270,20 +271,20 @@ def _fetch_subcosts(parent_qs, service_env, date_):
             depth=1
         )
 
-        # Filter `subcosts_qs` by usage_type and preform cost/usage_value
+        # Filter `subcosts_qs` by `type` and preform cost/usage_value
         # aggregation as in "normal" (i.e. top-level) costs.
-        usage_types = set([subcost.type.usagetype for subcost in subcosts_qs])
+        types = set([subcost.type.usagetype for subcost in subcosts_qs])
         subcosts = {}
-        for usage_type in usage_types:
+        for type_ in types:
             qs = subcosts_qs.filter(
                 service_environment=service_env,
                 date=date_,
-                type=usage_type
+                type=type_
             )
             cost_and_value = qs.aggregate(
                 usage_value=Sum('value'), cost=Sum('cost')
             )
-            subcosts[usage_type.symbol] = cost_and_value
+            subcosts[type_.symbol] = cost_and_value
         return subcosts
 
 
@@ -305,7 +306,8 @@ def _round_recursive(usages_and_costs):
     return rounded
 
 
-def fetch_costs_alt(service_env, usage_types, date_from, date_to, group_by):
+# XXX types not used here..??
+def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
     """An alternative version of `fetch_costs` function. The difference is that
     it makes less DB queries, so in theory it should be faster (to be confirmed
     with performance tests).
@@ -458,11 +460,11 @@ def _replace_path_with_type_symbol(cost_trees):
     return cost_trees_
 
 
-def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
-    """Fetch DailyCosts associated with given `service_env` and
-    `usage_types`, in range defined by `date_from` and `date_to`, and
-    summarize them (i.e. their `value` and `cost` fields) per period given by
-    `group_by` (e.g. "day" or "month").
+def fetch_costs(service_env, types, date_from, date_to, group_by):
+    """Fetch DailyCosts associated with given `service_env` and `types`,
+    in range defined by `date_from` and `date_to`, and summarize them (i.e.
+    their `value` and `cost` fields) per period given by `group_by` (e.g.
+    "day" or "month").
 
     The result of such single summarization looks like this:
 
@@ -470,22 +472,22 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
             "grouped_date": "2016-10",  # or "2016-10-01" when group by day
             "total_cost": 1400.00,
             "usages": {
-                "some_usage_type1": {
+                "some_type1": {
                     "cost": 50.00,
                     "usage_value": 10.00,
                     "subcosts": {}
                 },
-                "some_usage_type2": {
+                "some_type2": {
                     "cost": 300.0,
                     "usage_value": 0.0
                     "subcosts": {
                         # we assume that only one level of nesting is possible
                         # here (i.e., that there are no sub-subcosts)
-                        "some_usage_type3": {
+                        "some_type3": {
                             "cost": 100.00,
                             "usage_value": 10.00
                         },
-                        "some_usage_type4": {
+                        "some_type4": {
                             "cost": 200.00,
                             "usage_value": 20.10
                         }
@@ -524,13 +526,13 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
     qs = initial_qs.extra({group_by: truncate_date})
     total_costs = _get_total_costs(qs, group_by)
     results = {}
-    for usage_type in usage_types:
-        _aggregate_costs(qs, usage_type, group_by, results)
+    for type_ in types:
+        _aggregate_costs(qs, type_, group_by, results)
 
     # Check for subcosts basing on usage types present in `initial_qs`.
     results_subcosts = {}
-    for usage_type in usage_types:
-        qs = initial_qs.filter(type=usage_type)
+    for type_ in types:
+        qs = initial_qs.filter(type=type_)
         # We use `len` instead of `exists` or `count` because of a bug in older
         # Django, see: http://stackoverflow.com/q/37446551/5768173.
         if len(qs) > 0 and qs[0].depth == 0:
@@ -538,12 +540,12 @@ def fetch_costs(service_env, usage_types, date_from, date_to, group_by):
                 path__startswith=qs[0].path,
                 depth=1
             )
-            usage_types_ = set(
+            types_ = set(
                 [subcost.type.usagetype for subcost in subcosts_qs]
             )
-            for usage_type_ in usage_types_:
+            for type__ in types_:
                 _aggregate_costs(
-                    subcosts_qs, usage_type_, group_by, results_subcosts
+                    subcosts_qs, type__, group_by, results_subcosts
                 )
 
     # Construct final result (fill missing days/months, round values, match
@@ -593,18 +595,18 @@ class ServiceEnvironmentCosts(APIView):
         # instead of ValidationError or something like that).
         # This workaround can be removed once we switch to DjRF 3.x and get rid
         # of drf_compound_fields.
-        if request.DATA.get('usage_types') is None:
-            request.DATA['usage_types'] = []
+        if request.DATA.get('types') is None:
+            request.DATA['types'] = []
 
         if deserializer.is_valid():
             service_env = deserializer.object['_service_environment']
-            usage_types = deserializer.object['usage_types']
+            types = deserializer.object['types']
             date_from = deserializer.object['date_from']
             date_to = deserializer.object['date_to']
             group_by = deserializer.object['group_by']
 
             costs = fetch_costs_alt(
-                service_env, usage_types, date_from, date_to, group_by
+                service_env, types, date_from, date_to, group_by
             )
             if group_by == 'day':
                 return Response(
