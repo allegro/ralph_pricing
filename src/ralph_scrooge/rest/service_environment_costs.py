@@ -5,13 +5,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
 from copy import deepcopy
-from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 from django.db import connection
 from django.db.models import Sum
-from drf_compound_fields.fields import DictField, ListField
 from rest_framework import serializers
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -55,14 +54,14 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
     # TODO(xor-xor): Consider some less generic name for this field (it's not
     # not that easy, though, because neither `usage_types` nor `base_usages`
     # fit here in 100%).
-    types = ListField(serializers.CharField(), required=False)
+    types = serializers.ListField(
+        child=serializers.CharField(), required=False
+    )
 
-    def validate_types(self, attrs, source):
+    def validate_types(self, types):
         valid_types = get_valid_types()
-        types = attrs.get(source)
         if types is None or len(types) == 0:
-            attrs[source] = valid_types
-            return attrs
+            return valid_types
         types_validated = []
         unknown_values = []
         for t in types:
@@ -77,8 +76,7 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
                 )
             )
             raise serializers.ValidationError(err)
-        attrs[source] = types_validated
-        return attrs
+        return types_validated
 
     def validate(self, attrs):
         errors = []
@@ -112,24 +110,23 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
         return attrs
 
 
-class ComponentCostSerializer(Serializer):
+class CostAndUsageValueSerializer(Serializer):
     cost = serializers.FloatField()
     usage_value = serializers.FloatField()
 
 
-# Not very elegant, but DjRF doesn't allow declaring recursive fields in
-# "normal" way. BTW, this workaround allows only one level of recursion,
-# but it is enough for our usage-case. In case you'd need more, you may be
-# better off with `django-rest-framework-recursive` package, or something
-# like that.
-ComponentCostSerializer.base_fields['subcosts'] = DictField(
-    ComponentCostSerializer()
-)
+class CostWithSubcostsSerializer(CostAndUsageValueSerializer):
+    subcosts = serializers.DictField(child=CostAndUsageValueSerializer())
 
 
+# Since we assume that maximum nesting depth for subcosts is 1, we don't need
+# a truly recursive structure for `costs` field - hence this
+# CostWithSubcostsSerializer / CostAndUsageValueSerializer hierarchy (instead
+# of one, recursive field, which is not available out-of-the-box in DjRF
+# anyway).
 class CostsSerializer(Serializer):
     total_cost = serializers.FloatField()
-    costs = DictField(ComponentCostSerializer())
+    costs = serializers.DictField(child=CostWithSubcostsSerializer())
 
 
 class DailyCostsSerializer(CostsSerializer):
@@ -148,7 +145,7 @@ class ServiceEnvironmentMonthlyCostsSerializer(Serializer):
     service_environment_costs = MonthlyCostsSerializer(many=True)
 
 
-def date_range(start, stop, step=timedelta(days=1)):
+def date_range(start, stop, step=datetime.timedelta(days=1)):
     """This function is similar to "normal" `range`, but it operates on dates
     instead of numbers. Taken from "Python Cookbook, 3rd ed.".
     """
@@ -166,6 +163,7 @@ def round_safe(value, precision):
     return round(value, precision)
 
 
+# XXX
 def _get_truncated_date(date_):
     """This function is just a workaround for sqlite, where
     `date_trunc_sql` has slightly different result than on e.g. MySQL
@@ -174,10 +172,12 @@ def _get_truncated_date(date_):
     functions like TruncMonth in Django 1.10, this workaround should
     be considered as temporary.
     """
+    if isinstance(date_, datetime.date):
+        return date_
     try:
         d = date_.date()
     except AttributeError:
-        d = datetime.strptime(date_, '%Y-%m-%d %H:%M:%S').date()
+        d = datetime.datetime.strptime(date_, '%Y-%m-%d %H:%M:%S').date()
     return d
 
 
@@ -302,8 +302,10 @@ def _round_recursive(usages_and_costs):
                 'usage_value': round_safe(
                     v['usage_value'], USAGE_VALUE_NUM_DIGITS
                 ),
-                'subcosts': _round_recursive(v.get('subcosts', {})),
             }
+            subcosts = v.get('subcosts')
+            if subcosts is not None:
+                rounded[k]['subcosts'] = _round_recursive(subcosts)
     return rounded
 
 
@@ -347,7 +349,7 @@ def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
     else:
         # 'day' is default for `group_by` anyway so it's OK to use it
         # as a fallback here.
-        delta = timedelta(days=1)
+        delta = datetime.timedelta(days=1)
         date_range_ = date_range(
             date_from,
             date_to + delta,
@@ -575,7 +577,7 @@ def fetch_costs(service_env, types, date_from, date_to, group_by):
             step=delta
         )
     else:  # 'day' is default for `group_by` anyway
-        delta = timedelta(days=1)
+        delta = datetime.timedelta(days=1)
         date_range_ = date_range(
             date_from,
             date_to + delta,
@@ -602,26 +604,27 @@ class ServiceEnvironmentCosts(APIView):
     permission_classes = (IsAuthenticated, IsServiceOwner)
 
     def post(self, request, *args, **kwargs):
-        deserializer = ServiceEnvironmentCostsDeserializer(data=request.DATA)
+        deserializer = ServiceEnvironmentCostsDeserializer(data=request.data)
 
         # A workaround for ListField validation (from drf_compound_fields) that
         # for some reason can't handle nulls gracefully (it gives TypeError
         # instead of ValidationError or something like that).
         # This workaround can be removed once we switch to DjRF 3.x and get rid
         # of drf_compound_fields.
-        if request.DATA.get('types') is None:
-            request.DATA['types'] = []
+        if request.data.get('types') is None:
+            request.data['types'] = []
 
         if deserializer.is_valid():
-            service_env = deserializer.object['_service_environment']
-            types = deserializer.object['types']
-            date_from = deserializer.object['date_from']
-            date_to = deserializer.object['date_to']
-            group_by = deserializer.object['group_by']
+            service_env = deserializer.validated_data['_service_environment']
+            types = deserializer.validated_data['types']
+            date_from = deserializer.validated_data['date_from']
+            date_to = deserializer.validated_data['date_to']
+            group_by = deserializer.validated_data['group_by']
 
             costs = fetch_costs_alt(
                 service_env, types, date_from, date_to, group_by
             )
+
             if group_by == 'day':
                 return Response(
                     ServiceEnvironmentDailyCostsSerializer(costs).data

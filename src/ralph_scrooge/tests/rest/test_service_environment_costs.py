@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User  # XXX
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -16,14 +16,15 @@ from rest_framework.test import APIClient
 from ralph_scrooge.models import (
     BaseUsage,
     Environment,
-    Owner,
+    # Owner,  # XXX
     OwnershipType,
+    ScroogeUser,  # XXX
     Service,
     ServiceOwnership,
     ServiceEnvironment,
     ServiceUsageTypes,
     UsageType,
-    UserProfile,
+    # UserProfile,  # XXX
 )
 from ralph_scrooge.rest.service_environment_costs import (
     USAGE_COST_NUM_DIGITS,
@@ -48,6 +49,8 @@ class TestServiceEnvironmentCosts(TestCase):
         self.date1_as_str = self.date1.strftime("%Y-%m-%d")
         self.date2 = datetime.date(2016, 10, 1)
         self.date2_as_str = self.date2.strftime("%Y-%m-%d")
+        # TODO(xor-xor): For some reason, PricingObjectFactory got broken after
+        # switch to Django 1.10 / DjRF 3.5.x - hence failing tests.
         self.pricing_object1 = PricingObjectFactory()
         self.pricing_object2 = PricingObjectFactory()
         self.service_environment1 = self.pricing_object1.service_environment
@@ -71,7 +74,8 @@ class TestServiceEnvironmentCosts(TestCase):
             start=datetime.date.min,
             end=datetime.date.max,
         )
-        superuser = User.objects.create_superuser(
+        # superuser = User.objects.create_superuser(  # XXX
+        superuser = ScroogeUser.objects.create_superuser(
             'username0', 'username0@test.test', 'pass0'
         )
         self.client = APIClient()

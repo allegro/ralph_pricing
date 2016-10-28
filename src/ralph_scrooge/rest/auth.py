@@ -89,7 +89,7 @@ class IsServiceOwner(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        service_uid = request.DATA.get('service_uid')
+        service_uid = request.data.get('service_uid')
         if service_uid is None:
             return True
         return has_permission_to_service(
