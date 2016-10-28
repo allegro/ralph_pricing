@@ -12,7 +12,7 @@ class Migration(SchemaMigration):
         db.create_table(u'ralph_scrooge_scroogeuser', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('password', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, null=True)),
             ('is_superuser', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('username', self.gf('django.db.models.fields.CharField')(unique=True, max_length=30)),
             ('first_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
