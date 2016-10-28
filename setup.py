@@ -35,7 +35,7 @@ setup(
         'django-auth-ldap==1.1.3',
         'django-filter==0.11',
         'django-nose==1.4.4',
-        'django-rq==0.4.5',
+        'django-rq==0.9.3',
         'django-simple-history==1.8.1',
         'django==1.10.2',
         'djangorestframework==3.5.1',
