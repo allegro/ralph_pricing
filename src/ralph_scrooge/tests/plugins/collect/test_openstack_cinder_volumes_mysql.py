@@ -8,15 +8,15 @@ from __future__ import unicode_literals
 import datetime
 import mock
 
-from django.test import TestCase
 from django.test.utils import override_settings
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins.collect.openstack_cinder_volumes_mysql import (
     CinderVolumesPlugin
 )
 
 
-class TestOpenStackCinderVolumesMysqlUsage(TestCase):
+class TestOpenStackCinderVolumesMysqlUsage(ScroogeTestCase):
     def setUp(self):
         self.today = datetime.date(2014, 7, 1)
         self.plugin = CinderVolumesPlugin()

@@ -10,8 +10,7 @@ from datetime import datetime
 from decimal import Decimal as D
 
 from dateutil.relativedelta import relativedelta
-from django.db import IntegrityError
-from django.db.transaction import commit_on_success
+from django.db import IntegrityError, transaction
 
 from ralph_scrooge.models import (
     AssetInfo,
@@ -150,14 +149,14 @@ def update_usage(daily_asset_info, warehouse, usage_type, value, date):
     )
     # set defaults if daily usage was not created
     if not usage_created:
-        for attr, value in defaults.iteritems():
-            setattr(usage, attr, value)
+        for attr, v in defaults.iteritems():
+            setattr(usage, attr, v)
     usage.value = value
     usage.save()
 
 
 # TODO(xor-xor): Rename 'data' to some more descriptive variable name.
-@commit_on_success
+@transaction.atomic
 def update_asset(data, date, usages, unknown_service_env):
     """
     Updates single asset.
@@ -220,7 +219,6 @@ def update_asset(data, date, usages, unknown_service_env):
         date,
         data,
     )
-
     update_usage(
         daily_asset_info,
         warehouse,

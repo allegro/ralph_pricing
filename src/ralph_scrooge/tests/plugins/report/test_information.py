@@ -8,9 +8,8 @@ from __future__ import unicode_literals
 from datetime import date, timedelta
 from unittest import skip
 
-from django.test import TestCase
-
 from ralph_scrooge import models
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins.report.information import Information
 from ralph_scrooge.tests.utils.factory import (
     ProfitCenterFactory,
@@ -18,7 +17,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestInformationPlugin(TestCase):
+class TestInformationPlugin(ScroogeTestCase):
     def setUp(self):
         self.pc1 = ProfitCenterFactory()
         self.pc2 = ProfitCenterFactory()

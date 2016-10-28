@@ -8,9 +8,8 @@ from datetime import date
 from dateutil import rrule
 from decimal import Decimal as D
 
-from django.test import TestCase
-
 from ralph_scrooge import models
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins.cost.dynamic_extra_cost import (
     NoPriceCostError,
     DynamicExtraCostPlugin,
@@ -23,7 +22,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestDynamicExtraCostPlugin(TestCase):
+class TestDynamicExtraCostPlugin(ScroogeTestCase):
     def setUp(self):
         self.today = date(2013, 10, 10)
         self.start = date(2013, 10, 1)

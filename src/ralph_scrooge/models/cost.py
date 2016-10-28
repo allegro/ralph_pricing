@@ -8,18 +8,18 @@ from __future__ import unicode_literals
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.models._tree import MultiPathNode
+from ralph_scrooge.models._tree import MultiPathNode, MultiPathNodeQuerySet
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
 
 
 class DailyCostManager(db.Manager):
-    def get_query_set(self):
-        return super(DailyCostManager, self).get_query_set().filter(depth=0)
+    def get_queryset(self):
+        return super(DailyCostManager, self).get_queryset().filter(depth=0)
 
 
-class DailyCost(MultiPathNode):
+class DailyCost(MultiPathNode, db.Model):
     """
     Since this model use DB partitions and MySQL doesn't allow to partition
     table with foreign keys, all foreign keys are ForeignKey django fields to
@@ -27,7 +27,7 @@ class DailyCost(MultiPathNode):
     database foreign keys are removed in migration.
     """
     _path_field = 'type_id'
-    objects = DailyCostManager()
+    objects = DailyCostManager.from_queryset(MultiPathNodeQuerySet)()
     objects_tree = db.Manager()
 
     pricing_object = db.ForeignKey(

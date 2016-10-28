@@ -7,12 +7,11 @@ from __future__ import unicode_literals
 
 from datetime import date
 
-from django.test import TestCase
-
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.utils import common
 
 
-class TestRangesOverlap(TestCase):
+class TestRangesOverlap(ScroogeTestCase):
     def test_overlap_on_start(self):
         self.assertTrue(common.ranges_overlap(10, 20, 15, 25))
 

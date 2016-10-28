@@ -9,9 +9,8 @@ from datetime import date
 from decimal import Decimal as D
 import mock
 
-from django.test import TestCase
-
 from ralph_scrooge import models
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins.cost.pricing_service_fixed_price import (
     PricingServiceFixedPricePlugin,
 )
@@ -22,7 +21,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestPricingServiceFixedPricePluginPlugin(TestCase):
+class TestPricingServiceFixedPricePluginPlugin(ScroogeTestCase):
     def setUp(self):
         self.today = date(2013, 10, 10)
         self.start = date(2013, 10, 1)

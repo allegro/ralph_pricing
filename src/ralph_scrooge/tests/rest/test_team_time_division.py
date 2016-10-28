@@ -10,9 +10,10 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+
 from rest_framework.test import APIClient
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.models import (
     Environment,
     Service,
@@ -29,7 +30,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestTeamTimeDivision(TestCase):
+class TestTeamTimeDivision(ScroogeTestCase):
 
     def setUp(self):
         superuser = get_user_model().objects.create_superuser(
@@ -692,7 +693,7 @@ class TestTeamTimeDivision(TestCase):
             )
         self.assertEquals(resp.status_code, 400)
         self.assertIn("division", resp.content)
-        self.assertIn("cannot be empty", resp.content)
+        self.assertIn("may not be null", resp.content)
 
     def test_for_error_when_service_uid_and_env_pairs_are_repeated(self):
         division = {

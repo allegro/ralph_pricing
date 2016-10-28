@@ -7,13 +7,13 @@ before_cache:
   - pip uninstall Django -y
 env:
   matrix:
-    - DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=mysql
-    - DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=sqlite
-    - DJANGO_VERSION=1.6.10 TEST_DATABASE_ENGINE=sqlite
+    - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=mysql
+    - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=sqlite
+    - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=postgres
 matrix:
   allow_failures:
-    - env: DJANGO_VERSION=1.4.22 TEST_DATABASE_ENGINE=sqlite
-    - env: DJANGO_VERSION=1.6.10 TEST_DATABASE_ENGINE=sqlite
+    - env: DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=postgres
+
 python:
   - "2.7"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
@@ -26,7 +26,7 @@ before_install:
   - make flake
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot
-  # - psql -c 'create database ralph_test;' -U postgres
+  - psql -c 'create database ralph_test;' -U postgres
 # command to run tests, e.g. python setup.py test
 script:
   make test-with-coveralls

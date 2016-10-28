@@ -5,10 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.test import TestCase
+from ralph_scrooge.tests import ScroogeTestCase
 
 
-class TestScroogeStatisticsCommand(TestCase):
+class TestScroogeStatisticsCommand(ScroogeTestCase):
 
     def test_draw_statistics_when_only_base(self):
         # TODO

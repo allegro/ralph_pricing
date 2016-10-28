@@ -9,8 +9,8 @@ import cStringIO
 from mock import patch, ANY
 
 from django.core.management import call_command
-from django.test import TestCase
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.management.commands.scrooge_tenants_instances import Command
 from ralph_scrooge.management.commands._scrooge_base import (
     DEFAULT_CSV_ENCODING,
@@ -21,7 +21,7 @@ from ralph_scrooge.management.commands._scrooge_base import (
 COMMAND_NAME = Command.__module__.split('.')[-1]
 
 
-class TestScroogeBaseCommand(TestCase):
+class TestScroogeBaseCommand(ScroogeTestCase):
     @patch.object(Command, 'get_data', lambda *a, **kw: [['test']])
     def test_get_prepared_data(self):
         self.assertEqual(

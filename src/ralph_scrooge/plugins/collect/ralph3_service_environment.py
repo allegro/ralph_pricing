@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.db.transaction import commit_on_success
+from django.db import transaction
 
 from ralph_scrooge.models import (
     Environment,
@@ -25,7 +25,7 @@ from ralph_scrooge.plugins.collect.utils import get_from_ralph
 logger = logging.getLogger(__name__)
 
 
-@commit_on_success
+@transaction.atomic
 def update_service(service_from_ralph, default_profit_center):
     created = False
     try:
@@ -84,7 +84,7 @@ def _update_owners(service, service_from_ralph):
         _add_new_owners(current, previous, service, owner_type)
 
 
-@commit_on_success
+@transaction.atomic
 def update_environment(env_from_ralph):
     env, created = Environment.objects.get_or_create(
         ralph3_id=env_from_ralph['id'],

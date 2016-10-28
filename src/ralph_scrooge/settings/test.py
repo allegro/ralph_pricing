@@ -22,9 +22,7 @@ elif TEST_DATABASE_ENGINE == 'postgres':
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'USER': 'postgres',
             'NAME': 'ralph_test',
-            'OPTIONS': {
-                'autocommit': True,
-            }
+            'OPTIONS': {}
         }
     }
 else:
@@ -45,11 +43,29 @@ SOUTH_TESTS_MIGRATE = False
 LOGGING['handlers']['file']['filename'] = 'scrooge.log'  # noqa
 
 try:
-    INSTALLED_APPS += ('django_nose',)  # noqa
+    INSTALLED_APPS += ['django_nose']  # noqa
     TEST_RUNNER = str('django_nose.NoseTestSuiteRunner')
     NOSE_ARGS = ['--with-doctest', '-s']
 except NameError:
     print('Cannot use nose test runner')
+
+SKIP_MIGRATIONS = os.environ.get('SKIP_MIGRATIONS', None)
+if SKIP_MIGRATIONS:
+    print('skipping migrations')
+
+    class DisableMigrations(object):
+
+        def __contains__(self, item):
+            return True
+
+        def __getitem__(self, item):
+            return "notmigrations"
+
+    MIGRATION_MODULES = DisableMigrations()
+
+INSTALLED_APPS += [
+    'ralph_scrooge.tests'
+]
 
 try:
     execfile(os.path.expanduser("~/.scrooge/settings-test-scrooge-local"))  # noqa

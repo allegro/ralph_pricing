@@ -8,9 +8,8 @@ import mock
 from datetime import date
 from decimal import Decimal as D
 
-from django.test import TestCase
-
 from ralph_scrooge import models
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins.cost.team import TeamPlugin
 from ralph_scrooge.plugins.cost.base import (
     NoPriceCostError,
@@ -23,7 +22,7 @@ from ralph_scrooge.tests.utils.factory import (
 )
 
 
-class TestTeamPlugin(TestCase):
+class TestTeamPlugin(ScroogeTestCase):
     def setUp(self):
         self.today = date(2013, 10, 10)
         self.date_out_of_range = date(2013, 11, 1)

@@ -7,14 +7,15 @@ from __future__ import unicode_literals
 from datetime import date
 from decimal import Decimal as D
 
-from django.test import TestCase
 
 from ralph_scrooge import models
 from ralph_scrooge.plugins.cost.support import SupportPlugin
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import PricingObjectFactory
 
 
-class TestSupportPlugin(TestCase):
+class TestSupportPlugin(ScroogeTestCase):
+
     def setUp(self):
         self.today = date(2013, 10, 10)
         self.start = date(2013, 10, 1)

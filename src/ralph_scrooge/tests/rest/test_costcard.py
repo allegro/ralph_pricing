@@ -10,15 +10,15 @@ import datetime
 from decimal import Decimal as D
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.utils.translation import ugettext as _
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils import factory
 
 
-class TestCardCost(TestCase):
+class TestCardCost(ScroogeTestCase):
     def setUp(self):
         get_user_model().objects.create_superuser(
             'test', 'test@test.test', 'test'

@@ -46,10 +46,10 @@ class IntervalHistoricalRecords(HistoricalRecords):
         """
         fields = {}
         for field in model._meta.fields:
-            field = copy.copy(field)
-            field.rel = copy.copy(field.rel)
+            field = copy.deepcopy(field)
             if isinstance(field, models.ForeignKey):
                 field.rel.related_name = '+'
+                field.rel.related_query_name = None
                 field.attname = field.name
             transform_field(field)
             fields[field.name] = field
