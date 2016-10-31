@@ -65,6 +65,7 @@ INSTALLED_APPS = [
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
+AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
 
 DATABASES = {
     'default': {
@@ -97,7 +98,6 @@ RQ_QUEUES = {
 for queue in RQ_QUEUE_LIST:
     RQ_QUEUES[queue] = dict(RQ_QUEUES['default'])
 
-AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
 
 CACHES = dict(
     default=dict(

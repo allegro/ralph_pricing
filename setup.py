@@ -32,7 +32,7 @@ setup(
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
         'dj.choices==0.11.0',
-        'django-auth-ldap==1.1.3',
+        'django-auth-ldap==1.2.8',
         'django-filter==0.11',
         'django-nose==1.4.4',
         'django-rq==0.9.3',
@@ -40,7 +40,7 @@ setup(
         'django==1.10.2',
         'djangorestframework==3.5.0',
         'factory-boy==2.3.1',
-        'gunicorn==0.14.6',
+        'gunicorn==19.6.0',
         'ipaddr==2.1.11',
         'mock-django==0.6.6',
         'mock==0.8.0',

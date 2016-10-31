@@ -16,34 +16,19 @@ logger = logging.getLogger(__name__)
 
 try:
     from django_auth_ldap.config import ActiveDirectoryGroupType
-    from django_auth_ldap.backend import (
-        populate_user,
-        LDAPSettings,
-    )
 except ImportError:
-    logger.debug("django_auth_ldap package not provided")
+    logger.warning('djang-auth-ldap not installed')
 else:
     from django.core.cache import cache
     from django.conf import settings
     from django.dispatch import receiver
     from django.utils.encoding import force_unicode
 
-    # Add default value to LDAPSetting dict. It will be replaced by
-    # django_auth_ldap with value in settings.py and visible for each
-    # ldap_user.
-    LDAPSettings.defaults['GROUP_MAPPING'] = {}
     GROUP_CACHE_TIMEOUT = 1200
-
-    @receiver(populate_user)
-    def staff_superuser_populate(sender, user, ldap_user, **kwargs):
-        user.is_superuser = 'superuser' in ldap_user.group_names
-        user.is_staff = 'staff' in ldap_user.group_names
-        user.is_active = 'active' in ldap_user.group_names
 
     class MappedGroupOfNamesType(ActiveDirectoryGroupType):
 
         """Provide group mappings described in project settings."""
-
         def _group_cache_key(self, group_dn):
             return force_unicode(group_dn).replace(' ', '_').replace('\n', '')
 
@@ -100,3 +85,20 @@ def get_ldap():
         settings.AUTH_LDAP_BIND_PASSWORD,
     )
     return conn
+
+
+def register_callbacks():
+    """
+    Register callback for populate_user event. This function should be called
+    when django apps are already loaded.
+    """
+    try:
+        from django_auth_ldap.backend import populate_user
+    except ImportError:
+        logger.warning('djang-auth-ldap not installed')
+    else:
+        @receiver(populate_user)
+        def staff_superuser_populate(sender, user, ldap_user, **kwargs):
+            user.is_superuser = 'superuser' in ldap_user.group_names
+            user.is_staff = 'staff' in ldap_user.group_names
+            user.is_active = 'active' in ldap_user.group_names
