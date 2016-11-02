@@ -427,7 +427,9 @@ def _create_trees(aggregated_costs, selector):
     (e.g. a cost with '484/483' is a subcost of '484').
     """
     cost_trees = {}
-    for ac in aggregated_costs.order_by('path'):
+    # We need to process all parent costs before processing any subcosts -
+    # hence order by `depth` here.
+    for ac in aggregated_costs.order_by('depth'):
         date_ = _get_truncated_date(ac[selector])
         d = {
             ac['path']: {
