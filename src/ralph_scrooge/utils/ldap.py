@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 try:
     from django_auth_ldap.config import ActiveDirectoryGroupType
 except ImportError:
-    logger.warning('djang-auth-ldap not installed')
+    logger.warning('django-auth-ldap not installed')
 else:
     from django.core.cache import cache
     from django.conf import settings
@@ -95,7 +95,7 @@ def register_callbacks():
     try:
         from django_auth_ldap.backend import populate_user
     except ImportError:
-        logger.warning('djang-auth-ldap not installed')
+        logger.warning('django-auth-ldap not installed')
     else:
         @receiver(populate_user)
         def staff_superuser_populate(sender, user, ldap_user, **kwargs):
