@@ -8,29 +8,26 @@ from __future__ import unicode_literals
 import datetime
 import json
 
-# from django.contrib.auth.models import User  # XXX
 from django.core.urlresolvers import reverse
-from django.test import TestCase
 from rest_framework.test import APIClient
 
 from ralph_scrooge.models import (
     BaseUsage,
     Environment,
-    # Owner,  # XXX
     OwnershipType,
-    ScroogeUser,  # XXX
+    ScroogeUser,
     Service,
     ServiceOwnership,
     ServiceEnvironment,
     ServiceUsageTypes,
     UsageType,
-    # UserProfile,  # XXX
 )
 from ralph_scrooge.rest.service_environment_costs import (
     USAGE_COST_NUM_DIGITS,
     USAGE_VALUE_NUM_DIGITS,
     date_range,
 )
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     PricingObjectFactory,
     PricingServiceFactory,
@@ -42,15 +39,13 @@ from ralph_scrooge.tests.utils.factory import (
 strptime = datetime.datetime.strptime
 
 
-class TestServiceEnvironmentCosts(TestCase):
+class TestServiceEnvironmentCosts(ScroogeTestCase):
 
     def setUp(self):
         self.date1 = datetime.date(2016, 8, 1)
         self.date1_as_str = self.date1.strftime("%Y-%m-%d")
         self.date2 = datetime.date(2016, 10, 1)
         self.date2_as_str = self.date2.strftime("%Y-%m-%d")
-        # TODO(xor-xor): For some reason, PricingObjectFactory got broken after
-        # switch to Django 1.10 / DjRF 3.5.x - hence failing tests.
         self.pricing_object1 = PricingObjectFactory()
         self.pricing_object2 = PricingObjectFactory()
         self.service_environment1 = self.pricing_object1.service_environment
@@ -74,7 +69,6 @@ class TestServiceEnvironmentCosts(TestCase):
             start=datetime.date.min,
             end=datetime.date.max,
         )
-        # superuser = User.objects.create_superuser(  # XXX
         superuser = ScroogeUser.objects.create_superuser(
             'username0', 'username0@test.test', 'pass0'
         )
@@ -181,8 +175,7 @@ class TestServiceEnvironmentCosts(TestCase):
             "environment": self.environment1,
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
-            "group_by": "day",
-            "types": None
+            "group_by": "day"
         }
 
         resp = self.send_post_request()
@@ -213,27 +206,6 @@ class TestServiceEnvironmentCosts(TestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 400)
         self.assertIn(unknown_group_by, resp.content)
-
-    def test_list_field_validation_does_not_break_when_null_given(self):
-        # TODO(xor-xor): This test can be removed once we switch to DjRF 3.x
-        # and get rid of drf_compound_fields package.
-        costs = (
-            (self.usage_type1, self.date1, 10, 20),
-            (self.usage_type2, self.date1, 11, 21),
-        )
-        self.create_daily_costs(
-            costs, parent=(self.pricing_service, self.date1_as_str)
-        )
-        self.payload = {
-            "service_uid": self.service_uid1,
-            "environment": self.environment1,
-            "date_from": self.date1_as_str,
-            "date_to": self.date1_as_str,
-            "group_by": "day",
-            "types": None
-        }
-        resp = self.send_post_request()
-        self.assertEquals(resp.status_code, 200)
 
     def test_for_error_when_unknown_service_uid_given(self):
         unknown_service_uid = 'xx-111'
@@ -356,7 +328,7 @@ class TestServiceEnvironmentCosts(TestCase):
         self.assertEquals(resp.status_code, 401)
 
         # Regular user (i.e. not superuser or owner).
-        regular_user = User.objects.create_user(
+        regular_user = ScroogeUser.objects.create_user(
             'username2', 'username2@test.test', 'pass2'
         )
         self.client = APIClient()
@@ -365,7 +337,7 @@ class TestServiceEnvironmentCosts(TestCase):
         self.assertEquals(resp.status_code, 403)
 
         # Superuser.
-        superuser = User.objects.create_superuser(
+        superuser = ScroogeUser.objects.create_superuser(
             'username1', 'username1@test.test', 'pass1'
         )
         self.client = APIClient()
@@ -374,15 +346,12 @@ class TestServiceEnvironmentCosts(TestCase):
         self.assertEquals(resp.status_code, 200)
 
         # Owner.
-        user_profile = UserProfile.objects.create(user=regular_user)
-        owner = Owner.objects.create(profile=user_profile)
         ServiceOwnership.objects.create(
             service=self.service_environment1.service,
             type=OwnershipType.business,
-            owner=owner
-        )
+            owner=regular_user
+        )  # At this point, regular_user is "promoted" to owner.
         self.client = APIClient()
-        # At this point, regular_user is "promoted" to owner.
         self.client.force_authenticate(regular_user)
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)

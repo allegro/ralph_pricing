@@ -11,6 +11,7 @@ from copy import deepcopy
 from dateutil.relativedelta import relativedelta
 from django.db import connection
 from django.db.models import Sum
+from django.db.models.functions import TruncMonth
 from rest_framework import serializers
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -60,7 +61,7 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
 
     def validate_types(self, types):
         valid_types = get_valid_types()
-        if types is None or len(types) == 0:
+        if not types:
             return valid_types
         types_validated = []
         unknown_values = []
@@ -69,7 +70,7 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
                 types_validated.append(valid_types.get(symbol=t))
             except BaseUsage.DoesNotExist:
                 unknown_values.append(t)
-        if len(unknown_values) > 0:
+        if unknown_values:
             err = (
                 'Unknown value(s): {}.'.format(
                     ', '.join(['"{}"'.format(v) for v in unknown_values]),
@@ -104,7 +105,14 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
         else:
             attrs['_service_environment'] = service_env
 
-        if len(errors) > 0:
+        # Since `types` field is not required, but we want some default values
+        # in case it's not provided, we have to do that here (`validate_types`
+        # will only catch `types == []` case, but not the one where this field
+        # is completely omitted).
+        if attrs.get('types') is None:
+            attrs['types'] = get_valid_types()
+
+        if errors:
             err_msg = '{}.'.format('; '.join(errors))
             raise serializers.ValidationError(err_msg)
         return attrs
@@ -163,7 +171,8 @@ def round_safe(value, precision):
     return round(value, precision)
 
 
-# XXX
+# TODO(xor-xor): Check if it's still needed once we decide which version of
+# `fetch_costs` will stay (see the docstring in `fetch_costs_alt`).
 def _get_truncated_date(date_):
     """This function is just a workaround for sqlite, where
     `date_trunc_sql` has slightly different result than on e.g. MySQL
@@ -181,7 +190,7 @@ def _get_truncated_date(date_):
     return d
 
 
-def _get_total_costs(qs, group_by):
+def _get_total_costs(qs, selector):
     """Sums `cost` fields by time period given as `group_by` (i.e. "day",
     "month"), in queryset given as `qs`.
 
@@ -189,11 +198,11 @@ def _get_total_costs(qs, group_by):
     selected with `type` field in HTTP request).
     """
     total_costs = {}
-    results = qs.filter(depth=0).values(group_by).annotate(
+    results = qs.filter(depth=0).values(selector).annotate(
         Sum('cost')
-    ).order_by(group_by)
+    ).order_by(selector)
     for r in results:
-        d = _get_truncated_date(r[group_by])
+        d = _get_truncated_date(r[selector])
         total_costs[d] = r['cost__sum']
     return total_costs
 
@@ -208,9 +217,7 @@ def _aggregate_costs(qs, type_, group_by, results):
     truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
     qs_with_truncate_date = qs.extra({group_by: truncate_date})
     qs_by_type = qs_with_truncate_date.filter(type=type_)
-    # We use `len` instead of `exists` or `count` because of a bug in older
-    # Django, see: http://stackoverflow.com/q/37446551/5768173.
-    if len(qs_by_type) > 0:
+    if qs_by_type.exists():
         # We assume that all elements in `qs_by_type` have the same
         # `path` attribute - hence `qs_by_type[0]`.
         path = qs_by_type[0].path
@@ -261,9 +268,7 @@ def _fetch_subcosts(parent_qs, service_env, date_):
     3) that all members of the queryset `parent_qs` have the same `path`
        component (i.e., they are the same BaseUsage objects).
     """
-    # We use `len` instead of `exists` or `count` because of a bug in older
-    # Django, see: http://stackoverflow.com/q/37446551/5768173.
-    if len(parent_qs) > 0 and parent_qs[0].depth == 0:
+    if parent_qs.exists() and parent_qs[0].depth == 0:
         # Fetch all children, ignore differences in `type` for now.
         subcosts_qs = DailyCost.objects_tree.filter(
             service_environment=service_env,
@@ -313,29 +318,44 @@ def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
     """An alternative version of `fetch_costs` function. The difference is that
     it makes less DB queries, so in theory it should be faster (to be confirmed
     with performance tests).
+
+    TODO(xor-xor): Remember to remove `fetch_costs` or `fetch_costs_alt`
+    function (with dependencies) once we have results of the aforementioned
+    performance tests.
     """
-    # TODO(xor-xor): Remember to remove `fetch_costs` or `fetch_costs_alt`
-    # function (with dependencies) once we have results of the aforementioned
-    # performance tests.
-    truncate_date = connection.ops.date_trunc_sql(group_by, 'date')
     initial_qs = DailyCost.objects_tree.filter(
         date__gte=date_from,
         date__lte=date_to,
         service_environment=service_env,
-    ).extra({group_by: truncate_date})
+        depth__lte=1,
+    )
 
-    total_costs = _get_total_costs(initial_qs, group_by)
+    if group_by == 'month':
+        selector = 'month'
+        initial_qs = initial_qs.annotate(month=TruncMonth('date'))
+    else:
+        selector = 'date'
 
-    aggregated_costs = initial_qs.values_list(
-        group_by, 'path', 'type__symbol'
+    total_costs = _get_total_costs(initial_qs, selector)
+
+    aggregated_costs = initial_qs.values(
+        selector, 'path', 'type__symbol'
     ).annotate(
         cost_sum=Sum('cost'), value_sum=Sum('value')
     )
 
-    cost_trees = _create_trees(aggregated_costs)
+    # Post-process aggregated costs, as they are in form of "raw", flat
+    # records from DB, but in reality, costs and subcosts are trees, so we need
+    # to restore this hierarchy here. We decided to go this way (i.e., make a
+    # single, "general" query and then post-process it in Python), because
+    # otherwise, re-creating such tree structure would require at least a
+    # couple of separate queries, which would have negative impact on
+    # performance.
+    cost_trees = _create_trees(aggregated_costs, selector)
     cost_trees_ = _replace_path_with_type_symbol(cost_trees)
     cost_trees_filtered = _filter_by_types(cost_trees_, types)
 
+    # Assembly the final result (i.e., the dict that will be returned as JSON).
     final_result = {
         'service_environment_costs': []
     }
@@ -368,15 +388,17 @@ def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
     return final_result
 
 
-def _create_trees(aggregated_costs):
-    """From `aggregated_costs`, where each item (`ac`) has the following (flat)
-    structure:
+def _create_trees(aggregated_costs, selector):
+    """From `aggregated_costs`, where each record (`ac`) has the following
+    (flat) structure:
 
-    ac[0]: date, e.g. datetime.datetime(2016, 10, 7, 0, 0)
-    ac[1]: path, e.g. '484/483'
-    ac[2]: base usage type symbol, e.g. 'subtype2'
-    ac[3]: cost, e.g. Decimal('222.00')
-    ac[4]: usage value, e.g. 2.0
+    date (as `date` or `month` - depending on `selector`, which may be "day"
+        or "month" - in the former case it will be `date`, and `month` in the
+        latter), e.g. datetime.datetime(2016, 10, 7, 0, 0)
+    path (as `path`), e.g. '484/483'
+    base usage type symbol (as `type__symbol`), e.g. 'subtype2'
+    cost (as `cost_sum`), e.g. Decimal('222.00')
+    usage value (as `value_sum`), e.g. 2.0
 
     ...create a dict `cost_trees`, where each entry is a tree with the
     following form:
@@ -401,21 +423,24 @@ def _create_trees(aggregated_costs):
         }
     }
 
-    The pairing between costs and subcosts is done via the path component (e.g.
-    a cost with '484/483' is a subcost of '484').
+    The pairing between costs and subcosts is done via the `path` component
+    (e.g. a cost with '484/483' is a subcost of '484').
     """
     cost_trees = {}
     for ac in aggregated_costs:
-        date_ = _get_truncated_date(ac[0])
+        date_ = _get_truncated_date(ac[selector])
         d = {
-            ac[1]: {
-                '_type_symbol': ac[2],
-                'cost': ac[3],
-                'usage_value': ac[4],
+            ac['path']: {
+                # `_type_symbol` is just a temporary key, that is removed later
+                # in the process, so anyone dealing with this code shouldn't
+                # rely on it (hence it starts with `_`).
+                '_type_symbol': ac['type__symbol'],
+                'cost': ac['cost_sum'],
+                'usage_value': ac['value_sum'],
             }
         }
-        if "/" in ac[1]:
-            parent = ac[1].split("/")[0]
+        if "/" in ac['path']:
+            parent = ac['path'].split("/")[0]
             if cost_trees[date_].get(parent) is None:
                 cost_trees[date_][parent] = {'subcosts': d}
             else:
@@ -424,7 +449,7 @@ def _create_trees(aggregated_costs):
                 else:
                     cost_trees[date_][parent]['subcosts'].update(d)
         else:
-            d[ac[1]].update({'subcosts': {}})
+            d[ac['path']].update({'subcosts': {}})
             if cost_trees.get(date_) is None:
                 cost_trees[date_] = d
             else:
@@ -434,7 +459,7 @@ def _create_trees(aggregated_costs):
 
 def _replace_path_with_type_symbol(cost_trees):
     """Having a dict with cost trees (for the description of its structure
-    see `_create_trees` function`), replace path components (e.g. '484',
+    see `_create_trees` function`), replace `path` components (e.g. '484',
     '484/482', '484/483') with the contents of the `_type_symbol` field and
     finally remove that field.
     So in the case described in `create_trees`, '484' will become 'type1',
@@ -549,9 +574,7 @@ def fetch_costs(service_env, types, date_from, date_to, group_by):
     results_subcosts = {}
     for type_ in types:
         qs = initial_qs.filter(type=type_)
-        # We use `len` instead of `exists` or `count` because of a bug in older
-        # Django, see: http://stackoverflow.com/q/37446551/5768173.
-        if len(qs) > 0 and qs[0].depth == 0:
+        if qs.exists() and qs[0].depth == 0:
             subcosts_qs = initial_qs.filter(
                 path__startswith=qs[0].path,
                 depth=1
@@ -605,15 +628,6 @@ class ServiceEnvironmentCosts(APIView):
 
     def post(self, request, *args, **kwargs):
         deserializer = ServiceEnvironmentCostsDeserializer(data=request.data)
-
-        # A workaround for ListField validation (from drf_compound_fields) that
-        # for some reason can't handle nulls gracefully (it gives TypeError
-        # instead of ValidationError or something like that).
-        # This workaround can be removed once we switch to DjRF 3.x and get rid
-        # of drf_compound_fields.
-        if request.data.get('types') is None:
-            request.data['types'] = []
-
         if deserializer.is_valid():
             service_env = deserializer.validated_data['_service_environment']
             types = deserializer.validated_data['types']

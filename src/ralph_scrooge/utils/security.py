@@ -41,7 +41,7 @@ def has_permission_to_service(user, service, check_by_uid=False):
     if check_by_uid:
         return ServiceOwnership.objects.filter(
             service__ci_uid=service,
-            owner__profile__user=user,
+            owner=user,
         ).exists()
     return ServiceOwnership.objects.filter(
         service__id=service,
