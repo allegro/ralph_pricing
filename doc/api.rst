@@ -152,7 +152,8 @@ structure is as follows::
             "usages": [
                 {
                     "symbol": "<usage type symbol>",
-                    "value": <actual usage without units>
+                    "value": <actual usage without units>,
+                    "remarks": <your remarks (this field is optional)>
                 },
                 ...
             ]
@@ -189,11 +190,13 @@ Example::
               "usages": [
                   {
                       "symbol": "requests",
-                      "value": 123
+                      "value": 123,
+                      "remarks": "measured on my_host1.test"
                   },
                   {
                       "symbol": "transfer",
-                      "value": 321
+                      "value": 321,
+                      "remarks": "measured on my_host2.test"
                   }
               ]
           },
@@ -336,11 +339,13 @@ Example::
         "usages": [
           {
             "symbol": "requests",
-            "value": 123
+            "value": 123,
+            "remarks": ""
           },
           {
             "symbol": "transfer",
-            "value": 321
+            "value": 321,
+            "remarks": "measured on my_host1.test"
           }
         ]
       }
