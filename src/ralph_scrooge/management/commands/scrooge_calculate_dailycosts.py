@@ -7,12 +7,10 @@ from __future__ import unicode_literals
 
 import logging
 from datetime import date, datetime, timedelta
-from optparse import make_option
 
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.management.commands._scrooge_base import ScroogeBaseCommand
 from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.models import (
     CostDateStatus,
@@ -29,21 +27,21 @@ class Command(BaseCommand):
     pricing service (defaults to all which are bot active and have fixed
     price).
     """
-    option_list = ScroogeBaseCommand.option_list + (
-        make_option(
+    def add_arguments(self, parser):
+        parser.add_argument(
             '--date',
             dest='date',
             default=yesterday,
-            help=_('Date to which calculate daily costs for'),
-        ),
-        make_option(
+            help=_('Date to which calculate daily costs for')
+        )
+        parser.add_argument(
             '--forecast',
             dest='forecast',
             default=False,
             action='store_true',
-            help=_('Use forecast prices and costs'),
-        ),
-        make_option(
+            help=_('Use forecast prices and costs')
+        )
+        parser.add_argument(
             '--force',
             dest='force',
             default=False,
@@ -51,19 +49,18 @@ class Command(BaseCommand):
             help=_(
                 "Force recalculation of costs. Doesn't apply to costs that "
                 "are already accepted."
-            ),
-        ),
-        make_option(
+            )
+        )
+        parser.add_argument(
             '-p',
             dest='pricing_service_names',
             action='append',
-            type='str',
+            type=str,
             default=[],
             help=_(
                 'Pricing Service name(s) to which calculate daily costs for'
-            ),
-        ),
-    )
+            )
+        )
 
     def _has_calculated_costs(self, date_, forecast):
         return CostDateStatus.objects.filter(
@@ -91,7 +88,9 @@ class Command(BaseCommand):
         if len(pricing_service_names) > 0:
             query_params.update({'name__in': pricing_service_names})
         pricing_services = PricingService.objects.filter(**query_params)
-        pricing_service_names_verified = [ps.name for ps in pricing_services]
+        pricing_service_names_verified = pricing_services.values_list(
+            'name', flat=True
+        )
 
         # Perform some basic sanity checks.
         if len(pricing_service_names_verified) != len(pricing_service_names):
