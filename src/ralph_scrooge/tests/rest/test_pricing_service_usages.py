@@ -1142,3 +1142,49 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.assertEquals(daily_usages[1].date, self.date)
         self.assertEquals(daily_usages[1].type, self.usage_type)
         self.assertEquals(daily_usages[1].value, 20)
+
+    def test_remarks_are_saved_when_given_and_can_be_read_back_with_get(self):
+        remarks = "some test remarks"
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                            "remarks": remarks
+                        },
+                    ],
+                },
+            ]
+        }
+
+        self.assertEquals(DailyUsage.objects.all().count(), 0)
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        daily_usages = DailyUsage.objects.order_by('id')
+        self.assertEquals(daily_usages.count(), 1)
+        self.assertEquals(daily_usages[0].remarks, remarks)
+
+        resp = self.client.get(
+            reverse(
+                'list_pricing_service_usages',
+                kwargs={
+                    'pricing_service_id': PricingService.objects.all()[0].id,
+                    'usages_date': self.date_as_str,
+                }
+            )
+        )
+        self.assertEquals(resp.status_code, 200)
+        received_response = json.loads(resp.content)
+        self.assertEquals(
+            received_response['usages'][0]['usages'][0]['remarks'],
+            remarks
+        )
