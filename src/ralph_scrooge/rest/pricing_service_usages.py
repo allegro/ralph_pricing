@@ -64,21 +64,24 @@ class MultipleServiceEnvironmentsReturned(Exception):
     pass
 
 
-def new_usage(symbol=None, value=None):
+def new_usage(symbol=None, value=None, remarks=None):
     return {
         'symbol': symbol,
         'value': value,
+        'remarks': remarks,
     }
 
 
 class UsageSerializer(Serializer):
     symbol = serializers.CharField()
     value = serializers.FloatField()
+    remarks = serializers.CharField()
 
 
 class UsageDeserializer(UsageSerializer):
     symbol = serializers.CharField(required=True)
     value = serializers.FloatField(required=True)
+    remarks = serializers.CharField(required=False)
 
     def validate_symbol(self, value):
         if not UsageType.objects.filter(symbol=value).exists():
@@ -327,8 +330,8 @@ def get_usages(usages_date, pricing_service):
     1) For every usage type associated with given pricing service, fetch
        daily usages for a given date (`usages_date`) and store them in a dict
        keyed by daily pricing object, where the value is a list of tulpes
-       (symbol, value) designating the actual usages (i.e. the most "inner"
-       ones).
+       (symbol, value, remarks) designating the actual usages (i.e. the most
+       "inner" ones).
     2) By iterating over the structure from the previous step, wrap the "inner"
        usages into a structure containing the information re: the service and
        environment (or the pricing object).
@@ -353,10 +356,14 @@ def get_usages(usages_date, pricing_service):
         )
         for daily_usage in daily_usages:
             usages_dict[daily_usage.daily_pricing_object].append(
-                (daily_usage.type.symbol, daily_usage.value)
+                (
+                    daily_usage.type.symbol,
+                    daily_usage.value,
+                    daily_usage.remarks
+                )
             )
 
-    for dpo, u in usages_dict.iteritems():
+    for dpo, uu in usages_dict.iteritems():
         se = dpo.service_environment
         usages = new_usages(
             service=se.service.name,
@@ -367,7 +374,7 @@ def get_usages(usages_date, pricing_service):
         if dpo.pricing_object != PRICING_OBJECT_TYPES.DUMMY:
             usages['pricing_object'] = dpo.pricing_object.name
         usages['usages'] = [
-            new_usage(symbol=k, value=v) for k, v in u
+            new_usage(symbol=u[0], value=u[1], remarks=u[2]) for u in uu
         ]
         ps['usages'].append(usages)
     return ps
@@ -448,6 +455,7 @@ def get_usages_for_save(pricing_service_usage):
                 service_environment=(
                     daily_pricing_object.service_environment
                 ),
+                remarks=usage.get('remarks', ''),
             )
             daily_usages.append(daily_usage)
             usages_daily_pricing_objects[usage_type].append(
