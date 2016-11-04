@@ -13,6 +13,7 @@ from rest_framework.test import APIClient
 
 from ralph_scrooge.models import (
     BaseUsage,
+    DailyCost,
     Environment,
     OwnershipType,
     ScroogeUser,
@@ -658,4 +659,67 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.assertEquals(subcosts[self.usage_type2.symbol]['cost'], cost2)
         self.assertEquals(
             subcosts[self.usage_type2.symbol]['usage_value'], usage_value2
+        )
+
+    def test_if_top_level_costs_do_not_overwrite_each_other(self):
+        date = '2016-10-07'
+        daily_costs1 = (
+            (self.usage_type1, strptime(date, '%Y-%m-%d').date(), 1, 10),
+        )
+        daily_costs2 = (
+            (self.usage_type2, strptime(date, '%Y-%m-%d').date(), 11, 11),
+        )
+        pricing_service1 = self.pricing_service
+        pricing_service2 = PricingServiceFactory()
+        ServiceUsageTypes.objects.create(
+            usage_type=self.usage_type2,
+            pricing_service=pricing_service2,
+            start=datetime.date.min,
+            end=datetime.date.max,
+        )
+        self.create_daily_costs(
+            daily_costs1,
+            parent=(pricing_service1, date),
+        )
+        self.create_daily_costs(
+            daily_costs2,
+            parent=(pricing_service2, date),
+        )
+        for type_symbol, path in (
+            (pricing_service1.symbol, '0'),
+            (pricing_service2.symbol, '1'),
+            (self.usage_type1.symbol, '0/2'),
+            (self.usage_type2.symbol, '1/3'),
+        ):
+            dc = DailyCost.objects_tree.get(type__symbol=type_symbol)
+            dc.path = path
+            dc.save()
+
+        # At this point we should have the following structure:
+        #
+        # costs
+        #   |--- ps1 (cost)
+        #   |     |
+        #   |    ut1 (subcost)
+        #   |
+        #   |___ ps1 (cost)
+        #         |
+        #        ut2 (subcost)
+
+        types = [pricing_service1.symbol, pricing_service2.symbol]
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": date,
+            "date_to": date,
+            "group_by": "day",
+            "types": types
+        }
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        self.assertEquals(
+            set(costs['service_environment_costs'][0]['costs'].keys()),
+            set(types)
         )

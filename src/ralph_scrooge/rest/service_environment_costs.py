@@ -124,7 +124,10 @@ class CostAndUsageValueSerializer(Serializer):
 
 
 class CostWithSubcostsSerializer(CostAndUsageValueSerializer):
-    subcosts = serializers.DictField(child=CostAndUsageValueSerializer())
+    subcosts = serializers.DictField(
+        child=CostAndUsageValueSerializer(),
+        required=False
+    )
 
 
 # Since we assume that maximum nesting depth for subcosts is 1, we don't need
@@ -481,9 +484,11 @@ def _replace_path_with_type_symbol(cost_trees):
         elif type(v) == dict:
             for kk, vv in v.items():
                 type_symbol = vv.pop('_type_symbol')
-                cost_trees_[k] = {
-                    type_symbol: _replace_path_with_type_symbol(vv)
-                }
+                d = {type_symbol: _replace_path_with_type_symbol(vv)}
+                if cost_trees_.get(k) is not None:
+                    cost_trees_[k].update(d)
+                else:
+                    cost_trees_[k] = d
         else:
             tmp_dict[k] = v
     cost_trees_.update(tmp_dict)
