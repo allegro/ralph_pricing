@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.db import models as db
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from dj.choices import Choices
 
@@ -28,6 +30,7 @@ class BaseUsageManager(db.Manager):
         )
 
 
+@python_2_unicode_compatible
 class BaseUsage(Named):
     active = db.BooleanField(
         verbose_name=_('active'),
@@ -43,6 +46,12 @@ class BaseUsage(Named):
         max_length=255,
         default="",
         blank=True,
+        editable=False,
+        help_text=_(
+            '(Usually) slug of the name of the usage. Used (mostly) in API to'
+            ' specify type of the usage.'
+        ),
+        unique=True,
     )
     type = db.PositiveIntegerField(
         verbose_name=_("type"),
@@ -69,5 +78,11 @@ class BaseUsage(Named):
     class Meta:
         app_label = 'ralph_scrooge'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # if symbol is empty, fill it by slugifying the name
+        if not self.symbol:
+            self.symbol = slugify(self.name)
+        return super(BaseUsage, self).save(*args, **kwargs)
