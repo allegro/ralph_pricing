@@ -33,9 +33,16 @@ def superuser_permission(view_func):
     return login_required(_wrapped_view)
 
 
-def _has_permission_to_service(user, service):
+# TODO(xor-xor): Make it "private" again, once this module get merged into
+# ralph_scrooge.rest.auth.
+def has_permission_to_service(user, service, check_by_uid=False):
     if user.is_superuser:
         return True
+    if check_by_uid:
+        return ServiceOwnership.objects.filter(
+            service__ci_uid=service,
+            owner=user,
+        ).exists()
     return ServiceOwnership.objects.filter(
         service__id=service,
         owner=user,
@@ -63,7 +70,7 @@ def service_permission(view_func):
         if (
             (
                 'service' in kwargs and
-                _has_permission_to_service(request.user, kwargs['service'])
+                has_permission_to_service(request.user, kwargs['service'])
             ) or
             'service' not in kwargs
         ):

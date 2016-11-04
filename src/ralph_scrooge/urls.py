@@ -16,6 +16,9 @@ from ralph_scrooge.rest.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
+from ralph_scrooge.rest.service_environment_costs import (
+    ServiceEnvironmentCosts,
+)
 from ralph_scrooge.rest.team_time_division import TeamTimeDivision
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
@@ -48,6 +51,13 @@ urlpatterns = [
         r'^scrooge/api/v0.9/pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa
         list_pricing_service_usages,
         name='list_pricing_service_usages'
+    ),
+
+    # Public REST API, v0.10
+    url(
+        r'^scrooge/api/v0.10/service-environment-costs/$',
+        ServiceEnvironmentCosts.as_view(),
+        name='service_environment_costs',
     ),
 
     # Internal REST API, that should be used only for GUI.
