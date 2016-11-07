@@ -94,7 +94,7 @@ class TestOpenStackSimpleUsage(ScroogeTestCase):
         )
         DailyUsageFactory.create_batch(
             10,
-            type__symbol=USAGE_SYMBOL_TMPL.format('abc'),
+            type__symbol=USAGE_SYMBOL_TMPL.format('def'),
             date=self.yesterday,
         )
         self.assertEquals(DailyUsage.objects.count(), 20)

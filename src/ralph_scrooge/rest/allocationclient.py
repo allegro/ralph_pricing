@@ -172,11 +172,7 @@ class AllocationClientService(APIView):
             if not create_if_not_exist:
                 return None
             usage_type = UsageType.objects.create(
-                name=service.name + '_usage_type',
-                symbol=(
-                    service.symbol or
-                    service.name.lower().replace(' ', '_') + '_usage_type'
-                ),
+                name=service.name + '_usage_type'
             )
             dates = self._get_new_service_usage_type_max_daterange(
                 pricing_service,
