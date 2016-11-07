@@ -17,6 +17,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Count, Sum
+from django.template.loader import render_to_string
 
 from ralph_scrooge.models import UsageType, DailyUsage
 from ralph_scrooge.rest.service_environment_costs import date_range  # XXX
@@ -24,19 +25,17 @@ from ralph_scrooge.rest.service_environment_costs import date_range  # XXX
 
 log = logging.getLogger(__name__)
 
-
-# XXX choice?
-ANOMALY_CATEGORIES = {
-
-}
-
 # XXX can be overridden on per-UsageType basis
 DIFF_TOLERANCE = 0.2
 
-MSG_TEMPLATE = ""
-
 NOTIFY_THRESHOLDS = [datetime.timedelta(days=d) for d in (1, 7, 14)]
 
+def get_usage_types(names):
+    if names:
+        ut = UsageType.objects.filter(name__in=names).order_by('name')
+    else:
+        ut = UsageType.objects.order_by('name')
+    return ut
 
 def get_negative_month_range(end_date=None):
     if end_date is None:
@@ -48,6 +47,17 @@ def get_negative_month_range(end_date=None):
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            '-u',
+            dest='usage_names',  # XXX what about using symbols here..?
+            action='append',
+            type=str,
+            default=[],
+            help=(
+                "UsageType names to be taken into account (by default, all "
+                "are taken)."
+            )
+        )
         parser.add_argument(
             '--dry-run',
             dest='dry_run',
@@ -62,31 +72,33 @@ class Command(BaseCommand):
             date=date, type=usage
         ).values('date').aggregate(Sum('value'))['value__sum']
 
-    def _get_usage_values_for_date_range(self):
+    def _get_usage_values_for_date_range(self, usage_types):
         results = OrderedDict()
-        for usage in UsageType.objects.order_by('name'):
-            results[usage.name] = {}
+        for usage in usage_types:
+            results[usage.name] = OrderedDict()
             for date_ in get_negative_month_range():
                 results[usage.name][date_] = self._get_usage_value(
                     date_, usage
                 )
         return results
 
-    def _detect_missing_values(self, usage_values):
+    def _detect_missing_values(self, usage_types, usage_values):
+        # XXX resume from here - make usage_values use UsageType as keys (if possible)
+        # and try to get rid of usage_types arg here
         missing_values = OrderedDict()
         delta = datetime.timedelta(days=1)
-        for usage in UsageType.objects.order_by('name'):
+        for usage in usage_types:
             for date_ in get_negative_month_range():
                 if usage_values[usage.name][date_] is None:
-                    if missing_values.get(usage.name) is None:
-                        missing_values[usage.name] = []
-                    missing_values[usage.name].append(date_)
+                    if missing_values.get(usage) is None:
+                        missing_values[usage] = []
+                    missing_values[usage].append(date_)
         return missing_values
 
-    def _detect_big_changes(self, results):
+    def _detect_big_changes(self, usage_types, results):
         changes = []
         delta = datetime.timedelta(days=1)
-        for usage in UsageType.objects.order_by('name'):
+        for usage in usage_types:
             for date_ in get_negative_month_range():
                 next_date = date_ + delta
                 if (results[usage.name].get(date_) is None or
@@ -100,25 +112,24 @@ class Command(BaseCommand):
                 if abs(relative_change) > DIFF_TOLERANCE:
                     changes.append((usage, date_, next_date, relative_change))
                     # XXX
-                    print(
-                        "{} | {} | {} | {:+.2f}".format(
-                            usage.name,
-                            date_,
-                            next_date,
-                            relative_change,
-                        )
-                    )
+                    # print(
+                    #     "{} | {} | {} | {:+.2f}".format(
+                    #         usage.name,
+                    #         date_,
+                    #         next_date,
+                    #         relative_change,
+                    #     )
+                    # )
         return changes
 
-    def _detect_anomalies(self):
-        results = self._get_usage_values_for_date_range()
+    def _detect_anomalies(self, usage_types):
+        results = self._get_usage_values_for_date_range(usage_types)
         # XXX
         # from pprint import pprint
         # pprint(results['Mesos CPU'])
         # pprint(results['Mesos RAM'])
-
-        missing_values = self._detect_missing_values(results)
-        big_changes = self._detect_big_changes(results)
+        missing_values = self._detect_missing_values(usage_types, results)  # XXX usage_types are not needed here that much
+        big_changes = self._detect_big_changes(usage_types, results)
         return (missing_values, big_changes)
 
 
@@ -130,13 +141,37 @@ class Command(BaseCommand):
             big_changes_by_type[bc[0]].append(tuple(bc[1:]))
         return big_changes_by_type
 
-
-    def _send_notifications(self, anomalies):
+    def _merge_and_group_by_owner(self, missing_values, big_changes_by_type):
         pass
 
-    def handle(self, dry_run, *args, **options):
-        missing_values, big_changes = self._detect_anomalies()
+    def _send_notifications(self, anomalies):
+        template_name = 'scrooge_detect_usage_anomalies_template.txt'  # XXX
+        context = {'owner_name': 'John Doe'}  # XXX
+        txt_content = render_to_string(template_name, context)
+        print(txt_content)  # XXX
+
+
+    def handle(self, usage_names, dry_run, *args, **options):
+        """
+        * missing_values:
+        OrderedDict({
+            UsageType: [<list of datetime.date objects>]
+        })
+
+        * big_changes:
+        [<list of tuples: (UsageType, datetime.date1, datetime.date2, value or None)>]
+
+        * big_changes_by_type:
+        OrderedDict({
+            UsageType: [<list of tuples: (datetime.date1, datetime.date2, value or None)>]
+        })
+        """
+        usage_types = get_usage_types(usage_names)
+        missing_values, big_changes = self._detect_anomalies(usage_types)
         big_changes_by_type = self._group_by_type(big_changes)
+        anomalies_to_report = self._merge_and_group_by_owner(
+            missing_values, big_changes_by_type
+        )
         # XXX
         # for k, v in big_changes_by_type.items():
         #     print(k.name)
@@ -149,8 +184,5 @@ class Command(BaseCommand):
         #             )
         #         )
 
-        import ipdb; ipdb.set_trace()
-
-
-        # if not dry_run:
-        #     self._send_notifications(anomalies_)
+        if not dry_run:
+            self._send_notifications(anomalies_to_report)

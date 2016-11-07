@@ -1,0 +1,7 @@
+Hi {{ owner_name }},
+
+We have detected anomalies in your usages - see below for the
+details. Please fix them ASAP.
+
+Regards,
+Scrooge Team
