@@ -182,8 +182,8 @@ class UsagePriceInline(admin.TabularInline):
 
 @register(models.UsageType)
 class UsageTypeAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('name', 'symbol',)
+    search_fields = ('name', 'symbol',)
     inlines = [UsagePriceInline]
     form = UsageTypeForm
 
@@ -197,8 +197,9 @@ class ExtraCostInline(admin.TabularInline):
 
 @register(models.ExtraCostType)
 class ExtraCostTypeAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'symbol', 'active')
     search_fields = ('name',)
+    readonly_fields = ('symbol',)
     inlines = [ExtraCostInline]
 
 
@@ -221,8 +222,9 @@ class DynamicExtraTypeForm(forms.ModelForm):
 
 @register(models.DynamicExtraCostType)
 class DynamicExtraCostTypeAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'symbol', 'active')
     search_fields = ('name',)
+    readonly_fields = ('symbol',)
     inlines = [DynamicExtraCostDivisionInline, DynamicExtraCostInline]
     form = DynamicExtraTypeForm
 
@@ -303,7 +305,7 @@ class ServiceUsageTypesInline(admin.TabularInline):
 
 @register(models.PricingService)
 class PricingServiceAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'symbol', 'active')
     search_fields = ('name',)
     form = PricingServiceForm
     inlines = [ServiceUsageTypesInline]
@@ -327,7 +329,7 @@ class TeamForm(forms.ModelForm):
 
 @register(models.Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'symbol', 'active')
     search_fields = ('name',)
     inlines = [TeamCostInline]
     form = TeamForm

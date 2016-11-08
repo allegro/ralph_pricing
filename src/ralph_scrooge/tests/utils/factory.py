@@ -25,6 +25,7 @@ MIN_FACTORY_DATE = datetime.date(2014, 7, 1)
 MAX_FACTORY_DATE = datetime.date(2014, 7, 31)
 
 
+# TODO(mkurek): bump factory-boy to newest version
 class WarehouseFactory(DjangoModelFactory):
     FACTORY_FOR = models.Warehouse
 
@@ -124,6 +125,7 @@ class DailyCostFactory(DjangoModelFactory):
 
 class UsageTypeFactory(DjangoModelFactory):
     FACTORY_FOR = models.UsageType
+    FACTORY_DJANGO_GET_OR_CREATE = ['symbol']
 
     name = Sequence(lambda n: 'UsageType%s' % n)
     symbol = Sequence(lambda n: 'ut%s' % n)
