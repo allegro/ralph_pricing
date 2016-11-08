@@ -11,18 +11,19 @@ from dateutil.relativedelta import relativedelta
 
 from collections import OrderedDict
 
-# from django.conf import settings  # XXX
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from django.template.loader import render_to_string
 
 from ralph_scrooge.models import UsageType, DailyUsage
-from ralph_scrooge.rest.service_environment_costs import date_range  # XXX
+# TODO(xor-xor): Consider moving `date_range` to some utils module.
+from ralph_scrooge.rest.service_environment_costs import date_range
 
 
 log = logging.getLogger(__name__)
 
-# XXX can be overridden on per-UsageType basis
+# XXX This could be overridden on per-UsageType basis (e.g. in some dict loaded
+# from settings).
 DIFF_TOLERANCE = 0.2
 NOTIFY_THRESHOLDS = [datetime.timedelta(days=d) for d in (1, 7, 14)]
 
@@ -81,7 +82,8 @@ def _detect_big_changes(usage_values):
                 continue
             uc1 = usage_values[usage][date_]
             uc2 = usage_values[usage][next_date]
-            # XXX
+            # XXX We need to decide which method of calculating the relative
+            # change suits us best.
             # relative_change = round(abs(uc1 - uc2) / max(uc1, uc2), 2)
             relative_change = round((uc2 - uc1) / uc1, 2)
             if abs(relative_change) > DIFF_TOLERANCE:
@@ -119,12 +121,14 @@ def _merge_and_group_by_owner(usage_types, missing_values, big_changes_by_type):
     return merged_anomalies
 
 
+# XXX It's just a dummy function for now (i.e. it doesn't send any
+# notifications yet).
 def _send_notifications(anomalies):
-    template_name = 'scrooge_detect_usage_anomalies_template.txt'  # XXX
-    context = {'owner_name': 'John Doe'}  # XXX
+    template_name = 'scrooge_detect_usage_anomalies_template.txt'
+    context = {'owner_name': 'John Doe'}
     txt_content = render_to_string(template_name, context)
-    print(txt_content)  # XXX
-    pprint_anomalies(anomalies)  # XXX
+    print(txt_content)
+    pprint_anomalies(anomalies)
 
 
 class Command(BaseCommand):
