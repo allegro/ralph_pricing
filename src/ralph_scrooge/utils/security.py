@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import json
 from functools import wraps
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import available_attrs
 from django.http import HttpResponseForbidden
@@ -17,6 +18,25 @@ from ralph_scrooge.models import ServiceOwnership, TeamManager
 
 # TODO(xor-xor): Consider moving contents of this module into
 # ralph_scrooge.rest.auth.
+
+def _is_usage_owner(user):
+    return (
+        user.is_superuser or
+        user.groups.filter(name=settings.USAGE_OWNERS_GROUP_NAME).exists()
+    )
+
+
+def usage_owner_permission(view_func):
+    @wraps(view_func, assigned=available_attrs(view_func))
+    def _wrapped_view(request, *args, **kwargs):
+        if _is_usage_owner(request.user):
+            return view_func(request, *args, **kwargs)
+        return HttpResponseForbidden(
+            json.dumps({'message': 'No permission to service'}),
+            content_type="application/json"
+        )
+    return login_required(_wrapped_view)
+
 
 def superuser_permission(view_func):
     """

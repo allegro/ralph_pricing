@@ -5,7 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.urls import reverse
 from rest_framework.test import APIClient
 
 from ralph_scrooge.tests import ScroogeTestCase
@@ -33,6 +36,10 @@ class TestSecurity(ScroogeTestCase):
             username='team_manager',
             password='12345'
         )
+        self.usage_owner = get_user_model().objects.create_user(
+            username='usage_owner',
+            password='12345'
+        )
         self.superuser = get_user_model().objects.create_user(
             username='superuser',
             password='12345',
@@ -56,6 +63,13 @@ class TestSecurity(ScroogeTestCase):
         TeamManager.objects.create(team=self.team1, manager=self.team_manager)
         self.team2 = TeamFactory()
 
+        # assign usage owner permissions
+        self.usage_owner.groups.add(
+            Group.objects.get_or_create(
+                name=settings.USAGE_OWNERS_GROUP_NAME
+            )[0]
+        )
+
     def _login_as(self, user):
         self.client.login(username=user, password='12345')
 
@@ -73,6 +87,9 @@ class TestSecurity(ScroogeTestCase):
                 team.id,
             )
         )
+
+    def _get_usages_report(self):
+        return self.client.get(reverse('usages_report_rest'))
 
     def test_components_superuser_access(self):
         self._login_as('superuser')
@@ -104,4 +121,14 @@ class TestSecurity(ScroogeTestCase):
     def test_allocation_team_manager_access_permission_denied(self):
         self._login_as('team_manager')
         response = self._get_team_allocation(self.team2)
+        self.assertEquals(response.status_code, 403)
+
+    def test_usages_report_usage_owner_should_has_access(self):
+        self._login_as('usage_owner')
+        response = self._get_usages_report()
+        self.assertEquals(response.status_code, 200)
+
+    def test_usages_report_team_manager_access_permission_denied(self):
+        self._login_as('team_manager')
+        response = self._get_usages_report()
         self.assertEquals(response.status_code, 403)

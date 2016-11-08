@@ -113,6 +113,8 @@ CACHES = dict(
     )
 )
 
+USAGE_OWNERS_GROUP_NAME = 'usage-owners'
+
 # -----------------------------------------
 # SCROOGE SETTINGS
 # -----------------------------------------
