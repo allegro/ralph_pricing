@@ -71,6 +71,46 @@ def _detect_missing_values(usage_values):
     return missing_values
 
 
+def rel_change1(uc1, uc2):
+    ch = abs(1 - uc1 / uc2)
+    return round(ch, 2)
+
+
+def rel_change2(uc1, uc2):
+    ch = (uc2 - uc1) / uc1
+    return round(ch, 2)
+
+
+def rel_change3(uc1, uc2):
+    ch = abs((uc1 - uc2) / max(abs(uc1), abs(uc2)))
+    return round(ch, 2)
+
+
+def rel_change4(uc1, uc2):
+    ch = abs((uc1 - uc2) / max(uc1, uc2))
+    return round(ch, 2)
+
+
+def rel_change5(uc1, uc2):
+    ch = abs((uc1 - uc2) / min(abs(uc1), abs(uc2)))
+    return round(ch, 2)
+
+
+def rel_change6(uc1, uc2):
+    ch = abs((uc1 - uc2) / min(uc1, uc2))
+    return round(ch, 2)
+
+
+def rel_change7(uc1, uc2):
+    ch = abs((uc1 - uc2) / ((uc1 + uc2) / 2))
+    return round(ch, 2)
+
+
+def rel_change8(uc1, uc2):
+    ch = abs((uc1 - uc2) / ((abs(uc1) + abs(uc2)) / 2))
+    return round(ch, 2)
+
+
 def _detect_big_changes(usage_values):
     changes = []
     delta = datetime.timedelta(days=1)
@@ -84,8 +124,7 @@ def _detect_big_changes(usage_values):
             uc2 = usage_values[usage][next_date]
             # XXX We need to decide which method of calculating the relative
             # change suits us best.
-            # relative_change = round(abs(uc1 - uc2) / max(uc1, uc2), 2)
-            relative_change = round((uc2 - uc1) / uc1, 2)
+            relative_change = rel_change2(uc1, uc2)
             if abs(relative_change) > DIFF_TOLERANCE:
                 changes.append((usage, date_, next_date, relative_change))
     return changes
@@ -174,7 +213,6 @@ class Command(BaseCommand):
         anomalies_to_report = _merge_and_group_by_owner(
             usage_types, missing_values, big_changes_by_type
         )
-        pprint_anomalies(anomalies_to_report)
         if not dry_run:
             _send_notifications(anomalies_to_report)
 
@@ -184,9 +222,13 @@ def pprint_anomalies(anomalies):
     for k, v in anomalies.items():
         print("==========")
         print(k.name)
-        print("--- Missing values:")
-        for mv in v['missing_values']:
-            print(mv)
-        print("--- Big changes:")
-        for bc in v['big_changes']:
-            print("{} | {} | {:+.2%}".format(bc[0], bc[1], bc[2]))
+        missing_values = v['missing_values']
+        if missing_values is not None:
+            print("--- Missing values:")
+            for mv in missing_values:
+                print(mv)
+        big_changes = v['big_changes']
+        if big_changes is not None:
+            print("--- Big changes:")
+            for bc in big_changes:
+                print("{} | {} | {:.2f}".format(bc[0], bc[1], bc[2]))
