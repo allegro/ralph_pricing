@@ -126,7 +126,7 @@ def _detect_big_changes(usage_values):
             # change suits us best.
             relative_change = rel_change2(uc1, uc2)
             if abs(relative_change) > DIFF_TOLERANCE:
-                changes.append((usage, date_, next_date, relative_change))
+                changes.append((usage, date_, next_date, uc1, uc2, relative_change))
     return changes
 
 
@@ -146,7 +146,7 @@ def _group_by_type(big_changes):
     return big_changes_by_type
 
 
-def _merge_and_group_by_owner(usage_types, missing_values, big_changes_by_type):  # noqa: E501
+def _merge_and_group_by_usage_type(usage_types, missing_values, big_changes_by_type):  # noqa: E501
     merged_anomalies = OrderedDict()
     for usage in usage_types:
         big_changes = big_changes_by_type.get(usage)
@@ -159,8 +159,29 @@ def _merge_and_group_by_owner(usage_types, missing_values, big_changes_by_type):
         }
     return merged_anomalies
 
+
+def _group_anomalies_by_owner(anomalies):
+    ret = OrderedDict()
+    for usage in anomalies.keys():
+        owners = usage.owners.all()
+        if not owners.exists():
+            log.warning(
+                'Anomalies detected in UsageType "{}", but it doesn\'t have '
+                'any owners defined, hence we cannot notify them. Please '
+                'correct that ASAP.'.format(usage.name)
+            )
+            continue
+        for owner in owners:
+            if ret.get(owner) is None:
+                ret[owner] = {'missing_values': {}, 'big_changes': {}}
+            ret[owner]['missing_values'][usage] = anomalies[usage]['missing_values']
+            ret[owner]['big_changes'][usage] = anomalies[usage]['big_changes']
+    return ret
+
+
 def _send_mail():
     pass
+
 
 # XXX It's just a dummy function for now (i.e. it doesn't send any
 # notifications yet).
@@ -168,19 +189,10 @@ def _send_notifications(anomalies):
     template_name = 'scrooge_detect_usage_anomalies_template.txt'
     context = {'owner_name': 'John Doe'}
     txt_content = render_to_string(template_name, context)
-
-    for usage in anomalies.keys():
-        owners = usage.owners.all()
-        if not owners.exists():
-            log.warning(
-                'Anomalies detected in UsageType "{}", but it doesn\'t have '
-                'any owners to notify. Please correct that.'
-            )
-            continue
-
-
     print(txt_content)
     pprint_anomalies(anomalies)
+    # user:
+    # .first_name, .last_name, .username, .email
 
 
 class Command(BaseCommand):
@@ -222,26 +234,34 @@ class Command(BaseCommand):
         """
         usage_types = get_usage_types(usage_names)
         missing_values, big_changes = _detect_anomalies(usage_types)
-        big_changes_by_type = _group_by_type(big_changes)
-        anomalies_to_report = _merge_and_group_by_owner(
+        big_changes_by_type = _group_by_type(big_changes)  # XXX repeated naming/functionality?
+        anomalies = _merge_and_group_by_usage_type(
             usage_types, missing_values, big_changes_by_type
         )
+        anomalies_to_report = _group_anomalies_by_owner(anomalies)
         if not dry_run:
             _send_notifications(anomalies_to_report)
 
 
 def pprint_anomalies(anomalies):
     """XXX This is just a temporary function for debugging/development."""
-    for k, v in anomalies.items():
+    for user, v in anomalies.items():
         print("==========")
-        print(k.name)
+        print(user.email)
+        print("----------")
         missing_values = v['missing_values']
-        if missing_values is not None:
-            print("--- Missing values:")
-            for mv in missing_values:
-                print(mv)
+        if missing_values is not None:  # XXX or {}..?
+            for ut, dates in missing_values.items():
+                print('--- Missing values for "{}":'.format(ut.name))
+                for date_ in dates:
+                    print(date_)
         big_changes = v['big_changes']
-        if big_changes is not None:
-            print("--- Big changes:")
-            for bc in big_changes:
-                print("{} | {} | {:.2f}".format(bc[0], bc[1], bc[2]))
+        if big_changes is not None:  # XXX or {}..?
+            for ut, vals in big_changes.items():
+                print('--- Big changes for "{}":'.format(ut.name))
+                for vv in vals:
+                    print(
+                        "{} | {} | {:.2f} | {:.2f} | {:.2f}".format(
+                            vv[0], vv[1], vv[2], vv[3], vv[4]
+                        )
+                    )
