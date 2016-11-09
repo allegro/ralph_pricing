@@ -159,6 +159,8 @@ def _merge_and_group_by_owner(usage_types, missing_values, big_changes_by_type):
         }
     return merged_anomalies
 
+def _send_mail():
+    pass
 
 # XXX It's just a dummy function for now (i.e. it doesn't send any
 # notifications yet).
@@ -166,6 +168,17 @@ def _send_notifications(anomalies):
     template_name = 'scrooge_detect_usage_anomalies_template.txt'
     context = {'owner_name': 'John Doe'}
     txt_content = render_to_string(template_name, context)
+
+    for usage in anomalies.keys():
+        owners = usage.owners.all()
+        if not owners.exists():
+            log.warning(
+                'Anomalies detected in UsageType "{}", but it doesn\'t have '
+                'any owners to notify. Please correct that.'
+            )
+            continue
+
+
     print(txt_content)
     pprint_anomalies(anomalies)
 

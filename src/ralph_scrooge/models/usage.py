@@ -9,6 +9,8 @@ from django.core.exceptions import ValidationError
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 
+from dj.choices import Choices
+
 from ralph_scrooge.models.base import (
     BaseUsage,
     BaseUsageManager,
@@ -17,6 +19,13 @@ from ralph_scrooge.models.base import (
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
+
+
+class UsageTypeUploadFreq(Choices):
+    _ = Choices.Choice
+    day = _('day')
+    week = _('week')
+    month = _('month')
 
 
 class UsageType(BaseUsage):
@@ -63,6 +72,26 @@ class UsageType(BaseUsage):
         verbose_name=_("Excluded services"),
         related_name='excluded_usage_types',
         blank=True,
+    )
+    owners = db.ManyToManyField(
+        'ScroogeUser',
+        verbose_name=_("Owners of usage type"),
+        related_name='usage_type_owners',
+        blank=True,
+    )
+    upload_freq = db.PositiveIntegerField(
+        null=False,
+        blank=False,
+        default=1,
+        choices=UsageTypeUploadFreq(),
+        verbose_name=_("Expected frequency of uploads"),
+    )
+    unit = db.CharField(
+        verbose_name=_("Unit"),
+        max_length=32,
+        help_text=_("Unit of usage (e.g. bytes, MB, miliseconds, U, etc.)"),
+        blank=True,
+        default="",
     )
 
     objects_admin = db.Manager()
