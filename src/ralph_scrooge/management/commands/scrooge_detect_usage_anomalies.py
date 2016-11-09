@@ -179,20 +179,27 @@ def _group_anomalies_by_owner(anomalies):
     return ret
 
 
-def _send_mail():
-    pass
+def _send_mail(recipient, body):
+    return True
 
 
 # XXX It's just a dummy function for now (i.e. it doesn't send any
 # notifications yet).
 def _send_notifications(anomalies):
-    template_name = 'scrooge_detect_usage_anomalies_template.txt'
-    context = {'owner_name': 'John Doe'}
-    txt_content = render_to_string(template_name, context)
-    print(txt_content)
-    pprint_anomalies(anomalies)
-    # user:
-    # .first_name, .last_name, .username, .email
+    template_name = 'scrooge_detect_usage_anomalies_template.html'
+    for recipient, anomalies_ in anomalies.items():
+        context = {
+            'recipient': recipient,
+            'big_changes': anomalies_['big_changes'],
+            'missing_values': anomalies_['missing_values'],
+        }
+        body = render_to_string(template_name, context)
+        print(body)
+        # XXX
+        # pprint_anomalies(anomalies)
+        # _send_mail(recipient, body)
+        # user:
+        # .first_name, .last_name, .username, .email
 
 
 class Command(BaseCommand):
