@@ -89,6 +89,14 @@ def _detect_big_changes(usage_values, end_date):
         ch = (uc2 - uc1) / uc1
         return round(ch, 2)
 
+    def group_by_type(changes):
+        changes_by_type = {}
+        for c in changes:
+            if changes_by_type.get(c[0]) is None:
+                changes_by_type[c[0]] = []
+            changes_by_type[c[0]].append(tuple(c[1:]))
+        return changes_by_type
+
     changes = []
     delta = datetime.timedelta(days=1)
     for usage in usage_values.keys():
@@ -104,26 +112,24 @@ def _detect_big_changes(usage_values, end_date):
                 changes.append(
                     (usage, date, next_date, uc1, uc2, relative_change)
                 )
-    return changes
+    grouped_changes = group_by_type(changes)
+    return grouped_changes
 
 
 def _detect_anomalies(usage_types, end_date):
     usage_values = _get_usage_values_for_date_range(usage_types, end_date)
     missing_values = _detect_missing_values(usage_values, end_date)
     big_changes = _detect_big_changes(usage_values, end_date)
-    return (missing_values, big_changes)
+    if not missing_values and not big_changes:
+        return
+    # Some post-processing in order to facilitate composing final e-mail(s)
+    # with report(s).
+    anomalies = _merge_by_type(usage_types, missing_values, big_changes)
+    anomalies_to_report = _group_anomalies_by_owner(anomalies)
+    return anomalies_to_report
 
 
-def _group_by_type(big_changes):
-    big_changes_by_type = {}
-    for bc in big_changes:
-        if big_changes_by_type.get(bc[0]) is None:
-            big_changes_by_type[bc[0]] = []
-        big_changes_by_type[bc[0]].append(tuple(bc[1:]))
-    return big_changes_by_type
-
-
-def _merge_and_group_by_usage_type(usage_types, missing_values, big_changes_by_type):  # noqa: E501
+def _merge_by_type(usage_types, missing_values, big_changes_by_type):
     merged_anomalies = {}
     for usage in usage_types:
         big_changes = big_changes_by_type.get(usage)
@@ -285,17 +291,11 @@ class Command(BaseCommand):
 
         end_date = parse_date(options['end_date'])
         usage_types = get_usage_types(usage_symbols)
-        missing_values, big_changes = _detect_anomalies(usage_types, end_date)
-        if not missing_values and not big_changes:
+        anomalies = _detect_anomalies(usage_types, end_date)
+        if not anomalies:
             log.info("No anomalies detected.")
             return
-        # XXX repeated naming/functionality?
-        big_changes_by_type = _group_by_type(big_changes)
-        anomalies = _merge_and_group_by_usage_type(
-            usage_types, missing_values, big_changes_by_type
-        )
-        anomalies_to_report = _group_anomalies_by_owner(anomalies)
         if dry_run:
-            pprint_anomalies(anomalies_to_report)
+            pprint_anomalies(anomalies)
         else:
-            _send_notifications(anomalies_to_report)
+            _send_notifications(anomalies)
