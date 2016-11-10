@@ -15,7 +15,7 @@ def percentage(value, args):
     dec_places = int(qs.get('dec', 0))
     sign = qs.get('sign')
     if sign and sign.lower() == 'true':
-        format_str = '{:+.' + str(dec_places) +'%}'
+        format_str = '{:+.' + str(dec_places) + '%}'
     else:
-        format_str = '{:.' + str(dec_places) +'%}'
+        format_str = '{:.' + str(dec_places) + '%}'
     return format_str.format(value)

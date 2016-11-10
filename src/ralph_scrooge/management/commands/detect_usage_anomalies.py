@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 
 import datetime
 import logging
-from dateutil.relativedelta import relativedelta
-
 from collections import OrderedDict
+
+from dateutil.relativedelta import relativedelta
 
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
@@ -21,6 +21,7 @@ from ralph_scrooge.rest.service_environment_costs import date_range
 
 
 log = logging.getLogger(__name__)
+yesterday = datetime.date.today() - datetime.timedelta(days=1)
 
 # XXX This could be overridden on per-UsageType basis (e.g. in some dict loaded
 # from settings).
@@ -28,17 +29,25 @@ DIFF_TOLERANCE = 0.2
 NOTIFY_THRESHOLDS = [datetime.timedelta(days=d) for d in (1, 7, 14)]
 
 
-def get_usage_types(names):
-    if names:
-        ut = UsageType.objects.filter(name__in=names).order_by('name')
+def get_usage_types(symbols):
+    if symbols:
+        uts = UsageType.objects.filter(symbol__in=symbols).order_by('symbol')
+        known_symbols = [ut.symbol for ut in uts]
+        unknown_symbols = []
+        for s in symbols:
+            if s not in known_symbols:
+                unknown_symbols.append(s)
+        if unknown_symbols:
+            log.warning(
+                "Unknown symbol(s) detected: {}. Ignoring."
+                .format(", ".join(unknown_symbols))
+            )
     else:
-        ut = UsageType.objects.order_by('name')
-    return ut
+        uts = UsageType.objects.order_by('symbol')
+    return uts
 
 
-def get_negative_month_range(end_date=None):
-    if end_date is None:
-        end_date = datetime.date.today() - datetime.timedelta(days=1)
+def get_negative_month_range(end_date):
     start_date = end_date - relativedelta(months=1)
     return date_range(start_date, end_date)
 
@@ -49,96 +58,64 @@ def _get_usage_value(date, usage):
     ).values('date').aggregate(Sum('value'))['value__sum']
 
 
-def _get_usage_values_for_date_range(usage_types):
-    results = OrderedDict()
+def _get_usage_values_for_date_range(usage_types, end_date):
+    results = {}
+    start_date = get_negative_month_range(end_date).next()
     for usage in usage_types:
-        results[usage] = OrderedDict()
-        for date_ in get_negative_month_range():
-            results[usage][date_] = _get_usage_value(
-                date_, usage
-            )
+        results[usage] = {}
+        daily_usages = dict(
+            DailyUsage.objects.filter(
+                date__gte=start_date, date__lte=end_date, type=usage
+            ).values_list('date').annotate(Sum('value'))
+        )
+        results[usage].update(daily_usages)
     return results
 
 
-def _detect_missing_values(usage_values):
-    missing_values = OrderedDict()
+def _detect_missing_values(usage_values, end_date):
+    missing_values = {}
     for usage in usage_values.keys():
-        for date_ in get_negative_month_range():
-            if usage_values[usage][date_] is None:
+        for date in get_negative_month_range(end_date):
+            if usage_values[usage].get(date) is None:
                 if missing_values.get(usage) is None:
                     missing_values[usage] = []
-                missing_values[usage].append(date_)
+                missing_values[usage].append(date)
     return missing_values
 
 
-def rel_change1(uc1, uc2):
-    ch = abs(1 - uc1 / uc2)
-    return round(ch, 2)
+def _detect_big_changes(usage_values, end_date):
 
+    def rel_change(uc1, uc2):
+        ch = (uc2 - uc1) / uc1
+        return round(ch, 2)
 
-def rel_change2(uc1, uc2):
-    ch = (uc2 - uc1) / uc1
-    return round(ch, 2)
-
-
-def rel_change3(uc1, uc2):
-    ch = abs((uc1 - uc2) / max(abs(uc1), abs(uc2)))
-    return round(ch, 2)
-
-
-def rel_change4(uc1, uc2):
-    ch = abs((uc1 - uc2) / max(uc1, uc2))
-    return round(ch, 2)
-
-
-def rel_change5(uc1, uc2):
-    ch = abs((uc1 - uc2) / min(abs(uc1), abs(uc2)))
-    return round(ch, 2)
-
-
-def rel_change6(uc1, uc2):
-    ch = abs((uc1 - uc2) / min(uc1, uc2))
-    return round(ch, 2)
-
-
-def rel_change7(uc1, uc2):
-    ch = abs((uc1 - uc2) / ((uc1 + uc2) / 2))
-    return round(ch, 2)
-
-
-def rel_change8(uc1, uc2):
-    ch = abs((uc1 - uc2) / ((abs(uc1) + abs(uc2)) / 2))
-    return round(ch, 2)
-
-
-def _detect_big_changes(usage_values):
     changes = []
     delta = datetime.timedelta(days=1)
     for usage in usage_values.keys():
-        for date_ in get_negative_month_range():
-            next_date = date_ + delta
-            if (usage_values[usage].get(date_) is None or
+        for date in get_negative_month_range(end_date):
+            next_date = date + delta
+            if (usage_values[usage].get(date) is None or
                     usage_values[usage].get(next_date) is None):
                 continue
-            uc1 = usage_values[usage][date_]
+            uc1 = usage_values[usage][date]
             uc2 = usage_values[usage][next_date]
-            # XXX We need to decide which method of calculating the relative
-            # change suits us best.
-            relative_change = rel_change2(uc1, uc2)
+            relative_change = rel_change(uc1, uc2)
             if abs(relative_change) > DIFF_TOLERANCE:
-                changes.append((usage, date_, next_date, uc1, uc2, relative_change))
+                changes.append(
+                    (usage, date, next_date, uc1, uc2, relative_change)
+                )
     return changes
 
 
-def _detect_anomalies(usage_types):
-    usage_values = _get_usage_values_for_date_range(usage_types)
-    missing_values = _detect_missing_values(usage_values)
-    big_changes = _detect_big_changes(usage_values)
+def _detect_anomalies(usage_types, end_date):
+    usage_values = _get_usage_values_for_date_range(usage_types, end_date)
+    missing_values = _detect_missing_values(usage_values, end_date)
+    big_changes = _detect_big_changes(usage_values, end_date)
     return (missing_values, big_changes)
 
 
 def _group_by_type(big_changes):
-    big_changes_by_type = OrderedDict()
+    big_changes_by_type = {}
     for bc in big_changes:
         if big_changes_by_type.get(bc[0]) is None:
             big_changes_by_type[bc[0]] = []
@@ -147,7 +124,7 @@ def _group_by_type(big_changes):
 
 
 def _merge_and_group_by_usage_type(usage_types, missing_values, big_changes_by_type):  # noqa: E501
-    merged_anomalies = OrderedDict()
+    merged_anomalies = {}
     for usage in usage_types:
         big_changes = big_changes_by_type.get(usage)
         missing_values_ = missing_values.get(usage)
@@ -164,14 +141,14 @@ def _group_anomalies_by_owner(anomalies):
     """...and group/sort missing_values by date"""
 
     def group_missing_values_by_date(usage, missing_values):
-        ret = OrderedDict()
+        ret = {}
         for date in missing_values:
             if ret.get(date) is None:
                 ret[date] = set()
             ret[date].add(usage)
         return ret
 
-    ret = OrderedDict()
+    ret = {}
     for usage in anomalies.keys():
         owners = usage.owners.all()
         if not owners.exists():
@@ -195,7 +172,9 @@ def _group_anomalies_by_owner(anomalies):
                 else:
                     ret[owner]['missing_values'][date].update(ut_set)
 
-            ret[owner]['big_changes'][usage] = anomalies[usage]['big_changes']
+            big_changes = anomalies[usage]['big_changes']
+            if big_changes is not None:
+                ret[owner]['big_changes'][usage] = big_changes
 
     # Sort missing values by date for more readable output in notification.
     for owner in ret.keys():
@@ -207,7 +186,9 @@ def _group_anomalies_by_owner(anomalies):
 
 
 def _send_mail(recipient, body):
-    return True
+    # recipient:
+    # .first_name, .last_name, .username, .email
+    pass
 
 
 # XXX It's just a dummy function for now (i.e. it doesn't send any
@@ -221,12 +202,32 @@ def _send_notifications(anomalies):
             'missing_values': anomalies_['missing_values'],
         }
         body = render_to_string(template_name, context)
-        print(body)
-        # XXX
-        # pprint_anomalies(anomalies)
-        # _send_mail(recipient, body)
-        # user:
-        # .first_name, .last_name, .username, .email
+        _send_mail(recipient, body)
+        print(body)  # XXX
+
+
+def pprint_anomalies(anomalies):
+    for user, anomalies_ in anomalies.items():
+        print("-" * 79)
+        print('Owner: {}'.format(user.username))
+        missing_values = anomalies_['missing_values']
+        if missing_values is not None:
+            print('\nMissing values for days:')
+            for date, usage_types in missing_values.items():
+                print(
+                    '{}: {}'.format(
+                        date, ", ".join([ut.symbol for ut in usage_types])
+                    )
+                )
+        big_changes = anomalies_['big_changes']
+        if big_changes is not None:
+            for ut, vals in big_changes.items():
+                print('\nUnusual changes for {}:'.format(ut.symbol))
+                for v in vals:
+                    # XXX add some padding here
+                    print(
+                        "{} | {} | {:.2f} | {:.2f} | {:+.2%}".format(*v)
+                    )
 
 
 class Command(BaseCommand):
@@ -234,13 +235,23 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '-u',
-            dest='usage_names',  # XXX what about using symbols here..?
+            dest='usage_symbols',
             action='append',
             type=str,
             default=[],
             help=(
-                "UsageType names to be taken into account (by default, all "
+                "UsageType symbols to be taken into account (by default, all "
                 "are taken)."
+            )
+        )
+        parser.add_argument(
+            '-e',
+            dest='end_date',
+            default=yesterday,
+            help=(
+                "End date of the monthly range which should be analyzed "
+                "(default: yesterday). This date *is not* included in "
+                "the results."
             )
         )
         parser.add_argument(
@@ -251,8 +262,8 @@ class Command(BaseCommand):
             help="Don't send any notifications"
         )
 
-    def handle(self, usage_names, dry_run, *args, **options):
-        """
+    def handle(self, usage_symbols, dry_run, *args, **options):
+        """XXX check if these descriptions are still valid
         * missing_values:
         OrderedDict({
             UsageType: [datetime.date, ...]
@@ -266,36 +277,25 @@ class Command(BaseCommand):
             UsageType: [(datetime.date1, datetime.date2, value or None), ...]
         })
         """
-        usage_types = get_usage_types(usage_names)
-        missing_values, big_changes = _detect_anomalies(usage_types)
-        big_changes_by_type = _group_by_type(big_changes)  # XXX repeated naming/functionality?
+        def parse_date(date):
+            if not isinstance(date, datetime.date):
+                return datetime.datetime.strptime(date, '%Y-%m-%d').date()
+            else:
+                return date
+
+        end_date = parse_date(options['end_date'])
+        usage_types = get_usage_types(usage_symbols)
+        missing_values, big_changes = _detect_anomalies(usage_types, end_date)
+        if not missing_values and not big_changes:
+            log.info("No anomalies detected.")
+            return
+        # XXX repeated naming/functionality?
+        big_changes_by_type = _group_by_type(big_changes)
         anomalies = _merge_and_group_by_usage_type(
             usage_types, missing_values, big_changes_by_type
         )
         anomalies_to_report = _group_anomalies_by_owner(anomalies)
-        if not dry_run:
+        if dry_run:
+            pprint_anomalies(anomalies_to_report)
+        else:
             _send_notifications(anomalies_to_report)
-
-
-def pprint_anomalies(anomalies):
-    """XXX This is just a temporary function for debugging/development."""
-    for user, v in anomalies.items():
-        print("==========")
-        print(user.email)
-        print("----------")
-        missing_values = v['missing_values']
-        if missing_values is not None:  # XXX or {}..?
-            for ut, dates in missing_values.items():
-                print('--- Missing values for "{}":'.format(ut.name))
-                for date_ in dates:
-                    print(date_)
-        big_changes = v['big_changes']
-        if big_changes is not None:  # XXX or {}..?
-            for ut, vals in big_changes.items():
-                print('--- Big changes for "{}":'.format(ut.name))
-                for vv in vals:
-                    print(
-                        "{} | {} | {:.2f} | {:.2f} | {:.2f}".format(
-                            vv[0], vv[1], vv[2], vv[3], vv[4]
-                        )
-                    )
