@@ -85,6 +85,12 @@ class UsageType(BaseUsage):
         default=1,
         choices=UsageTypeUploadFreq(),
         verbose_name=_("Expected frequency of uploads"),
+        help_text=_(
+            "Please note that this value doesn't affect costs calculation at "
+            "all - it's just for notifications about \"holes\" detected in "
+            "your uploads. Remember that have to upload your usages for every "
+            "day, despite what you've selected here!"
+        ),
     )
     unit = db.CharField(
         verbose_name=_("Unit"),
