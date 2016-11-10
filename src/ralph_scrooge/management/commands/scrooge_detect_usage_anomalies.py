@@ -161,6 +161,16 @@ def _merge_and_group_by_usage_type(usage_types, missing_values, big_changes_by_t
 
 
 def _group_anomalies_by_owner(anomalies):
+    """...and group/sort missing_values by date"""
+
+    def group_missing_values_by_date(usage, missing_values):
+        ret = OrderedDict()
+        for date in missing_values:
+            if ret.get(date) is None:
+                ret[date] = set()
+            ret[date].add(usage)
+        return ret
+
     ret = OrderedDict()
     for usage in anomalies.keys():
         owners = usage.owners.all()
@@ -174,8 +184,25 @@ def _group_anomalies_by_owner(anomalies):
         for owner in owners:
             if ret.get(owner) is None:
                 ret[owner] = {'missing_values': {}, 'big_changes': {}}
-            ret[owner]['missing_values'][usage] = anomalies[usage]['missing_values']
+
+            mv_by_date = group_missing_values_by_date(
+                usage, anomalies[usage]['missing_values']
+            )
+            for date, ut_set in mv_by_date.items():
+                mvs = ret[owner]['missing_values'].get(date)
+                if mvs is None:
+                    ret[owner]['missing_values'][date] = ut_set
+                else:
+                    ret[owner]['missing_values'][date].update(ut_set)
+
             ret[owner]['big_changes'][usage] = anomalies[usage]['big_changes']
+
+    # Sort missing values by date for more readable output in notification.
+    for owner in ret.keys():
+        d = OrderedDict(
+            sorted(ret[owner]['missing_values'].items())
+        )
+        ret[owner]['missing_values'] = d
     return ret
 
 

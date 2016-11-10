@@ -1,5 +1,7 @@
+{% load joinby %}
 {% load percentage %}
 
+{% spaceless %}
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -11,12 +13,27 @@
 
     {% if big_changes %}
     <p>Unusually big changes in values between the following days:</p>
+
     <table border="1">
-      <tr><th>Usage type</th><th>Date 1</th><th>Date 2</th><th>Value 1</th><th>Value 2</th><th>Relative Change (%)</th></tr>
+      <tr>
+        <th>Usage type</th>
+        <th>Date 1</th>
+        <th>Date 2</th>
+        <th>Value 1</th>
+        <th>Value 2</th>
+        <th>Relative Change (%)</th>
+      </tr>
       {% for ut, v in big_changes.items %}
-        {% for vv in v %}
-       <tr><td>{{ ut.name }}</td><td>{{ vv.0|date:"Y-m-d" }}</td><td>{{ vv.1|date:"Y-m-d" }}</td><td>{{ vv.2|floatformat:2 }}</td><td>{{ vv.3|floatformat:2 }}</td><td>{{ vv.4|percentage:"dec=2&sign=true" }}</td></tr>
-        {% endfor %}
+      {% for vv in v %}
+      <tr>
+        <td>{{ ut.name }}</td>
+        <td>{{ vv.0|date:"Y-m-d" }}</td>
+        <td>{{ vv.1|date:"Y-m-d" }}</td>
+        <td>{{ vv.2|floatformat:2 }}</td>
+        <td>{{ vv.3|floatformat:2 }}</td>
+        <td>{{ vv.4|percentage:"dec=2&sign=true" }}</td>
+      </tr>
+      {% endfor %}
       {% endfor %}
     </table>
 
@@ -25,9 +42,16 @@
 
     {% if missing_values %}
     <p>Missing usage type values for the following days:</p>
-    {% for ut, v in missing_values.items %}
-    <p>{{ ut.name }}:</br> {% for vv in v %}{{ vv|date:"Y-m-d" }}</br>{% endfor %}</p>
-    {% endfor %}
+
+    <table border="1">
+      <tr><th>Date</th><th>Usage type(s)</th></tr>
+      {% for date_, usage_types in missing_values.items %}
+      <tr>
+        <td>{{ date_|date:"Y-m-d" }}</td>
+        <td>{{ usage_types|joinby:", " }}</td>
+      </tr>
+      {% endfor %}
+    </table>
 
     {% endif %}
 
@@ -35,3 +59,4 @@
 
   </body>
 </html>
+{% endspaceless %}
