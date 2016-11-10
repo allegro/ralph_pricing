@@ -76,7 +76,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.client = APIClient()
         self.client.force_authenticate(superuser)
 
-    def create_daily_costs(self, daily_costs, parent=None):
+    def create_daily_costs(self, daily_costs, parent=None, forecast=False):
         """A helper method for creating DailyCost objects with given params.
 
         `daily_costs` arg should be an iterable holding tuples of the following
@@ -113,6 +113,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
                 cost=dc[3],
                 depth=(1 if parent is not None else 0),
                 path=("0/{}".format(id_) if parent is not None else str(n)),
+                forecast=forecast,
             )
         if parent is not None:
             parent_cost = DailyCostFactory(
@@ -124,6 +125,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
                 cost=parent_cost,
                 depth=0,
                 path="0",
+                forecast=forecast,
             )
 
     def send_post_request(self):
@@ -283,6 +285,37 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         date_expected = self.date1.strftime('%Y-%m')
         date_received = json.loads(resp.content)['service_environment_costs'][0]['grouped_date']  # noqa: E501
         self.assertEquals(date_received, date_expected)
+
+    def test_for_forecast_costs(self):  # noqa: E501
+        costs = (
+            (self.usage_type1, self.date1, 10, 20),
+            (self.usage_type2, self.date1, 11, 21),
+        )
+        self.create_daily_costs(
+            costs, parent=(self.pricing_service, self.date1_as_str),
+            forecast=True,
+        )
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": self.date1_as_str,
+            "date_to": self.date1_as_str,
+            "group_by": "month",
+            "usage_types": [self.pricing_service.symbol]
+        }
+        # first, try non-forecast and check if response is empty
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(
+            len(json.loads(resp.content)['service_environment_costs'][0]['costs']), 0
+        )
+        # try forecast - it should have some costs
+        self.payload['forecast'] = True
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        self.assertGreater(
+            len(json.loads(resp.content)['service_environment_costs'][0]['costs']), 0
+        )
 
     def test_if_grouped_date_has_correct_format_when_group_by_day_given(self):
         costs = (

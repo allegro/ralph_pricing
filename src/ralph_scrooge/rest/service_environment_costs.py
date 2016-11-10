@@ -58,6 +58,7 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
     types = serializers.ListField(
         child=serializers.CharField(), required=False
     )
+    forecast = serializers.BooleanField(default=False, required=False)
 
     def validate_types(self, types):
         valid_types = get_valid_types()
@@ -317,7 +318,9 @@ def _round_recursive(usages_and_costs):
     return rounded
 
 
-def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
+def fetch_costs_alt(
+    service_env, types, date_from, date_to, group_by, forecast=False
+):
     """An alternative version of `fetch_costs` function. The difference is that
     it makes less DB queries, so in theory it should be faster (to be confirmed
     with performance tests).
@@ -331,6 +334,7 @@ def fetch_costs_alt(service_env, types, date_from, date_to, group_by):
         date__lte=date_to,
         service_environment=service_env,
         depth__lte=1,
+        forecast=forecast,
     )
 
     if group_by == 'month':
@@ -641,9 +645,10 @@ class ServiceEnvironmentCosts(APIView):
             date_from = deserializer.validated_data['date_from']
             date_to = deserializer.validated_data['date_to']
             group_by = deserializer.validated_data['group_by']
+            forecast = deserializer.validated_data['forecast']
 
             costs = fetch_costs_alt(
-                service_env, types, date_from, date_to, group_by
+                service_env, types, date_from, date_to, group_by, forecast
             )
 
             if group_by == 'day':
