@@ -307,14 +307,14 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         self.assertEqual(
-            len(json.loads(resp.content)['service_environment_costs'][0]['costs']), 0
+            len(json.loads(resp.content)['service_environment_costs'][0]['costs']), 0  # noqa: E501
         )
         # try forecast - it should have some costs
         self.payload['forecast'] = True
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
         self.assertGreater(
-            len(json.loads(resp.content)['service_environment_costs'][0]['costs']), 0
+            len(json.loads(resp.content)['service_environment_costs'][0]['costs']), 0  # noqa: E501
         )
 
     def test_if_grouped_date_has_correct_format_when_group_by_day_given(self):
