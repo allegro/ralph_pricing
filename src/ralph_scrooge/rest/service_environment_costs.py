@@ -36,7 +36,7 @@ GROUP_BY_CHOICES = (
 )
 
 
-@memoize
+# @memoize
 def get_valid_types():
     """We are interested here in all types except "SU" which is "Service usage
     type" (see TYPE_CHOICES in ralph_scrooge.models.usage).

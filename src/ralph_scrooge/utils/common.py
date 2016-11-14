@@ -6,10 +6,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from decimal import Decimal
-from functools import wraps
 
 from django.conf import settings
-from ralph_scrooge.utils.cache import memoize as memoize_orig
+# DEPRECATED. Import memoize directly from `ralph_scrooge.cache`
+from ralph_scrooge.utils.cache import memoize  # noqa: F401
 
 
 class AttributeDict(dict):
@@ -123,23 +123,3 @@ def normalize_decimal(d):
     Decimal('1100')
     """
     return d.quantize(Decimal(1)) if d == d.to_integral() else d.normalize()
-
-
-def memoize_proxy(func=None, *rargs, **rkwargs):
-    """
-    Memoize decorator proxy (not-caching)
-    """
-    if func is None:
-        def wrapper(f):
-            return memoize_proxy(func=f, *rargs, **rkwargs)
-        return wrapper
-
-    @wraps(func)
-    def wrapper_standard(*args, **kwargs):
-        return func(*args, **kwargs)
-
-    return wrapper_standard
-
-# if in testing environment (ex unit tests), set memoize decorator to memoize
-# proxy, else to original (caching) memoize
-memoize = memoize_proxy if getattr(settings, 'TESTING', None) else memoize_orig
