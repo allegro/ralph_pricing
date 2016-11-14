@@ -58,7 +58,13 @@ def get_asset_info(service_environment, warehouse, data):
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
     try:
-        asset_info.save()
+        # create "new" transaction (it's new for django, but the same for DB)
+        # to properly handle IntegrityError here to not get
+        # TransactionManagementError.
+        # See note "Avoid catching exceptions inside atomic!" here:
+        # https://docs.djangoproject.com/en/1.10/topics/db/transactions/#django.db.transaction.atomic  # noqa: E501
+        with transaction.atomic():
+            asset_info.save()
     except IntegrityError:
         # check for duplicates on SN, barcode and id, null them and save again
         for field in ['sn', 'barcode']:
