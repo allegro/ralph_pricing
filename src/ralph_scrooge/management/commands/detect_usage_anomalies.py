@@ -8,9 +8,12 @@ from __future__ import unicode_literals
 import datetime
 import logging
 from collections import OrderedDict
+from smtplib import SMTPException
 
 from dateutil.relativedelta import relativedelta
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from django.template.loader import render_to_string
@@ -191,14 +194,33 @@ def _group_anomalies_by_owner(anomalies):
     return ret
 
 
-def _send_mail(recipient, body):
-    # recipient:
-    # .first_name, .last_name, .username, .email
-    pass
+def _send_mail(address, html_message):
+    try:
+        num_msgs_sent = send_mail(
+            'Scrooge notifications test',  # XXX change it
+            '',  # TODO(xor-xor): Do we need plain-text version of the message?
+            settings.EMAIL_NOTIFICATIONS_SENDER,
+            [address],
+            fail_silently=False,
+            html_message=html_message,
+        )
+    except SMTPException as e:
+        log.error(
+            "Got error from SMTP server: {}: {}. E-mail addressed to {} "
+            "has not been sent.".format(e.smtp_code, e.smtp_error, recipient)
+        )
+        return
+    if num_msgs_sent == 1:
+        log.info(
+            "Notification e-mail to {} sent successfully.".format(address)
+        )
+    else:
+        log.error(
+            "Notification e-mail to {} couldn't be delivered. Please try "
+            "again later.".format(address)
+        )
 
 
-# XXX It's just a dummy function for now (i.e. it doesn't send any
-# notifications yet).
 def _send_notifications(anomalies):
     template_name = 'scrooge_detect_usage_anomalies_template.html'
     for recipient, anomalies_ in anomalies.items():
@@ -208,8 +230,7 @@ def _send_notifications(anomalies):
             'missing_values': anomalies_['missing_values'],
         }
         body = render_to_string(template_name, context)
-        _send_mail(recipient, body)
-        print(body)  # XXX
+        _send_mail(recipient.email, body)
 
 
 def pprint_anomalies(anomalies):
@@ -230,9 +251,10 @@ def pprint_anomalies(anomalies):
             for ut, vals in big_changes.items():
                 print('\nUnusual changes for {}:'.format(ut.symbol))
                 for v in vals:
-                    # XXX add some padding here
+                    # XXX determine padding width for values dynamically
                     print(
-                        "{} | {} | {:.2f} | {:.2f} | {:+.2%}".format(*v)
+                        "{} | {} | {: >16.2f} | {: >16.2f} | {: >+8.2%}"
+                        .format(*v)
                     )
 
 
