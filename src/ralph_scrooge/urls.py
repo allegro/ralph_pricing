@@ -33,6 +33,8 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^scrooge/api-token-auth/', views.obtain_auth_token),
+    # Internal REST API, that should be used only for GUI.
+    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
 
     # Public REST API.
     # TODO(xor-xor): Create proper dir/file structure for API-related modules
@@ -64,8 +66,6 @@ urlpatterns = [
         ServiceEnvironmentCosts.as_view(),
         name='service_environment_costs',
     ),
-    # Internal REST API, that should be used only for GUI.
-    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
 
     url(
         r'^$',
