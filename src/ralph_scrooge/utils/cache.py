@@ -43,11 +43,13 @@ from __future__ import unicode_literals
 
 import cPickle as pickle
 import sys
-from time import time
 from functools import wraps
+from time import time
+
+from django.conf import settings
 
 
-def memoize(func=None, update_interval=300, max_size=256, skip_first=False):
+def _memoize(func=None, update_interval=300, max_size=256, skip_first=False):
     """Memoization decorator.
 
         :param update_interval: time in seconds after which the actual function
@@ -120,3 +122,24 @@ def memoize(func=None, update_interval=300, max_size=256, skip_first=False):
         return result
 
     return wrapper_standard
+
+
+def memoize_proxy(func=None, *rargs, **rkwargs):
+    """
+    Memoize decorator proxy (not-caching)
+    """
+    if func is None:
+        def wrapper(f):
+            return memoize_proxy(func=f, *rargs, **rkwargs)
+        return wrapper
+
+    @wraps(func)
+    def wrapper_standard(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper_standard
+
+
+# if in testing environment (ex unit tests), set memoize decorator to memoize
+# proxy, else to original (caching) memoize
+memoize = memoize_proxy if getattr(settings, 'TESTING', None) else _memoize
