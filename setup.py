@@ -33,7 +33,6 @@ setup(
     install_requires=[
         'dj.choices==0.11.0',
         'django-auth-ldap==1.2.8',
-        'django-filter==0.11',
         'django-nose==1.4.4',
         'django-rq==0.9.3',
         'django-simple-history==1.8.1',
@@ -53,6 +52,7 @@ setup(
         'pyyaml==3.12',
         'rq>=0.3.7',
         'SQLAlchemy==0.7.8',
+        'django-filter==0.15.3'
     ],
     entry_points={
         'django.pluggable_app': [
