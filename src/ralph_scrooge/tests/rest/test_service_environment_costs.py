@@ -286,7 +286,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         date_received = json.loads(resp.content)['service_environment_costs'][0]['grouped_date']  # noqa: E501
         self.assertEquals(date_received, date_expected)
 
-    def test_for_forecast_costs(self):  # noqa: E501
+    def test_for_forecast_costs(self):
         costs = (
             (self.usage_type1, self.date1, 10, 20),
             (self.usage_type2, self.date1, 11, 21),
