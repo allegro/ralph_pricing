@@ -26,13 +26,15 @@ from ralph_scrooge.rest.service_environment_costs import date_range
 log = logging.getLogger(__name__)
 yesterday = datetime.date.today() - datetime.timedelta(days=1)
 
-# XXX This could be overridden on per-UsageType basis (e.g. in some dict loaded
-# from settings).
+# XXX Move this to UsageType as `change_tolerance` field, or something like
+# that.
 DIFF_TOLERANCE = 0.2
-NOTIFY_THRESHOLDS = [datetime.timedelta(days=d) for d in (1, 7, 14)]
 
 
 def get_usage_types(symbols):
+    """Fetch UsageTypes for `symbols` and report unknown ones. If `symbols` is
+    given as an empty list, fetch all UsageTypes instead.
+    """
     if symbols:
         uts = UsageType.objects.filter(symbol__in=symbols).order_by('symbol')
         known_symbols = [ut.symbol for ut in uts]
@@ -51,17 +53,24 @@ def get_usage_types(symbols):
 
 
 def get_negative_month_range(end_date):
+    """Return an iterator yielding dates starting from end_date - month and
+    ending at end_date - 1 day, e.g:
+    for end_date = datetime.date(2016, 11, 5) you will get:
+    datetime.date(2016, 10, 5),
+    datetime.date(2016, 10, 6),
+    ...
+    datetime.date(2016, 11, 4).
+    """
     start_date = end_date - relativedelta(months=1)
     return date_range(start_date, end_date)
 
 
-def _get_usage_value(date, usage):
-    return DailyUsage.objects.filter(
-        date=date, type=usage
-    ).values('date').aggregate(Sum('value'))['value__sum']
-
-
-def _get_usage_values_for_date_range(usage_types, end_date):
+def _get_usage_values_for_month(usage_types, end_date):
+    """Aggregate values of `usage_types` per day within a month range
+    designated by (`end_date` - 1 month, `end_date`), where `end_date` is not
+    included. If there are no values for given UsageType/day, it will be
+    omitted.
+    """
     results = {}
     start_date = get_negative_month_range(end_date).next()
     for usage in usage_types:
@@ -76,9 +85,16 @@ def _get_usage_values_for_date_range(usage_types, end_date):
 
 
 def _detect_missing_values(usage_values, end_date):
+    """Find missing dates in `usage_values` within a month range given by
+    `get_negative_month_range(end_date)` and return them as a dict keyed by
+    UsageTypes, where values are lists of those missing dates.
+
+    XXX add some remark re: filtering
+    """
     missing_values = {}
     for usage in usage_values.keys():
         for date in get_negative_month_range(end_date):
+            # XXX add filtering by margin derived from UsageType.upload_freq
             if usage_values[usage].get(date) is None:
                 if missing_values.get(usage) is None:
                     missing_values[usage] = []
@@ -86,13 +102,40 @@ def _detect_missing_values(usage_values, end_date):
     return missing_values
 
 
+# XXX rename big_changes to unusual_changes (or something like that)
 def _detect_big_changes(usage_values, end_date):
+    """Having `usage_values` like:
 
-    def rel_change(uc1, uc2):
-        ch = (uc2 - uc1) / uc1
+    {<UsageType: some usage 1>: {datetime.date(2016, 10, 5): 10.00,
+                                 datetime.date(2016, 10, 6): 15.00,
+                                 datetime.date(2016, 10, 7): 99.00},
+     <UsageType: some usage 2>: { ... }}
+
+    ...iterate over them and compare values in each pair of adjoining days. If
+    such change is bigger than DIFF_TOLERANCE, record it as a change that has
+    to be reported, e.g.:
+
+
+    {<UsageType: some usage 1>: (datetime.date(2016, 10, 6),
+                                 datetime.date(2016, 10, 7),
+                                 15.00,
+                                 99.00,
+                                 5.6)}
+
+    (the last value in the tuple above is the relative change between 15.00
+    and 99.00)
+    """
+
+    def get_relative_change(val1, val2):
+        ch = (val2 - val1) / val1
         return round(ch, 2)
 
     def group_by_type(changes):
+        """Having a list of tuples like:
+        (<UsageType>, datetime.date, datetime.date, float, float, float)
+        ...group them in a dict by <UsageType>, removing <UsageType> element
+        from all tuples.
+        """
         changes_by_type = {}
         for c in changes:
             if changes_by_type.get(c[0]) is None:
@@ -108,31 +151,49 @@ def _detect_big_changes(usage_values, end_date):
             if (usage_values[usage].get(date) is None or
                     usage_values[usage].get(next_date) is None):
                 continue
-            uc1 = usage_values[usage][date]
-            uc2 = usage_values[usage][next_date]
-            relative_change = rel_change(uc1, uc2)
+            uv1 = usage_values[usage][date]
+            uv2 = usage_values[usage][next_date]
+            relative_change = get_relative_change(uv1, uv2)
             if abs(relative_change) > DIFF_TOLERANCE:
                 changes.append(
-                    (usage, date, next_date, uc1, uc2, relative_change)
+                    (usage, date, next_date, uv1, uv2, relative_change)
                 )
     grouped_changes = group_by_type(changes)
     return grouped_changes
 
 
 def _detect_anomalies(usage_types, end_date):
-    usage_values = _get_usage_values_for_date_range(usage_types, end_date)
+    """Glues together individual steps of anomaly detection and perform
+    some post-processing on their result in order to facilitate composing
+    final e-mails with anomaly reports.
+    """
+    usage_values = _get_usage_values_for_month(usage_types, end_date)
     missing_values = _detect_missing_values(usage_values, end_date)
     big_changes = _detect_big_changes(usage_values, end_date)
     if not missing_values and not big_changes:
         return
-    # Some post-processing in order to facilitate composing final e-mail(s)
-    # with report(s).
+    # Post-processing.
     anomalies = _merge_by_type(usage_types, missing_values, big_changes)
     anomalies_to_report = _group_anomalies_by_owner(anomalies)
     return anomalies_to_report
 
 
 def _merge_by_type(usage_types, missing_values, big_changes_by_type):
+    """Merge the contents of dicts `missing_values` and `big_changes_by_type`.
+    The result will have the following form:
+    {
+        <UsageType>: {
+            'big_changes': [
+                (datetime.date, datetime.date, float, float, float),
+                ...
+             ],
+            'missing_values': [
+                datetime.date,
+                ...
+            ],
+        },
+    }
+    """
     merged_anomalies = {}
     for usage in usage_types:
         big_changes = big_changes_by_type.get(usage)
@@ -147,7 +208,31 @@ def _merge_by_type(usage_types, missing_values, big_changes_by_type):
 
 
 def _group_anomalies_by_owner(anomalies):
-    """...and group/sort missing_values by date"""
+    """Having `anomalies` in form described in `_merge_by_type`, group them by
+    owner of given UsageType:
+
+    {
+        <ScroogeUser>: {
+            'big_changes': {
+                <UsageType>: [
+                    (datetime.date, datetime.date, float, float, float),
+                    ....
+                ]
+            },
+            'missing_values': OrderedDict([
+                (datetime.date, set([<UsageType>])),
+                ...
+            ]),
+        }
+        ...
+    }
+
+    This function also groups missing values by date and sorts them for more
+    readable output in notification.
+
+    If some UsageType has multiple owners, then each one of them will have
+    relevant entries duplicated.
+    """
 
     def group_missing_values_by_date(usage, missing_values):
         ret = {}
@@ -185,7 +270,7 @@ def _group_anomalies_by_owner(anomalies):
             if big_changes is not None:
                 ret[owner]['big_changes'][usage] = big_changes
 
-    # Sort missing values by date for more readable output in notification.
+    # Sort missing values by date.
     for owner in ret.keys():
         d = OrderedDict(
             sorted(ret[owner]['missing_values'].items())
@@ -195,9 +280,15 @@ def _group_anomalies_by_owner(anomalies):
 
 
 def _send_mail(address, html_message):
+    """Basically, a wrapper around Django's own `send_mail` with error-checking
+    and logging added.
+    """
     try:
         num_msgs_sent = send_mail(
-            'Scrooge notifications test',  # XXX change it
+            (
+                '[test] Unusual changes / missing values for your usage '
+                'type(s) in Scrooge'
+            ),  # XXX remove "[test]" prefix
             '',  # TODO(xor-xor): Do we need plain-text version of the message?
             settings.EMAIL_NOTIFICATIONS_SENDER,
             [address],
@@ -205,9 +296,13 @@ def _send_mail(address, html_message):
             html_message=html_message,
         )
     except SMTPException as e:
+        if hasattr(e, 'smtp_error') and hasattr(e, 'smtp_code'):
+            msg_substr = "{}: {}".format(e.smtp_code, e.smtp_error)
+        else:
+            msg_substr = e.message.rstrip('.')
         log.error(
-            "Got error from SMTP server: {}: {}. E-mail addressed to {} "
-            "has not been sent.".format(e.smtp_code, e.smtp_error, recipient)
+            "Got error from SMTP server: {}. E-mail addressed to {} "
+            "has not been sent.".format(msg_substr, address)
         )
         return
     if num_msgs_sent == 1:
@@ -222,18 +317,23 @@ def _send_mail(address, html_message):
 
 
 def _send_notifications(anomalies):
+    """For each owner/anomalies pair from `anomalies`, send e-mail notification
+    to owner about anomalies detected in his/her UsageTypes.
+    """
     template_name = 'scrooge_detect_usage_anomalies_template.html'
     for recipient, anomalies_ in anomalies.items():
         context = {
             'recipient': recipient,
             'big_changes': anomalies_['big_changes'],
             'missing_values': anomalies_['missing_values'],
+            'site_url': settings.BASE_MAIL_URL,
         }
         body = render_to_string(template_name, context)
         _send_mail(recipient.email, body)
 
 
 def pprint_anomalies(anomalies):
+    """Pretty-printing for `--dry-run` switch and for debugging."""
     for user, anomalies_ in anomalies.items():
         print("-" * 79)
         print('Owner: {}'.format(user.username))
@@ -251,7 +351,8 @@ def pprint_anomalies(anomalies):
             for ut, vals in big_changes.items():
                 print('\nUnusual changes for {}:'.format(ut.symbol))
                 for v in vals:
-                    # XXX determine padding width for values dynamically
+                    # TODO(xor-xor): Determine width for 3rd and 4th columns
+                    # dynamically here.
                     print(
                         "{} | {} | {: >16.2f} | {: >16.2f} | {: >+8.2%}"
                         .format(*v)
@@ -291,20 +392,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, usage_symbols, dry_run, *args, **options):
-        """XXX check if these descriptions are still valid
-        * missing_values:
-        OrderedDict({
-            UsageType: [datetime.date, ...]
-        })
 
-        * big_changes:
-        [(UsageType, datetime.date1, datetime.date2, value or None), ...]
-
-        * big_changes_by_type:
-        OrderedDict({
-            UsageType: [(datetime.date1, datetime.date2, value or None), ...]
-        })
-        """
         def parse_date(date):
             if not isinstance(date, datetime.date):
                 return datetime.datetime.strptime(date, '%Y-%m-%d').date()

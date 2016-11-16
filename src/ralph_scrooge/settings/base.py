@@ -353,7 +353,18 @@ LOGGING = {
     },
 }
 
-
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
+
+# For sending notifications re: detected anomalies / missing values in uploaded
+# usages.
+EMAIL_HOST = ''
+EMAIL_PORT = None
+EMAIL_HOST_USER = r''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_NOTIFICATIONS_SENDER = ''
+EMAIL_USE_TLS = False
+
+# Base URL component for constructing Scrooge's links in outgoing mails.
+BASE_MAIL_URL = ''
