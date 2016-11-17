@@ -314,15 +314,15 @@ def _group_anomalies_by_owner(anomalies):
 
 
 def _send_mail(address, html_message):
-    """Basically, a wrapper around Django's own `send_mail` with error-checking
-    and logging added.
+    """A wrapper around Django's own `send_mail` with error-checking and
+    logging added.
     """
     try:
         num_msgs_sent = send_mail(
             (
-                '[test] Unusual changes / missing values for your usage '
-                'type(s) in Scrooge'
-            ),  # XXX remove "[test]" prefix
+                'Unusual changes / missing values for your usage type(s) in '
+                'Scrooge'
+            ),
             '',  # TODO(xor-xor): Do we need plain-text version of the message?
             settings.EMAIL_NOTIFICATIONS_SENDER,
             [address],
@@ -432,6 +432,8 @@ class Command(BaseCommand):
             else:
                 return date
 
+        if dry_run:
+            log.info("Running in dry run mode, no e-mails will be sent.")
         end_date = parse_date(options['end_date'])
         usage_types = get_usage_types(usage_symbols)
         anomalies = _detect_anomalies(usage_types, end_date)
