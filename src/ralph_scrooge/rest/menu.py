@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
