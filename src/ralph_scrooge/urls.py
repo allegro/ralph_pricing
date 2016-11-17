@@ -19,6 +19,7 @@ from ralph_scrooge.rest.pricing_service_usages import (
 from ralph_scrooge.rest.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
+from ralph_scrooge.rest.v010.router import urlpatterns as router_v010_urlpatterns  # noqa
 from ralph_scrooge.rest.team_time_division import TeamTimeDivision
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
@@ -32,6 +33,8 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^scrooge/api-token-auth/', views.obtain_auth_token),
+    # Internal REST API, that should be used only for GUI.
+    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
 
     # Public REST API.
     # TODO(xor-xor): Create proper dir/file structure for API-related modules
@@ -55,13 +58,14 @@ urlpatterns = [
 
     # Public REST API, v0.10
     url(
+        r'^scrooge/api/v0.10/',
+        include(router_v010_urlpatterns, namespace='v010'),
+    ),
+    url(
         r'^scrooge/api/v0.10/service-environment-costs/$',
         ServiceEnvironmentCosts.as_view(),
         name='service_environment_costs',
     ),
-
-    # Internal REST API, that should be used only for GUI.
-    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
 
     url(
         r'^$',

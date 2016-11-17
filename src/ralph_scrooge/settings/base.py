@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django_rq',
+    'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'ralph_scrooge',
@@ -347,4 +348,9 @@ LOGGING = {
             'level': 'DEBUG',
         },
     },
+}
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
