@@ -20,9 +20,9 @@ python:
 install:
   - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
   - pip install coveralls
-  - pip install -e . --use-mirrors
+  - pip install -e .
 before_install:
-  - pip install flake8 --use-mirrors
+  - pip install flake8
   - make flake
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot
