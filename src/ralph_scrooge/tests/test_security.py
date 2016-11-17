@@ -11,12 +11,13 @@ from django.contrib.auth.models import Group
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.models import ServiceOwnership, TeamManager
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     ServiceEnvironmentFactory,
     TeamFactory,
 )
+from ralph_scrooge.utils.security import _is_usage_owner
 
 
 class TestSecurity(ScroogeTestCase):
@@ -88,9 +89,6 @@ class TestSecurity(ScroogeTestCase):
             )
         )
 
-    def _get_usages_report(self):
-        return self.client.get(reverse('usages_report_rest'))
-
     def test_components_superuser_access(self):
         self._login_as('superuser')
         response = self._get_components(self.se1)
@@ -123,12 +121,24 @@ class TestSecurity(ScroogeTestCase):
         response = self._get_team_allocation(self.team2)
         self.assertEquals(response.status_code, 403)
 
-    def test_usages_report_usage_owner_should_has_access(self):
+    def test_is_usage_owner_should_return_true_for_superuser(self):
+        self.assertTrue(_is_usage_owner(self.superuser))
+
+    def test_is_usage_owner_should_return_true_for_usage_owner(self):
+        self.assertTrue(_is_usage_owner(self.usage_owner))
+
+    def test_is_usage_owner_should_return_false_for_team_manager(self):
+        self.assertFalse(_is_usage_owner(self.team_manager))
+
+    def test_usages_report_usage_owner_should_have_access(self):
         self._login_as('usage_owner')
-        response = self._get_usages_report()
+        response = self.client.get(
+            reverse('usages_report_rest') +
+            '?start=2016-11-11&end=2016-11-12&usage_types=1111'
+        )
         self.assertEquals(response.status_code, 200)
 
     def test_usages_report_team_manager_access_permission_denied(self):
         self._login_as('team_manager')
-        response = self._get_usages_report()
+        response = self.client.get(reverse('usages_report_rest'))
         self.assertEquals(response.status_code, 403)
