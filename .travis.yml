@@ -1,7 +1,5 @@
 sudo: false
 language: python
-services:
-  - redis-server
 cache:
   directories:
   - $HOME/virtualenv/

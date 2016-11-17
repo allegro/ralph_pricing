@@ -12,7 +12,7 @@ coverage:
 	coverage report
 
 flake:
-	flake8 --exclude="migrations" --statistics src/ralph_scrooge
+	flake8 --exclude="migrations,settings" --statistics src/ralph_scrooge
 
 runserver:
 	dev_scrooge runserver
