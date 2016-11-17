@@ -18,7 +18,7 @@ python:
   - "2.7"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
+  - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2; fi
   - pip install coveralls
   - pip install -e .
 before_install:
