@@ -52,7 +52,8 @@ setup(
         'pyyaml==3.12',
         'rq>=0.3.7',
         'SQLAlchemy==0.7.8',
-        'django-filter==0.15.3'
+        'django-filter==0.15.3',
+        'ipaddress==1.0.17'
     ],
     entry_points={
         'django.pluggable_app': [

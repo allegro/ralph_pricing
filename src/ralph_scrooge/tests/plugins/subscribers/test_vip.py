@@ -22,7 +22,7 @@ from ralph_scrooge.plugins.subscribers.vip import (
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     AssetInfoFactory,
-    PricingObjectFactory,
+    IPInfoFactory,
     PricingObjectModelFactory,
     ServiceEnvironmentFactory,
     VIPInfoFactory,
@@ -210,7 +210,7 @@ class TestVIPSubscribersPlugin(ScroogeTestCase):
         self._compare_vips(vip_info, self.event_data)
 
     def test_save_vip_info_ip_exists(self):
-        ip_info = PricingObjectFactory(
+        ip_info = IPInfoFactory(
             name=self.event_data['ip'],
             type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
         )

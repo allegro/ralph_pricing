@@ -26,6 +26,7 @@ from ralph_scrooge.models.pricing_object import (
     DailyVIPInfo,
     DailyVirtualInfo,
     DatabaseInfo,
+    IPInfo,
     PricingObjectModel,
     PricingObjectType,
     PRICING_OBJECT_TYPES,
@@ -94,6 +95,7 @@ __all__ = [
     'Environment',
     'ExtraCost',
     'ExtraCostType',
+    'IPInfo',
     'HistoricalService',  # dynamic model
     'OwnershipType',
     'ProfitCenter',
