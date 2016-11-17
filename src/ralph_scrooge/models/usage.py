@@ -5,6 +5,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import datetime
+
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
@@ -23,9 +26,21 @@ PRICE_PLACES = 6
 
 class UsageTypeUploadFreq(Choices):
     _ = Choices.Choice
-    day = _('day')  # XXX daily, weekly, monthly..?
-    week = _('week')
-    month = _('month')
+    daily = _('daily').extra(
+        margin=datetime.timedelta(
+            days=settings.USAGE_TYPE_UPLOAD_FREQ_MARGINS.get('daily', 1)
+        )
+    )
+    weekly = _('weekly').extra(
+        margin=datetime.timedelta(
+            days=settings.USAGE_TYPE_UPLOAD_FREQ_MARGINS.get('weekly', 2)
+        )
+    )
+    monthly = _('monthly').extra(
+        margin=datetime.timedelta(
+            days=settings.USAGE_TYPE_UPLOAD_FREQ_MARGINS.get('monthly', 3)
+        )
+    )
 
 
 class UsageType(BaseUsage):

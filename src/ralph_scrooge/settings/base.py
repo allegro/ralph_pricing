@@ -368,3 +368,10 @@ EMAIL_USE_TLS = False
 
 # Base URL component for constructing Scrooge's links in outgoing mails.
 BASE_MAIL_URL = ''
+
+# Values below should be given in days.
+USAGE_TYPE_UPLOAD_FREQ_MARGINS = {
+    'daily': 1,
+    'weekly': 2,
+    'monthly': 3,
+}

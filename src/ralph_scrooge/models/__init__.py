@@ -119,6 +119,7 @@ __all__ = [
     'TeamServiceEnvironmentPercent',
     'TenantInfo',
     'UsageType',
+    'UsageTypeUploadFreq',
     'UsagePrice',
     'VIPInfo',
     'VirtualInfo',
