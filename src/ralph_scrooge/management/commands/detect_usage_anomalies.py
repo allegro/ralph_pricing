@@ -137,8 +137,7 @@ def _detect_missing_values(usage_values, end_date):
     return missing_values
 
 
-# XXX rename big_changes to unusual_changes (or something like that)
-def _detect_big_changes(usage_values, end_date):
+def _detect_unusual_changes(usage_values, end_date):
     """Having `usage_values` like:
 
     {<UsageType: some usage 1>: {datetime.date(2016, 10, 5): 10.00,
@@ -204,21 +203,21 @@ def _detect_anomalies(usage_types, end_date):
     """
     usage_values = _get_usage_values_for_month(usage_types, end_date)
     missing_values = _detect_missing_values(usage_values, end_date)
-    big_changes = _detect_big_changes(usage_values, end_date)
-    if not missing_values and not big_changes:
+    unusual_changes = _detect_unusual_changes(usage_values, end_date)
+    if not missing_values and not unusual_changes:
         return
     # Post-processing.
-    anomalies = _merge_by_type(usage_types, missing_values, big_changes)
+    anomalies = _merge_by_type(usage_types, missing_values, unusual_changes)
     anomalies_to_report = _group_anomalies_by_owner(anomalies)
     return anomalies_to_report
 
 
-def _merge_by_type(usage_types, missing_values, big_changes_by_type):
-    """Merge the contents of dicts `missing_values` and `big_changes_by_type`.
-    The result will have the following form:
+def _merge_by_type(usage_types, missing_values, unusual_changes_by_type):
+    """Merge the contents of dicts `missing_values` and
+    `unusual_changes_by_type`. The result will have the following form:
     {
         <UsageType>: {
-            'big_changes': [
+            'unusual_changes': [
                 (datetime.date, datetime.date, float, float, float),
                 ...
              ],
@@ -231,12 +230,12 @@ def _merge_by_type(usage_types, missing_values, big_changes_by_type):
     """
     merged_anomalies = {}
     for usage in usage_types:
-        big_changes = big_changes_by_type.get(usage)
+        unusual_changes = unusual_changes_by_type.get(usage)
         missing_values_ = missing_values.get(usage)
-        if big_changes is None and missing_values is None:
+        if unusual_changes is None and missing_values is None:
             continue
         merged_anomalies[usage] = {
-            'big_changes': big_changes,
+            'unusual_changes': unusual_changes,
             'missing_values': missing_values_,
         }
     return merged_anomalies
@@ -248,7 +247,7 @@ def _group_anomalies_by_owner(anomalies):
 
     {
         <ScroogeUser>: {
-            'big_changes': {
+            'unusual_changes': {
                 <UsageType>: [
                     (datetime.date, datetime.date, float, float, float),
                     ....
@@ -289,7 +288,7 @@ def _group_anomalies_by_owner(anomalies):
             continue
         for owner in owners:
             if ret.get(owner) is None:
-                ret[owner] = {'missing_values': {}, 'big_changes': {}}
+                ret[owner] = {'missing_values': {}, 'unusual_changes': {}}
 
             mv_by_date = group_missing_values_by_date(
                 usage, anomalies[usage]['missing_values']
@@ -301,9 +300,9 @@ def _group_anomalies_by_owner(anomalies):
                 else:
                     ret[owner]['missing_values'][date].update(ut_set)
 
-            big_changes = anomalies[usage]['big_changes']
-            if big_changes is not None:
-                ret[owner]['big_changes'][usage] = big_changes
+            unusual_changes = anomalies[usage]['unusual_changes']
+            if unusual_changes is not None:
+                ret[owner]['unusual_changes'][usage] = unusual_changes
 
     # Sort missing values by date.
     for owner in ret.keys():
@@ -359,7 +358,7 @@ def _send_notifications(anomalies):
     for recipient, anomalies_ in anomalies.items():
         context = {
             'recipient': recipient,
-            'big_changes': anomalies_['big_changes'],
+            'unusual_changes': anomalies_['unusual_changes'],
             'missing_values': anomalies_['missing_values'],
             'site_url': settings.BASE_MAIL_URL,
         }
@@ -381,9 +380,9 @@ def pprint_anomalies(anomalies):
                         date, ", ".join([ut.symbol for ut in usage_types])
                     )
                 )
-        big_changes = anomalies_['big_changes']
-        if big_changes is not None:
-            for ut, vals in big_changes.items():
+        unusual_changes = anomalies_['unusual_changes']
+        if unusual_changes is not None:
+            for ut, vals in unusual_changes.items():
                 print('\nUnusual changes for {}:'.format(ut.symbol))
                 for v in vals:
                     # TODO(xor-xor): Determine width for 3rd and 4th columns
