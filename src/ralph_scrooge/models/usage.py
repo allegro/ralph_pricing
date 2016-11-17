@@ -114,6 +114,14 @@ class UsageType(BaseUsage):
         blank=True,
         default="",
     )
+    change_tolerance = db.FloatField(
+        default=0.2,
+        help_text=_(
+            "If the relative change (as in: (d1-d2)/d2) between two "
+            "consecutive days is higher than this value, then the owners of "
+            "this usage type will be notified about such (unusual) change."
+        ),
+    )
 
     objects_admin = db.Manager()
     objects = BaseUsageManager()

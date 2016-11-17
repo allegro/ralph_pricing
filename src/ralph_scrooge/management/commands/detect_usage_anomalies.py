@@ -38,10 +38,6 @@ log = logging.getLogger(__name__)
 a_day = datetime.timedelta(days=1)
 yesterday = datetime.date.today() - a_day
 
-# XXX Move this to UsageType as `change_tolerance` field, or something like
-# that.
-DIFF_TOLERANCE = 0.2
-
 
 def get_usage_types(symbols):
     """Fetch UsageTypes for `symbols` and report unknown ones. If `symbols` is
@@ -146,8 +142,8 @@ def _detect_unusual_changes(usage_values, end_date):
      <UsageType: some usage 2>: { ... }}
 
     ...iterate over them and compare values in each pair of adjoining days. If
-    such change is bigger than DIFF_TOLERANCE, record it as a change that has
-    to be reported, e.g.:
+    such change is bigger than usage.change_tolerance, record it as a change
+    that has to be reported, e.g.:
 
 
     {<UsageType: some usage 1>: (datetime.date(2016, 10, 6),
@@ -188,7 +184,7 @@ def _detect_unusual_changes(usage_values, end_date):
             uv1 = usage_values[usage][date]
             uv2 = usage_values[usage][next_date]
             relative_change = get_relative_change(uv1, uv2)
-            if abs(relative_change) > DIFF_TOLERANCE:
+            if abs(relative_change) > usage.change_tolerance:
                 changes.append(
                     (usage, date, next_date, uv1, uv2, relative_change)
                 )
