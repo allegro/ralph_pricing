@@ -23,7 +23,7 @@ PRICE_PLACES = 6
 
 class UsageTypeUploadFreq(Choices):
     _ = Choices.Choice
-    day = _('day')
+    day = _('day')  # XXX daily, weekly, monthly..?
     week = _('week')
     month = _('month')
 

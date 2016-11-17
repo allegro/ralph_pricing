@@ -64,8 +64,9 @@ from ralph_scrooge.models.team import (
 
 from ralph_scrooge.models.usage import (
     DailyUsage,
-    UsageType,
     UsagePrice,
+    UsageType,
+    UsageTypeUploadFreq,
 )
 
 from ralph_scrooge.models.warehouse import (

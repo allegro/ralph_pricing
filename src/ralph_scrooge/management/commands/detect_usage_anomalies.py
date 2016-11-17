@@ -10,21 +10,26 @@ import logging
 from collections import OrderedDict
 from smtplib import SMTPException
 
+from dateutil import relativedelta as rd
 from dateutil.relativedelta import relativedelta
-
 from django.conf import settings
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from django.template.loader import render_to_string
 
-from ralph_scrooge.models import UsageType, DailyUsage
+from ralph_scrooge.models import (
+    DailyUsage,
+    UsageType,
+    UsageTypeUploadFreq,
+)
 # TODO(xor-xor): Consider moving `date_range` to some utils module.
 from ralph_scrooge.rest.service_environment_costs import date_range
 
 
 log = logging.getLogger(__name__)
-yesterday = datetime.date.today() - datetime.timedelta(days=1)
+a_day = datetime.timedelta(days=1)
+yesterday = datetime.date.today() - a_day
 
 # XXX Move this to UsageType as `change_tolerance` field, or something like
 # that.
@@ -72,7 +77,7 @@ def _get_usage_values_for_month(usage_types, end_date):
     omitted.
     """
     results = {}
-    start_date = get_negative_month_range(end_date).next()
+    start_date = get_negative_month_range(end_date + a_day).next()
     for usage in usage_types:
         results[usage] = {}
         daily_usages = dict(
@@ -84,18 +89,51 @@ def _get_usage_values_for_month(usage_types, end_date):
     return results
 
 
+def _exclude_from_missing_vals(usage, date, max_dates):
+    freq = UsageTypeUploadFreq.from_id(usage.upload_freq).name
+    print('-' * 79)
+    print(date)
+    print(max_dates[date][freq])
+    return date > max_dates[date][freq]
+
+
+def _get_max_dates(end_date):
+    # XXX temp
+    margins = {
+        'day': datetime.timedelta(days=1),
+        'week': datetime.timedelta(days=2),
+        'month': datetime.timedelta(days=3),
+    }
+
+    max_dates = {}
+    for date in get_negative_month_range(end_date + a_day):
+        for_day = date - margins['day']
+        for_week = date - margins['week'] + relativedelta(weekday=rd.SU(-1))
+        if date.day == margins['month'].days:
+            for_month = date - margins['month']
+        else:
+            for_month = date - margins['month'] + relativedelta(day=1, days=-1)
+        max_dates[date] = {
+            'day': for_day,
+            'week': for_week,
+            'month': for_month,
+        }
+    return max_dates
+
+
 def _detect_missing_values(usage_values, end_date):
     """Find missing dates in `usage_values` within a month range given by
-    `get_negative_month_range(end_date)` and return them as a dict keyed by
-    UsageTypes, where values are lists of those missing dates.
+    `get_negative_month_range` and return them as a dict keyed by UsageTypes,
+    where values are lists of those missing dates.
 
     XXX add some remark re: filtering
     """
+    max_dates = _get_max_dates(end_date)
     missing_values = {}
     for usage in usage_values.keys():
-        for date in get_negative_month_range(end_date):
-            # XXX add filtering by margin derived from UsageType.upload_freq
-            if usage_values[usage].get(date) is None:
+        for date in get_negative_month_range(end_date + a_day):
+            if (usage_values[usage].get(date) is None and
+                    not _exclude_from_missing_vals(usage, date, max_dates)):
                 if missing_values.get(usage) is None:
                     missing_values[usage] = []
                 missing_values[usage].append(date)
@@ -146,7 +184,7 @@ def _detect_big_changes(usage_values, end_date):
     changes = []
     delta = datetime.timedelta(days=1)
     for usage in usage_values.keys():
-        for date in get_negative_month_range(end_date):
+        for date in get_negative_month_range(end_date + a_day):
             next_date = date + delta
             if (usage_values[usage].get(date) is None or
                     usage_values[usage].get(next_date) is None):
