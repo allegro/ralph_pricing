@@ -68,7 +68,7 @@ INSTALLED_APPS += [
 ]
 
 # Redis & RQ
-for queue in RQ_QUEUE_LIST:
+for queue in RQ_QUEUE_LIST + ('default',):
     RQ_QUEUES[queue]['ASYNC'] = False
 
 try:
