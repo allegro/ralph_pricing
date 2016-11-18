@@ -128,7 +128,11 @@ class Command(BaseCommand):
         )
 
         # Perform some basic sanity checks.
-        if len(pricing_service_names_verified) != len(pricing_service_names):
+        if (
+                pricing_service_names and
+                len(pricing_service_names_verified) !=
+                len(pricing_service_names)
+        ):
             unknown_names = (
                 set(pricing_service_names) - set(pricing_service_names_verified)  # noqa: E501
             )
@@ -166,7 +170,6 @@ class Command(BaseCommand):
             if p.name in pricing_service_names_verified
         ]
         collector.calculate_daily_costs_for_day(date_, forecast, plugins)
-
 
     def handle(self, *args, **options):
         date_start = options['date_start']

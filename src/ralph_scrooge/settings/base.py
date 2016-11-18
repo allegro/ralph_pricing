@@ -322,16 +322,17 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
+
     },
     'formatters': {
         'verbose': {
-            'datefmt': '%d.%m.%Y %H:%M:%S',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
             'format': (
                 '[%(asctime)08s,%(msecs)03d] %(levelname)-7s [%(processName)s'
                 ' %(process)d] %(module)s - %(message)s'),
         },
         'simple': {
-            'datefmt': '%H:%M:%S',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
             'format': '[%(asctime)08s] %(levelname)-7s %(message)s',
         },
     },
