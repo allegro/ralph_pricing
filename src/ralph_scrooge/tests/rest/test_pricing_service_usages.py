@@ -1174,3 +1174,31 @@ class TestPricingServiceUsages(ScroogeTestCase):
             received_response['usages'][0]['usages'][0]['remarks'],
             remarks
         )
+
+    def test_blank_remarks_are_saved(self):
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                            "remarks": ''
+                        },
+                    ],
+                },
+            ]
+        }
+        self.assertEquals(DailyUsage.objects.all().count(), 0)
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        daily_usages = DailyUsage.objects.order_by('id')
+        self.assertEquals(daily_usages.count(), 1)
+        self.assertEquals(daily_usages[0].remarks, '')

@@ -81,7 +81,7 @@ class UsageSerializer(Serializer):
 class UsageDeserializer(UsageSerializer):
     symbol = serializers.CharField(required=True)
     value = serializers.FloatField(required=True)
-    remarks = serializers.CharField(required=False)
+    remarks = serializers.CharField(required=False, allow_blank=True)
 
     def validate_symbol(self, value):
         if not UsageType.objects.filter(symbol=value).exists():
