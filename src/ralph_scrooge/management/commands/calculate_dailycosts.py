@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
 import logging
 from datetime import date, datetime, timedelta
 
@@ -17,9 +18,20 @@ from ralph_scrooge.models import (
     PricingService,
     PricingServicePlugin,
 )
+# TODO(xor-xor): Consider moving `date_range` to some utils module.
+from ralph_scrooge.rest.service_environment_costs import date_range
 
 logger = logging.getLogger(__name__)
 yesterday = date.today() - timedelta(days=1)
+
+
+def valid_date(date_):
+    try:
+        return datetime.strptime(date_, "%Y-%m-%d").date()
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            "Invalid date: '{}'.".format(date_)
+        )
 
 
 class Command(BaseCommand):
@@ -30,9 +42,32 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--date',
+            type=valid_date,
             dest='date',
             default=yesterday,
-            help=_('Date to which calculate daily costs for')
+            help=_(
+                "Date (single day) to which calculate daily costs for. "
+                "This option is ignored when '--date-start' and '--date-end' "
+                "options are given."
+            )
+        )
+        parser.add_argument(
+            '--date-start',
+            dest='date_start',
+            type=valid_date,
+            help=_(
+                "First day of a date range to which calculate daily costs "
+                "for. Requires '--date-end' option."
+            )
+        )
+        parser.add_argument(
+            '--date-end',
+            type=valid_date,
+            dest='date_end',
+            help=_(
+                "Last day of a date range to which calculate daily costs "
+                "for. Requires '--date-start' option."
+            )
         )
         parser.add_argument(
             '--forecast',
@@ -93,7 +128,11 @@ class Command(BaseCommand):
         )
 
         # Perform some basic sanity checks.
-        if len(pricing_service_names_verified) != len(pricing_service_names):
+        if (
+                pricing_service_names and
+                len(pricing_service_names_verified) !=
+                len(pricing_service_names)
+        ):
             unknown_names = (
                 set(pricing_service_names) - set(pricing_service_names_verified)  # noqa: E501
             )
@@ -132,17 +171,28 @@ class Command(BaseCommand):
         ]
         collector.calculate_daily_costs_for_day(date_, forecast, plugins)
 
-    def _parse_date(self, date_):
-        if not isinstance(date_, date):
-            return datetime.strptime(date_, '%Y-%m-%d').date()
-        else:
-            return date_
-
     def handle(self, *args, **options):
-        date_ = self._parse_date(options['date'])
-        self._calculate_costs(
-            date_,
-            options['forecast'],
-            options['pricing_service_names'],
-            options['force'],
-        )
+        date_start = options['date_start']
+        date_end = options['date_end']
+        if date_start and not date_end:
+            logger.error("'--end-date' option is missing. Aborting.")
+            return
+        if date_end and not date_start:
+            logger.error("'--start-date' option is missing. Aborting.")
+            return
+        if date_start > date_end:
+            logger.error("'--start-date' greater than '--end-date'. Aborting.")
+            return
+
+        if date_start and date_end:
+            dates = date_range(date_start, date_end + timedelta(days=1))
+        else:
+            dates = [options['date']]
+
+        for date_ in dates:
+            self._calculate_costs(
+                date_,
+                options['forecast'],
+                options['pricing_service_names'],
+                options['force'],
+            )
