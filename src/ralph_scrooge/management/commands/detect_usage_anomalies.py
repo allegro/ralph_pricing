@@ -70,7 +70,7 @@ def get_usage_types(symbols):
     return uts
 
 
-def get_negative_month_range(end_date, months=1):
+def get_negative_month_range(end_date, months=1, align_to_month=False):
     """Return an iterator yielding dates starting from (end_date - months) and
     ending at (end_date - 1 day), e.g: for end_date=datetime.date(2016, 11, 5)
     and months=1 you will get:
@@ -78,8 +78,20 @@ def get_negative_month_range(end_date, months=1):
     datetime.date(2016, 10, 6),
     ...
     datetime.date(2016, 11, 4).
+
+    When `align_to_month` is set to True, then the starting day of the returned
+    range will be set to the first day of the month, so for example above you
+    will get:
+    datetime.date(2016, 10, 1),
+    datetime.date(2016, 10, 2),
+    ...
+    datetime.date(2016, 10, 5),
+    ...
+    datetime.date(2016, 11, 4).
     """
     start_date = end_date - relativedelta(months=months)
+    if align_to_month:
+        start_date = start_date.replace(day=1)
     return date_range(start_date, end_date)
 
 
@@ -137,7 +149,14 @@ def _detect_missing_values(usage_values, end_date):
     missing_values = {}
     for usage_type in usage_values.keys():
         max_date = _get_max_expected_date(usage_type, end_date)
-        for date in get_negative_month_range(end_date + a_day):
+        freq_name = UsageTypeUploadFreq.from_id(usage_type.upload_freq).name
+        if freq_name == 'monthly':
+            date_range = get_negative_month_range(
+                end_date + a_day, align_to_month=True
+            )
+        else:
+            date_range = get_negative_month_range(end_date + a_day)
+        for date in date_range:
             if (usage_values[usage_type].get(date) is None and
                     not date > max_date):
                 if missing_values.get(usage_type) is None:
