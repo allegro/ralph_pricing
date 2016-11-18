@@ -22,7 +22,7 @@ from ralph_scrooge.models.base import (
     BaseUsageType,
 )
 from ralph_scrooge.utils.models import EditorTrackable, Named, TimeTrackable
-from ralph_scrooge.models.usage import DailyUsage
+from ralph_scrooge.models.usage import DailyUsage, UsageType
 from ralph_scrooge.models.pricing_object import PRICING_OBJECT_TYPES
 
 
@@ -295,6 +295,16 @@ class PricingService(BaseUsage):
         # exclude self to prevent cycle
         ps = ps.exclude(id=self.id)
         return ps.distinct()
+
+    def get_usage_types_for_date(self, date):
+        """
+        Returns UsageTypes used by this pricing service on particular date.
+        """
+        return UsageType.objects.filter(
+            service_division__pricing_service=self,
+            service_division__start__lte=date,
+            service_division__end__gte=date,
+        )
 
 
 class ServiceUsageTypes(db.Model):

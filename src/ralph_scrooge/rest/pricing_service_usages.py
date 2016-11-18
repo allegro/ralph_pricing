@@ -345,7 +345,7 @@ def get_usages(usages_date, pricing_service):
     )
     usages_dict = defaultdict(list)
 
-    for usage_type in pricing_service.usage_types.all():
+    for usage_type in pricing_service.get_usage_types_for_date(usages_date):
         daily_usages = usage_type.dailyusage_set.filter(
             date=usages_date
         ).select_related(

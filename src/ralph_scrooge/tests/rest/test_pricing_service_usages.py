@@ -22,6 +22,7 @@ from ralph_scrooge.models import (
 )
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
+    DailyUsageFactory,
     PricingObjectFactory,
     PricingServiceFactory,
     UsageTypeFactory,
@@ -42,7 +43,7 @@ class TestPricingServiceUsages(ScroogeTestCase):
         ServiceUsageTypes.objects.create(
             usage_type=self.usage_type,
             pricing_service=self.pricing_service,
-            start=datetime.date.min,
+            start=datetime.date(2016, 9, 1),
             end=datetime.date.max,
         )
         superuser = get_user_model().objects.create_superuser(
@@ -933,6 +934,25 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.assertEquals(daily_usages[1].value, 50)
 
     def test_posted_pricing_service_usage_is_the_same_when_fetched_with_get(self):  # noqa
+        # create additional service usage time, invalid now (should not be
+        # returned in get response)
+        self.usage_type2 = UsageTypeFactory()
+        ServiceUsageTypes.objects.create(
+            usage_type=self.usage_type2,
+            pricing_service=self.pricing_service,
+            start=datetime.date.min,
+            end=datetime.date(2016, 8, 31),
+        )
+        # create some daily usage for this invalid usage type
+        DailyUsageFactory(
+            daily_pricing_object=self.pricing_object1.get_daily_pricing_object(
+                self.date
+            ),
+            type=self.usage_type2,
+            date=self.date,
+            value=10,
+        )
+
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
             "date": self.date_as_str,
@@ -982,7 +1002,8 @@ class TestPricingServiceUsages(ScroogeTestCase):
                     "usages": [
                         {
                             "symbol": self.usage_type.symbol,
-                            "value": 40.0
+                            "value": 40.0,
+                            "remarks": "",
                         }
                     ]
                 },
@@ -995,14 +1016,15 @@ class TestPricingServiceUsages(ScroogeTestCase):
                     "usages": [
                         {
                             "symbol": self.usage_type.symbol,
-                            "value": 60.0
+                            "value": 60.0,
+                            "remarks": "",
                         }
                     ]
                 }
             ]
         }
 
-        self.assertEquals(DailyUsage.objects.all().count(), 0)
+        self.assertEquals(DailyUsage.objects.all().count(), 1)
         self.assertEquals(PricingService.objects.all().count(), 1)
         resp = self.client.post(
             reverse('create_pricing_service_usages'),
@@ -1010,7 +1032,7 @@ class TestPricingServiceUsages(ScroogeTestCase):
             content_type='application/json',
         )
         self.assertEquals(resp.status_code, 201)
-        self.assertEquals(DailyUsage.objects.all().count(), 2)
+        self.assertEquals(DailyUsage.objects.all().count(), 3)
         self.assertEquals(PricingService.objects.all().count(), 1)
         resp = self.client.get(
             reverse(
@@ -1023,43 +1045,7 @@ class TestPricingServiceUsages(ScroogeTestCase):
         )
         self.assertEquals(resp.status_code, 200)
         received_response = json.loads(resp.content)
-        # The order of returned objects depends on DB backend, so we have to
-        # manually sort them here before we compare them.
-        received_response['usages'].sort(key=lambda d: d['service_id'])
-        self.assertEquals(received_response['date'], expected_response['date'])
-        self.assertEquals(
-            received_response['pricing_service'],
-            expected_response['pricing_service']
-        )
-        self.assertEquals(
-            received_response['pricing_service_id'],
-            expected_response['pricing_service_id']
-        )
-        for i in range(len(expected_response['usages'])):
-            self.assertEquals(
-                received_response['usages'][i]['environment'],
-                expected_response['usages'][i]['environment']
-            )
-            self.assertEquals(
-                received_response['usages'][i]['pricing_object'],
-                expected_response['usages'][i]['pricing_object']
-            )
-            self.assertEquals(
-                received_response['usages'][i]['service'],
-                expected_response['usages'][i]['service']
-            )
-            self.assertEquals(
-                received_response['usages'][i]['service_id'],
-                expected_response['usages'][i]['service_id']
-            )
-            self.assertEquals(
-                received_response['usages'][i]['usages'][0]['symbol'],
-                expected_response['usages'][i]['usages'][0]['symbol']
-            )
-            self.assertEquals(
-                received_response['usages'][i]['usages'][0]['value'],
-                expected_response['usages'][i]['usages'][0]['value']
-            )
+        self.assertNestedDictsEqual(expected_response, received_response)
 
     def test_for_error_when_invalid_date_in_correct_format_given_in_URL(self):
         invalid_date = '2016-09-33'
