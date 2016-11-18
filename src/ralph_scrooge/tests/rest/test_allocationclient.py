@@ -390,44 +390,6 @@ class TestAllocationClient(ScroogeTestCase):
             }
         )
 
-    def test_get_team_division_when_there_are_two_team_divisions(self):
-        team_base = factory.TeamFactory()
-        service_environment_1 = factory.ServiceEnvironmentFactory()
-        service_environment_2 = factory.ServiceEnvironmentFactory()
-        team_percent_1 = self._create_team_division(
-            service_environment_1,
-            team_base
-        )
-        team_percent_2 = self._create_team_division(
-            service_environment_2,
-            team_base
-        )
-        response = self.client.get(
-            '/scrooge/rest/allocationclient/{0}/{1}/{2}/'.format(
-                team_base.id,
-                self.date.year,
-                self.date.month,
-            )
-        )
-        self.assertEquals(
-            json.loads(response.content)['teamDivision'],
-            {
-                "rows": [{
-                    'env': service_environment_1.environment.id,
-                    'id': team_percent_1.id,
-                    'service': service_environment_1.service.id,
-                    'value': float(team_percent_1.percent),
-                }, {
-                    'env': service_environment_2.environment.id,
-                    'id': team_percent_2.id,
-                    'service': service_environment_2.service.id,
-                    'value': float(team_percent_2.percent),
-                }],
-                "name": "Team Division",
-                "template": "taballocationclientdivision.html",
-            }
-        )
-
     def test_save_team_division(self):
         team_base = factory.TeamFactory()
         service_environment = factory.ServiceEnvironmentFactory()

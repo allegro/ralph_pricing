@@ -91,6 +91,7 @@ class TeamCost(db.Model):
         verbose_name = _("Team cost")
         verbose_name_plural = _("Teams costs")
         app_label = 'ralph_scrooge'
+        unique_together = ('team', 'start', 'end')
 
     def __unicode__(self):
         return '{} ({} - {})'.format(self.team, self.start, self.end)
