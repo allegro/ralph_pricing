@@ -5,15 +5,19 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.urls import reverse
 from rest_framework.test import APIClient
 
-from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.models import ServiceOwnership, TeamManager
+from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     ServiceEnvironmentFactory,
     TeamFactory,
 )
+from ralph_scrooge.utils.security import _is_usage_owner
 
 
 class TestSecurity(ScroogeTestCase):
@@ -31,6 +35,10 @@ class TestSecurity(ScroogeTestCase):
         )
         self.team_manager = get_user_model().objects.create_user(
             username='team_manager',
+            password='12345'
+        )
+        self.usage_owner = get_user_model().objects.create_user(
+            username='usage_owner',
             password='12345'
         )
         self.superuser = get_user_model().objects.create_user(
@@ -55,6 +63,13 @@ class TestSecurity(ScroogeTestCase):
         self.team1 = TeamFactory()
         TeamManager.objects.create(team=self.team1, manager=self.team_manager)
         self.team2 = TeamFactory()
+
+        # assign usage owner permissions
+        self.usage_owner.groups.add(
+            Group.objects.get_or_create(
+                name=settings.USAGE_OWNERS_GROUP_NAME
+            )[0]
+        )
 
     def _login_as(self, user):
         self.client.login(username=user, password='12345')
@@ -104,4 +119,26 @@ class TestSecurity(ScroogeTestCase):
     def test_allocation_team_manager_access_permission_denied(self):
         self._login_as('team_manager')
         response = self._get_team_allocation(self.team2)
+        self.assertEquals(response.status_code, 403)
+
+    def test_is_usage_owner_should_return_true_for_superuser(self):
+        self.assertTrue(_is_usage_owner(self.superuser))
+
+    def test_is_usage_owner_should_return_true_for_usage_owner(self):
+        self.assertTrue(_is_usage_owner(self.usage_owner))
+
+    def test_is_usage_owner_should_return_false_for_team_manager(self):
+        self.assertFalse(_is_usage_owner(self.team_manager))
+
+    def test_usages_report_usage_owner_should_have_access(self):
+        self._login_as('usage_owner')
+        response = self.client.get(
+            reverse('usages_report_rest') +
+            '?start=2016-11-11&end=2016-11-12&usage_types=1111'
+        )
+        self.assertEquals(response.status_code, 200)
+
+    def test_usages_report_team_manager_access_permission_denied(self):
+        self._login_as('team_manager')
+        response = self.client.get(reverse('usages_report_rest'))
         self.assertEquals(response.status_code, 403)

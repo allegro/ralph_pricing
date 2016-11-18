@@ -28,6 +28,7 @@ from ralph_scrooge.utils.security import (
     superuser_permission,
     service_permission,
     team_permission,
+    usage_owner_permission
 )
 
 urlpatterns = [
@@ -99,7 +100,7 @@ urlpatterns = [
     ),
     url(
         r'^usages_report/?$',
-        superuser_permission(UsagesReportContent.as_view()),
+        usage_owner_permission(UsagesReportContent.as_view()),
         name='usages_report_rest'
     ),
     url(

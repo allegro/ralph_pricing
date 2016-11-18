@@ -67,6 +67,10 @@ INSTALLED_APPS += [
     'ralph_scrooge.tests'
 ]
 
+# Redis & RQ
+for queue in RQ_QUEUE_LIST + ('default',):
+    RQ_QUEUES[queue]['ASYNC'] = False
+
 try:
     execfile(os.path.expanduser("~/.scrooge/settings-test-scrooge-local"))  # noqa
 except IOError:

@@ -1,5 +1,5 @@
-sudo: false
 language: python
+services: redis
 cache:
   directories:
   - $HOME/virtualenv/
@@ -18,11 +18,11 @@ python:
   - "2.7"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2 --use-mirrors; fi
+  - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2; fi
   - pip install coveralls
-  - pip install -e . --use-mirrors
+  - pip install -e .
 before_install:
-  - pip install flake8 --use-mirrors
+  - pip install flake8
   - make flake
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot

@@ -8,6 +8,8 @@ from __future__ import unicode_literals
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from ralph_scrooge.utils.security import _is_usage_owner
+
 
 class SubMenu(APIView):
     def get(self, request, format=None):
@@ -60,12 +62,13 @@ class SubMenu(APIView):
                     'href': '/ui/#/costs-report',
                 },
                 {
-                    'name': 'Usages report',
-                    'href': '/ui/#/usages-report',
-                },
-                {
                     'name': 'Monthly costs',
                     'href': '/ui/#/monthly-costs',
                 },
             ])
+        if _is_usage_owner(request.user):
+            menu.extend([{
+                'name': 'Usages report',
+                'href': '/ui/#/usages-report',
+            }])
         return Response(menu)
