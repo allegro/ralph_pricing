@@ -24,7 +24,22 @@
 
     <p>We have detected anomalies in your usages - see below for the details. Please fix them ASAP.</p>
 
-    {% if big_changes %}
+    {% if missing_values %}
+    <p>Missing usage type values for the following days:</p>
+
+    <table border="1">
+      <tr><th>Date</th><th>Usage type(s)</th></tr>
+      {% for date_, usage_types in missing_values.items %}
+      <tr>
+        <td>{{ date_|date:"Y-m-d" }}</td>
+        <td>{{ usage_types|joinby:", " }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    {% endif %}
+
+    {% if unusual_changes %}
     <p>Unusually big changes in values between the following days:</p>
 
     <table>
@@ -36,7 +51,7 @@
         <th>Value 2</th>
         <th>Relative Change (%)</th>
       </tr>
-      {% for ut, v in big_changes.items %}
+      {% for ut, v in unusual_changes.items %}
       {% for vv in v %}
       <tr>
         <td>{{ ut.name }}</td>
@@ -51,21 +66,6 @@
     </table>
 
     <p>(if you find any false positives in the table above, you may want to change the "Change Tolerance" param in Scrooge's <a href="{{ site_url }}{% url 'admin:index' %}">admin panel</a>)</p>
-    {% endif %}
-
-    {% if missing_values %}
-    <p>Missing usage type values for the following days:</p>
-
-    <table border="1">
-      <tr><th>Date</th><th>Usage type(s)</th></tr>
-      {% for date_, usage_types in missing_values.items %}
-      <tr>
-        <td>{{ date_|date:"Y-m-d" }}</td>
-        <td>{{ usage_types|joinby:", " }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-
     {% endif %}
 
     <p>Regards,<br>Scrooge Team</p>

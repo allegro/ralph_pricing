@@ -342,10 +342,7 @@ def _send_mail(address, html_message):
     """
     try:
         num_msgs_sent = send_mail(
-            (
-                'Unusual changes / missing values for your usage type(s) in '
-                'Scrooge'
-            ),
+            'Some data might be missing in your Scrooge usages data',
             '',  # We don't need a plain-text version of the message.
             settings.EMAIL_NOTIFICATIONS_SENDER,
             [address],
