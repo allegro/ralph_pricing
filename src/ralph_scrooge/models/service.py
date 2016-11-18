@@ -122,9 +122,8 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         verbose_name=_("id from Ralph 3"),
     )
     ci_uid = db.CharField(
-        null=True,
-        blank=True,
         max_length=100,
+        unique=True,
         verbose_name=_("uid from cmdb"),
     )
     name = db.CharField(
