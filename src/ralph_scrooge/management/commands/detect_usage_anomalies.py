@@ -5,9 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
 import datetime
 import logging
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from smtplib import SMTPException
 
 from dateutil import relativedelta as rd
@@ -34,9 +35,18 @@ class UnknownUsageTypeUploadFreqError(Exception):
     pass
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 a_day = datetime.timedelta(days=1)
 yesterday = datetime.date.today() - a_day
+
+
+def valid_date(date_):
+    try:
+        return datetime.datetime.strptime(date_, "%Y-%m-%d").date()
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            "Invalid date: '{}'.".format(date_)
+        )
 
 
 def get_usage_types(symbols):
@@ -51,7 +61,7 @@ def get_usage_types(symbols):
             if s not in known_symbols:
                 unknown_symbols.append(s)
         if unknown_symbols:
-            log.warning(
+            logger.warning(
                 "Unknown symbol(s) detected: {}. Ignoring."
                 .format(", ".join(unknown_symbols))
             )
@@ -60,16 +70,16 @@ def get_usage_types(symbols):
     return uts
 
 
-def get_negative_month_range(end_date):
-    """Return an iterator yielding dates starting from end_date - month and
-    ending at end_date - 1 day, e.g:
-    for end_date = datetime.date(2016, 11, 5) you will get:
+def get_negative_month_range(end_date, months=1):
+    """Return an iterator yielding dates starting from (end_date - months) and
+    ending at (end_date - 1 day), e.g: for end_date=datetime.date(2016, 11, 5)
+    and months=1 you will get:
     datetime.date(2016, 10, 5),
     datetime.date(2016, 10, 6),
     ...
     datetime.date(2016, 11, 4).
     """
-    start_date = end_date - relativedelta(months=1)
+    start_date = end_date - relativedelta(months=months)
     return date_range(start_date, end_date)
 
 
@@ -81,24 +91,24 @@ def _get_usage_values_for_month(usage_types, end_date):
     """
     results = {}
     start_date = get_negative_month_range(end_date + a_day).next()
-    for usage in usage_types:
-        results[usage] = {}
+    for ut in usage_types:
+        results[ut] = {}
         daily_usages = dict(
             DailyUsage.objects.filter(
-                date__gte=start_date, date__lte=end_date, type=usage
+                date__gte=start_date, date__lte=end_date, type=ut
             ).values_list('date').annotate(Sum('value'))
         )
-        results[usage].update(daily_usages)
+        results[ut].update(daily_usages)
     return results
 
 
-def _get_max_expected_date(usage, date):
+def _get_max_expected_date(usage_type, date):
     """Calculate max expected date for given `date` and upload frequency for
-    given `usage`. Raises UnknownUsageTypeUploadFreqError if `usage` has an
-    upload frequency that's not handled here.
+    given `usage_type`. Raises UnknownUsageTypeUploadFreqError if `usage_type`
+    has an upload frequency that's not handled here.
     """
-    freq_name = UsageTypeUploadFreq.from_id(usage.upload_freq).name
-    freq_margin = UsageTypeUploadFreq.from_id(usage.upload_freq).margin
+    freq_name = UsageTypeUploadFreq.from_id(usage_type.upload_freq).name
+    freq_margin = UsageTypeUploadFreq.from_id(usage_type.upload_freq).margin
     if freq_name == 'daily':
         max_date = date - freq_margin
     elif freq_name == 'weekly':
@@ -107,6 +117,8 @@ def _get_max_expected_date(usage, date):
         if date.day == freq_margin.days:
             max_date = date - freq_margin
         else:
+            # Substract margin from the date, reset the 'day' component to 1,
+            # and substract one day from it.
             max_date = date - freq_margin + relativedelta(day=1, days=-1)
     else:
         # This shouldn't happen...
@@ -123,13 +135,14 @@ def _detect_missing_values(usage_values, end_date):
     UsageTypeUploadFreq are filtered out from the final dict.
     """
     missing_values = {}
-    for usage in usage_values.keys():
-        max_date = _get_max_expected_date(usage, end_date)
+    for usage_type in usage_values.keys():
+        max_date = _get_max_expected_date(usage_type, end_date)
         for date in get_negative_month_range(end_date + a_day):
-            if (usage_values[usage].get(date) is None and not date > max_date):
-                if missing_values.get(usage) is None:
-                    missing_values[usage] = []
-                missing_values[usage].append(date)
+            if (usage_values[usage_type].get(date) is None and
+                    not date > max_date):
+                if missing_values.get(usage_type) is None:
+                    missing_values[usage_type] = []
+                missing_values[usage_type].append(date)
     return missing_values
 
 
@@ -142,9 +155,8 @@ def _detect_unusual_changes(usage_values, end_date):
      <UsageType: some usage 2>: { ... }}
 
     ...iterate over them and compare values in each pair of adjoining days. If
-    such change is bigger than usage.change_tolerance, record it as a change
-    that has to be reported, e.g.:
-
+    such change is bigger than usage_type.change_tolerance, record it as a
+    change that has to be reported, e.g.:
 
     {<UsageType: some usage 1>: (datetime.date(2016, 10, 6),
                                  datetime.date(2016, 10, 7),
@@ -175,37 +187,38 @@ def _detect_unusual_changes(usage_values, end_date):
 
     changes = []
     delta = datetime.timedelta(days=1)
-    for usage in usage_values.keys():
+    for usage_type in usage_values.keys():
         for date in get_negative_month_range(end_date + a_day):
             next_date = date + delta
-            if (usage_values[usage].get(date) is None or
-                    usage_values[usage].get(next_date) is None):
+            if (usage_values[usage_type].get(date) is None or
+                    usage_values[usage_type].get(next_date) is None):
                 continue
-            uv1 = usage_values[usage][date]
-            uv2 = usage_values[usage][next_date]
+            uv1 = usage_values[usage_type][date]
+            uv2 = usage_values[usage_type][next_date]
             relative_change = get_relative_change(uv1, uv2)
-            if abs(relative_change) > usage.change_tolerance:
+            if abs(relative_change) > usage_type.change_tolerance:
                 changes.append(
-                    (usage, date, next_date, uv1, uv2, relative_change)
+                    (usage_type, date, next_date, uv1, uv2, relative_change)
                 )
     grouped_changes = group_by_type(changes)
     return grouped_changes
 
 
 def _detect_anomalies(usage_types, end_date):
-    """Glues together individual steps of anomaly detection and perform
-    some post-processing on their result in order to facilitate composing
-    final e-mails with anomaly reports.
-    """
+    """Glues together individual steps of anomaly detection."""
     usage_values = _get_usage_values_for_month(usage_types, end_date)
     missing_values = _detect_missing_values(usage_values, end_date)
     unusual_changes = _detect_unusual_changes(usage_values, end_date)
-    if not missing_values and not unusual_changes:
-        return
-    # Post-processing.
-    anomalies = _merge_by_type(usage_types, missing_values, unusual_changes)
-    anomalies_to_report = _group_anomalies_by_owner(anomalies)
-    return anomalies_to_report
+    return (missing_values, unusual_changes)
+
+
+def _postprocess_for_report(usage_types, missing_values, unusual_changes):
+    """Post-process the output of `_detect_anomalies` in order to facilitate
+    composing final e-mails with anomaly reports.
+    """
+    anomalies_ = _merge_by_type(usage_types, missing_values, unusual_changes)
+    anomalies__ = _group_anomalies_by_owner(anomalies_)
+    return anomalies__
 
 
 def _merge_by_type(usage_types, missing_values, unusual_changes_by_type):
@@ -225,12 +238,12 @@ def _merge_by_type(usage_types, missing_values, unusual_changes_by_type):
     }
     """
     merged_anomalies = {}
-    for usage in usage_types:
-        unusual_changes = unusual_changes_by_type.get(usage)
-        missing_values_ = missing_values.get(usage)
+    for usage_type in usage_types:
+        unusual_changes = unusual_changes_by_type.get(usage_type)
+        missing_values_ = missing_values.get(usage_type)
         if unusual_changes is None and missing_values is None:
             continue
-        merged_anomalies[usage] = {
+        merged_anomalies[usage_type] = {
             'unusual_changes': unusual_changes,
             'missing_values': missing_values_,
         }
@@ -264,30 +277,25 @@ def _group_anomalies_by_owner(anomalies):
     relevant entries duplicated.
     """
 
-    def group_missing_values_by_date(usage, missing_values):
-        ret = {}
+    def group_missing_values_by_date(usage_type, missing_values):
+        ret = defaultdict(set)
         for date in missing_values:
-            if ret.get(date) is None:
-                ret[date] = set()
-            ret[date].add(usage)
+            ret[date].add(usage_type)
         return ret
 
-    ret = {}
-    for usage in anomalies.keys():
-        owners = usage.owners.all()
+    ret = defaultdict(lambda: {'missing_values': {}, 'unusual_changes': {}})
+    for usage_type in anomalies.keys():
+        owners = usage_type.owners.all()
         if not owners.exists():
-            log.warning(
+            logger.warning(
                 'Anomalies detected in UsageType "{}", but it doesn\'t have '
                 'any owners defined, hence we cannot notify them. Please '
-                'correct that ASAP.'.format(usage.name)
+                'correct that ASAP.'.format(usage_type.name)
             )
             continue
         for owner in owners:
-            if ret.get(owner) is None:
-                ret[owner] = {'missing_values': {}, 'unusual_changes': {}}
-
             mv_by_date = group_missing_values_by_date(
-                usage, anomalies[usage]['missing_values']
+                usage_type, anomalies[usage_type]['missing_values']
             )
             for date, ut_set in mv_by_date.items():
                 mvs = ret[owner]['missing_values'].get(date)
@@ -296,9 +304,9 @@ def _group_anomalies_by_owner(anomalies):
                 else:
                     ret[owner]['missing_values'][date].update(ut_set)
 
-            unusual_changes = anomalies[usage]['unusual_changes']
+            unusual_changes = anomalies[usage_type]['unusual_changes']
             if unusual_changes is not None:
-                ret[owner]['unusual_changes'][usage] = unusual_changes
+                ret[owner]['unusual_changes'][usage_type] = unusual_changes
 
     # Sort missing values by date.
     for owner in ret.keys():
@@ -319,7 +327,7 @@ def _send_mail(address, html_message):
                 'Unusual changes / missing values for your usage type(s) in '
                 'Scrooge'
             ),
-            '',  # TODO(xor-xor): Do we need plain-text version of the message?
+            '',  # We don't need a plain-text version of the message.
             settings.EMAIL_NOTIFICATIONS_SENDER,
             [address],
             fail_silently=False,
@@ -330,17 +338,17 @@ def _send_mail(address, html_message):
             msg_substr = "{}: {}".format(e.smtp_code, e.smtp_error)
         else:
             msg_substr = e.message.rstrip('.')
-        log.error(
+        logger.error(
             "Got error from SMTP server: {}. E-mail addressed to {} "
             "has not been sent.".format(msg_substr, address)
         )
         return
     if num_msgs_sent == 1:
-        log.info(
+        logger.info(
             "Notification e-mail to {} sent successfully.".format(address)
         )
     else:
-        log.error(
+        logger.error(
             "Notification e-mail to {} couldn't be delivered. Please try "
             "again later.".format(address)
         )
@@ -365,7 +373,7 @@ def _send_notifications(anomalies):
 def pprint_anomalies(anomalies):
     """Pretty-printing for `--dry-run` switch and for debugging."""
     for user, anomalies_ in anomalies.items():
-        print("-" * 79)
+        print("-" * 79)  # 79 + '\n' = 80 (the width of the terminal)
         print('Owner: {}'.format(user.username))
         missing_values = anomalies_['missing_values']
         if missing_values is not None:
@@ -405,6 +413,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '-e',
+            type=valid_date,
             dest='end_date',
             default=yesterday,
             help=(
@@ -420,21 +429,24 @@ class Command(BaseCommand):
             help="Don't send any notifications"
         )
 
-    def handle(self, usage_symbols, dry_run, *args, **options):
+    def handle(self, usage_symbols, end_date, dry_run, *args, **options):
 
-        def parse_date(date):
-            if not isinstance(date, datetime.date):
-                return datetime.datetime.strptime(date, '%Y-%m-%d').date()
-            else:
-                return date
-
+        logger.info(
+            "Performing anomalies detection up until {}...".format(end_date)
+        )
         if dry_run:
-            log.info("Running in dry run mode, no e-mails will be sent.")
-        end_date = parse_date(options['end_date'])
+            logger.info("Running in dry run mode, no e-mails will be sent.")
+
         usage_types = get_usage_types(usage_symbols)
-        anomalies = _detect_anomalies(usage_types, end_date)
+        missing_values, unusual_changes = _detect_anomalies(
+            usage_types, end_date
+        )
+        anomalies = _postprocess_for_report(
+            usage_types, missing_values, unusual_changes
+        )
+
         if not anomalies:
-            log.info("No anomalies detected.")
+            logger.info("No anomalies detected.")
             return
         if dry_run:
             pprint_anomalies(anomalies)
