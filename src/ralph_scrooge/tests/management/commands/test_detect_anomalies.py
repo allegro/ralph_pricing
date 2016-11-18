@@ -14,7 +14,7 @@ from ralph_scrooge.management.commands.detect_usage_anomalies import (
     _get_max_expected_date,
     UnknownUsageTypeUploadFreqError,
 )
-from ralph_scrooge.models import UsageType, UsageTypeUploadFreq
+from ralph_scrooge.models import UsageTypeUploadFreq
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import UsageTypeFactory
 
