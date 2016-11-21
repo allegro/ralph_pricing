@@ -126,6 +126,9 @@ def _get_max_expected_date(usage_type, date):
     elif freq_name == 'weekly':
         max_date = date - freq_margin + relativedelta(weekday=rd.SU(-1))
     elif freq_name == 'monthly':
+        # In the "monthly" case, we want last day of the previous month, but we
+        # have to split this into two sub-cases: where `date` (e.g. 2016-11-03)
+        # is equal to `freq_margin` (e.g. 3), and "all the rest".
         if date.day == freq_margin.days:
             max_date = date - freq_margin
         else:
