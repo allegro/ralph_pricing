@@ -158,7 +158,9 @@ class TestServiceCollectPlugin(ScroogeTestCase):
     ):
         tenants_list = [self._get_sample_tenant()] * 5
 
-        def get_from_ralph_side_effect(endpoint, logger, query=None, limit=100):
+        def get_from_ralph_side_effect(
+            endpoint, logger, query=None, limit=100
+        ):
             if endpoint == 'cloud-providers':
                 return [
                     {
