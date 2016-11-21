@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_swagger',
     'ralph_scrooge',
 ]
 
@@ -83,6 +84,7 @@ DATABASES = {
 TIME_ZONE = 'Europe/Warsaw'
 
 LOGIN_URL = '/login/'
+LOGOUT_URL = '/logout/'
 ROOT_URLCONF = 'ralph_scrooge.urls'
 
 RQ_QUEUE_LIST = (
@@ -374,4 +376,12 @@ USAGE_TYPE_UPLOAD_FREQ_MARGINS = {
     'daily': 1,
     'weekly': 2,
     'monthly': 3,
+}
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'apiKey'
+        }
+    },
 }
