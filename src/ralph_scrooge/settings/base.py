@@ -379,9 +379,17 @@ USAGE_TYPE_UPLOAD_FREQ_MARGINS = {
 }
 
 SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
     'SECURITY_DEFINITIONS': {
         'basic': {
-            'type': 'apiKey'
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': (
+                'should be given as e.g. '
+                '"Token 84e0f8b9dbb3f23b25b52a1b6f4668170064a049"'
+
+            )
         }
     },
 }
