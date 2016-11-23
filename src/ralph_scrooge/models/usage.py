@@ -97,7 +97,7 @@ class UsageType(BaseUsage):
     upload_freq = db.PositiveIntegerField(
         null=False,
         blank=False,
-        default=1,
+        default=UsageTypeUploadFreq.daily.id,
         choices=UsageTypeUploadFreq(),
         verbose_name=_("Expected frequency of uploads"),
         help_text=_(
