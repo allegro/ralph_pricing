@@ -172,7 +172,8 @@ class UsageTypeForm(forms.ModelForm):
         model = models.UsageType
         fields = '__all__'
         widgets = {
-            'excluded_services': FilteredSelectMultiple('Service', False)
+            'excluded_services': FilteredSelectMultiple('Service', False),
+            'owners': FilteredSelectMultiple('ScroogeUser', False),
         }
 
 

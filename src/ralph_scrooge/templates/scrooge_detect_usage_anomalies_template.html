@@ -1,0 +1,75 @@
+{% load joinby %}
+{% load percentage %}
+
+{% spaceless %}
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style type="text/css">
+      table {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid black;
+        padding: 5px;
+      }
+      .value-cell {
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Hi {{ recipient.first_name }} {{recipient.last_name }},</p>
+
+    <p>We have detected anomalies in your usages - see below for the details. Please fix them ASAP.</p>
+
+    {% if missing_values %}
+    <p>Missing usage type values for the following days:</p>
+
+    <table border="1">
+      <tr><th>Date</th><th>Usage type(s)</th></tr>
+      {% for date_, usage_types in missing_values.items %}
+      <tr>
+        <td>{{ date_|date:"Y-m-d" }}</td>
+        <td>{{ usage_types|joinby:", " }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    {% endif %}
+
+    {% if unusual_changes %}
+    <p>Unusually big changes in values between the following days:</p>
+
+    <table>
+      <tr>
+        <th>Usage type</th>
+        <th>Date 1</th>
+        <th>Date 2</th>
+        <th>Value 1</th>
+        <th>Value 2</th>
+        <th>Relative Change (%)</th>
+      </tr>
+      {% for ut, v in unusual_changes.items %}
+      {% for vv in v %}
+      <tr>
+        <td>{{ ut.name }}</td>
+        <td>{{ vv.0|date:"Y-m-d" }}</td>
+        <td>{{ vv.1|date:"Y-m-d" }}</td>
+        <td class="value-cell">{{ vv.2|floatformat:2 }}</td>
+        <td class="value-cell">{{ vv.3|floatformat:2 }}</td>
+        <td class="value-cell">{{ vv.4|percentage:"dec=2&sign=true" }}</td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+    </table>
+
+    <p>(if you find any false positives in the table above, you may want to change the "Change Tolerance" param in Scrooge's <a href="{{ site_url }}{% url 'admin:index' %}">admin panel</a>)</p>
+    {% endif %}
+
+    <p>Regards,<br>Scrooge Team</p>
+
+  </body>
+</html>
+{% endspaceless %}
