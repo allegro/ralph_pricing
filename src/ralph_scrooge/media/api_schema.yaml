@@ -1,0 +1,258 @@
+swagger: '2.0'
+
+# XXX fill version field
+info:
+  title: Scrooge API
+  version: ''
+
+basePath: '/scrooge/api'
+
+definitions:
+  Division:
+    type: object
+    required:
+      - service_uid
+      - environment
+      - percent
+    properties:
+      service_uid:
+        type: string
+      environment:
+        type: string
+      percent:
+        type: number
+  Divisions:
+    type: array
+    items:
+      $ref: "#/definitions/Division"
+
+paths:
+  /scrooge/api/v0.10/service-environment-costs/:
+    post:
+      consumes:
+        - application/json
+      summary: >-
+        Fetch daily costs for given service/environment aggregated over given
+        time period
+      description: >-
+        Fetch daily costs for given service/environment aggregated over given
+        time period
+      operationId: service-environment-costs_create
+      parameters:
+        - name: data
+          in: body
+          schema:
+            type: object
+            properties:
+              date_from:
+                type: string
+                description: ''
+              date_to:
+                type: string
+                description: ''
+              environment:
+                type: string
+                description: ''
+              forecast:
+                type: boolean
+                description: ''
+              group_by:
+                type: string
+                description: ''
+              service_uid:
+                type: string
+                description: ''
+              types:
+                type: array
+                items:
+                  type: string
+                description: ''
+            required:
+              - service_uid
+              - environment
+              - date_from
+              - date_to
+              - group_by
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.10
+  /v0.10/usage-types/:
+    get:
+      description: Fetch all usage types
+      summary: Fetch all usage types
+      operationId: usage-types_list
+      parameters:
+        - name: page
+          in: query
+          type: string
+          required: false
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.10
+  '/v0.10/usage-types/{symbol}/':
+    get:
+      description: Fetch usage type given by 'symbol'
+      summary: Fetch usage type given by 'symbol'
+      operationId: usage-types_read
+      parameters:
+        - name: symbol
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.10
+  /v0.9/api-token-auth/:
+    post:
+      consumes:
+        - application/json
+      description: Fetch your personal API key
+      summary: Fetch your personal API key
+      operationId: api-token-auth_create
+      parameters:
+        - name: data
+          in: body
+          schema:
+            type: object
+            properties:
+              password:
+                type: string
+                description: ''
+              username:
+                type: string
+                description: ''
+            required:
+              - username
+              - password
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9
+  /v0.9/pricingserviceusages/:
+    post:
+      consumes:
+        - application/json
+      description: Upload usages for given pricing service and date
+      summary: Upload usages for given pricing service and date
+      operationId: pricingserviceusages_create
+      parameters:
+        - name: data
+          in: body
+          schema:
+            type: object
+            properties:
+              date:
+                type: string
+                description: ''
+              ignore_unknown_services:
+                type: boolean
+                description: ''
+              overwrite:
+                type: string
+                description: ''
+              pricing_service:
+                type: string
+                description: ''
+              usages:
+                type: array
+                items:
+                  type: string
+                description: ''
+            required:
+              - pricing_service
+              - date
+              - usages
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9
+  '/v0.9/pricingserviceusages/{pricing_service_id}/{usages_date}/':
+    get:
+      description: Fetch previously uploaded usages for given pricing service and date
+      summary: Fetch previously uploaded usages for given pricing service and date
+      operationId: pricingserviceusages_read
+      parameters:
+        - name: pricing_service_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: usages_date
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.9
+  '/v0.9/teamtimedivision/{team_id}/{year}/{month}/':
+    get:
+      description: Fetch time divisions uploaded for given team and month
+      summary: Fetch time divisions uploaded for given team and month
+      operationId: teamtimedivision_read
+      parameters:
+        - name: team_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.9
+    post:
+      consumes:
+        - application/json
+      description: "Allocate team's working time (and therefore costs) to some services"
+      summary: "Allocate team's working time (and therefore costs) to some services"
+      operationId: teamtimedivision_create
+      parameters:
+        - name: team_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: division
+          in: body
+          schema:
+            $ref: "#/definitions/Divisions"
+          required: true
+          description: ''
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9

@@ -10,19 +10,13 @@ from django.contrib import admin
 from django.conf.urls import include, url
 from django.contrib.auth.decorators import login_required
 from rest_framework.authtoken import views
-from rest_framework.schemas import get_schema_view  # XXX
-from rest_framework_swagger.views import get_swagger_view  # XXX
-from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer  # XXX
 
 import ralph_scrooge.plugins.subscribers  # noqa: F401
 from ralph_scrooge.rest.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
-from ralph_scrooge.rest.schema import (
-    schema_view,
-    schema_explicit_view,
-)
+from ralph_scrooge.rest.schema import SwaggerView
 from ralph_scrooge.rest.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
@@ -74,9 +68,8 @@ urlpatterns = [
         ServiceEnvironmentCosts.as_view(),
         name='service_environment_costs',
     ),
-    # XXX
-    url(r'scrooge/api/swagger/$', schema_view),
-    url(r'scrooge/api/swagger2/$', schema_explicit_view),
+    # XXX BootstrapSwagger..?
+    url(r'scrooge/api/swagger/$', SwaggerView.as_view(), name='swagger_view'),
 
 
     url(

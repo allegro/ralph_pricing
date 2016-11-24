@@ -38,7 +38,6 @@ setup(
         'django-simple-history==1.8.1',
         'django==1.10.2',
         'djangorestframework==3.5.3',
-        'django-rest-swagger==2.1.0',
         'factory-boy==2.3.1',
         'gunicorn==19.6.0',
         'ipaddr==2.1.11',
