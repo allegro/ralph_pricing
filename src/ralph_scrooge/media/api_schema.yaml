@@ -8,12 +8,19 @@ info:
 basePath: '/scrooge/api'
 
 definitions:
+  Credentials:
+    type: object
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+        - username
+        - password
+
   Division:
     type: object
-    required:
-      - service_uid
-      - environment
-      - percent
     properties:
       service_uid:
         type: string
@@ -21,10 +28,71 @@ definitions:
         type: string
       percent:
         type: number
+    required:
+      - service_uid
+      - environment
+      - percent
+
   Divisions:
-    type: array
-    items:
-      $ref: "#/definitions/Division"
+    type: object
+    properties:
+      division:
+        type: array
+        items:
+          $ref: "#/definitions/Division"
+
+  Usage:
+    type: object
+    properties:
+      pricing_service:
+        type: string
+      date:
+        type: string
+      overwrite:
+        type: string
+      ignore_unknown_services:
+        type: boolean
+      usages:
+        type: array
+        items:
+          $ref: "#/definitions/SubUsage"
+    required:
+      - pricing_service
+      - date
+      - usages
+
+  SubUsage:
+    type: object
+    properties:
+      pricing_object:
+        type: string
+      service:
+        type: string
+      service_id:
+        type: string
+      service_uid:
+        type: string
+      environment:
+        type: string
+      usages:
+        type: array
+        items:
+          $ref: "#/definitions/SubSubUsage"
+    required:
+      - usages
+
+  SubSubUsage:
+    type: object
+    properties:
+      symbol:
+        type: string
+      value:
+        type: string
+      remarks:
+        type: string
+    required:
+      - symbol
+      - value
 
 paths:
   /scrooge/api/v0.10/service-environment-costs/:
@@ -39,8 +107,9 @@ paths:
         time period
       operationId: service-environment-costs_create
       parameters:
-        - name: data
+        - name: payload
           in: body
+          required: true
           schema:
             type: object
             properties:
@@ -118,20 +187,11 @@ paths:
       summary: Fetch your personal API key
       operationId: api-token-auth_create
       parameters:
-        - name: data
+        - name: payload
           in: body
+          required: true
           schema:
-            type: object
-            properties:
-              password:
-                type: string
-                description: ''
-              username:
-                type: string
-                description: ''
-            required:
-              - username
-              - password
+            $ref: "#/definitions/Credentials"
       responses:
         '201':
           description: ''
@@ -145,32 +205,11 @@ paths:
       summary: Upload usages for given pricing service and date
       operationId: pricingserviceusages_create
       parameters:
-        - name: data
+        - name: payload
           in: body
+          required: true
           schema:
-            type: object
-            properties:
-              date:
-                type: string
-                description: ''
-              ignore_unknown_services:
-                type: boolean
-                description: ''
-              overwrite:
-                type: string
-                description: ''
-              pricing_service:
-                type: string
-                description: ''
-              usages:
-                type: array
-                items:
-                  type: string
-                description: ''
-            required:
-              - pricing_service
-              - date
-              - usages
+            $ref: "#/definitions/Usage"
       responses:
         '201':
           description: ''
@@ -245,7 +284,7 @@ paths:
           type: string
           required: true
           description: ''
-        - name: division
+        - name: payload
           in: body
           schema:
             $ref: "#/definitions/Divisions"
