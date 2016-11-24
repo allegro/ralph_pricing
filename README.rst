@@ -3,16 +3,6 @@ Ralph Scrooge
 =============
 
 
-.. image:: https://pypip.in/v/ralph_scrooge/badge.png
-    :target: https://crate.io/packages/ralph_scrooge/
-    :alt: Latest PyPI version
-
-
-.. image:: https://pypip.in/d/ralph_scrooge/badge.svg
-    :target: https://crate.io/packages/ralph_scrooge/
-    :alt: Number of PyPI downloads
-
-
 .. image:: https://travis-ci.org/allegro/ralph_pricing.svg?branch=develop
     :target: https://travis-ci.org/allegro/ralph_pricing
 
@@ -39,4 +29,4 @@ Features:
 * API to upload information from other systems
 
 
-Visit `Ralph documentation <http://ralph.allegrogroup.com/>`_ to learn more about Ralph and Scrooge features!
+Visit `Ralph documentation <http://ralph.allegro.tech/>`_ to learn more about Ralph and Scrooge features!
