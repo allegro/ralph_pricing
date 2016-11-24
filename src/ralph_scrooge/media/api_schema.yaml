@@ -5,8 +5,19 @@ info:
   title: Scrooge API
   version: ''
 
+schemes:
+  - http
+  - https
+host: localhost
 basePath: '/scrooge/api'
 
+securityDefinitions:
+  Token:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: >-
+      should be given as e.g. "Token 84e0f8b9dbb3f23b25b52a1b6f4668170064a049"
 definitions:
   Credentials:
     type: object
@@ -50,6 +61,10 @@ definitions:
         type: string
       overwrite:
         type: string
+        enum:
+          - no
+          - values_only
+          - delete_all_previous
       ignore_unknown_services:
         type: boolean
       usages:
@@ -95,7 +110,7 @@ definitions:
       - value
 
 paths:
-  /scrooge/api/v0.10/service-environment-costs/:
+  /v0.10/service-environment-costs/:
     post:
       consumes:
         - application/json
@@ -237,31 +252,6 @@ paths:
       tags:
         - v0.9
   '/v0.9/teamtimedivision/{team_id}/{year}/{month}/':
-    get:
-      description: Fetch time divisions uploaded for given team and month
-      summary: Fetch time divisions uploaded for given team and month
-      operationId: teamtimedivision_read
-      parameters:
-        - name: team_id
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: year
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: month
-          in: path
-          type: string
-          required: true
-          description: ''
-      responses:
-        '200':
-          description: ''
-      tags:
-        - v0.9
     post:
       consumes:
         - application/json
@@ -292,6 +282,31 @@ paths:
           description: ''
       responses:
         '201':
+          description: ''
+      tags:
+        - v0.9
+    get:
+      description: Fetch time divisions uploaded for given team and month
+      summary: Fetch time divisions uploaded for given team and month
+      operationId: teamtimedivision_read
+      parameters:
+        - name: team_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
           description: ''
       tags:
         - v0.9
