@@ -1034,18 +1034,29 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.assertEquals(resp.status_code, 201)
         self.assertEquals(DailyUsage.objects.all().count(), 3)
         self.assertEquals(PricingService.objects.all().count(), 1)
-        resp = self.client.get(
-            reverse(
-                'list_pricing_service_usages',
-                kwargs={
-                    'pricing_service_id': PricingService.objects.all()[0].id,
-                    'usages_date': self.date_as_str,
-                }
-            )
+
+        url = reverse(
+            'list_pricing_service_usages',
+            kwargs={
+                'pricing_service_id': PricingService.objects.all()[0].id,
+                'usages_date': self.date_as_str,
+            }
         )
+        resp = self.client.get(url)
         self.assertEquals(resp.status_code, 200)
         received_response = json.loads(resp.content)
+        usages = received_response['usages']
+        self.assertEqual(len(usages), 2)
         self.assertNestedDictsEqual(expected_response, received_response)
+
+        # check filtering by `service_id`
+        url_with_filter = "{}?service_id={}".format(url, service1_id)
+        resp = self.client.get(url_with_filter)
+        self.assertEquals(resp.status_code, 200)
+        received_response = json.loads(resp.content)
+        usages = received_response['usages']
+        self.assertEqual(len(usages), 1)
+        self.assertEqual(usages[0]['service_id'], service1_id)
 
     def test_for_error_when_invalid_date_in_correct_format_given_in_URL(self):
         invalid_date = '2016-09-33'
