@@ -86,8 +86,12 @@ class MonthlyCosts(APIView, WorkerJob):
                 )
             result = {}
             self.got_query = True
+            logger.info('Starting recalculation from {} to {}'.format(
+                serializer.validated_data['start'],
+                serializer.validated_data['end'],
+            ))
             self.progress, self.data, job, meta = self.run_on_worker(
-                **serializer.data
+                **serializer.validated_data
             )
             result['job_id'] = job.id
             result['message'] = _(
@@ -176,6 +180,7 @@ class MonthlyCosts(APIView, WorkerJob):
         progress = 0
         statuses = {}
         processed_results = []  # list of DailyCost instances for whole period
+        logger.info('Recalculating costs from {} to {}'.format(start, end))
         while progress < 100:
             progress, statuses, results = cls._check_subjobs(
                 statuses,
