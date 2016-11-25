@@ -69,8 +69,7 @@ from ralph_scrooge.models import (
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import (
     BaseCostPlugin,
-    NoPriceCostError,
-    MultiplePriceCostError,
+    NoPriceCostError
 )
 
 logger = logging.getLogger(__name__)
@@ -278,8 +277,6 @@ class TeamPlugin(BaseCostPlugin):
             team_cost = team.teamcost_set.get(start__lte=date, end__gte=date)
         except TeamCost.DoesNotExist:
             raise NoPriceCostError()
-        except TeamCost.MultipleObjectsReturned:
-            raise MultiplePriceCostError()
 
         # calculate daily cost if not provided
         team_cost_days = (team_cost.end - team_cost.start).days + 1

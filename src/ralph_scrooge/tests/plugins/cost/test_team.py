@@ -11,10 +11,7 @@ from decimal import Decimal as D
 from ralph_scrooge import models
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.plugins.cost.team import TeamPlugin
-from ralph_scrooge.plugins.cost.base import (
-    NoPriceCostError,
-    MultiplePriceCostError,
-)
+from ralph_scrooge.plugins.cost.base import NoPriceCostError
 from ralph_scrooge.tests.utils.factory import (
     ServiceEnvironmentFactory,
     TeamCostFactory,
@@ -171,23 +168,6 @@ class TestTeamPlugin(ScroogeTestCase):
                 forecast=False,
             )
 
-    def test_team_time_multiple_price_cost(self):
-        TeamCostFactory(
-            cost=900,
-            forecast_cost=1800,
-            start=self.start,
-            end=self.end,
-            team=self.team_time,
-            members_count=20,
-        )
-        with self.assertRaises(MultiplePriceCostError):
-            TeamPlugin.costs(
-                date=self.today,
-                service_environments=self.service_environments_subset,
-                team=self.team_time,
-                forecast=False,
-            )
-
     # =========================================================================
     # ASSETS & CORES COUNT
     # =========================================================================
@@ -294,23 +274,6 @@ class TestTeamPlugin(ScroogeTestCase):
                 forecast=False,
             )
 
-    def test_team_assets_cores_multiple_price_cost(self):
-        TeamCostFactory(
-            cost=900,
-            forecast_cost=1800,
-            start=self.start,
-            end=self.end,
-            team=self.team_assets_cores,
-            members_count=20,
-        )
-        with self.assertRaises(MultiplePriceCostError):
-            TeamPlugin.costs(
-                date=self.today,
-                service_environments=self.service_environments_subset,
-                team=self.team_assets_cores,
-                forecast=False,
-            )
-
     # =========================================================================
     # ASSETS COUNT
     # =========================================================================
@@ -392,23 +355,6 @@ class TestTeamPlugin(ScroogeTestCase):
         with self.assertRaises(NoPriceCostError):
             TeamPlugin.costs(
                 date=self.date_out_of_range,
-                service_environments=self.service_environments_subset,
-                team=self.team_assets,
-                forecast=False,
-            )
-
-    def test_team_assets_multiple_price_cost(self):
-        TeamCostFactory(
-            cost=900,
-            forecast_cost=1800,
-            start=self.start,
-            end=self.end,
-            team=self.team_assets,
-            members_count=20,
-        )
-        with self.assertRaises(MultiplePriceCostError):
-            TeamPlugin.costs(
-                date=self.today,
                 service_environments=self.service_environments_subset,
                 team=self.team_assets,
                 forecast=False,
@@ -582,23 +528,6 @@ class TestTeamPlugin(ScroogeTestCase):
                 forecast=False,
             )
 
-    def test_team_distribute_multiple_price_cost(self):
-        TeamCostFactory(
-            cost=900,
-            forecast_cost=1800,
-            start=self.start,
-            end=self.end,
-            team=self.team_distribute,
-            members_count=20,
-        )
-        with self.assertRaises(MultiplePriceCostError):
-            TeamPlugin.costs(
-                date=self.today,
-                service_environments=self.service_environments_subset,
-                team=self.team_distribute,
-                forecast=False,
-            )
-
     # =========================================================================
     # AVERAGE (FROM %)
     # =========================================================================
@@ -714,23 +643,6 @@ class TestTeamPlugin(ScroogeTestCase):
         with self.assertRaises(NoPriceCostError):
             TeamPlugin.costs(
                 date=self.date_out_of_range,
-                service_environments=self.service_environments_subset,
-                team=self.team_average,
-                forecast=False,
-            )
-
-    def test_team_average_multiple_price_cost(self):
-        TeamCostFactory(
-            cost=900,
-            forecast_cost=1800,
-            start=self.start,
-            end=self.end,
-            team=self.team_average,
-            members_count=20,
-        )
-        with self.assertRaises(MultiplePriceCostError):
-            TeamPlugin.costs(
-                date=self.today,
                 service_environments=self.service_environments_subset,
                 team=self.team_average,
                 forecast=False,
