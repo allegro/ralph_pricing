@@ -150,30 +150,46 @@ class TestServiceCollectPlugin(ScroogeTestCase):
         with self.assertRaises(UnknownServiceEnvironmentNotConfiguredError):
             get_unknown_service_env()
 
-    @mock.patch('ralph_scrooge.plugins.collect.ralph3_cloud_project.get_cloud_provider_id')  # noqa
     @mock.patch('ralph_scrooge.plugins.collect.ralph3_cloud_project.get_from_ralph')  # noqa
     @mock.patch('ralph_scrooge.plugins.collect.ralph3_cloud_project.update_tenant')  # noqa
     @override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
     def test_cloud_project_plugin(
-        self,
-        update_tenant_mock,
-        get_from_ralph_mock,
-        get_cloud_provider_id_mock,
+        self, update_tenant_mock, get_from_ralph_mock,
     ):
+        tenants_list = [self._get_sample_tenant()] * 5
+
+        def get_from_ralph_side_effect(
+            endpoint, logger, query=None, limit=100
+        ):
+            if endpoint == 'cloud-providers':
+                return [
+                    {
+                        'name': 'sample-provider',
+                        'id': 1,
+                    },
+                    {
+                        'name': 'sample-provider-2',
+                        'id': 2,
+                    },
+                ]
+            elif endpoint == 'cloud-projects':
+                return tenants_list
+
         unknown_service_environment = ServiceEnvironmentFactory(
             service__ci_uid=UNKNOWN_SERVICE_ENVIRONMENT[0],
             environment__name=UNKNOWN_SERVICE_ENVIRONMENT[1],
         )
         update_tenant_mock.return_value = True
-        tenants_list = [self._get_sample_tenant()] * 5
-        get_from_ralph_mock.return_value = tenants_list
-        get_cloud_provider_id_mock.return_value = 1
+        get_from_ralph_mock.side_effect = get_from_ralph_side_effect
+
         result = cloud_project_plugin(self.today)
         self.assertEquals(
             result,
-            (True, '5 new tenants, 0 updated, 5 total')
+            (True, '10 new tenants, 0 updated, 10 total')
         )
-        self.assertEquals(update_tenant_mock.call_count, 5)
+        self.assertEquals(update_tenant_mock.call_count, 10)
+        # 1 for providers, 2 for projects
+        self.assertEquals(get_from_ralph_mock.call_count, 3)
         update_tenant_mock.assert_any_call(
             tenants_list[0],
             self.today,

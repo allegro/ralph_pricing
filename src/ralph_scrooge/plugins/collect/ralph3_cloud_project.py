@@ -108,12 +108,6 @@ def get_unknown_service_env():
     return unknown_service_env
 
 
-def get_cloud_provider_id(logger):
-    for provider in get_from_ralph("cloud-providers", logger):
-        if provider['name'].lower() == "openstack":
-            return provider['id']
-
-
 @plugin_runner.register(
     chain='scrooge', requires=['ralph3_service_environment']
 )
@@ -126,18 +120,17 @@ def ralph3_cloud_project(today, **kwargs):
         logger.error(msg)
         return (False, msg)
 
-    provider_id = get_cloud_provider_id(logger)
-    if provider_id is None:
-        msg = "Can't find cloud provider for OpenStack in Ralph"
-        logger.error(msg)
-        return (False, msg)
-
-    query = "cloudprovider={}".format(provider_id)
-    for ralph_tenant in get_from_ralph("cloud-projects", logger, query=query):
-        created = update_tenant(ralph_tenant, today, unknown_service_env)
-        if created:
-            new += 1
-        total += 1
+    for provider in get_from_ralph("cloud-providers", logger):
+        logger.info('Processing cloud provider {}'.format(provider['name']))
+        provider_id = provider['id']
+        query = "cloudprovider={}".format(provider_id)
+        for ralph_tenant in get_from_ralph(
+            "cloud-projects", logger, query=query
+        ):
+            created = update_tenant(ralph_tenant, today, unknown_service_env)
+            if created:
+                new += 1
+            total += 1
     return True, '{} new tenants, {} updated, {} total'.format(
         new,
         total - new,
