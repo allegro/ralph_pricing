@@ -212,7 +212,7 @@ class TestVIPSubscribersPlugin(ScroogeTestCase):
 
     def test_ip_info_address_validation(self):
         with self.assertRaises(
-            ValidationError, msg='Is not a valid ip address'
+            ValidationError, msg='Is not a valid IP address'
         ):
             IPInfoFactory(
                 name='not valid ip',

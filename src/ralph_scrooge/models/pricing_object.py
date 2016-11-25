@@ -196,7 +196,7 @@ class IPInfo(PricingObject):
         try:
             self.number = int(ipaddress.ip_address(self.name))
         except (ipaddress.AddressValueError, ValueError):
-            raise ValidationError(_('Is not a valid ip address'))
+            raise ValidationError(_('Is not a valid IP address'))
         super(IPInfo, self).save(*args, **kwargs)
 
 
