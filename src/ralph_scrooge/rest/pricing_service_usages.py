@@ -309,12 +309,14 @@ def list_pricing_service_usages(
             .format(pricing_service_id)
         )
 
-    service_id = request.GET.get('service_id')
-    if service_id:
+    service_uid = request.GET.get('service_uid')
+    if service_uid:
         try:
-            service = Service.objects.get(id=service_id)
+            service = Service.objects.get(uid=service_uid)
         except ObjectDoesNotExist:
-            err_msg = ("Service with ID {} does not exist.".format(service_id))
+            err_msg = (
+                "Service with ID {} does not exist.".format(service_uid)
+            )
 
     # We can't catch invalid dates like '2016-09-33' in URL patterns, so we
     # have to do that here.

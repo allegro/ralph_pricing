@@ -1250,7 +1250,7 @@ class TestPricingServiceUsages(ScroogeTestCase):
         )
 
         # fetch usages for only one service
-        url_with_filter = "{}?service_id={}".format(url, service1_id)
+        url_with_filter = "{}?service_uid={}".format(url, service1_id)
         resp = self.client.get(url_with_filter)
         self.assertEquals(resp.status_code, 200)
         received_response = json.loads(resp.content)
