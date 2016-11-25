@@ -1206,8 +1206,8 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.assertEquals(daily_usages[0].remarks, '')
 
     def test_pricing_service_usage_api_endpoint_with_filtering_by_service(self):  # noqa: E501
-        service1_id = self.pricing_object1.service_environment.service_id
-        service2_id = self.pricing_object2.service_environment.service_id
+        service1_uid = self.pricing_object1.service_environment.service.ci_uid
+        service2_uid = self.pricing_object2.service_environment.service.ci_uid
 
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
@@ -1250,14 +1250,14 @@ class TestPricingServiceUsages(ScroogeTestCase):
         )
 
         # fetch usages for only one service
-        url_with_filter = "{}?service_id={}".format(url, service1_id)
+        url_with_filter = "{}?service_uid={}".format(url, service1_uid)
         resp = self.client.get(url_with_filter)
         self.assertEquals(resp.status_code, 200)
         received_response = json.loads(resp.content)
 
         usages = received_response['usages']
         self.assertEqual(len(usages), 1)
-        self.assertEqual(usages[0]['service_id'], service1_id)
+        self.assertEqual(usages[0]['service_uid'], service1_uid)
 
         # fetch usages for all services
         resp = self.client.get(url)
@@ -1266,5 +1266,5 @@ class TestPricingServiceUsages(ScroogeTestCase):
         usages = received_response['usages']
 
         self.assertEqual(len(usages), 2)
-        self.assertEqual(usages[0]['service_id'], service1_id)
-        self.assertEqual(usages[1]['service_id'], service2_id)
+        self.assertEqual(usages[0]['service_uid'], service1_uid)
+        self.assertEqual(usages[1]['service_uid'], service2_uid)
