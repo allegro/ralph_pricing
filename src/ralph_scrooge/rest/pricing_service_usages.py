@@ -9,6 +9,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.http import HttpResponse
 from rest_framework import status
@@ -27,6 +28,7 @@ from ralph_scrooge.models import (
     DailyUsage,
     PricingObject,
     PricingService,
+    Service,
     ServiceEnvironment,
     UsageType,
 )
@@ -298,6 +300,7 @@ def list_pricing_service_usages(
         request, usages_date, pricing_service_id, *args, **kwargs
 ):
     err_msg = None
+    service = None
     try:
         pricing_service = PricingService.objects.get(id=pricing_service_id)
     except PricingService.DoesNotExist:
@@ -305,6 +308,13 @@ def list_pricing_service_usages(
             "Pricing Service with ID {} does not exist."
             .format(pricing_service_id)
         )
+
+    service_id = request.GET.get('service_id')
+    if service_id:
+        try:
+            service = Service.objects.get(id=service_id)
+        except ObjectDoesNotExist:
+            err_msg = ("Service with ID {} does not exist.".format(service_id))
 
     # We can't catch invalid dates like '2016-09-33' in URL patterns, so we
     # have to do that here.
@@ -319,11 +329,11 @@ def list_pricing_service_usages(
     if err_msg is not None:
         return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
 
-    usages = get_usages(usages_date, pricing_service)
+    usages = get_usages(usages_date, pricing_service, service)
     return Response(PricingServiceUsageSerializer(usages).data)
 
 
-def get_usages(usages_date, pricing_service):
+def get_usages(usages_date, pricing_service, filter_by_service=None):
     """Create pricing service usage dict (i.e. the most "outer" one when
     looking at the JSON returned with the HTTP response), and fill it with
     the usages by going through these steps:
@@ -337,6 +347,10 @@ def get_usages(usages_date, pricing_service):
        environment (or the pricing object).
     3) The list dicts from the previous step are finally added into a top-level
        (the most "outer" one) dict, under the "usages" key.
+
+    This function by default return a usages from all services.
+    The `filter_by_service` argument allows to filter usages only to service
+    passed in this argument.
     """
     ps = new_pricing_service_usage(
         pricing_service=pricing_service.name,
@@ -346,8 +360,11 @@ def get_usages(usages_date, pricing_service):
     usages_dict = defaultdict(list)
 
     for usage_type in pricing_service.get_usage_types_for_date(usages_date):
+        _kwargs_filter = {'date': usages_date}
+        if filter_by_service:
+            _kwargs_filter['service_environment__service'] = filter_by_service
         daily_usages = usage_type.dailyusage_set.filter(
-            date=usages_date
+            **_kwargs_filter
         ).select_related(
             'service_environment',
             'service_environment__service',

@@ -1034,17 +1034,19 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.assertEquals(resp.status_code, 201)
         self.assertEquals(DailyUsage.objects.all().count(), 3)
         self.assertEquals(PricingService.objects.all().count(), 1)
-        resp = self.client.get(
-            reverse(
-                'list_pricing_service_usages',
-                kwargs={
-                    'pricing_service_id': PricingService.objects.all()[0].id,
-                    'usages_date': self.date_as_str,
-                }
-            )
+
+        url = reverse(
+            'list_pricing_service_usages',
+            kwargs={
+                'pricing_service_id': PricingService.objects.all()[0].id,
+                'usages_date': self.date_as_str,
+            }
         )
+        resp = self.client.get(url)
         self.assertEquals(resp.status_code, 200)
         received_response = json.loads(resp.content)
+        usages = received_response['usages']
+        self.assertEqual(len(usages), 2)
         self.assertNestedDictsEqual(expected_response, received_response)
 
     def test_for_error_when_invalid_date_in_correct_format_given_in_URL(self):
@@ -1202,3 +1204,67 @@ class TestPricingServiceUsages(ScroogeTestCase):
         daily_usages = DailyUsage.objects.order_by('id')
         self.assertEquals(daily_usages.count(), 1)
         self.assertEquals(daily_usages[0].remarks, '')
+
+    def test_pricing_service_usage_api_endpoint_with_filtering_by_service(self):  # noqa: E501
+        service1_id = self.pricing_object1.service_environment.service_id
+        service2_id = self.pricing_object2.service_environment.service_id
+
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+                {
+                    "pricing_object": self.pricing_object2.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 60,
+                        },
+                    ],
+                },
+            ]
+        }
+        # post service usages
+        self.assertEquals(DailyUsage.objects.all().count(), 0)
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+
+        url = reverse(
+            'list_pricing_service_usages',
+            kwargs={
+                'pricing_service_id': PricingService.objects.all()[0].id,
+                'usages_date': self.date_as_str,
+            }
+        )
+
+        # fetch usages for only one service
+        url_with_filter = "{}?service_id={}".format(url, service1_id)
+        resp = self.client.get(url_with_filter)
+        self.assertEquals(resp.status_code, 200)
+        received_response = json.loads(resp.content)
+
+        usages = received_response['usages']
+        self.assertEqual(len(usages), 1)
+        self.assertEqual(usages[0]['service_id'], service1_id)
+
+        # fetch usages for all services
+        resp = self.client.get(url)
+        self.assertEquals(resp.status_code, 200)
+        received_response = json.loads(resp.content)
+        usages = received_response['usages']
+
+        self.assertEqual(len(usages), 2)
+        self.assertEqual(usages[0]['service_id'], service1_id)
+        self.assertEqual(usages[1]['service_id'], service2_id)
