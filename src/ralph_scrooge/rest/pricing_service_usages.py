@@ -314,10 +314,7 @@ def list_pricing_service_usages(
         try:
             service = Service.objects.get(id=service_id)
         except ObjectDoesNotExist:
-            err_msg = (
-                "Service with ID {} does not exist."
-                .format(service_id)
-            )
+            err_msg = ("Service with ID {} does not exist.".format(service_id))
 
     # We can't catch invalid dates like '2016-09-33' in URL patterns, so we
     # have to do that here.
@@ -336,7 +333,7 @@ def list_pricing_service_usages(
     return Response(PricingServiceUsageSerializer(usages).data)
 
 
-def get_usages(usages_date, pricing_service, service=None):
+def get_usages(usages_date, pricing_service, filter_by_service=None):
     """Create pricing service usage dict (i.e. the most "outer" one when
     looking at the JSON returned with the HTTP response), and fill it with
     the usages by going through these steps:
@@ -350,6 +347,10 @@ def get_usages(usages_date, pricing_service, service=None):
        environment (or the pricing object).
     3) The list dicts from the previous step are finally added into a top-level
        (the most "outer" one) dict, under the "usages" key.
+
+    This function by default return a usages from all services.
+    The `filter_by_service` argument allows to filter usages only to service
+    passed in this argument.
     """
     ps = new_pricing_service_usage(
         pricing_service=pricing_service.name,
@@ -360,8 +361,8 @@ def get_usages(usages_date, pricing_service, service=None):
 
     for usage_type in pricing_service.get_usage_types_for_date(usages_date):
         _kwargs_filter = {'date': usages_date}
-        if service:
-            _kwargs_filter['service_environment__service'] = service
+        if filter_by_service:
+            _kwargs_filter['service_environment__service'] = filter_by_service
         daily_usages = usage_type.dailyusage_set.filter(
             **_kwargs_filter
         ).select_related(
