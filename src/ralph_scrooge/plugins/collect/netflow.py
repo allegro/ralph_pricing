@@ -15,7 +15,7 @@ from django.conf import settings
 from ralph_scrooge.models import (
     DailyPricingObject,
     DailyUsage,
-    PricingObject,
+    IPInfo,
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     UsageType,
@@ -321,7 +321,7 @@ def update(
             ))
             continue
         total += 1
-        pricing_object, created = PricingObject.objects.get_or_create(
+        pricing_object, created = IPInfo.objects.get_or_create(
             name=ip,
             type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
             defaults=dict(

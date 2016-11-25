@@ -9,8 +9,8 @@ import datetime
 import logging
 
 from ralph_scrooge.models import (
+    IPInfo,
     PRICING_OBJECT_TYPES,
-    PricingObject,
     PricingObjectModel,
     ServiceEnvironment,
     VIPInfo,
@@ -121,7 +121,7 @@ def save_vip_info(event_data):
         )
 
     # get ip_info
-    ip_info = PricingObject.objects.get_or_create(
+    ip_info = IPInfo.objects.get_or_create(
         name=event_data['ip'],
         type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
         defaults=dict(service_environment=service_env)

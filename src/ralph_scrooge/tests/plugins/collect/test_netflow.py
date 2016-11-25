@@ -20,7 +20,7 @@ from ralph_scrooge.plugins.collect import netflow
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     DailyPricingObjectFactory,
-    PricingObjectFactory,
+    IPInfoFactory,
     ServiceEnvironmentFactory,
 )
 
@@ -267,7 +267,7 @@ class TestNetwork(ScroogeTestCase):
     @override_settings(UNKNOWN_SERVICES={'netflow': 1}, NFSEN_MIN_VALUE=10)
     def test_update(self):
         service_environment = ServiceEnvironmentFactory()
-        pricing_object = PricingObjectFactory.create(
+        pricing_object = IPInfoFactory.create(
             name='8.8.8.8',
             type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
             service_environment=service_environment,

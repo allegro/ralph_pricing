@@ -5,8 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import ipaddress
 from decimal import Decimal as D
 
+from django.core.exceptions import ValidationError
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
@@ -173,6 +175,29 @@ class PricingObject(TimeTrackable, EditorTrackable):
     def save(self, *args, **kwargs):
         # TODO: check if model type is the same as object type
         return super(PricingObject, self).save(*args, **kwargs)
+
+
+class IPInfo(PricingObject):
+
+    number = db.DecimalField(
+        verbose_name=_('IP address'),
+        help_text=_('Presented as int.'),
+        editable=False,
+        unique=True,
+        max_digits=39,
+        decimal_places=0,
+        default=None,
+    )
+
+    class Meta(PricingObject.Meta):
+        app_label = 'ralph_scrooge'
+
+    def save(self, *args, **kwargs):
+        try:
+            self.number = int(ipaddress.ip_address(self.name))
+        except (ipaddress.AddressValueError, ValueError):
+            raise ValidationError(_('Is not a valid IP address'))
+        super(IPInfo, self).save(*args, **kwargs)
 
 
 class DailyPricingObject(db.Model):

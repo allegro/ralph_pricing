@@ -149,6 +149,10 @@ class PricingObjectFactory(DjangoModelFactory):
     model = SubFactory(PricingObjectModelFactory)
 
 
+class IPInfoFactory(PricingObjectFactory):
+    FACTORY_FOR = models.IPInfo
+
+
 class DailyPricingObjectFactory(DjangoModelFactory):
     FACTORY_FOR = models.DailyPricingObject
 
