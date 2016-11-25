@@ -63,7 +63,7 @@ def udpdate_ip_address_number(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ralph_scrooge', '0004_ipinfo'),
+        ('ralph_scrooge', '0005_ipinfo'),
     ]
 
     operations = [

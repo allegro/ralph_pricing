@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import datetime
 from copy import deepcopy
 
+from django.forms import ValidationError
 from django.test.utils import override_settings
 
 from ralph_scrooge.models import PRICING_OBJECT_TYPES
@@ -208,6 +209,15 @@ class TestVIPSubscribersPlugin(ScroogeTestCase):
             self.service_env,
         )
         self._compare_vips(vip_info, self.event_data)
+
+    def test_ip_info_address_validation(self):
+        with self.assertRaises(
+            ValidationError, msg='Is not a valid ip address'
+        ):
+            IPInfoFactory(
+                name='not valid ip',
+                type_id=PRICING_OBJECT_TYPES.IP_ADDRESS,
+            )
 
     def test_save_vip_info_ip_exists(self):
         ip_info = IPInfoFactory(

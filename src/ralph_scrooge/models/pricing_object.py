@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import ipaddress
 from decimal import Decimal as D
 
+from django.core.exceptions import ValidationError
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
@@ -192,7 +193,10 @@ class IPInfo(PricingObject):
         app_label = 'ralph_scrooge'
 
     def save(self, *args, **kwargs):
-        self.number = int(ipaddress.ip_address(self.name or 0))
+        try:
+            self.number = int(ipaddress.ip_address(self.name))
+        except (ipaddress.AddressValueError, ValueError):
+            raise ValidationError(_('Is not a valid ip address'))
         super(IPInfo, self).save(*args, **kwargs)
 
 
