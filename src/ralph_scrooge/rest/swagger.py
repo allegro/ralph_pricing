@@ -9,7 +9,7 @@ from django.shortcuts import render_to_response
 from django.views.generic import View
 
 
-class SwaggerView(View):
+class BootstrapSwagger(View):
 
     def get(self, request):
         return render_to_response('swagger_ui_index.html')

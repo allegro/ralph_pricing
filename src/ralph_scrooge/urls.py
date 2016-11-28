@@ -16,7 +16,7 @@ from ralph_scrooge.rest.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
-from ralph_scrooge.rest.schema import SwaggerView
+from ralph_scrooge.rest.swagger import BootstrapSwagger
 from ralph_scrooge.rest.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
@@ -68,9 +68,11 @@ urlpatterns = [
         ServiceEnvironmentCosts.as_view(),
         name='service_environment_costs',
     ),
-    # XXX BootstrapSwagger..?
-    url(r'scrooge/api/swagger/$', SwaggerView.as_view(), name='swagger_view'),
-
+    url(
+        r'scrooge/api/swagger/$',
+        BootstrapSwagger.as_view(),
+        name='swagger_view'
+    ),
 
     url(
         r'^$',
