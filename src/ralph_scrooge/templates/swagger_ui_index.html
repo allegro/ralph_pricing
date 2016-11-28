@@ -39,8 +39,9 @@
       if (url && url.length > 1) {
         url = decodeURIComponent(url[1]);
       } else {
-        // url = "http://petstore.swagger.io/v2/swagger.json";
-        url = '{% static "api_schema.yaml" %}';
+        // For development purposes, you can use 'api_schema.yaml' file
+        // here directly.
+        url = '{% static "api_schema.json" %}';
       }
 
       hljs.configure({
@@ -51,7 +52,8 @@
       if(window.SwaggerTranslator) {
         window.SwaggerTranslator.translate();
       }
-      // XXX
+
+      // Configuration for swagger-ui goes here.
       window.swaggerUi = new SwaggerUi({
         url: url,
         dom_id: "swagger-ui-container",

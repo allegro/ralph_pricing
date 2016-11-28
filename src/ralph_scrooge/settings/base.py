@@ -375,3 +375,6 @@ USAGE_TYPE_UPLOAD_FREQ_MARGINS = {
     'weekly': 2,
     'monthly': 3,
 }
+
+# Swagger/OpenAPI schema related stuff.
+API_SCHEMA_FILE = os.path.join(BASE_DIR, 'media', 'api_schema.yaml')
