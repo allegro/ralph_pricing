@@ -164,7 +164,7 @@ paths:
               - date_to
               - group_by
       responses:
-        '201':
+        '200':
           description: ''
       tags:
         - v0.10
