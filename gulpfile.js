@@ -4,7 +4,8 @@ const typescript = require('gulp-typescript');
 const tscConfig = require('./tsconfig.json');
 const sourcemaps = require('gulp-sourcemaps');
 
-const appPath = 'src/ralph_scrooge/media/scrooge/'
+const mediaPath = 'src/ralph_scrooge/media/'
+const appPath = mediaPath + 'scrooge/'
 
 
 gulp.task('clean', function () {
@@ -94,7 +95,24 @@ gulp.task("dev_libs", function() {
     .pipe(gulp.dest(appPath + "lib/"));
 });
 
+gulp.task("swagger", ['clean_swagger'], function() {
+    return gulp.src([
+        'css/**',
+        'fonts/**',
+        'images/**',
+        'lang/**',
+        'lib/**',
+        'swagger-ui.js',
+        'swagger-ui.min.js',
+        'o2c.html',
+    ], {cwd: "node_modules/swagger-ui/dist/**"}) /* Glob required here. */
+    .pipe(gulp.dest(mediaPath + "swagger/"));
+});
+
+gulp.task('clean_swagger', function () {
+  return del(mediaPath + 'swagger/**');
+});
 
 gulp.task('default', function() {
-  gulp.start('compile', 'libs');
+  gulp.start('compile', 'libs', 'swagger');
 });
