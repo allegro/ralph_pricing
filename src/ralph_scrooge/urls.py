@@ -69,7 +69,7 @@ urlpatterns = [
         name='service_environment_costs',
     ),
     url(
-        r'scrooge/api/swagger/$',
+        r'^scrooge/api/$',
         BootstrapSwagger.as_view(),
         name='swagger_view'
     ),

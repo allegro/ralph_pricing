@@ -20,6 +20,9 @@ class Command(BaseCommand):
     """Generates JSON schema file from it's YAML counterpart identified by
     `API_SCHEMA_FILE`, which is expected to be present in settings. Previous
     version of such JSON schema will be overwritten.
+
+    This command should be executed at every change of schema, as well as when
+    Scrooge is installed.
     """
 
     def handle(self, *args, **options):

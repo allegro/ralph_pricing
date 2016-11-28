@@ -13,7 +13,8 @@ info:
 schemes:
   - http
   - https
-host: localhost
+# TODO(xor-xor): Consider filling 'host' value automatically.
+host: ''
 basePath: '/scrooge/api'
 
 securityDefinitions:
