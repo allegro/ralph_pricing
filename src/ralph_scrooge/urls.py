@@ -9,6 +9,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib import admin
 from django.conf.urls import include, url
 from django.contrib.auth.decorators import login_required
+from django.views.generic import RedirectView
 from rest_framework.authtoken import views
 
 import ralph_scrooge.plugins.subscribers  # noqa: F401
@@ -71,7 +72,12 @@ urlpatterns = [
     url(
         r'^scrooge/api/$',
         BootstrapSwagger.as_view(),
-        name='swagger_view'
+        name='swagger_view_scrooge_api'
+    ),
+    url(
+        r'^api/$',
+        RedirectView.as_view(pattern_name='swagger_view_scrooge_api'),
+        name='swagger_view_api'
     ),
 
     url(
