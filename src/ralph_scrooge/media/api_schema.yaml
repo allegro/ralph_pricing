@@ -1,0 +1,318 @@
+# Although swagger-ui can consume schema given as YAML, that doesn't have to be
+# the case with other clients, so it's better to serve it as JSON, and treat this
+# file only as a source file for editing. So everytime you change anything here,
+# use Scrooge's management command `scrooge generate_json_schema` which will
+# produce JSON schema for you.
+
+swagger: '2.0'
+
+info:
+  title: Scrooge API
+  version: ''
+
+schemes:
+  - http
+  - https
+# TODO(xor-xor): Consider filling 'host' value automatically.
+host: ''
+basePath: '/scrooge/api'
+
+securityDefinitions:
+  Token:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: >-
+      should be given as e.g. "Token 84e0f8b9dbb3f23b25b52a1b6f4668170064a049"
+definitions:
+  Credentials:
+    type: object
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+        - username
+        - password
+
+  Division:
+    type: object
+    properties:
+      service_uid:
+        type: string
+      environment:
+        type: string
+      percent:
+        type: number
+    required:
+      - service_uid
+      - environment
+      - percent
+
+  Divisions:
+    type: object
+    properties:
+      division:
+        type: array
+        items:
+          $ref: "#/definitions/Division"
+
+  Usage:
+    type: object
+    properties:
+      pricing_service:
+        type: string
+      date:
+        type: string
+      overwrite:
+        type: string
+        enum:
+          - no
+          - values_only
+          - delete_all_previous
+      ignore_unknown_services:
+        type: boolean
+      usages:
+        type: array
+        items:
+          $ref: "#/definitions/SubUsage"
+    required:
+      - pricing_service
+      - date
+      - usages
+
+  SubUsage:
+    type: object
+    properties:
+      pricing_object:
+        type: string
+      service:
+        type: string
+      service_id:
+        type: string
+      service_uid:
+        type: string
+      environment:
+        type: string
+      usages:
+        type: array
+        items:
+          $ref: "#/definitions/SubSubUsage"
+    required:
+      - usages
+
+  SubSubUsage:
+    type: object
+    properties:
+      symbol:
+        type: string
+      value:
+        type: string
+      remarks:
+        type: string
+    required:
+      - symbol
+      - value
+
+paths:
+  /v0.10/service-environment-costs/:
+    post:
+      consumes:
+        - application/json
+      summary: >-
+        Fetch daily costs for given service/environment aggregated over given
+        time period
+      description: >-
+        Fetch daily costs for given service/environment aggregated over given
+        time period
+      operationId: service-environment-costs_create
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              date_from:
+                type: string
+                description: ''
+              date_to:
+                type: string
+                description: ''
+              environment:
+                type: string
+                description: ''
+              forecast:
+                type: boolean
+                description: ''
+              group_by:
+                type: string
+                description: ''
+              service_uid:
+                type: string
+                description: ''
+              types:
+                type: array
+                items:
+                  type: string
+                description: ''
+            required:
+              - service_uid
+              - environment
+              - date_from
+              - date_to
+              - group_by
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.10
+  /v0.10/usage-types/:
+    get:
+      description: Fetch all usage types
+      summary: Fetch all usage types
+      operationId: usage-types_list
+      parameters:
+        - name: page
+          in: query
+          type: string
+          required: false
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.10
+  '/v0.10/usage-types/{symbol}/':
+    get:
+      description: Fetch usage type given by 'symbol'
+      summary: Fetch usage type given by 'symbol'
+      operationId: usage-types_read
+      parameters:
+        - name: symbol
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.10
+  /v0.9/api-token-auth/:
+    post:
+      consumes:
+        - application/json
+      description: Fetch your personal API key
+      summary: Fetch your personal API key
+      operationId: api-token-auth_create
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/Credentials"
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9
+  /v0.9/pricingserviceusages/:
+    post:
+      consumes:
+        - application/json
+      description: Upload usages for given pricing service and date
+      summary: Upload usages for given pricing service and date
+      operationId: pricingserviceusages_create
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/Usage"
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9
+  '/v0.9/pricingserviceusages/{pricing_service_id}/{usages_date}/':
+    get:
+      description: Fetch previously uploaded usages for given pricing service and date
+      summary: Fetch previously uploaded usages for given pricing service and date
+      operationId: pricingserviceusages_read
+      parameters:
+        - name: pricing_service_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: usages_date
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.9
+  '/v0.9/teamtimedivision/{team_id}/{year}/{month}/':
+    post:
+      consumes:
+        - application/json
+      description: "Allocate team's working time (and therefore costs) to some services"
+      summary: "Allocate team's working time (and therefore costs) to some services"
+      operationId: teamtimedivision_create
+      parameters:
+        - name: team_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: payload
+          in: body
+          schema:
+            $ref: "#/definitions/Divisions"
+          required: true
+          description: ''
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9
+    get:
+      description: Fetch time divisions uploaded for given team and month
+      summary: Fetch time divisions uploaded for given team and month
+      operationId: teamtimedivision_read
+      parameters:
+        - name: team_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.9

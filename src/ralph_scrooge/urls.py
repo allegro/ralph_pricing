@@ -9,6 +9,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib import admin
 from django.conf.urls import include, url
 from django.contrib.auth.decorators import login_required
+from django.views.generic import RedirectView
 from rest_framework.authtoken import views
 
 import ralph_scrooge.plugins.subscribers  # noqa: F401
@@ -16,6 +17,7 @@ from ralph_scrooge.rest.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
+from ralph_scrooge.rest.swagger import BootstrapSwagger
 from ralph_scrooge.rest.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
@@ -30,6 +32,7 @@ admin.site.site_header = 'Scrooge'
 admin.site.site_title = 'Scrooge'
 
 admin.autodiscover()
+
 
 urlpatterns = [
     url(r'^scrooge/api-token-auth/', views.obtain_auth_token),
@@ -65,6 +68,16 @@ urlpatterns = [
         r'^scrooge/api/v0.10/service-environment-costs/$',
         ServiceEnvironmentCosts.as_view(),
         name='service_environment_costs',
+    ),
+    url(
+        r'^scrooge/api/$',
+        BootstrapSwagger.as_view(),
+        name='swagger_view_scrooge_api'
+    ),
+    url(
+        r'^api/$',
+        RedirectView.as_view(pattern_name='swagger_view_scrooge_api'),
+        name='swagger_view_api'
     ),
 
     url(
