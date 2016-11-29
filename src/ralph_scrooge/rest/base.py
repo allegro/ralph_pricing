@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ralph_scrooge.models import (
+    Service,
     ServiceEnvironment,
     Team,
 )
@@ -96,3 +97,13 @@ class LeftMenuAPIView(APIView):
         results['menuStats'] = menuStats
         results['dates'] = dates
         return Response(results)
+
+
+class SymbolToIdAPIView(APIView):
+    def get(self, request, symbol, *args, **kwargs):
+        try:
+            service = Service.objects.get(symbol='sc-{}'.format(symbol))
+        except Service.DoesNotExist:
+            return Response({}, status=404)
+        else:
+            return Response({'id': service.id})

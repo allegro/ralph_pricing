@@ -109,7 +109,7 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
          */
         init: function() {
             var self = this;
-            $http({method: 'GET', url: '/scrooge/rest/leftmenu/components/'}).
+            this.init_promise = $http({method: 'GET', url: '/scrooge/rest/leftmenu/components/'}).
                 success(function(data) {
                     Object.keys(data['menuStats']).forEach(function (key){
                         self.menuStats[key] = data['menuStats'][key];
@@ -502,4 +502,9 @@ scrooge.factory('stats', ['$http', '$q', '$routeParams', '$location', 'STATIC_UR
             }
         }
     };
+}]);
+
+
+scrooge.factory('SymbolServiceResolver', ['$resource', function($resource) {
+    return $resource('/scrooge/rest/symbol_to_id/sc-:id', null);
 }]);

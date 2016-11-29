@@ -1,4 +1,4 @@
-from ralph_scrooge.rest.base import LeftMenuAPIView
+from ralph_scrooge.rest.base import LeftMenuAPIView, SymbolToIdAPIView
 from ralph_scrooge.rest.components import ComponentsContent
 from ralph_scrooge.rest.allocationadmin import (
     AllocationAdminContent,
@@ -32,6 +32,7 @@ __all__ = [
     'ObjectCostsContent',
     'PricingServiceUsages',
     'ServicesCostsReportContent',
+    'SymbolToIdAPIView',
     'UsagesReportContent',
     'UsageTypesViewSet',
     'MonthlyCosts'
