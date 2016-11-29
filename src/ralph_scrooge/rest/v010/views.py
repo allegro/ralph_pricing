@@ -11,7 +11,7 @@ from ralph_scrooge.models import UsageType
 from ralph_scrooge.rest.v010.serializers import UsageTypeSerializer
 
 
-class UsageTypesViewSet(viewsets.ModelViewSet):
+class UsageTypesViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = UsageTypeSerializer
     queryset = UsageType.objects.all().order_by('name').prefetch_related(
