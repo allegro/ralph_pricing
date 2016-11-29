@@ -12,14 +12,15 @@ from django.contrib.auth.decorators import login_required
 from ralph_scrooge.rest import (
     AcceptMonthlyCosts,
     AllocationAdminContent,
-    AllocationClientService,
     AllocationClientPerTeam,
-    CostCardContent,
+    AllocationClientService,
     ComponentsContent,
+    CostCardContent,
     LeftMenuAPIView,
-    ObjectCostsContent,
     MonthlyCosts,
+    ObjectCostsContent,
     ServicesCostsReportContent,
+    SymbolToIdAPIView,
     UsagesReportContent,
 )
 from ralph_scrooge.rest.router import urlpatterns as router_urlpatterns
@@ -107,5 +108,10 @@ urlpatterns = [
         r'^services_costs_report/?$',
         superuser_permission(ServicesCostsReportContent.as_view()),
         name='services_costs_report_rest'
+    ),
+    url(
+        r'^symbol_to_id/sc-(?P<symbol>\d+)?$',
+        login_required(SymbolToIdAPIView.as_view()),
+        name='symbol_to_id'
     ),
 ]
