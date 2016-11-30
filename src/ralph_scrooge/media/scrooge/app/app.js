@@ -61,6 +61,10 @@ app.config(['$routeProvider', '$httpProvider', 'STATIC_URL',
                 templateUrl: '/static/scrooge/partials/allocationadmin.html',
                 controller: 'allocationAdminCtrl',
             })
+            .when('/costcard', {
+                templateUrl: STATIC_URL + 'scrooge/partials/costcard.html',
+                controller: 'costCardCtrl',
+            })
             .when('/costcard/sc-:uid', {
                 templateUrl: STATIC_URL + 'scrooge/partials/costcard.html',
                 controller: 'costCardCtrl',
