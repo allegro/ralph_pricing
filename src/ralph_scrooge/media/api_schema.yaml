@@ -24,6 +24,7 @@ securityDefinitions:
     in: header
     description: >-
       should be given as e.g. "Token 84e0f8b9dbb3f23b25b52a1b6f4668170064a049"
+
 definitions:
   Credentials:
     type: object
@@ -115,7 +116,129 @@ definitions:
       - symbol
       - value
 
+
+# The presence of YAML anchors/references in 'paths' section comes from the fact
+# that OpenAPI doesn't allow aliasing of paths (yet) - for details, see:
+# https://github.com/OAI/OpenAPI-Specification/issues/213
+
 paths:
+  /v0.9/api-token-auth/:
+    post: &API-TOKEN-AUTH-POST
+      consumes:
+        - application/json
+      description: Fetch your personal API key
+      summary: Fetch your personal API key
+      operationId: api-token-auth_create
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/Credentials"
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.9
+  /v0.9/pricingserviceusages/:
+    post: &PRICING-SERVICE-USAGES-POST
+      consumes:
+        - application/json
+      description: Upload usages for given pricing service and date
+      summary: Upload usages for given pricing service and date
+      operationId: pricingserviceusages_create
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/Usage"
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9
+  '/v0.9/pricingserviceusages/{pricing_service_id}/{usages_date}/':
+    get: &PRICING-SERVICE-USAGES-GET
+      description: Fetch previously uploaded usages for given pricing service and date
+      summary: Fetch previously uploaded usages for given pricing service and date
+      operationId: pricingserviceusages_read
+      parameters:
+        - name: pricing_service_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: usages_date
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.9
+  '/v0.9/teamtimedivision/{team_id}/{year}/{month}/':
+    post: &TEAM-TIME-DIVISION-POST
+      consumes:
+        - application/json
+      description: "Allocate team's working time (and therefore costs) to some services"
+      summary: "Allocate team's working time (and therefore costs) to some services"
+      operationId: teamtimedivision_create
+      parameters:
+        - name: team_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: payload
+          in: body
+          schema:
+            $ref: "#/definitions/Divisions"
+          required: true
+          description: ''
+      responses:
+        '201':
+          description: ''
+      tags:
+        - v0.9
+    get: &TEAM-TIME-DIVISION-GET
+      description: Fetch time divisions uploaded for given team and month
+      summary: Fetch time divisions uploaded for given team and month
+      operationId: teamtimedivision_read
+      parameters:
+        - name: team_id
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: year
+          in: path
+          type: string
+          required: true
+          description: ''
+        - name: month
+          in: path
+          type: string
+          required: true
+          description: ''
+      responses:
+        '200':
+          description: ''
+      tags:
+        - v0.9
+
   /v0.10/service-environment-costs/:
     post:
       consumes:
@@ -200,119 +323,32 @@ paths:
           description: ''
       tags:
         - v0.10
-  /v0.9/api-token-auth/:
+  /v0.10/api-token-auth/:
     post:
-      consumes:
-        - application/json
-      description: Fetch your personal API key
-      summary: Fetch your personal API key
-      operationId: api-token-auth_create
-      parameters:
-        - name: payload
-          in: body
-          required: true
-          schema:
-            $ref: "#/definitions/Credentials"
-      responses:
-        '201':
-          description: ''
+      <<: *API-TOKEN-AUTH-POST
+      operationId: api-token-auth_v10_create
       tags:
-        - v0.9
-  /v0.9/pricingserviceusages/:
+        - v0.10
+  /v0.10/pricing-service-usages/:
     post:
-      consumes:
-        - application/json
-      description: Upload usages for given pricing service and date
-      summary: Upload usages for given pricing service and date
-      operationId: pricingserviceusages_create
-      parameters:
-        - name: payload
-          in: body
-          required: true
-          schema:
-            $ref: "#/definitions/Usage"
-      responses:
-        '201':
-          description: ''
+      <<: *PRICING-SERVICE-USAGES-POST
+      operationId: pricingserviceusages_v10_create
       tags:
-        - v0.9
-  '/v0.9/pricingserviceusages/{pricing_service_id}/{usages_date}/':
+        - v0.10
+  '/v0.10/pricing-service-usages/{pricing_service_id}/{usages_date}/':
     get:
-      description: Fetch previously uploaded usages for given pricing service and date
-      summary: Fetch previously uploaded usages for given pricing service and date
-      operationId: pricingserviceusages_read
-      parameters:
-        - name: pricing_service_id
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: usages_date
-          in: path
-          type: string
-          required: true
-          description: ''
-      responses:
-        '200':
-          description: ''
+      <<: *PRICING-SERVICE-USAGES-GET
+      operationId: pricingserviceusages_v10_read
       tags:
-        - v0.9
-  '/v0.9/teamtimedivision/{team_id}/{year}/{month}/':
+        - v0.10
+  '/v0.10/team-time-division/{team_id}/{year}/{month}/':
     post:
-      consumes:
-        - application/json
-      description: "Allocate team's working time (and therefore costs) to some services"
-      summary: "Allocate team's working time (and therefore costs) to some services"
-      operationId: teamtimedivision_create
-      parameters:
-        - name: team_id
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: year
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: month
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: payload
-          in: body
-          schema:
-            $ref: "#/definitions/Divisions"
-          required: true
-          description: ''
-      responses:
-        '201':
-          description: ''
+      <<: *TEAM-TIME-DIVISION-POST
+      operationId: teamtimedivision_v10_create
       tags:
-        - v0.9
+        - v0.10
     get:
-      description: Fetch time divisions uploaded for given team and month
-      summary: Fetch time divisions uploaded for given team and month
-      operationId: teamtimedivision_read
-      parameters:
-        - name: team_id
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: year
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: month
-          in: path
-          type: string
-          required: true
-          description: ''
-      responses:
-        '200':
-          description: ''
+      <<: *TEAM-TIME-DIVISION-GET
+      operationId: teamtimedivision_v10_read
       tags:
-        - v0.9
+        - v0.10
