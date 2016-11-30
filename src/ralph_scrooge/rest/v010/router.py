@@ -9,7 +9,7 @@ from rest_framework import routers
 from ralph_scrooge.rest.v010.views import UsageTypesViewSet
 
 
-router = routers.DefaultRouter()
+router = routers.SimpleRouter()
 
 router.register(r'usage-types', UsageTypesViewSet)
 urlpatterns = router.urls

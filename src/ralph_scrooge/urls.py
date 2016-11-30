@@ -21,7 +21,7 @@ from ralph_scrooge.rest.swagger import BootstrapSwagger
 from ralph_scrooge.rest.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
-from ralph_scrooge.rest.v010.router import urlpatterns as router_v010_urlpatterns  # noqa
+from ralph_scrooge.rest.v010.router import urlpatterns as router_v010_urlpatterns  # noqa: E501
 from ralph_scrooge.rest.team_time_division import TeamTimeDivision
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
@@ -35,31 +35,21 @@ admin.autodiscover()
 
 
 urlpatterns = [
-    url(r'^scrooge/api-token-auth/', views.obtain_auth_token),
-    # Internal REST API, that should be used only for GUI.
-    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
+    # Public REST API ---------------------------------------------------------
 
-    # Public REST API.
-    # TODO(xor-xor): Create proper dir/file structure for API-related modules
-    # (i.e., separate public from private, separate dir for v0.9 etc.
-    url(r'^scrooge/api/v0.9/api-token-auth/', views.obtain_auth_token),
+    # Swagger
     url(
-        r'^scrooge/api/v0.9/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa
-        TeamTimeDivision.as_view(),
-        name='team_time_division',
+        r'^scrooge/api/$',
+        BootstrapSwagger.as_view(),
+        name='swagger_view_scrooge_api',
     ),
     url(
-        r'^scrooge/api/v0.9/pricingserviceusages/?$',
-        create_pricing_service_usages,
-        name='create_pricing_service_usages'
-    ),
-    url(
-        r'^scrooge/api/v0.9/pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa
-        list_pricing_service_usages,
-        name='list_pricing_service_usages'
+        r'^api/$',
+        RedirectView.as_view(pattern_name='swagger_view_scrooge_api'),
+        name='swagger_view_api',
     ),
 
-    # Public REST API, v0.10
+    # v0.10
     url(
         r'^scrooge/api/v0.10/',
         include(router_v010_urlpatterns, namespace='v010'),
@@ -70,16 +60,51 @@ urlpatterns = [
         name='service_environment_costs',
     ),
     url(
-        r'^scrooge/api/$',
-        BootstrapSwagger.as_view(),
-        name='swagger_view_scrooge_api'
+        r'^scrooge/api/v0.10/api-token-auth/',
+        views.obtain_auth_token,
     ),
     url(
-        r'^api/$',
-        RedirectView.as_view(pattern_name='swagger_view_scrooge_api'),
-        name='swagger_view_api'
+        r'^scrooge/api/v0.10/team-time-division/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa: E501
+        TeamTimeDivision.as_view(),
+        name='team_time_division_v10',
+    ),
+    url(
+        r'^scrooge/api/v0.10/pricing-service-usages/?$',
+        create_pricing_service_usages,
+        name='create_pricing_service_usages_v10',
+    ),
+    url(
+        r'^scrooge/api/v0.10/pricing-service-usages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa: E501
+        list_pricing_service_usages,
+        name='list_pricing_service_usages_v10',
     ),
 
+    # v0.9 (endpoints in this hierarchy should be considered as deprecated)
+    url(
+        r'^scrooge/api/v0.9/api-token-auth/',
+        views.obtain_auth_token,
+    ),
+    url(
+        r'^scrooge/api/v0.9/teamtimedivision/(?P<team_id>\d+)/(?P<year>\d+)/(?P<month>\d+)/?$',  # noqa: E501
+        TeamTimeDivision.as_view(),
+        name='team_time_division',
+    ),
+    url(
+        r'^scrooge/api/v0.9/pricingserviceusages/?$',
+        create_pricing_service_usages,
+        name='create_pricing_service_usages',
+    ),
+    url(
+        r'^scrooge/api/v0.9/pricingserviceusages/(?P<pricing_service_id>\d+)/(?P<usages_date>\d{4}-\d{2}-\d{2})/$',  # noqa: E501
+        list_pricing_service_usages,
+        name='list_pricing_service_usages',
+    ),
+
+    # Internal REST API for GUI -----------------------------------------------
+    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
+
+
+    # All the rest ------------------------------------------------------------
     url(
         r'^$',
         login_required(BootstrapAngular.as_view()),
@@ -91,7 +116,7 @@ urlpatterns = [
         name='angular2',
     ),
     url(
-        r'^login/', auth_views.login, {'template_name': 'admin/login.html'}  # noqa
+        r'^login/', auth_views.login, {'template_name': 'admin/login.html'}
     ),
     url(r'^logout/', auth_views.logout, name='logout'),
     url(r'^admin/', include(admin.site.urls)),

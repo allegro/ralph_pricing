@@ -39,8 +39,9 @@
       if (url && url.length > 1) {
         url = decodeURIComponent(url[1]);
       } else {
-        // For development purposes, you can use 'api_schema.yaml' file
-        // here directly.
+        // In order to produce/update `api_schema.json` file, you need to run
+        // `scrooge generate_json_schema` management command, but for development
+        // purposes, you can use `api_schema.yaml` file here directly.
         url = '{% static "api_schema.json" %}';
       }
 
@@ -57,6 +58,28 @@
       window.swaggerUi = new SwaggerUi({
         url: url,
         dom_id: "swagger-ui-container",
+        authorizations: {
+          // as per: https://gist.github.com/ponelat/b5ff602aa56d80f7b614
+          csrfToken: function() {
+            var token;
+            if (this.method.toUpperCase() !== 'GET') {
+              token = function getCookie(name) {
+                var result = [],
+                    elems = document.cookie.split(";");
+                name = RegExp("^\\s*" + name + "=\\s*(.*?)\\s*$");
+                for (var i = 0; i < elems.length; i++) {
+                  var tmp = elems[i].match(name);
+                  tmp && result.push(tmp[1]);
+                };
+                return result[0]
+              }("csrftoken");
+              if (token) {
+                this.headers['X-CSRFToken'] = token;
+                return true
+              }
+            }
+          }
+        },
         supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
         onComplete: function(swaggerApi, swaggerUi){
           if(typeof initOAuth == "function") {
