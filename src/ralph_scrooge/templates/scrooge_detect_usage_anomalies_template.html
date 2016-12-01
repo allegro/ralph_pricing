@@ -6,34 +6,27 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <style type="text/css">
-      table {
-        border: 1px solid black;
-        border-collapse: collapse;
-      }
-      th, td {
-        border: 1px solid black;
-        padding: 5px;
-      }
-      .value-cell {
-        text-align: right;
-      }
-    </style>
   </head>
   <body>
     <p>Hi {{ recipient.first_name }} {{recipient.last_name }},</p>
 
-    <p>We have detected anomalies in your usages - see below for the details. Please fix them ASAP.</p>
+    <p>We have detected anomalies in your usages - see below for the details.
+    Please fix them ASAP.</p>
 
     {% if missing_values %}
     <p>Missing usage type values for the following days:</p>
 
-    <table border="1">
-      <tr><th>Date</th><th>Usage type(s)</th></tr>
+    <table style="border: 1px solid black; border-collapse: collapse">
+      <tr>
+        <th style="border: 1px solid black; padding: 5px">Date</th>
+        <th style="border: 1px solid black; padding: 5px">Usage type(s)</th>
+      </tr>
       {% for date_, usage_types in missing_values.items %}
       <tr>
-        <td>{{ date_|date:"Y-m-d" }}</td>
-        <td>{{ usage_types|sort|joinby:", " }}</td>
+        <td style="border: 1px solid black; padding: 5px">{{ date_|date:"Y-m-d" }}</td>
+        <td style="border: 1px solid black; padding: 5px">
+          {{ usage_types|sort|joinby:", " }}
+        </td>
       </tr>
       {% endfor %}
     </table>
@@ -43,28 +36,37 @@
     {% if unusual_changes %}
     <p>Unusually big changes in values between the following days:</p>
 
-    <table>
+    <table style="border: 1px solid black; border-collapse: collapse">
       <tr>
-        <th>Date 1</th>
-        <th>Date 2</th>
-        <th>Usage type</th>
-        <th>Value 1</th>
-        <th>Value 2</th>
-        <th>Relative Change (%)</th>
+        <th style="border: 1px solid black; padding: 5px">Date 1</th>
+        <th style="border: 1px solid black; padding: 5px">Date 2</th>
+        <th style="border: 1px solid black; padding: 5px">Usage type</th>
+        <th style="border: 1px solid black; padding: 5px">Value 1</th>
+        <th style="border: 1px solid black; padding: 5px">Value 2</th>
+        <th style="border: 1px solid black; padding: 5px">Relative Change (%)</th>
       </tr>
       {% for ch in unusual_changes %}
       <tr>
-        <td>{{ ch.0|date:"Y-m-d" }}</td>
-        <td>{{ ch.1|date:"Y-m-d" }}</td>
-        <td>{{ ch.2.name }}</td>
-        <td class="value-cell">{{ ch.3|floatformat:2 }}</td>
-        <td class="value-cell">{{ ch.4|floatformat:2 }}</td>
-        <td class="value-cell">{{ ch.5|percentage:"dec=2&sign=true" }}</td>
+        <td style="border: 1px solid black; padding: 5px">{{ ch.0|date:"Y-m-d" }}</td>
+        <td style="border: 1px solid black; padding: 5px">{{ ch.1|date:"Y-m-d" }}</td>
+        <td style="border: 1px solid black; padding: 5px">{{ ch.2.name }}</td>
+        <td style="border: 1px solid black; padding: 5px; text-align: right">
+          {{ ch.3|floatformat:2 }}
+        </td>
+        <td style="border: 1px solid black; padding: 5px; text-align: right">
+          {{ ch.4|floatformat:2 }}
+        </td>
+        <td style="border: 1px solid black; padding: 5px; text-align: right">
+          {{ ch.5|percentage:"dec=2&sign=true" }}
+        </td>
       </tr>
       {% endfor %}
     </table>
 
-    <p>In case you'd find any false positives in the table above, you may request change of the "Change Tolerance" param in Scrooge's admin panel (requires admin privileges).</p>
+    <p>In case you'd find any false positives in the table above, you may
+    request change of the "Change Tolerance" param in Scrooge's admin panel
+    (requires admin privileges).</p>
+
     {% endif %}
 
     <p>Regards,<br>Scrooge Team</p>
