@@ -319,10 +319,65 @@ def _round_recursive(usages_and_costs):
     return rounded
 
 
-def fetch_costs(
-    service_env, types, date_from, date_to, group_by, forecast=False
-):
-    """XXX add docstring here
+def fetch_costs(service_env, types, date_from, date_to, group_by, forecast=False):  # noqa: E501
+    """Fetch DailyCosts associated with given `service_env` and `types`,
+    in range defined by `date_from` and `date_to`, and summarize them (i.e.
+    their `value` and `cost` fields) per period given by `group_by` (e.g.
+    "day" or "month").
+
+    The result of such single summarization looks like this:
+
+        {
+            "grouped_date": datetime.date(2016, 10, 1)
+            "total_cost": 1400.00,
+            "costs": {
+                "some_type1": {
+                    "cost": 50.00,
+                    "usage_value": 10.00,
+                    "subcosts": {}
+                },
+                "some_type2": {
+                    "cost": 300.0,
+                    "usage_value": 0.0
+                    "subcosts": {
+                        # we assume that only one level of nesting is possible
+                        # here (i.e., that there are no sub-subcosts)
+                        "some_type3": {
+                            "cost": 100.00,
+                            "usage_value": 10.00
+                        },
+                        "some_type4": {
+                            "cost": 200.00,
+                            "usage_value": 20.10
+                        }
+                    }
+                }
+                ...
+            }
+        }
+
+    Such results are collected into a list, and that list is wrapped
+    into a dict, under the `service-environment-costs` key - and that
+    dict is returned as a final result:
+
+    {
+        "service_environment_costs":
+        [
+            { <summarization for day/month 1> },
+            { <summarization for day/month 2> },
+            ...
+        ]
+    }
+
+    And while the aforementioned costs are summarized only for selected usage
+    types, the value in `total_cost` field contains sum of costs associated
+    with *all* usage types for a given service environment / date range
+    combination - so if there are no such "other" costs, this value should be
+    equal to the sum of `cost` fields above.
+
+    It is also worth mentioning, that precision of fields `total_cost`, `cost`
+    and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
+    `USAGE_VALUE_NUM_DIGITS` defined in this module.
     """
     initial_qs = DailyCost.objects_tree.filter(
         date__gte=date_from,
@@ -516,9 +571,9 @@ def _filter_by_types(cost_trees, types):
 #     The result of such single summarization looks like this:
 
 #         {
-#             "grouped_date": "2016-10",  # or "2016-10-01" when group by day
+#             "grouped_date": datetime.date(2016, 10, 1)
 #             "total_cost": 1400.00,
-#             "usages": {
+#             "costs": {
 #                 "some_type1": {
 #                     "cost": 50.00,
 #                     "usage_value": 10.00,
