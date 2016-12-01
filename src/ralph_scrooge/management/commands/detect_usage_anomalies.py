@@ -360,7 +360,7 @@ def _sort_unusual_changes_by_date_and_type(anomalies):
     ]
 
     ...and finally sort this list by it's first three elements, in that
-    priority (i.e. by 1st date, then by 2nd date and finally by UsageType name.
+    priority (i.e. by 1st date, then by UsageType name.
 
     `missing_values` subdict remains unmodified.
     """
@@ -371,10 +371,12 @@ def _sort_unusual_changes_by_date_and_type(anomalies):
         changes_ = []
         for ut, ch in changes.items():
             for ch_ in ch:
+                # Insert usage type into 3rd position of 5-elem "change"
+                # tuple.
                 t = (ch_[0], ch_[1], ut, ch_[2], ch_[3], ch_[4])
                 changes_.append(t)
-        # Key used here will be like: "2016-10-06:2016-10-07:Sample UsageType"
-        changes_.sort(key=lambda c: "{}:{}:{}".format(c[0], c[1], c[2]))
+        # Key used here will be like: "2016-10-06:Sample UsageType"
+        changes_.sort(key=lambda c: "{}:{}".format(c[0], c[2].name))
         ret[owner]['unusual_changes'] = changes_
     return ret
 
