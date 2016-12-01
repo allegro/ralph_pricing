@@ -1,5 +1,6 @@
 {% load joinby %}
 {% load percentage %}
+{% load sort %}
 
 {% spaceless %}
 <html>
@@ -32,7 +33,7 @@
       {% for date_, usage_types in missing_values.items %}
       <tr>
         <td>{{ date_|date:"Y-m-d" }}</td>
-        <td>{{ usage_types|joinby:", " }}</td>
+        <td>{{ usage_types|sort|joinby:", " }}</td>
       </tr>
       {% endfor %}
     </table>
@@ -44,28 +45,26 @@
 
     <table>
       <tr>
-        <th>Usage type</th>
         <th>Date 1</th>
         <th>Date 2</th>
+        <th>Usage type</th>
         <th>Value 1</th>
         <th>Value 2</th>
         <th>Relative Change (%)</th>
       </tr>
-      {% for ut, v in unusual_changes.items %}
-      {% for vv in v %}
+      {% for ch in unusual_changes %}
       <tr>
-        <td>{{ ut.name }}</td>
-        <td>{{ vv.0|date:"Y-m-d" }}</td>
-        <td>{{ vv.1|date:"Y-m-d" }}</td>
-        <td class="value-cell">{{ vv.2|floatformat:2 }}</td>
-        <td class="value-cell">{{ vv.3|floatformat:2 }}</td>
-        <td class="value-cell">{{ vv.4|percentage:"dec=2&sign=true" }}</td>
+        <td>{{ ch.0|date:"Y-m-d" }}</td>
+        <td>{{ ch.1|date:"Y-m-d" }}</td>
+        <td>{{ ch.2.name }}</td>
+        <td class="value-cell">{{ ch.3|floatformat:2 }}</td>
+        <td class="value-cell">{{ ch.4|floatformat:2 }}</td>
+        <td class="value-cell">{{ ch.5|percentage:"dec=2&sign=true" }}</td>
       </tr>
-      {% endfor %}
       {% endfor %}
     </table>
 
-    <p>(if you find any false positives in the table above, you may want to change the "Change Tolerance" param in Scrooge's <a href="{{ site_url }}{% url 'admin:index' %}">admin panel</a>)</p>
+    <p>In case you'd find any false positives in the table above, you may request change of the "Change Tolerance" param in Scrooge's admin panel (requires admin privileges).</p>
     {% endif %}
 
     <p>Regards,<br>Scrooge Team</p>

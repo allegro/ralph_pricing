@@ -191,7 +191,7 @@ def _detect_unusual_changes(usage_values, end_date):
     """
 
     def get_relative_change(val1, val2):
-        ch = (val2 - val1) / val1
+        ch = (val2 - val1) / val1 if val1 else 0
         return round(ch, 2)
 
     def group_by_type(changes):
@@ -240,7 +240,8 @@ def _postprocess_for_report(usage_types, missing_values, unusual_changes):
     """
     anomalies_ = _merge_by_type(usage_types, missing_values, unusual_changes)
     anomalies__ = _group_anomalies_by_owner(anomalies_)
-    return anomalies__
+    anomalies___ = _sort_unusual_changes_by_date_and_type(anomalies__)
+    return anomalies___
 
 
 def _merge_by_type(usage_types, missing_values, unusual_changes_by_type):
@@ -301,7 +302,7 @@ def _group_anomalies_by_owner(anomalies):
 
     def group_missing_values_by_date(usage_type, missing_values):
         ret = defaultdict(set)
-        for date in missing_values:
+        for date in (missing_values or []):
             ret[date].add(usage_type)
         return ret
 
@@ -336,6 +337,45 @@ def _group_anomalies_by_owner(anomalies):
             sorted(ret[owner]['missing_values'].items())
         )
         ret[owner]['missing_values'] = d
+    return ret
+
+
+def _sort_unusual_changes_by_date_and_type(anomalies):
+    """Transform each `unusual_changes` subdict in `anomalies` which has the
+    following shape:
+
+    {
+        <UsageType>: [
+            (datetime.date, datetime.date, float, float, float),
+            ...
+        ],
+        ...
+    }
+
+    ...into this structure (a list of tuples):
+
+    [
+        (datetime.date, datetime.date, UsageType, float, float, float),
+        ...
+    ]
+
+    ...and finally sort this list by it's first three elements, in that
+    priority (i.e. by 1st date, then by 2nd date and finally by UsageType name.
+
+    `missing_values` subdict remains unmodified.
+    """
+    ret = defaultdict(lambda: {'missing_values': {}, 'unusual_changes': {}})
+    for owner in anomalies.keys():
+        ret[owner]['missing_values'] = anomalies[owner]['missing_values']
+        changes = anomalies[owner]['unusual_changes']
+        changes_ = []
+        for ut, ch in changes.items():
+            for ch_ in ch:
+                t = (ch_[0], ch_[1], ut, ch_[2], ch_[3], ch_[4])
+                changes_.append(t)
+        # Key used here will be like: "2016-10-06:2016-10-07:Sample UsageType"
+        changes_.sort(key=lambda c: "{}:{}:{}".format(c[0], c[1], c[2]))
+        ret[owner]['unusual_changes'] = changes_
     return ret
 
 
@@ -383,6 +423,9 @@ def _send_notifications(anomalies):
             'recipient': recipient,
             'unusual_changes': anomalies_['unusual_changes'],
             'missing_values': anomalies_['missing_values'],
+            # TODO(xor-xor): 'site_url' is probably not needed anymore, but I'm
+            # leaving it here (along with BASE_MAIL_URL setting) in case of
+            # some change, as these notifications feature is still quite fresh.
             'site_url': settings.BASE_MAIL_URL,
         }
         body = render_to_string(template_name, context)
@@ -405,15 +448,14 @@ def pprint_anomalies(anomalies):
                 )
         unusual_changes = anomalies_['unusual_changes']
         if unusual_changes is not None:
-            for ut, vals in unusual_changes.items():
-                print('\nUnusual changes for {}:'.format(ut.symbol))
-                for v in vals:
-                    # TODO(xor-xor): Determine width for 3rd and 4th columns
-                    # dynamically here.
-                    print(
-                        "{} | {} | {: >16.2f} | {: >16.2f} | {: >+8.2%}"
-                        .format(*v)
-                    )
+            print('\nUnusual changes for days:')
+            for ch in unusual_changes:
+                # TODO(xor-xor): Determine width for 3rd and 4th columns
+                # dynamically here.
+                print(
+                    "{} | {} | {} | {: >14.2f} | {: >14.2f} | {: >+8.2%}"
+                    .format(*ch)
+                )
 
 
 class Command(BaseCommand):
