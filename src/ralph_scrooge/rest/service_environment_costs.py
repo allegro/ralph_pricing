@@ -179,7 +179,8 @@ def _get_total_costs(qs, date_selector):
     "month"), in queryset given as `qs`.
 
     Please note that "other" costs (i.e. not associated with those that are
-    selected with `type` field in HTTP request).
+    selected explicitly via `type` field in HTTP request) are also taken into
+    account here (hence name "total costs")!
     """
     total_costs = {}
     results = qs.filter(depth=0).values(date_selector).annotate(
