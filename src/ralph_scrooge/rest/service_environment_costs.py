@@ -9,7 +9,6 @@ import datetime
 from copy import deepcopy
 
 from dateutil.relativedelta import relativedelta
-from django.db import connection
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from rest_framework import serializers
@@ -175,40 +174,19 @@ def round_safe(value, precision):
     return round(value, precision)
 
 
-# XXX no date_trunc_sql / extra?
-# TODO(xor-xor): Check if it's still needed once we decide which version of
-# `fetch_costs` will stay (see the docstring in `fetch_costs_alt`).
-def _get_truncated_date(date_):
-    """This function is just a workaround for sqlite, where
-    `date_trunc_sql` has slightly different result than on e.g. MySQL
-    (returned date is a string, not a datetime object).
-    Considering that `date_trunc_sql` has been replaced with
-    functions like TruncMonth in Django 1.10, this workaround should
-    be considered as temporary.
-    """
-    if isinstance(date_, datetime.date):
-        return date_
-    try:
-        d = date_.date()
-    except AttributeError:
-        d = datetime.datetime.strptime(date_, '%Y-%m-%d %H:%M:%S').date()
-    return d
-
-
-def _get_total_costs(qs, selector):
-    """Sums `cost` fields by time period given as `selector` (i.e. "day",
+def _get_total_costs(qs, date_selector):
+    """Sums `cost` fields by time period given as `date_selector` (i.e. "day",
     "month"), in queryset given as `qs`.
 
     Please note that "other" costs (i.e. not associated with those that are
     selected with `type` field in HTTP request).
     """
     total_costs = {}
-    results = qs.filter(depth=0).values(selector).annotate(
+    results = qs.filter(depth=0).values(date_selector).annotate(
         Sum('cost')
-    ).order_by(selector)
+    ).order_by(date_selector)
     for r in results:
-        d = _get_truncated_date(r[selector])
-        total_costs[d] = r['cost__sum']
+        total_costs[r[date_selector]] = r['cost__sum']
     return total_costs
 
 
@@ -288,6 +266,9 @@ def fetch_costs(service_env, types, date_from, date_to, group_by, forecast=False
     combination - so if there are no such "other" costs, this value should be
     equal to the sum of `cost` fields above.
 
+    The `forecast` param, when set to True will cause fetching of costs which
+    were saved as "forecasted" (in contrast to "normal" ones).
+
     It is also worth mentioning, that precision of fields `total_cost`, `cost`
     and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
     `USAGE_VALUE_NUM_DIGITS` defined in this module.
@@ -358,13 +339,13 @@ def fetch_costs(service_env, types, date_from, date_to, group_by, forecast=False
     return final_result
 
 
-def _create_trees(aggregated_costs, selector):
+def _create_trees(aggregated_costs, date_selector):
     """From `aggregated_costs`, where each record (`ac`) has the following
     (flat) structure:
 
-    date (as `date` or `month` - depending on `selector`, which may be "day"
-        or "month" - in the former case it will be `date`, and `month` in the
-        latter), e.g. datetime.datetime(2016, 10, 7, 0, 0)
+    date (as `date` or `month` - depending on `date_selector`, which may be
+        "day" or "month" - in the former case it will be `date`, and `month`
+        in the latter), e.g. datetime.datetime(2016, 10, 7, 0, 0)
     path (as `path`), e.g. '484/483'
     base usage type symbol (as `type__symbol`), e.g. 'subtype2'
     cost (as `cost_sum`), e.g. Decimal('222.00')
@@ -400,7 +381,7 @@ def _create_trees(aggregated_costs, selector):
     # We need to process all parent costs before processing any subcosts -
     # hence order by `depth` here.
     for ac in aggregated_costs.order_by('depth'):
-        date_ = _get_truncated_date(ac[selector])
+        date_ = ac[date_selector]
         d = {
             ac['path']: {
                 # `_type_symbol` is just a temporary key, that is removed later
