@@ -25,7 +25,9 @@ from ralph_scrooge.models import (
     UsageTypeUploadFreq,
 )
 # TODO(xor-xor): Consider moving `date_range` to some utils module.
-from ralph_scrooge.rest_api.public.service_environment_costs import date_range
+from ralph_scrooge.rest_api.public.v0_10.service_environment_costs import (
+    date_range,
+)
 
 
 class UnknownUsageTypeUploadFreqError(Exception):
