@@ -26,6 +26,6 @@ class UsageTypeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'symbol', 'usage_price', 'url']
         extra_kwargs = {
             'url': {
-                'view_name': 'v010:usagetype-detail', 'lookup_field': 'symbol'
+                'view_name': 'v0_10:usagetype-detail', 'lookup_field': 'symbol'
             }
         }

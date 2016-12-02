@@ -21,7 +21,9 @@ from ralph_scrooge.rest_api.public.swagger import BootstrapSwagger
 from ralph_scrooge.rest_api.public.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
-from ralph_scrooge.rest_api.public.v010.router import urlpatterns as router_v010_urlpatterns  # noqa: E501
+from ralph_scrooge.rest_api.public.v0_10.router import (
+    urlpatterns as router_v0_10_urlpatterns,
+)
 from ralph_scrooge.rest_api.public.team_time_division import TeamTimeDivision
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
@@ -52,7 +54,7 @@ urlpatterns = [
     # v0.10
     url(
         r'^scrooge/api/v0.10/',
-        include(router_v010_urlpatterns, namespace='v010'),
+        include(router_v0_10_urlpatterns, namespace='v0_10'),
     ),
     url(
         r'^scrooge/api/v0.10/service-environment-costs/$',

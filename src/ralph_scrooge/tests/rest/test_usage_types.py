@@ -27,7 +27,7 @@ class TestUsageTypesAPI(ScroogeTestCase):
         UsageTypeFactory.create_batch(10)
 
     def test_get_usage_types(self):
-        url = reverse('v010:usagetype-list')
+        url = reverse('v0_10:usagetype-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()), 10)
@@ -35,7 +35,7 @@ class TestUsageTypesAPI(ScroogeTestCase):
     def test_get_usage_type_by_symbol(self):
         UsageTypeFactory(symbol='symbol.1')
         response = self.client.get(
-            reverse('v010:usagetype-detail', args=['symbol.1'])
+            reverse('v0_10:usagetype-detail', args=['symbol.1'])
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_json = response.json()
