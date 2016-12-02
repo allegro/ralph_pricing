@@ -17,7 +17,7 @@ from ralph_scrooge.models import ServiceOwnership, TeamManager
 
 
 # TODO(xor-xor): Consider moving contents of this module into
-# ralph_scrooge.rest.auth.
+# ralph_scrooge.rest_api.public.auth.
 
 def _is_usage_owner(user):
     return (
@@ -54,7 +54,7 @@ def superuser_permission(view_func):
 
 
 # TODO(xor-xor): Make it "private" again, once this module get merged into
-# ralph_scrooge.rest.auth.
+# ralph_scrooge.rest_api.public.auth.
 def has_permission_to_service(user, service, check_by_uid=False):
     if user.is_superuser:
         return True
@@ -70,7 +70,7 @@ def has_permission_to_service(user, service, check_by_uid=False):
 
 
 # TODO(xor-xor): Make it "private" again, once this module get merged into
-# ralph_scrooge.rest.auth.
+# ralph_scrooge.rest_api.public.auth.
 def has_permission_to_team(user, team):
     if user.is_superuser:
         return True

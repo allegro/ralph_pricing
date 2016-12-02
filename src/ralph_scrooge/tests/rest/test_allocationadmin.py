@@ -12,7 +12,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from ralph_scrooge import models
-from ralph_scrooge.rest.allocationadmin import (
+from ralph_scrooge.rest_api.private.allocationadmin import (
     NoDynamicExtraCostTypeError,
     NoExtraCostError,
     NoUsageTypeError,
@@ -20,7 +20,7 @@ from ralph_scrooge.rest.allocationadmin import (
     ServiceEnvironmentDoesNotExistError,
     TeamDoesNotExistError,
 )
-from ralph_scrooge.rest.common import get_dates
+from ralph_scrooge.rest_api.common import get_dates
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils import factory
 

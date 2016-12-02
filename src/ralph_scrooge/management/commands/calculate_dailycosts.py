@@ -19,7 +19,7 @@ from ralph_scrooge.models import (
     PricingServicePlugin,
 )
 # TODO(xor-xor): Consider moving `date_range` to some utils module.
-from ralph_scrooge.rest.service_environment_costs import date_range
+from ralph_scrooge.rest_api.public.service_environment_costs import date_range
 
 logger = logging.getLogger(__name__)
 yesterday = date.today() - timedelta(days=1)

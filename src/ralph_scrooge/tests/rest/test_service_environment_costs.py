@@ -23,7 +23,7 @@ from ralph_scrooge.models import (
     ServiceUsageTypes,
     UsageType,
 )
-from ralph_scrooge.rest.service_environment_costs import (
+from ralph_scrooge.rest_api.public.service_environment_costs import (
     USAGE_COST_NUM_DIGITS,
     USAGE_VALUE_NUM_DIGITS,
     date_range,

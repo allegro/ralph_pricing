@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import login_required
 
-from ralph_scrooge.rest import (
+from ralph_scrooge.rest_api.private import (
     AcceptMonthlyCosts,
     AllocationAdminContent,
     AllocationClientPerTeam,
@@ -23,8 +23,10 @@ from ralph_scrooge.rest import (
     SymbolToIdAPIView,
     UsagesReportContent,
 )
-from ralph_scrooge.rest.router import urlpatterns as router_urlpatterns
-from ralph_scrooge.rest.menu import SubMenu
+from ralph_scrooge.rest_api.private.router import (
+    urlpatterns as router_urlpatterns,
+)
+from ralph_scrooge.rest_api.private.menu import SubMenu
 from ralph_scrooge.utils.security import (
     superuser_permission,
     service_permission,

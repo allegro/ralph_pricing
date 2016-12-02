@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from rest_framework import viewsets
 
 from ralph_scrooge.models import UsageType
-from ralph_scrooge.rest.v010.serializers import UsageTypeSerializer
+from ralph_scrooge.rest_api.public.v010.serializers import UsageTypeSerializer
 
 
 class UsageTypesViewSet(viewsets.ReadOnlyModelViewSet):

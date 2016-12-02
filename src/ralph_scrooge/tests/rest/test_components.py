@@ -14,7 +14,7 @@ from django.test.utils import override_settings
 
 from ralph_scrooge import models
 from ralph_scrooge.tests import ScroogeTestCase
-from ralph_scrooge.rest.components import ComponentsContent
+from ralph_scrooge.rest_api.private.components import ComponentsContent
 from ralph_scrooge.tests.utils.factory import (
     DailyAssetInfoFactory,
     ServiceEnvironmentFactory,

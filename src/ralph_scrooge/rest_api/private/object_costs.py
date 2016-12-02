@@ -11,7 +11,7 @@ from django.db.models import Sum, Q
 from django.template.defaultfilters import slugify
 from rest_framework.response import Response
 
-from ralph_scrooge.rest.components import ComponentsContent
+from ralph_scrooge.rest_api.private.components import ComponentsContent
 from ralph_scrooge.models import (
     DailyCost,
     PricingObject,

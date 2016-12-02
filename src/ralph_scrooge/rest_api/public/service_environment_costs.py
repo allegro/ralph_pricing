@@ -24,7 +24,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     UsageType,
 )
-from ralph_scrooge.rest.auth import IsServiceOwner
+from ralph_scrooge.rest_api.public.auth import IsServiceOwner
 from ralph_scrooge.utils.cache import memoize
 
 USAGE_COST_NUM_DIGITS = 2

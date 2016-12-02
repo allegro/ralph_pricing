@@ -12,8 +12,10 @@ from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from ralph_scrooge.rest.common import get_dates
-from ralph_scrooge.rest.allocationclient import get_allocation_from_file
+from ralph_scrooge.rest_api.common import get_dates
+from ralph_scrooge.rest_api.private.allocationclient import (
+    get_allocation_from_file,
+)
 from ralph_scrooge.models import (
     DynamicExtraCost,
     DynamicExtraCostType,
