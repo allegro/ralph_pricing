@@ -24,7 +24,9 @@ from ralph_scrooge.rest_api.public.v0_10.service_environment_costs import (
 from ralph_scrooge.rest_api.public.v0_10.router import (
     urlpatterns as router_v0_10_urlpatterns,
 )
-from ralph_scrooge.rest_api.public.v0_9.team_time_division import TeamTimeDivision
+from ralph_scrooge.rest_api.public.v0_9.team_time_division import (
+    TeamTimeDivision,
+)
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
