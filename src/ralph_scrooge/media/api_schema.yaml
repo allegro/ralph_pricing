@@ -1,8 +1,10 @@
-# Although swagger-ui can consume schema given as YAML, that doesn't have to be
-# the case with other clients, so it's better to serve it as JSON, and treat this
-# file only as a source file for editing. So everytime you change anything here,
-# use Scrooge's management command `scrooge generate_json_schema` which will
-# produce JSON schema for you.
+# REMEMBER that everytime you change anything here, you should use
+# Scrooge's management command `scrooge generate_json_schema`!
+#
+# This step is required because swagger-ui can consume schema given as
+# YAML, but that doesn't have to be the case with other clients, so
+# it's better to serve it as JSON, and treat this file only as a
+# source file for editing.
 
 swagger: '2.0'
 

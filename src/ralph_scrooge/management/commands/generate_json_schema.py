@@ -57,8 +57,7 @@ class Command(BaseCommand):
             json_schema_filename
         )
         with open(json_schema_file, 'w') as f:
-            # Add `indent=4` here if you need human-friendly output.
-            json.dump(schema, f, ensure_ascii=False)
+            json.dump(schema, f, separators=(',', ':'), ensure_ascii=False)
         logger.info(
             'JSON API schema saved successfully as: {}'
             .format(json_schema_file)
