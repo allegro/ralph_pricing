@@ -17,7 +17,7 @@ from ralph_scrooge.rest_api.public.v0_9.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
-from ralph_scrooge.rest_api.public.swagger import BootstrapSwagger
+from ralph_scrooge.rest_api.public.swagger import APISchema, BootstrapSwagger
 from ralph_scrooge.rest_api.public.v0_10.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
@@ -42,6 +42,11 @@ urlpatterns = [
     # Public REST API ---------------------------------------------------------
 
     # Swagger
+    url(
+        r'^scrooge/api/schema.json$',
+        APISchema.as_view(),
+        name='api_schema',
+    ),
     url(
         r'^scrooge/api/$',
         BootstrapSwagger.as_view(),
