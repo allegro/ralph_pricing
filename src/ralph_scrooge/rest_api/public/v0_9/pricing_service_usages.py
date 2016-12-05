@@ -32,7 +32,7 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     UsageType,
 )
-from ralph_scrooge.rest.auth import TastyPieLikeTokenAuthentication
+from ralph_scrooge.rest_api.public.auth import TastyPieLikeTokenAuthentication
 
 logger = logging.getLogger(__name__)
 

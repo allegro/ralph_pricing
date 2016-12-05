@@ -12,7 +12,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 
-from ralph_scrooge.rest.components import ComponentsContent
+from ralph_scrooge.rest_api.private.components import ComponentsContent
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     CostDateStatusFactory,

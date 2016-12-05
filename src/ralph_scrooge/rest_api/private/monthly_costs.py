@@ -23,7 +23,7 @@ from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.utils.common import get_cache_name, get_queue_name
 from ralph_scrooge.utils.worker_job import WorkerJob, _get_cache_key
 from ralph_scrooge.models import CostDateStatus
-from ralph_scrooge.rest.serializers import MonthlyCostsSerializer
+from ralph_scrooge.rest_api.private.serializers import MonthlyCostsSerializer
 
 
 logger = logging.getLogger(__name__)

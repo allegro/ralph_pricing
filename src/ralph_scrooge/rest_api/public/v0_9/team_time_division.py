@@ -22,11 +22,11 @@ from ralph_scrooge.models import (
     TeamCost,
     TeamServiceEnvironmentPercent,
 )
-from ralph_scrooge.rest.auth import (
+from ralph_scrooge.rest_api.public.auth import (
     IsTeamLeader,
     TastyPieLikeTokenAuthentication,
 )
-from ralph_scrooge.rest.common import get_dates
+from ralph_scrooge.rest_api.common import get_dates
 
 
 class PercentSerializer(Serializer):

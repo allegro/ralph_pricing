@@ -19,7 +19,7 @@ from ralph_scrooge.models import (
     DailyCost,
     ServiceEnvironment,
 )
-from ralph_scrooge.rest.common import get_dates
+from ralph_scrooge.rest_api.common import get_dates
 
 
 class CostCardContent(APIView):

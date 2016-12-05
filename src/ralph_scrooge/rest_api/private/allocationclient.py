@@ -16,7 +16,7 @@ from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 
-from ralph_scrooge.rest.common import get_dates
+from ralph_scrooge.rest_api.common import get_dates
 from ralph_scrooge.models import (
     DailyUsage,
     ExtraCost,

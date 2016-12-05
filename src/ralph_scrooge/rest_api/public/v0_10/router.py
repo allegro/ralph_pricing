@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from rest_framework import routers
 
-from ralph_scrooge.rest.v010.views import UsageTypesViewSet
+from ralph_scrooge.rest_api.public.v0_10.views import UsageTypesViewSet
 
 
 router = routers.SimpleRouter()

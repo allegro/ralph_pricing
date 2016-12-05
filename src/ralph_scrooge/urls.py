@@ -13,16 +13,20 @@ from django.views.generic import RedirectView
 from rest_framework.authtoken import views
 
 import ralph_scrooge.plugins.subscribers  # noqa: F401
-from ralph_scrooge.rest.pricing_service_usages import (
+from ralph_scrooge.rest_api.public.v0_9.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
 )
-from ralph_scrooge.rest.swagger import BootstrapSwagger
-from ralph_scrooge.rest.service_environment_costs import (
+from ralph_scrooge.rest_api.public.swagger import BootstrapSwagger
+from ralph_scrooge.rest_api.public.v0_10.service_environment_costs import (
     ServiceEnvironmentCosts,
 )
-from ralph_scrooge.rest.v010.router import urlpatterns as router_v010_urlpatterns  # noqa: E501
-from ralph_scrooge.rest.team_time_division import TeamTimeDivision
+from ralph_scrooge.rest_api.public.v0_10.router import (
+    urlpatterns as router_v0_10_urlpatterns,
+)
+from ralph_scrooge.rest_api.public.v0_9.team_time_division import (
+    TeamTimeDivision,
+)
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
@@ -52,7 +56,7 @@ urlpatterns = [
     # v0.10
     url(
         r'^scrooge/api/v0.10/',
-        include(router_v010_urlpatterns, namespace='v010'),
+        include(router_v0_10_urlpatterns, namespace='v0_10'),
     ),
     url(
         r'^scrooge/api/v0.10/service-environment-costs/$',
@@ -101,7 +105,7 @@ urlpatterns = [
     ),
 
     # Internal REST API for GUI -----------------------------------------------
-    url(r'^scrooge/rest/', include('ralph_scrooge.rest.urls')),
+    url(r'^scrooge/rest/', include('ralph_scrooge.rest_api.private.urls')),
 
 
     # All the rest ------------------------------------------------------------
