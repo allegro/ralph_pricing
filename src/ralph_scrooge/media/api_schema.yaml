@@ -1,13 +1,17 @@
-# REMEMBER that everytime you change anything here, you should use
-# Scrooge's management command `scrooge generate_json_schema`!
+# REMEMBER that everytime you change anything here, you should use Scrooge's
+# management command `scrooge generate_json_schema`!
 #
-# This step is required because swagger-ui can consume schema given as
-# YAML, but that doesn't have to be the case with other clients, so
-# it's better to serve it as JSON, and treat this file only as a
-# source file for editing.
+# This step is required because swagger-ui can consume schema given as YAML, but
+# that doesn't have to be the case with other clients, so it's better to serve
+# it as JSON, and treat this file only as a source file for editing.
+#
+# It may also be a good idea to validate this file with http://editor.swagger.io
+# when you finish editing it.
 
 swagger: '2.0'
 
+# TODO(xor-xor): Divide this schema into two separate files - for v0.9 and
+# v0.10, respectively - because now this `version` field is pretty useless.
 info:
   title: Scrooge API
   version: ''
@@ -15,6 +19,7 @@ info:
 schemes:
   - http
   - https
+
 # TODO(xor-xor): Consider filling 'host' value automatically.
 host: ''
 basePath: '/scrooge/api'
@@ -38,6 +43,12 @@ definitions:
     required:
         - username
         - password
+
+  ApiToken:
+    type: object
+    properties:
+      token:
+        type: string
 
   Division:
     type: object
@@ -118,6 +129,151 @@ definitions:
       - symbol
       - value
 
+  UsageGet:
+    type: object
+    properties:
+      pricing_service:
+        type: string
+        description: pricing service name
+      pricing_service_id:
+        type: number
+      date:
+        type: string
+        description: YYYY-MM-DD
+      usages:
+        type: array
+        items:
+          $ref: "#/definitions/SubUsageGet"
+
+  SubUsageGet:
+    type: object
+    properties:
+      service:
+        type: string
+      service_id:
+        type: number
+      service_uid:
+        type: string
+      environment:
+        type: string
+      pricing_object:
+        type: string
+      usages:
+        type: array
+        items:
+          $ref: "#/definitions/SubSubUsage"
+
+  UsageType:
+    type: object
+    properties:
+      id:
+        type: number
+        description: "usage type ID taken from Scrooge's admin"
+      name:
+        type: string
+      symbol:
+        type: string
+      usage_price:
+        type: array
+        items:
+          $ref: "#/definitions/UsagePrice"
+      url:
+        type: string
+        description: points to the individual usage type
+
+  UsageTypes:
+    type: array
+    items:
+      $ref: "#/definitions/UsageType"
+
+  UsagePrice:
+    type: object
+    properties:
+      price:
+        type: number
+      forecast_price:
+        type: number
+      start:
+        type: string
+        description: 'date (YYYY-MM-DD) from which price takes effect'
+      end:
+        type: string
+        description: 'date (YYYY-MM-DD) to which price takes effect'
+
+  ServiceEnvironmentCosts:
+    type: object
+    properties:
+      service_environment_costs:
+        type: array
+        items:
+          $ref: "#/definitions/ServiceEnvironmentCost"
+
+  ServiceEnvironmentCost:
+    type: object
+    properties:
+      total_cost:
+        type: number
+      grouped_date:
+        type: string
+        description: YYYY-MM-DD or YYYY-MM
+      costs:
+        $ref: "#/definitions/Costs"
+
+  Costs:
+    type: object
+    properties:
+      _pricing_service_symbol:
+        $ref: "#/definitions/Cost"
+        description: >
+          can be many of them - there will be actual symbols here, not "_pricing_service_symbol"
+
+  Cost:
+    type: object
+    properties:
+      cost:
+        type: number
+      usage_value:
+        type: number
+      subcosts:
+        $ref: "#/definitions/SubCosts"
+
+  SubCosts:
+    type: object
+    properties:
+      _usage_type_symbol:
+        $ref: "#/definitions/SubCost"
+        description: >
+          can be many of them - there will be actual symbols here, not "_usage_type_symbol"
+
+  SubCost:
+    type: object
+    properties:
+      cost:
+        type: number
+      usage_value:
+        type: number
+
+
+parameters:
+  team_id:
+    name: team_id
+    in: path
+    type: integer
+    required: true
+    description: "ID of your team taken from Scrooge's admin"
+  year:
+    name: year
+    in: path
+    type: integer
+    required: true
+    description: 'e.g. 2016'
+  month:
+    name: month
+    in: path
+    type: integer
+    required: true
+    description: 'e.g. 12'
+
 
 # The presence of YAML anchors/references in 'paths' section comes from the fact
 # that OpenAPI doesn't allow aliasing of paths (yet) - for details, see:
@@ -128,116 +284,297 @@ paths:
     post: &API-TOKEN-AUTH-POST
       consumes:
         - application/json
-      description: Fetch your personal API key
+      description: >-
+        Using Scrooge's API requires authorization. It is token-based, so each
+        of your requests has to contain ``Authorization`` header in the
+        following format: ``Authorization: Token your_api_key``. You can fetch
+        your API key here, by POST-ing your credentials (assuming that you
+        already have user account in Scrooge, i.e. you are able to log-in into
+        its GUI).
       summary: Fetch your personal API key
       operationId: api-token-auth_create
       parameters:
         - name: payload
           in: body
           required: true
+          description: "your user's credentials"
           schema:
             $ref: "#/definitions/Credentials"
       responses:
-        '200':
-          description: ''
+        200:
+          schema:
+            $ref: "#/definitions/ApiToken"
+          description: OK
       tags:
         - v0.9
   /v0.9/pricingserviceusages/:
     post: &PRICING-SERVICE-USAGES-POST
       consumes:
         - application/json
-      description: Upload usages for given pricing service and date
+      description: |
+        Since this endpoint is rather complex, it needs some additional
+        comments. The expected data structure looks as follows:
+        ```
+        {
+            "pricing_service": "<pricing service name or ID>",
+            "date": "<date>",
+            ["overwrite: "no | values_only | delete_all_previous"],
+            ["ignore_unknown_services": "true | false"],
+            "usages": [
+                {
+                    "pricing_object": "<pricing_object_name>" |
+                    (
+                        ("service": "<service name>" | "service_id": <service ID (in Scrooge)> | "service_uid": "<service UID>"),
+                        "environment": "<environment name>",
+                    )
+                    "usages": [
+                        {
+                            "symbol": "<usage type symbol>",
+                            "value": <actual usage without units>,
+                            "remarks": <your remarks (this field is optional)>
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ]
+        }
+        ```
+        As you can see, ``overwrite`` and ``ignore_unknown_services`` fields are
+        optional - their default value are ``no`` and ``false`` respectively
+        (see below for the description of all of their values).
+
+        You can provide here either service being charged (given either by its
+        name, ID or UID), which will be charged directly, or the pricing object
+        (e.g. hostname or IP address) - the service assigned to this pricing
+        object will be charged implicitly. In the former case (i.e., providing
+        service instead of pricing object), you need to specify the name of the
+        environment as well. You can mix all those three forms in a single
+        request, as shown in the example below, but the preferred form is by
+        specifying pricing object.
+
+        Please note that in case of uploading your data via pricing object
+        (instead of service and environment, see expected data structure above),
+        its service environment is implicitly given.
+
+        You could use field ``ignore_unknown_services`` to handle the case, when
+        incoming data might be invalid, ex. some of provided service-environment
+        does not exist. By default (or when this field is set to ``false``) this
+        will result in ``400`` error. When you set it to ``true``, all invalid
+        rows will be ignored and their values will not be saved.
+
+        The aforementioned ``overwrite`` field defines a way how to treat
+        previous service usage values uploaded for the same date and usage
+        type. There are three possible actions here:
+
+        * ``delete_all_previous`` - all previously uploaded daily usages for
+        the same date, with the same usage type should be deleted - only
+        usages from the 2nd upload should remain, despite the fact that 1st
+        upload contained daily usage for different service environment than
+        the 2nd one. Example:
+            * __1st upload__ (same day, same usage type):
+              daily usage 1: service env 1, value 40;
+              daily usage 2: service env 2, value 60
+            * __2nd upload__ (same day, same usage type):
+              daily usage 1: service env 1, value 50
+            * __final result__:
+              daily usage 1: service env 1, value 50
+
+        * ``values_only`` - all previously uploaded daily usages from the same
+        date, with the same usage type __and the same service environment__
+        (or pricing object - see remark at the bottom of this section)
+        should be replaced by the new daily usage - the ones with different
+        service environment should remain untouched. Example:
+            * __1st upload__ (same day, same usage type):
+              daily usage 1: service env 1, value 40
+              daily usage 2: service env 2, value 60
+            * __2nd upload__ (same day, same usage type):
+              daily usage 1: service env 1, value 50
+            * __final result__:
+              daily usage 1: service env 2, value 60
+              daily usage 2: service env 1, value 50
+
+        * ``no`` - nothing gets deleted/replaced, new daily usages should be
+        added to the existing ones, despite the fact that it has the same
+        service environment as the one from the previous upload. Example:
+            * __1st upload__ (same day, same usage type):
+              daily usage 1: service env 1, value 40
+              daily usage 2: service env 2, value 60
+            * __2nd upload__ (same day, same usage type):
+              daily usage 1: service env 1, value 50
+            * __final result__:
+              daily usage 1: service env 1, value 40
+              daily usage 2: service env 2, value 60
+              daily usage 3: service env 1, value 50
+
+        And finally, here's an example request illustrating some of the concepts
+        mentioned in the comments above:
+        ```
+        {
+            "pricing_service": "pricing_service1",
+            "date": "2016-09-02",
+            "usages": [
+                {
+                    "service": "service1",
+                    "environment": "env1",
+                    "usages": [
+                        {
+                            "symbol": "requests",
+                            "value": 123,
+                            "remarks": "measured on my_host1.test"
+                        },
+                        {
+                            "symbol": "transfer",
+                            "value": 321,
+                            "remarks": "measured on my_host2.test"
+                        }
+                    ]
+                },
+                {
+                    "pricing_object": "pricing_object1",
+                    "usages": [
+                        {
+                            "symbol": "requests",
+                            "value": 543
+                        },
+                        {
+                            "symbol": "transfer",
+                            "value": 565
+                        }
+                    ]
+                },
+                {
+                    "service_id": 123,
+                    "environment": "env2",
+                    "usages": [
+                        {
+                            "symbol": "requests",
+                            "value": 788
+                        },
+                        {
+                            "symbol": "transfer",
+                            "value": 234
+                        }
+                    ]
+                },
+                {
+                    "service_uid": "sc-123",
+                    "environment": "env2",
+                    "usages": [
+                        {
+                            "symbol": "requests",
+                            "value": 788
+                        },
+                        {
+                            "symbol": "transfer",
+                            "value": 234
+                        }
+                    ]
+                }
+            ]
+        }
+        ```
       summary: Upload usages for given pricing service and date
       operationId: pricingserviceusages_create
       parameters:
         - name: payload
           in: body
           required: true
+          description: "usages for given pricing service and date"
           schema:
             $ref: "#/definitions/Usage"
       responses:
-        '201':
-          description: ''
+        201:
+          description: Created
       tags:
         - v0.9
   '/v0.9/pricingserviceusages/{pricing_service_id}/{usages_date}/':
     get: &PRICING-SERVICE-USAGES-GET
-      description: Fetch previously uploaded usages for given pricing service and date
+      description: >-
+        This operation is provided for symmetry with POST (e.g. if you'd need
+        to check if your usages are properly uploaded).
       summary: Fetch previously uploaded usages for given pricing service and date
       operationId: pricingserviceusages_read
       parameters:
         - name: pricing_service_id
           in: path
-          type: string
+          type: integer
           required: true
-          description: ''
+          description: "ID of pricing service obtained from Scrooge's admin"
         - name: usages_date
           in: path
           type: string
           required: true
-          description: ''
+          description: "YYYY-MM-DD"
       responses:
-        '200':
-          description: ''
+        200:
+          schema:
+            $ref: "#/definitions/UsageGet"
+          description: OK
       tags:
         - v0.9
   '/v0.9/teamtimedivision/{team_id}/{year}/{month}/':
     post: &TEAM-TIME-DIVISION-POST
       consumes:
         - application/json
-      description: "Allocate team's working time (and therefore costs) to some services"
-      summary: "Allocate team's working time (and therefore costs) to some services"
+      description: |
+        Team Time Divisions allow to allocate your team's working time (and
+        therefore costs) into some services (e.g., projects that your team has
+        been working on). The granularity of such allocations are per-month.
+
+        There are a couple of important things to keep in mind here:
+        * services given as uid-111/prod and uid-111/test are two different
+        entities, despite the fact that they both share the same UID;
+        * percents from the same division should sum up exactly to 100% - if
+        you try to upload a division like 70+10+10 (or 70+10+10+20), you'll
+        get a validation error.
+        * when you upload two or more divisions for the same team and date
+        (year+month), only the last one of them is taken into account (i.e.,
+        it effectively overwrites previous ones);
+        * your division requires at least one service_uid/environment/percent
+        object to be present (in such case, its ``percent`` field should equal
+        100.0);
+        * this endpoint is only accessible to team managers. A team manager in
+        Scrooge's is a person who is associated with a given team, and is
+        allowed to allocate team resources (i.e. time) to services.
+
+      summary: "Allocate team's working time to some services"
       operationId: teamtimedivision_create
       parameters:
-        - name: team_id
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: year
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: month
-          in: path
-          type: string
-          required: true
-          description: ''
+        - $ref: "#/parameters/team_id"
+        - $ref: "#/parameters/year"
+        - $ref: "#/parameters/month"
         - name: payload
           in: body
           schema:
             $ref: "#/definitions/Divisions"
           required: true
-          description: ''
       responses:
-        '201':
-          description: ''
+        201:
+          description: Created
       tags:
         - v0.9
     get: &TEAM-TIME-DIVISION-GET
-      description: Fetch time divisions uploaded for given team and month
+      description: |
+        This operation is provided for symmetry with POST (in case you'd need to
+        check if Scrooge has correct divisions for your team - although you can
+        look at this data via Scrooge's GUI as well) and it has the same form as
+        POST minus ``payload`` part.
+
+        Please note that this endpoint is only accessible to team managers. A
+        team manager in Scrooge's is a person who is associated with a given
+        team, and is allowed to allocate team resources (i.e. time) to services.
       summary: Fetch time divisions uploaded for given team and month
       operationId: teamtimedivision_read
       parameters:
-        - name: team_id
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: year
-          in: path
-          type: string
-          required: true
-          description: ''
-        - name: month
-          in: path
-          type: string
-          required: true
-          description: ''
+        - $ref: "#/parameters/team_id"
+        - $ref: "#/parameters/year"
+        - $ref: "#/parameters/month"
       responses:
-        '200':
-          description: ''
+        200:
+          schema:
+            $ref: "#/definitions/Divisions"
+          description: OK
       tags:
         - v0.9
 
@@ -248,9 +585,19 @@ paths:
       summary: >-
         Fetch daily costs for given service/environment aggregated over given
         time period
-      description: >-
-        Fetch daily costs for given service/environment aggregated over given
-        time period
+      description: |
+        The ``forecast`` field should be set to ``false`` in most cases - it triggers
+        calculation of costs marked as "forecasted" instead of "normal" ones.
+
+        If you omit ``types`` field, all pricing services are taken into account.
+
+        The shape of response requires some attention here, because
+        ``_pricing_service_symbol`` and ``_usage_type_symbol`` __are not__ the actual
+        name of keys/properties - what you'll get here are the actual __symbols__, e.g.
+        ``my_ps1_symbol``, ``my_ps2_symbol``, ``my_ut1_symbol``, and so on. The reason
+        behind this is that ``Costs`` and ``SubCosts`` objects (see "Model" tab below),
+        should be implemented as arrays of objects, not objects keyed by their symbol
+        names.
       operationId: service-environment-costs_create
       parameters:
         - name: payload
@@ -261,27 +608,30 @@ paths:
             properties:
               date_from:
                 type: string
-                description: ''
+                description: "YYYY-MM-DD"
               date_to:
                 type: string
-                description: ''
+                description: "YYYY-MM-DD"
               environment:
                 type: string
-                description: ''
+                description: "e.g. 'prod', 'test', 'dev' etc."
               forecast:
                 type: boolean
-                description: ''
+                description: >
+                  calculate costs marked as "forecasted"; defaults to ``false``
+                default: false
               group_by:
                 type: string
-                description: ''
+                enum:
+                  - day
+                  - month
               service_uid:
                 type: string
-                description: ''
               types:
                 type: array
                 items:
                   type: string
-                description: ''
+                description: list of pricing service symbols
             required:
               - service_uid
               - environment
@@ -289,29 +639,31 @@ paths:
               - date_to
               - group_by
       responses:
-        '200':
-          description: ''
+        200:
+          schema:
+            $ref: "#/definitions/ServiceEnvironmentCosts"
+          description: OK
       tags:
         - v0.10
   /v0.10/usage-types/:
     get:
-      description: Fetch all usage types
       summary: Fetch all usage types
       operationId: usage-types_list
       parameters:
         - name: page
           in: query
-          type: string
+          type: number
           required: false
-          description: ''
+          description: "page number in case of paginated results"
       responses:
-        '200':
-          description: ''
+        200:
+          schema:
+            $ref: "#/definitions/UsageTypes"
+          description: OK
       tags:
         - v0.10
   '/v0.10/usage-types/{symbol}/':
     get:
-      description: Fetch usage type given by 'symbol'
       summary: Fetch usage type given by 'symbol'
       operationId: usage-types_read
       parameters:
@@ -319,10 +671,12 @@ paths:
           in: path
           type: string
           required: true
-          description: ''
+          description: 'symbol of usage type'
       responses:
-        '200':
-          description: ''
+        200:
+          schema:
+            $ref: "#/definitions/UsageType"
+          description: OK
       tags:
         - v0.10
   /v0.10/api-token-auth/:

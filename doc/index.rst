@@ -9,7 +9,6 @@ Contents:
    overview
    installation
    configuration
-   tutorial
    reports
    servicesandusages
    plugins

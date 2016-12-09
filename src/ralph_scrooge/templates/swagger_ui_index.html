@@ -41,7 +41,10 @@
       } else {
         // For development purposes, you can use `api_schema.yaml` file here
         // directly, i.e.:
-        // url = '{% static "api_schema.yaml" %}';
+        //   url = '{% static "api_schema.yaml" %}';
+        // ...but keep in mind, that swagger-ui *sometimes* gets confused with
+        // YAML's anchors. Swagger Editor (http://editor.swagger.io) doesn't
+        // have such problems, though.
         url = '{% url "api_schema" %}';
       }
 
