@@ -168,7 +168,6 @@ definitions:
     properties:
       id:
         type: number
-        description: "usage type ID taken from Scrooge's admin"
       name:
         type: string
       symbol:
@@ -186,6 +185,16 @@ definitions:
     items:
       $ref: "#/definitions/UsageType"
 
+  SimpleUsageType:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+      symbol:
+        type: string
+
   UsagePrice:
     type: object
     properties:
@@ -199,6 +208,25 @@ definitions:
       end:
         type: string
         description: 'date (YYYY-MM-DD) to which price takes effect'
+
+  PricingService:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+      symbol:
+        type: string
+      usage_types:
+        type: array
+        items:
+          $ref: "#/definitions/SimpleUsageType"
+
+  PricingServices:
+    type: array
+    items:
+      $ref: "#/definitions/PricingService"
 
   ServiceEnvironmentCosts:
     type: object
@@ -260,7 +288,6 @@ parameters:
     in: path
     type: integer
     required: true
-    description: "ID of your team taken from Scrooge's admin"
   year:
     name: year
     in: path
@@ -488,7 +515,7 @@ paths:
           description: Created
       tags:
         - v0.9
-  '/v0.9/pricingserviceusages/{pricing_service_id}/{usages_date}/':
+  /v0.9/pricingserviceusages/{pricing_service_id}/{usages_date}/:
     get: &PRICING-SERVICE-USAGES-GET
       description: >-
         This operation is provided for symmetry with POST (e.g. if you'd need
@@ -500,7 +527,6 @@ paths:
           in: path
           type: integer
           required: true
-          description: "ID of pricing service obtained from Scrooge's admin"
         - name: usages_date
           in: path
           type: string
@@ -513,7 +539,7 @@ paths:
           description: OK
       tags:
         - v0.9
-  '/v0.9/teamtimedivision/{team_id}/{year}/{month}/':
+  /v0.9/teamtimedivision/{team_id}/{year}/{month}/:
     post: &TEAM-TIME-DIVISION-POST
       consumes:
         - application/json
@@ -647,14 +673,9 @@ paths:
         - v0.10
   /v0.10/usage-types/:
     get:
-      summary: Fetch all usage types
+      description: "This endpoint doesn't require authentication."
+      summary: List all usage types
       operationId: usage-types_list
-      parameters:
-        - name: page
-          in: query
-          type: number
-          required: false
-          description: "page number in case of paginated results"
       responses:
         200:
           schema:
@@ -662,8 +683,9 @@ paths:
           description: OK
       tags:
         - v0.10
-  '/v0.10/usage-types/{symbol}/':
+  /v0.10/usage-types/{symbol}/:
     get:
+      description: "This endpoint doesn't require authentication."
       summary: Fetch usage type given by 'symbol'
       operationId: usage-types_read
       parameters:
@@ -679,6 +701,44 @@ paths:
           description: OK
       tags:
         - v0.10
+  /v0.10/pricing-services/:
+    get:
+      summary: List all pricing services
+      description: |
+        Response also contains usage type(s) linked to a given pricing service.
+
+        This endpoint doesn't require authentication.
+      operationId: pricing-services_list
+      responses:
+        200:
+          schema:
+            $ref: "#/definitions/PricingServices"
+          description: OK
+      tags:
+        - v0.10
+  /v0.10/pricing-services/{symbol}/:
+    get:
+      summary: Fetch pricing service given by 'symbol'
+      description: |
+        Response also contains usage type(s) linked to a given pricing service.
+
+        This endpoint doesn't require authentication.
+      operationId: pricing_services_read
+      parameters:
+        - name: symbol
+          in: path
+          type: string
+          required: true
+          description: 'symbol of pricing service'
+      responses:
+        200:
+          schema:
+            $ref: "#/definitions/PricingService"
+          description: OK
+      tags:
+        - v0.10
+
+
   /v0.10/api-token-auth/:
     post:
       <<: *API-TOKEN-AUTH-POST
@@ -691,13 +751,13 @@ paths:
       operationId: pricingserviceusages_v10_create
       tags:
         - v0.10
-  '/v0.10/pricing-service-usages/{pricing_service_id}/{usages_date}/':
+  /v0.10/pricing-service-usages/{pricing_service_id}/{usages_date}/:
     get:
       <<: *PRICING-SERVICE-USAGES-GET
       operationId: pricingserviceusages_v10_read
       tags:
         - v0.10
-  '/v0.10/team-time-division/{team_id}/{year}/{month}/':
+  /v0.10/team-time-division/{team_id}/{year}/{month}/:
     post:
       <<: *TEAM-TIME-DIVISION-POST
       operationId: teamtimedivision_v10_create

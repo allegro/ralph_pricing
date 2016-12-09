@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 from rest_framework import serializers
 
-from ralph_scrooge.models import UsageType, UsagePrice
+from ralph_scrooge.models import UsageType, UsagePrice, PricingService
 
 
 class UsagePriceSerializer(serializers.ModelSerializer):
@@ -27,5 +27,27 @@ class UsageTypeSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'url': {
                 'view_name': 'v0_10:usagetype-detail', 'lookup_field': 'symbol'
+            }
+        }
+
+
+class SimpleUsageTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UsageType
+        fields = ['id', 'name', 'symbol']
+
+
+class PricingServiceSerializer(serializers.ModelSerializer):
+
+    usage_types = SimpleUsageTypeSerializer(many=True)
+
+    class Meta:
+        model = PricingService
+        fields = ['id', 'name', 'symbol', 'usage_types']
+        extra_kwargs = {
+            'url': {
+                'view_name': 'v0_10:pricingservice-detail',
+                'lookup_field': 'symbol'
             }
         }
