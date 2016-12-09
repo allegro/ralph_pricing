@@ -15,7 +15,7 @@ USE_I18N = True
 USE_L10N = True
 MEDIA_URL = '/u/'
 STATIC_URL = '/static/'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'  # noqa
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'  # noqa: E501
 STATICFILES_DIRS = (
     BASE_DIR + '/media',
 )
@@ -354,7 +354,7 @@ LOGGING = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
 }
 
 # For sending notifications re: detected anomalies / missing values in uploaded
