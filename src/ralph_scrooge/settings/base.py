@@ -366,8 +366,10 @@ EMAIL_HOST_PASSWORD = ''
 EMAIL_NOTIFICATIONS_SENDER = ''
 EMAIL_USE_TLS = False
 
-# Base URL component for constructing Scrooge's links in outgoing mails.
-BASE_MAIL_URL = ''
+# E.g. 'scrooge.mydomain.com', 'localhost:8000' - this setting will be used for
+# cases when you need to have an access to Scrooge's hostname, but you don't
+# have an acces to HTTP request or socket.
+SCROOGE_HOST = ''
 
 # Values below should be given in days.
 USAGE_TYPE_UPLOAD_FREQ_MARGINS = {

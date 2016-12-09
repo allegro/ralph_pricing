@@ -19,8 +19,6 @@ info:
 schemes:
   - http
   - https
-
-# TODO(xor-xor): Consider filling 'host' value automatically.
 host: ''
 basePath: '/scrooge/api'
 

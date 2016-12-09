@@ -427,10 +427,6 @@ def _send_notifications(anomalies):
             'recipient': recipient,
             'unusual_changes': anomalies_['unusual_changes'],
             'missing_values': anomalies_['missing_values'],
-            # TODO(xor-xor): 'site_url' is probably not needed anymore, but I'm
-            # leaving it here (along with BASE_MAIL_URL setting) in case of
-            # some change, as these notifications feature is still quite fresh.
-            'site_url': settings.BASE_MAIL_URL,
         }
         body = render_to_string(template_name, context)
         _send_mail(recipient.email, body)
