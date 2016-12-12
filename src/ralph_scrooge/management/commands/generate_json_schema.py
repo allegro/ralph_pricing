@@ -49,6 +49,7 @@ class Command(BaseCommand):
                 return
         if settings.SCROOGE_HOST:
             schema['host'] = settings.SCROOGE_HOST
+        # 'host' can be specified directly in schema file, hence `elif` here.
         elif not schema['host']:
             logger.error(
                 "You don't have 'SCROOGE_HOST' defined in your settings and "
