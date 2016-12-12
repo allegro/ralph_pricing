@@ -369,6 +369,8 @@ EMAIL_USE_TLS = False
 # E.g. 'scrooge.mydomain.com', 'localhost:8000' - this setting will be used for
 # cases when you need to have an access to Scrooge's hostname, but you don't
 # have an acces to HTTP request or socket.
+# This setting is required if you want to provide Scrooge's REST API schema to
+# your clients (and swagger-ui is one of them).
 SCROOGE_HOST = ''
 
 # Values below should be given in days.
