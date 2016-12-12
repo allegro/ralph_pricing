@@ -47,6 +47,15 @@ class Command(BaseCommand):
                     "Aborting.".format(e)
                 )
                 return
+        if settings.SCROOGE_HOST:
+            schema['host'] = settings.SCROOGE_HOST
+        # 'host' can be specified directly in schema file, hence `elif` here.
+        elif not schema['host']:
+            logger.error(
+                "You don't have 'SCROOGE_HOST' defined in your settings and "
+                "'host' field in your API schema is empty as well. Aborting."
+            )
+            return
 
         json_schema_filename = os.path.splitext(
             os.path.basename(settings.API_SCHEMA_FILE)

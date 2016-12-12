@@ -19,8 +19,6 @@ info:
 schemes:
   - http
   - https
-
-# TODO(xor-xor): Consider filling 'host' value automatically.
 host: ''
 basePath: '/scrooge/api'
 
@@ -612,6 +610,9 @@ paths:
         Fetch daily costs for given service/environment aggregated over given
         time period
       description: |
+        You have to be owner of a given service if you want to be able to fetch the
+        costs associated with it.
+
         The ``forecast`` field should be set to ``false`` in most cases - it triggers
         calculation of costs marked as "forecasted" instead of "normal" ones.
 
