@@ -616,7 +616,12 @@ paths:
         The ``forecast`` field should be set to ``false`` in most cases - it triggers
         calculation of costs marked as "forecasted" instead of "normal" ones.
 
-        If you omit ``types`` field, all pricing services are taken into account.
+        If you omit ``types`` field, all pricing services are taken into
+        account.
+
+        Similarly with ``environment`` field - if you do not specify this, all
+        costs from all environments associated with given service will be used
+        for calculations.
 
         The shape of response requires some attention here, because
         ``_pricing_service_symbol`` and ``_usage_type_symbol`` __are not__ the actual
@@ -661,7 +666,6 @@ paths:
                 description: list of pricing service symbols
             required:
               - service_uid
-              - environment
               - date_from
               - date_to
               - group_by
