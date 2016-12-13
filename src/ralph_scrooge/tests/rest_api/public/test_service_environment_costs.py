@@ -76,11 +76,18 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.client = APIClient()
         self.client.force_authenticate(superuser)
 
-    def create_daily_costs(self, daily_costs, parent=None, forecast=False):
+    # TODO(xor-xor): Consider using named tuples for `daily_costs`.
+    def create_daily_costs(
+            self, daily_costs, service_env=None, parent=None, forecast=False
+    ):
         """A helper method for creating DailyCost objects with given params.
 
         `daily_costs` arg should be an iterable holding tuples of the following
         form: (usage type, date, value, cost).
+
+        `service_env` designates service environment that created costs should
+        be associated with (if None given, then `self.service_environment1`
+        will be used).
 
         `parent` arg should be a tuple (pricing service, date as string) - this
         pricing service will be used as a parent for created DailyCosts.
@@ -89,9 +96,13 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         `path` "0/1" is a subcost of a cost with `path` "0". And also, parent
         costs can be distinguished from subcosts by `depth` field, which will
         be 0 in the former case, and 1 in the latter.
+
+        `forecast` designates if costs should be created as "forecasted" (in
+        in contrast to "normal" ones).
         """
         pricing_object = self.pricing_object1
-        service_environment = self.service_environment1
+        if not service_env:
+            service_env = self.service_environment1
         if parent is not None:
             parent_value = parent_cost = 0
             children = set([dc[0] for dc in daily_costs])
@@ -107,7 +118,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             DailyCostFactory(
                 type=dc[0],
                 pricing_object=pricing_object,
-                service_environment=service_environment,
+                service_environment=service_env,
                 date=dc[1],
                 value=dc[2],
                 cost=dc[3],
@@ -119,7 +130,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             parent_cost = DailyCostFactory(
                 type=parent[0],
                 pricing_object=pricing_object,
-                service_environment=service_environment,
+                service_environment=service_env,
                 date=parent[1],
                 value=parent_value,
                 cost=parent_cost,
@@ -278,7 +289,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "month",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
@@ -301,7 +312,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "month",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         # first, try non-forecast and check if response is empty
         resp = self.send_post_request()
@@ -331,7 +342,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             "date_from": self.date1_as_str,
             "date_to": self.date1_as_str,
             "group_by": "day",
-            "usage_types": [self.pricing_service.symbol]
+            "types": [self.pricing_service.symbol]
         }
         resp = self.send_post_request()
         self.assertEquals(resp.status_code, 200)
@@ -755,4 +766,63 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.assertEquals(
             set(costs['service_environment_costs'][0]['costs'].keys()),
             set(types)
+        )
+
+    def test_if_all_envs_are_taken_into_account_when_no_env_given(self):
+        cost1 = 10
+        cost2 = 20
+        usage_value1 = 1
+        usage_value2 = 2
+
+        # We need two service environments that share the same service, but
+        # have different environments.
+        service_env1 = self.service_environment1
+        env2_name = "other"
+        self.assertFalse(
+            Environment.objects.filter(name=env2_name).exists()
+        )
+        env2 = Environment.objects.create(name=env2_name)
+        service_env2 = ServiceEnvironment.objects.create(
+            service=service_env1.service,
+            environment=env2,
+        )
+        self.assertIs(service_env1.service, service_env2.service)
+        self.assertIsNot(service_env1.environment, service_env2.environment)
+
+        self.create_daily_costs(
+            ((self.usage_type1, self.date1, usage_value1, cost1),),
+            service_env=service_env1,
+            parent=(self.pricing_service, self.date1),
+        )
+        self.create_daily_costs(
+            ((self.usage_type1, self.date1, usage_value2, cost2),),
+            service_env=service_env2,
+            parent=(self.pricing_service, self.date1),
+        )
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "date_from": self.date1_as_str,
+            "date_to": self.date1_as_str,
+            "group_by": "day",
+            "types": [self.pricing_service.symbol]
+        }
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+
+        costs_ = costs['service_environment_costs'][0]['costs'][self.pricing_service.symbol]['cost']  # noqa: E501
+        subcosts = costs['service_environment_costs'][0]['costs'][self.pricing_service.symbol]['subcosts']  # noqa: E501
+        total_cost = costs['service_environment_costs'][0]['total_cost']
+
+        self.assertEquals(costs_, cost1 + cost2)
+        self.assertEquals(total_cost, cost1 + cost2)
+        self.assertEquals(len(subcosts.values()), 1)
+        self.assertEquals(
+            subcosts.values()[0]['cost'],
+            cost1 + cost2
+        )
+        self.assertEquals(
+            subcosts.values()[0]['usage_value'],
+            usage_value1 + usage_value2
         )

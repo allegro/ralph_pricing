@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from ralph_scrooge.models import (
     BaseUsage,
     DailyCost,
+    Service,
     ServiceEnvironment,
     UsageType,
 )
@@ -47,7 +48,7 @@ def get_valid_types():
 
 class ServiceEnvironmentCostsDeserializer(Serializer):
     service_uid = serializers.CharField()
-    environment = serializers.CharField()
+    environment = serializers.CharField(required=False)
     date_from = serializers.DateField()
     date_to = serializers.DateField()
     group_by = serializers.ChoiceField(choices=GROUP_BY_CHOICES)
@@ -88,22 +89,35 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
         if date_from > date_to:
             errors.append("'date_from' should be less or equal to 'date_to'")
 
-        # Validate service environment (given indirectly by service_uid and
-        # environment).
         service_uid = attrs.get('service_uid')
         env = attrs.get('environment')
-        try:
-            service_env = ServiceEnvironment.objects.get(
-                service__ci_uid=service_uid,
-                environment__name=env,
-            )
-        except ServiceEnvironment.DoesNotExist:
-            errors.append(
-                'service environment for service with UID "{}" and '
-                'environment "{}" does not exist'.format(service_uid, env)
-            )
+        if not env:
+            # Validate only service name (when `environment` field is not
+            # given, all environments associated with given service are taken
+            # into account).
+            try:
+                service = Service.objects.get(ci_uid=service_uid)
+            except Service.DoesNotExist:
+                errors.append(
+                    'service with UID "{}" does not exist'.format(service_uid)
+                )
+            else:
+                attrs['_service'] = service
         else:
-            attrs['_service_environment'] = service_env
+            # Validate service environment (given indirectly by service_uid
+            # and environment).
+            try:
+                service_env = ServiceEnvironment.objects.get(
+                    service__ci_uid=service_uid,
+                    environment__name=env,
+                )
+            except ServiceEnvironment.DoesNotExist:
+                errors.append(
+                    'service environment for service with UID "{}" and '
+                    'environment "{}" does not exist'.format(service_uid, env)
+                )
+            else:
+                attrs['_service_environment'] = service_env
 
         # Since `types` field is not required, but we want some default values
         # in case it's not provided, we have to do that here (`validate_types`
@@ -211,11 +225,14 @@ def _round_recursive(usages_and_costs):
     return rounded
 
 
-def fetch_costs(service_env, types, date_from, date_to, group_by, forecast=False):  # noqa: E501
+def fetch_costs(service_env, service, types, date_from, date_to, group_by, forecast=False):  # noqa: E501
     """Fetch DailyCosts associated with given `service_env` and `types`,
     in range defined by `date_from` and `date_to`, and summarize them (i.e.
     their `value` and `cost` fields) per period given by `group_by` (e.g.
     "day" or "month").
+
+    If `service_env` is None, then `service` is used instead, which effectively
+    equals to taking into account *all* environments associated with `service`.
 
     The result of such single summarization looks like this:
 
@@ -274,13 +291,20 @@ def fetch_costs(service_env, types, date_from, date_to, group_by, forecast=False
     and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
     `USAGE_VALUE_NUM_DIGITS` defined in this module.
     """
-    initial_qs = DailyCost.objects_tree.filter(
-        date__gte=date_from,
-        date__lte=date_to,
-        service_environment=service_env,
-        depth__lte=1,
-        forecast=forecast,
-    )
+    query_params = {
+        'date__gte': date_from,
+        'date__lte': date_to,
+        'depth__lte': 1,
+        'forecast': forecast,
+    }
+    if service_env:
+        query_params['service_environment'] = service_env
+    elif service:
+        query_params['service_environment__service'] = service
+    else:
+        # This shouldn't happen.
+        return {'service_environment_costs': []}
+    initial_qs = DailyCost.objects_tree.filter(**query_params)
 
     if group_by == 'month':
         selector = 'month'
@@ -464,7 +488,8 @@ class ServiceEnvironmentCosts(APIView):
     def post(self, request, *args, **kwargs):
         deserializer = ServiceEnvironmentCostsDeserializer(data=request.data)
         if deserializer.is_valid():
-            service_env = deserializer.validated_data['_service_environment']
+            service_env = deserializer.validated_data.get('_service_environment')  # noqa: E501
+            service = deserializer.validated_data.get('_service')
             types = deserializer.validated_data['types']
             date_from = deserializer.validated_data['date_from']
             date_to = deserializer.validated_data['date_to']
@@ -472,7 +497,13 @@ class ServiceEnvironmentCosts(APIView):
             forecast = deserializer.validated_data['forecast']
 
             costs = fetch_costs(
-                service_env, types, date_from, date_to, group_by, forecast
+                service_env,
+                service,
+                types,
+                date_from,
+                date_to,
+                group_by,
+                forecast,
             )
 
             if group_by == 'day':
