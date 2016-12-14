@@ -844,7 +844,6 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             usage_value1 + usage_value2
         )
 
-    # @data(True, )  # `forecast` param
     @data(False, True)  # `forecast` param
     def test_if_only_accepted_costs_are_returned_when_accept_only_param_given(self, forecast):  # noqa: E501
         cost1 = 20
