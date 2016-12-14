@@ -187,6 +187,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, self.date1_as_str)
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -309,6 +310,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             costs, parent=(self.pricing_service, self.date1_as_str),
             forecast=True,
         )
+        CostDateStatusFactory(date=self.date1_as_str, forecast_accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -413,6 +415,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, self.date1_as_str)
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -475,10 +478,12 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             daily_costs1,
             parent=(self.pricing_service, dates[0]),
         )
+        CostDateStatusFactory(date=dates[0], accepted=True)
         self.create_daily_costs(
             daily_costs2,
             parent=(self.pricing_service, dates[1]),
         )
+        CostDateStatusFactory(date=dates[1], accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -529,10 +534,12 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             )
         ]
         for dc in daily_costs:
+            date_ = dc[1].strftime('%Y-%m-%d')
             self.create_daily_costs(
                 (dc,),
-                parent=(self.pricing_service, dc[1].strftime('%Y-%m-%d'))
+                parent=(self.pricing_service, date_)
             )
+            CostDateStatusFactory(date=date_, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -569,6 +576,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, date)
         )
+        CostDateStatusFactory(date=date, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -625,6 +633,9 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             parent=(self.pricing_service, date3),
         )
         self.create_daily_costs(((self.usage_type2, date3, 1, cost4),))
+        CostDateStatusFactory(date=date1_as_str, accepted=True)
+        CostDateStatusFactory(date=date2_as_str, accepted=True)
+        CostDateStatusFactory(date=date3_as_str, accepted=True)
 
         # Group by month and also whole month given as date range.
         self.payload = {
@@ -684,6 +695,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, self.date1_as_str)
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -732,6 +744,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             daily_costs2,
             parent=(pricing_service2, date),
         )
+        CostDateStatusFactory(date=date, accepted=True)
         for type_symbol, path in (
             (pricing_service1.symbol, '0'),
             (pricing_service2.symbol, '1'),
@@ -802,6 +815,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             service_env=service_env2,
             parent=(self.pricing_service, self.date1),
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "date_from": self.date1_as_str,
