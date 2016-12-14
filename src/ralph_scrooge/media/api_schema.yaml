@@ -623,6 +623,10 @@ paths:
         costs from all environments associated with given service will be used
         for calculations.
 
+        Setting ``accepted_only`` field to ``false`` will fetch costs that are
+        not accepted. Please note that it's not possible to mix accepted and not
+        accepted costs in a single request.
+
         The shape of response requires some attention here, because
         ``_pricing_service_symbol`` and ``_usage_type_symbol`` __are not__ the actual
         name of keys/properties - what you'll get here are the actual __symbols__, e.g.
@@ -649,9 +653,12 @@ paths:
                 description: "e.g. 'prod', 'test', 'dev' etc."
               forecast:
                 type: boolean
-                description: >
-                  calculate costs marked as "forecasted"; defaults to ``false``
+                description: 'calculate costs marked as "forecasted"'
                 default: false
+              accepted_only:
+                type: boolean
+                description: fetch only accepted costs
+                default: true
               group_by:
                 type: string
                 enum:

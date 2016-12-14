@@ -297,7 +297,7 @@ def fetch_costs(
 
     Setting `accepted_only` param to False will fetch costs that are not
     accepted. Please note that it's not possible to mix accepted and not
-    accepted costs in the single request.
+    accepted costs in a single request.
 
     The `forecast` param, when set to True will cause fetching of costs which
     were saved as "forecasted" (in contrast to "normal" ones).
