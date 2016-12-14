@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 
 from ralph_scrooge.models import (
     BaseUsage,
+    CostDateStatus,
     DailyCost,
     Service,
     ServiceEnvironment,
@@ -52,6 +53,7 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
     date_from = serializers.DateField()
     date_to = serializers.DateField()
     group_by = serializers.ChoiceField(choices=GROUP_BY_CHOICES)
+    accepted_only = serializers.BooleanField(default=True, required=False)
     # TODO(xor-xor): Consider some less generic name for this field (it's not
     # not that easy, though, because neither `usage_types` nor `base_usages`
     # fit here in 100%).
@@ -225,7 +227,16 @@ def _round_recursive(usages_and_costs):
     return rounded
 
 
-def fetch_costs(service_env, service, types, date_from, date_to, group_by, forecast=False):  # noqa: E501
+def fetch_costs(
+        service_env,
+        service,
+        types,
+        date_from,
+        date_to,
+        group_by,
+        accepted_only=False,
+        forecast=False,
+):
     """Fetch DailyCosts associated with given `service_env` and `types`,
     in range defined by `date_from` and `date_to`, and summarize them (i.e.
     their `value` and `cost` fields) per period given by `group_by` (e.g.
@@ -284,6 +295,10 @@ def fetch_costs(service_env, service, types, date_from, date_to, group_by, forec
     combination - so if there are no such "other" costs, this value should be
     equal to the sum of `cost` fields above.
 
+    Setting `accepted_only` param to False will fetch costs that are not
+    accepted. Please note that it's not possible to mix accepted and not
+    accepted costs in the single request.
+
     The `forecast` param, when set to True will cause fetching of costs which
     were saved as "forecasted" (in contrast to "normal" ones).
 
@@ -291,9 +306,20 @@ def fetch_costs(service_env, service, types, date_from, date_to, group_by, forec
     and `usage_values` is controlled by `USAGE_COST_NUM_DIGITS` and
     `USAGE_VALUE_NUM_DIGITS` defined in this module.
     """
-    query_params = {
+    date_range_query_params = {
         'date__gte': date_from,
         'date__lte': date_to,
+    }
+    if accepted_only and forecast:
+        date_range_query_params['forecast_accepted'] = True
+    elif accepted_only:
+        date_range_query_params['accepted'] = True
+    filtered_dates = CostDateStatus.objects.filter(
+        **date_range_query_params
+    ).values_list('date', flat=True)
+
+    query_params = {
+        'date__in': filtered_dates,
         'depth__lte': 1,
         'forecast': forecast,
     }
@@ -494,6 +520,7 @@ class ServiceEnvironmentCosts(APIView):
             date_from = deserializer.validated_data['date_from']
             date_to = deserializer.validated_data['date_to']
             group_by = deserializer.validated_data['group_by']
+            accepted_only = deserializer.validated_data['accepted_only']
             forecast = deserializer.validated_data['forecast']
 
             costs = fetch_costs(
@@ -503,6 +530,7 @@ class ServiceEnvironmentCosts(APIView):
                 date_from,
                 date_to,
                 group_by,
+                accepted_only,
                 forecast,
             )
 
