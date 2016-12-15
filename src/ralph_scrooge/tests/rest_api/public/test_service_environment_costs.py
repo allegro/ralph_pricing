@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 
+from ddt import ddt, data
 from django.core.urlresolvers import reverse
 from rest_framework.test import APIClient
 
@@ -30,6 +31,7 @@ from ralph_scrooge.rest_api.public.v0_10.service_environment_costs import (
 )
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
+    CostDateStatusFactory,
     PricingObjectFactory,
     PricingServiceFactory,
     UsageTypeFactory,
@@ -40,6 +42,7 @@ from ralph_scrooge.tests.utils.factory import (
 strptime = datetime.datetime.strptime
 
 
+@ddt
 class TestServiceEnvironmentCosts(ScroogeTestCase):
 
     def setUp(self):
@@ -184,6 +187,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, self.date1_as_str)
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -306,6 +310,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             costs, parent=(self.pricing_service, self.date1_as_str),
             forecast=True,
         )
+        CostDateStatusFactory(date=self.date1_as_str, forecast_accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -410,6 +415,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, self.date1_as_str)
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -472,10 +478,12 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             daily_costs1,
             parent=(self.pricing_service, dates[0]),
         )
+        CostDateStatusFactory(date=dates[0], accepted=True)
         self.create_daily_costs(
             daily_costs2,
             parent=(self.pricing_service, dates[1]),
         )
+        CostDateStatusFactory(date=dates[1], accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -526,10 +534,12 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             )
         ]
         for dc in daily_costs:
+            date_ = dc[1].strftime('%Y-%m-%d')
             self.create_daily_costs(
                 (dc,),
-                parent=(self.pricing_service, dc[1].strftime('%Y-%m-%d'))
+                parent=(self.pricing_service, date_)
             )
+            CostDateStatusFactory(date=date_, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -566,6 +576,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, date)
         )
+        CostDateStatusFactory(date=date, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -622,6 +633,9 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             parent=(self.pricing_service, date3),
         )
         self.create_daily_costs(((self.usage_type2, date3, 1, cost4),))
+        CostDateStatusFactory(date=date1_as_str, accepted=True)
+        CostDateStatusFactory(date=date2_as_str, accepted=True)
+        CostDateStatusFactory(date=date3_as_str, accepted=True)
 
         # Group by month and also whole month given as date range.
         self.payload = {
@@ -681,6 +695,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.create_daily_costs(
             costs, parent=(self.pricing_service, self.date1_as_str)
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "environment": self.environment1,
@@ -729,6 +744,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             daily_costs2,
             parent=(pricing_service2, date),
         )
+        CostDateStatusFactory(date=date, accepted=True)
         for type_symbol, path in (
             (pricing_service1.symbol, '0'),
             (pricing_service2.symbol, '1'),
@@ -799,6 +815,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             service_env=service_env2,
             parent=(self.pricing_service, self.date1),
         )
+        CostDateStatusFactory(date=self.date1_as_str, accepted=True)
         self.payload = {
             "service_uid": self.service_uid1,
             "date_from": self.date1_as_str,
@@ -825,4 +842,107 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.assertEquals(
             subcosts.values()[0]['usage_value'],
             usage_value1 + usage_value2
+        )
+
+    @data(False, True)  # `forecast` param
+    def test_if_only_accepted_costs_are_returned_when_accept_only_param_given(self, forecast):  # noqa: E501
+        cost1 = 20
+        cost2 = 40
+        usage_value1 = 11
+        usage_value2 = 22
+        date1 = datetime.date(2016, 12, 13)
+        date2 = datetime.date(2016, 12, 14)
+        date1_as_str = date1.strftime("%Y-%m-%d")
+        date2_as_str = date2.strftime("%Y-%m-%d")
+        self.create_daily_costs(
+            ((self.usage_type1, date1, usage_value1, cost1),),
+            parent=(self.pricing_service, date1_as_str),
+            forecast=forecast,
+        )
+        if forecast:
+            CostDateStatusFactory(date=date1, forecast_accepted=True)
+        else:
+            CostDateStatusFactory(date=date1, accepted=True)
+        self.create_daily_costs(
+            ((self.usage_type2, date2, usage_value2, cost2),),
+            parent=(self.pricing_service, date2_as_str),
+            forecast=forecast,
+        )
+        CostDateStatusFactory(date=date2, accepted=False)
+        ps_symbol = self.pricing_service.symbol
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": date1_as_str,
+            "date_to": date2_as_str,
+            "accepted_only": True,
+            "forecast": forecast,
+            "group_by": "day",
+            "types": [ps_symbol]
+        }
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        costs['service_environment_costs'].sort(
+            key=lambda d: d['grouped_date']
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][0]['costs'][ps_symbol]['cost'],
+            cost1
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][1]['costs'], {}
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][1]['total_cost'], 0
+        )
+
+    @data(False, True)  # `forecast` param
+    def test_if_all_costs_are_returned_when_accept_only_param_set_to_false_given(self, forecast):  # noqa: E501
+        cost1 = 20
+        cost2 = 40
+        usage_value1 = 11
+        usage_value2 = 22
+        date1 = datetime.date(2016, 12, 13)
+        date2 = datetime.date(2016, 12, 14)
+        date1_as_str = date1.strftime("%Y-%m-%d")
+        date2_as_str = date2.strftime("%Y-%m-%d")
+        self.create_daily_costs(
+            ((self.usage_type1, date1, usage_value1, cost1),),
+            parent=(self.pricing_service, date1_as_str),
+            forecast=forecast,
+        )
+        CostDateStatusFactory(date=date1, accepted=True)
+        self.create_daily_costs(
+            ((self.usage_type2, date2, usage_value2, cost2),),
+            parent=(self.pricing_service, date2_as_str),
+            forecast=forecast,
+        )
+        CostDateStatusFactory(date=date2, accepted=False)
+        ps_symbol = self.pricing_service.symbol
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": date1_as_str,
+            "date_to": date2_as_str,
+            "accepted_only": False,
+            "forecast": forecast,
+            "group_by": "day",
+            "types": [ps_symbol]
+        }
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        costs['service_environment_costs'].sort(
+            key=lambda d: d['grouped_date']
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][0]['costs'][ps_symbol]['cost'],
+            cost1
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][1]['costs'][ps_symbol]['cost'],
+            cost2
         )

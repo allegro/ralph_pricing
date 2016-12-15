@@ -31,6 +31,7 @@ setup(
     package_dir={'': 'src'},
     zip_safe=False,  # because templates are loaded from file path
     install_requires=[
+        'ddt==1.1.1',
         'dj.choices==0.11.0',
         'django-auth-ldap==1.2.8',
         'django-nose==1.4.4',
