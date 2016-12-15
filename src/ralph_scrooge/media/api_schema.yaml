@@ -627,6 +627,10 @@ paths:
         not accepted. Please note that it's not possible to mix accepted and not
         accepted costs in a single request.
 
+        Also, please note that when you set ``group_by`` to ``month``, the dates
+        in ``date_from`` and ``date_to`` fields should be given as
+        ``YYYY-MM-DD`` __not__ ``YYYY-MM``.
+
         The shape of response requires some attention here, because
         ``_pricing_service_symbol`` and ``_usage_type_symbol`` __are not__ the actual
         name of keys/properties - what you'll get here are the actual __symbols__, e.g.
