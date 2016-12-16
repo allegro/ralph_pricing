@@ -427,6 +427,7 @@ def _send_notifications(anomalies):
             'recipient': recipient,
             'unusual_changes': anomalies_['unusual_changes'],
             'missing_values': anomalies_['missing_values'],
+            'reply_to_address': settings.EMAIL_NOTIFICATIONS_REPLY_TO,
         }
         body = render_to_string(template_name, context)
         _send_mail(recipient.email, body)

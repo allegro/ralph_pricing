@@ -69,6 +69,13 @@
 
     {% endif %}
 
+    {% if reply_to_address %}
+    <p>Please note: This e-mail was sent from a notification-only
+      address that can't accept incoming e-mail. If you want to
+      contact us, please send an e-mail to {{ reply_to_address }}
+      instead. Thanks!</p>
+    {% endif %}
+
     <p>Regards,<br>Scrooge Team</p>
 
   </body>

@@ -364,6 +364,7 @@ EMAIL_PORT = None
 EMAIL_HOST_USER = r''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_NOTIFICATIONS_SENDER = ''
+EMAIL_NOTIFICATIONS_REPLY_TO = ''
 EMAIL_USE_TLS = False
 
 # E.g. 'scrooge.mydomain.com', 'localhost:8000' - this setting will be used for
