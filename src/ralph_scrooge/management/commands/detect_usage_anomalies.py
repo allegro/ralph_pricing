@@ -402,18 +402,18 @@ def _send_mail(address, html_message):
         else:
             msg_substr = e.message.rstrip('.')
         logger.error(
-            "Got error from SMTP server: {}. E-mail addressed to {} "
-            "has not been sent.".format(msg_substr, address)
+            'Got error from SMTP server: "{}". E-mail addressed to "{}" '
+            'has not been sent.'.format(msg_substr, address)
         )
         return
     if num_msgs_sent == 1:
         logger.info(
-            "Notification e-mail to {} sent successfully.".format(address)
+            'Notification e-mail to "{}" sent successfully.'.format(address)
         )
     else:
         logger.error(
-            "Notification e-mail to {} couldn't be delivered. Please try "
-            "again later.".format(address)
+            'Notification e-mail to "{}" couldn\'t be delivered. Please try '
+            'again later.'.format(address)
         )
 
 
@@ -430,6 +430,9 @@ def _send_notifications(anomalies):
             'reply_to_address': settings.EMAIL_NOTIFICATIONS_REPLY_TO,
         }
         body = render_to_string(template_name, context)
+        if not recipient.email:
+            logger.warning('User "{}" doesn\'t have an email. Skipping.')
+            continue
         _send_mail(recipient.email, body)
 
 
