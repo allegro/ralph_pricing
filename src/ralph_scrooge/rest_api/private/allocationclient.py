@@ -183,7 +183,7 @@ class AllocationClientService(APIView):
                 usage_type=usage_type,
                 pricing_service=pricing_service,
                 start=dates[0],
-                end=dates[1]
+                end='9999-12-31'
             )
         except ServiceUsageTypes.MultipleObjectsReturned:
             raise CannotDetermineValidServiceUsageTypeError()
