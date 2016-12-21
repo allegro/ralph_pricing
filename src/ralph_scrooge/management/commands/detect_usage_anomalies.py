@@ -110,8 +110,7 @@ def _get_usage_values_for_month(usage_types, end_date):
     results = {}
     start_date = get_negative_month_range(end_date + a_day).next()
     for ut in usage_types:
-        freq_name = UsageTypeUploadFreq.from_id(ut.upload_freq).name
-        if freq_name == 'monthly':
+        if ut.upload_freq == UsageTypeUploadFreq.monthly.id:
             start_date = get_negative_month_range(
                 end_date + a_day, align_to_month=True
             ).next()
