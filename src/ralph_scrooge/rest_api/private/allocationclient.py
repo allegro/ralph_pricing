@@ -183,7 +183,7 @@ class AllocationClientService(APIView):
                 usage_type=usage_type,
                 pricing_service=pricing_service,
                 start=dates[0],
-                end='9999-12-31'
+                end=dates[1],
             )
         except ServiceUsageTypes.MultipleObjectsReturned:
             raise CannotDetermineValidServiceUsageTypeError()
@@ -201,19 +201,12 @@ class AllocationClientService(APIView):
         """
         try:
             new_start_date = ServiceUsageTypes.objects.filter(
-                end__lte=start_date
+                end__lte=start_date, pricing_service=pricing_service
             ).order_by('-end')[:1].get().end + timedelta(days=1)
         except ServiceUsageTypes.DoesNotExist:
             new_start_date = date.min
 
-        try:
-            new_end_date = ServiceUsageTypes.objects.filter(
-                start__gte=start_date
-            ).order_by('start')[:1].get().start - timedelta(days=1)
-        except ServiceUsageTypes.DoesNotExist:
-            new_end_date = date.max
-
-        return new_start_date, new_end_date
+        return new_start_date, date.max
 
     def _get_service_divison(self, service, year, month, first_day):
         service_usage_type = self._get_service_usage_type(service, year, month)
