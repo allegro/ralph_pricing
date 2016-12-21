@@ -102,10 +102,19 @@ def _get_usage_values_for_month(usage_types, end_date):
     designated by (`end_date` - 1 month, `end_date`), where `end_date` is not
     included. If there are no values for given UsageType/day, it will be
     omitted.
+    An exception to this "end_date - 1 month" rule are usage types with
+    `upload_frequency` set to `monthly` - in that case, the aforementioned
+    range is extended to the beginning of the month (e.g. '2016-12-01' instead
+    of '2016-12-10' for `start_date`.
     """
     results = {}
     start_date = get_negative_month_range(end_date + a_day).next()
     for ut in usage_types:
+        freq_name = UsageTypeUploadFreq.from_id(ut.upload_freq).name
+        if freq_name == 'monthly':
+            start_date = get_negative_month_range(
+                end_date + a_day, align_to_month=True
+            ).next()
         results[ut] = {}
         daily_usages = dict(
             DailyUsage.objects.filter(
