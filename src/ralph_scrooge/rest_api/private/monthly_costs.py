@@ -41,7 +41,9 @@ class AcceptMonthlyCosts(APIView):
             calculated_costs = CostDateStatus.objects.filter(
                 date__gte=start,
                 date__lte=end,
-                forecast_calculated=forecast
+                **{
+                    'forecast_calculated' if forecast else 'calculated': True
+                }
             )
             days = (end - start).days + 1
             if len(calculated_costs) != days:
