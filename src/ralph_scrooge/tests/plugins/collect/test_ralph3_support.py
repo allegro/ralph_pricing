@@ -49,7 +49,7 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
         self.assertEquals(support.cost, cost)
         self.assertEquals(support.forecast_cost, cost)
 
-    def test_update_support(self):
+    def test_update_support_with_support_assigned_to_single_object_then_one_support_cost_is_created(self):  # noqa: E501
         result = ralph3_support.update_support(self.data)
         self.assertEquals(SupportCost.objects.count(), 1)
         self.assertEquals(result, 1)
@@ -58,7 +58,7 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
             self.daily_asset1.asset_info
         )
 
-    def test_update_support_multiple(self):
+    def test_update_support_with_support_assigned_to_multiple_objects_then_two_support_costs_are_created(self):  # noqa: E501
         self.data['base_objects'].append(
             _get_pricing_object_url(
                 self.daily_asset2.asset_info.ralph3_asset_id
@@ -68,7 +68,7 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
         self.assertEquals(result, 2)
         self.assertEquals(2, SupportCost.objects.count())
 
-    def test_update_support_delete(self):
+    def test_update_support_with_deleting_missing_base_object(self):
         SupportCost.objects.create(
             support_id=self.data['id'],
             pricing_object=self.daily_asset2.asset_info,

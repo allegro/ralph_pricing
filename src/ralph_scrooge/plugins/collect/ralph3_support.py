@@ -22,11 +22,17 @@ def _get_object_id_from_url(url):
 
 
 def update_support(support):
+    """
+    For each base object assigned to support, create (or update or delete)
+    `SupportCost` with info about support start and end and price (price is
+    divided equally between all objects attached to the support).
+    """
     logger.info('Processing support {}'.format(support['__str__']))
     price = float(support['price'])
     objects_ids = map(_get_object_id_from_url, support['base_objects'])
     support_cost_ids = set()
     if len(objects_ids) > 0:
+        # divide cost equally for each object
         price_per_object = price / len(objects_ids)
         for obj_id in objects_ids:
             try:
@@ -52,6 +58,7 @@ def update_support(support):
                     )
                 )
                 support_cost_ids.add(support_cost.pk)
+    # delete SupportCost for objects which no longer exists
     supports_costs_to_delete = SupportCost.objects.filter(
         support_id=support['id']
     ).exclude(
