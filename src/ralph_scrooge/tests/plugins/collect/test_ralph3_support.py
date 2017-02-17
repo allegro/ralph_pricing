@@ -23,7 +23,6 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
         self.today = date(2017, 2, 17)
         self.daily_asset1 = DailyAssetInfoFactory()
         self.daily_asset2 = DailyAssetInfoFactory()
-        self.daily_asset3 = DailyAssetInfoFactory.build()
         self.data = {
             'id': 1,
             'base_objects': [
@@ -83,9 +82,10 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
             SupportCost.objects.get(),
             self.daily_asset2.asset_info
         )
+        daily_asset3 = DailyAssetInfoFactory.build()
         self.data['base_objects'].append(
             _get_pricing_object_url(
-                self.daily_asset3.asset_info.ralph3_asset_id
+                daily_asset3.asset_info.ralph3_asset_id
             ),
         )
         result = ralph3_support.update_support(self.data)
