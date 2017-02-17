@@ -55,6 +55,7 @@ class TestInformationPlugin(ScroogeTestCase):
                 )),
                 'id': self.service_environment1.id,
                 'service': self.service_environment1.service.name,
+                'service_uid': self.service_environment1.service.ci_uid,
                 'environment': self.service_environment1.environment.name,
             },
             self.service_environment2.id: {
@@ -65,6 +66,7 @@ class TestInformationPlugin(ScroogeTestCase):
                 'business_line': self.pc2.business_line.name,
                 'id': self.service_environment2.id,
                 'service': self.service_environment2.service.name,
+                'service_uid': self.service_environment2.service.ci_uid,
                 'environment': self.service_environment2.environment.name,
             },
         })
