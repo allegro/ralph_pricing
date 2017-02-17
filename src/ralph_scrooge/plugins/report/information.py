@@ -74,6 +74,7 @@ class Information(BaseReportPlugin):
                 'id': service_environment.id,
                 'service': service_environment.service.name,
                 'environment': service_environment.environment.name,
+                'service_uid': service_environment.service.ci_uid,
                 'profit_center': ' / '.join([
                     ' - '.join(
                         (pc.name, pc.description or '')
