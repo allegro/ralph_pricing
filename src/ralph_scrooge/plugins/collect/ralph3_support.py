@@ -40,7 +40,7 @@ def update_support(support):
                     assetinfo__ralph3_asset_id=obj_id
                 )
             except PricingObject.DoesNotExist:
-                logger.error(
+                logger.warning(
                     'PricingObject with it {} not found for support {}'.format(
                         obj_id, support['__str__']
                     )
