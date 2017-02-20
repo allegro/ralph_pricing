@@ -142,6 +142,9 @@ class Information(BaseReportPlugin):
         schema['environment'] = {
             'name': _("Environment"),
         }
+        schema['service_uid'] = {
+            'name': _("Service UID"),
+        }
         schema['profit_center'] = {
             'name': _("Profit center"),
         }
