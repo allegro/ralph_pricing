@@ -891,11 +891,16 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             costs['service_environment_costs'][0]['costs'][ps_symbol]['cost'],
             cost1
         )
+        # 2016-12-13 is accepted
+        self.assertIsNotNone(
+            costs['service_environment_costs'][0]['total_cost']
+        )
         self.assertEquals(
             costs['service_environment_costs'][1]['costs'], {}
         )
-        self.assertEquals(
-            costs['service_environment_costs'][1]['total_cost'], 0
+        # 2016-12-14 is NOT accepted
+        self.assertIsNone(
+            costs['service_environment_costs'][1]['total_cost']
         )
 
     @data(False, True)  # `forecast` param
@@ -945,4 +950,142 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         self.assertEquals(
             costs['service_environment_costs'][1]['costs'][ps_symbol]['cost'],
             cost2
+        )
+        # 2016-12-13 is accepted
+        self.assertIsNotNone(
+            costs['service_environment_costs'][0]['total_cost']
+        )
+        # 2016-12-14 is accepted, but sice accepted_only is set to False,
+        # total_cost will be NOT None
+        self.assertIsNotNone(
+            costs['service_environment_costs'][1]['total_cost']
+        )
+
+    @data(False, True)  # `forecast` param
+    def test_if_only_accepted_costs_are_returned_when_accept_only_param_given_and_grouped_by_month(self, forecast):  # noqa: E501
+        months = [
+            # month, number of days, cost, usage
+            (10, 31, 20, 11),
+            (11, 30, 40, 22),
+        ]
+        for month, days, cost, usage in months:
+            for day in range(1, days + 1):
+                date_as_str = '2016-{}-{}'.format(month, day)
+                self.create_daily_costs(
+                    ((self.usage_type1, date_as_str, usage, cost),),
+                    parent=(self.pricing_service, date_as_str),
+                    forecast=forecast,
+                )
+                if forecast:
+                    CostDateStatusFactory(
+                        date=date_as_str, forecast_calculated=True,
+                        forecast_accepted=True
+                    )
+                else:
+                    CostDateStatusFactory(
+                        date=date_as_str, calculated=True, accepted=True
+                    )
+        # create "artificial" CostDateStatus for December to mark costs as
+        # calculated, but not accepted
+        for day in range(1, 32):
+            if forecast:
+                CostDateStatusFactory(
+                    date='2016-12-{}'.format(day), forecast_calculated=True,
+                    forecast_accepted=False,
+                )
+            else:
+                CostDateStatusFactory(
+                    date='2016-12-{}'.format(day), calculated=True,
+                    accepted=False
+                )
+        ps_symbol = self.pricing_service.symbol
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": '2016-10-01',
+            "date_to": '2016-12-31',
+            "accepted_only": True,
+            "forecast": forecast,
+            "group_by": "month",
+            "types": [ps_symbol]
+        }
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        costs['service_environment_costs'].sort(
+            key=lambda d: d['grouped_date']
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][0]['total_cost'], 20 * 31
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][1]['total_cost'], 40 * 30
+        )
+        # 2016-12 is NOT accepted
+        self.assertIsNone(
+            costs['service_environment_costs'][2]['total_cost']
+        )
+
+    @data(False, True)  # `forecast` param
+    def test_if_all_costs_are_returned_when_accept_only_param_set_to_false_given_when_grouped_by_month(self, forecast):  # noqa: E501
+        months = [
+            # month, number of days, cost, usage
+            (10, 31, 20, 11),
+            (11, 30, 40, 22),
+        ]
+        for month, days, cost, usage in months:
+            for day in range(1, days + 1):
+                date_as_str = '2016-{}-{}'.format(month, day)
+                self.create_daily_costs(
+                    ((self.usage_type1, date_as_str, usage, cost),),
+                    parent=(self.pricing_service, date_as_str),
+                    forecast=forecast,
+                )
+                if forecast:
+                    CostDateStatusFactory(
+                        date=date_as_str, forecast_accepted=True
+                    )
+                else:
+                    CostDateStatusFactory(date=date_as_str, accepted=True)
+        # create "artificial" CostDateStatus for December to mark costs as
+        # calculated, but not accepted
+        for day in range(1, 32):
+            if forecast:
+                CostDateStatusFactory(
+                    date='2016-12-{}'.format(day), forecast_calculated=True,
+                    forecast_accepted=False,
+                )
+            else:
+                CostDateStatusFactory(
+                    date='2016-12-{}'.format(day), calculated=True,
+                    accepted=False
+                )
+        ps_symbol = self.pricing_service.symbol
+        self.payload = {
+            "service_uid": self.service_uid1,
+            "environment": self.environment1,
+            "date_from": '2016-10-01',
+            "date_to": '2016-12-31',
+            "accepted_only": False,
+            "forecast": forecast,
+            "group_by": "month",
+            "types": [ps_symbol]
+        }
+
+        resp = self.send_post_request()
+        self.assertEquals(resp.status_code, 200)
+        costs = json.loads(resp.content)
+        costs['service_environment_costs'].sort(
+            key=lambda d: d['grouped_date']
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][0]['total_cost'], 20 * 31
+        )
+        self.assertEquals(
+            costs['service_environment_costs'][1]['total_cost'], 40 * 30
+        )
+        # 2016-12 is NOT accepted
+        self.assertEqual(
+            costs['service_environment_costs'][2]['total_cost'], 0
         )
