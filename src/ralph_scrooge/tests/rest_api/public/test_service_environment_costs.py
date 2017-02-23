@@ -968,6 +968,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             (10, 31, 20, 11),
             (11, 30, 40, 22),
         ]
+        # create (accepted) daily costs for every day of November and December
         for month, days, cost, usage in months:
             for day in range(1, days + 1):
                 date_as_str = '2016-{}-{}'.format(month, day)
@@ -1034,6 +1035,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             (10, 31, 20, 11),
             (11, 30, 40, 22),
         ]
+        # create (accepted) daily costs for every day of November and December
         for month, days, cost, usage in months:
             for day in range(1, days + 1):
                 date_as_str = '2016-{}-{}'.format(month, day)

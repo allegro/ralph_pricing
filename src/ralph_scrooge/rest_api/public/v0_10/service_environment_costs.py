@@ -385,7 +385,9 @@ def fetch_costs(
             # costs for particular date were accepted, but this service-env
             # does not have any costs then
             # TODO(mkurek): consider accepting only part of the month
-            # (currently only first day of month is checked)
+            # (currently only first day of month is checked when grouping by
+            # month - see if above - only first day of each month is placed in
+            # date_range_ )
             0 if date_ in filtered_dates else None
         )
         costs_for_date = {
