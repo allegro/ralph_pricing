@@ -378,7 +378,18 @@ def fetch_costs(
             step=delta
         )
     for date_ in date_range_:
-        total_cost_for_date = total_costs.get(date_, 0)
+        total_cost_for_date = total_costs.get(
+            date_,
+            # None, when costs for particular date were not accepted (if
+            # accepted costs were requested) otherwise 0, which means, that
+            # costs for particular date were accepted, but this service-env
+            # does not have any costs then
+            # TODO(mkurek): consider accepting only part of the month
+            # (currently only first day of month is checked when grouping by
+            # month - see if above - only first day of each month is placed in
+            # date_range_ )
+            0 if date_ in filtered_dates else None
+        )
         costs_for_date = {
             'grouped_date': date_,
             'total_cost': round_safe(
