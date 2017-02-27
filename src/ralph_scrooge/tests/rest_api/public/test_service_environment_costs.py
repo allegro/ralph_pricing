@@ -503,20 +503,40 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
             subcost1_ = pricing_service_['subcosts'][self.usage_type1.symbol]
             subcost2_ = pricing_service_['subcosts'][self.usage_type2.symbol]
             if c['grouped_date'] == dates[0]:
-                self.assertEquals(pricing_service_['cost'], 100.0)
-                self.assertEquals(pricing_service_['usage_value'], 10.0)
-                self.assertEquals(subcost1_['cost'], 30.0)
-                self.assertEquals(subcost1_['usage_value'], 3.0)
-                self.assertEquals(subcost2_['cost'], 70.0)
-                self.assertEquals(subcost2_['usage_value'], 7.0)
+                pricing_service_.pop('subcosts')
+                self.assertEquals(pricing_service_, {
+                    'cost': 100.0,
+                    'usage_value': 10.0,
+                    'type': self.pricing_service.name,
+                })
+                self.assertEquals(subcost1_, {
+                    'cost': 30.0,
+                    'usage_value': 3.0,
+                    'type': self.usage_type1.name,
+                })
+                self.assertEquals(subcost2_, {
+                    'cost': 70.0,
+                    'usage_value': 7.0,
+                    'type': self.usage_type2.name,
+                })
                 self.assertEquals(c['total_cost'], 100.0)
             elif c['grouped_date'] == dates[1]:
-                self.assertEquals(pricing_service_['cost'], 260.0)
-                self.assertEquals(pricing_service_['usage_value'], 26.0)
-                self.assertEquals(subcost1_['cost'], 110.0)
-                self.assertEquals(subcost1_['usage_value'], 11.0)
-                self.assertEquals(subcost2_['cost'], 150.0)
-                self.assertEquals(subcost2_['usage_value'], 15.0)
+                pricing_service_.pop('subcosts')
+                self.assertEquals(pricing_service_, {
+                    'cost': 260.0,
+                    'usage_value': 26.0,
+                    'type': self.pricing_service.name,
+                })
+                self.assertEquals(subcost1_, {
+                    'cost': 110.0,
+                    'usage_value': 11.0,
+                    'type': self.usage_type1.name,
+                })
+                self.assertEquals(subcost2_, {
+                    'cost': 150.0,
+                    'usage_value': 15.0,
+                    'type': self.usage_type2.name,
+                })
                 self.assertEquals(c['total_cost'], 260.0)
             else:
                 assert False  # this shouldn't happen!

@@ -137,6 +137,7 @@ class ServiceEnvironmentCostsDeserializer(Serializer):
 class CostAndUsageValueSerializer(Serializer):
     cost = serializers.FloatField()
     usage_value = serializers.FloatField()
+    type = serializers.CharField()
 
 
 class CostWithSubcostsSerializer(CostAndUsageValueSerializer):
@@ -215,12 +216,13 @@ def _round_recursive(usages_and_costs):
     rounded = {}
     if usages_and_costs is not None:
         for k, v in usages_and_costs.iteritems():
-            rounded[k] = {
+            rounded[k] = v
+            rounded[k].update({
                 'cost': round_safe(v['cost'], USAGE_COST_NUM_DIGITS),
                 'usage_value': round_safe(
                     v['usage_value'], USAGE_VALUE_NUM_DIGITS
                 ),
-            }
+            })
             subcosts = v.get('subcosts')
             if subcosts is not None:
                 rounded[k]['subcosts'] = _round_recursive(subcosts)
@@ -341,7 +343,7 @@ def fetch_costs(
     total_costs = _get_total_costs(initial_qs, selector)
 
     aggregated_costs = initial_qs.values(
-        selector, 'path', 'type__symbol'
+        selector, 'path', 'type__symbol', 'type__name'
     ).annotate(
         cost_sum=Sum('cost'), value_sum=Sum('value')
     )
@@ -421,16 +423,19 @@ def _create_trees(aggregated_costs, date_selector):
             '_type_symbol': 'type1',
             'cost': Decimal('333.00'),
             'usage_value': 0.0,
+            'type': 'Type 1',
             'subcosts': {  #  subcosts are optional
                 '484/482': {
                     '_type_symbol': 'subtype1',
                     'cost': Decimal('111.00'),
-                    'usage_value': 1.0
+                    'usage_value': 1.0,
+                    'type': 'Subtype 1'
                 },
                 '484/483': {
                     '_type_symbol': 'subtype2',
                     'cost': Decimal('222.00'),
-                    'usage_value': 2.0
+                    'usage_value': 2.0,
+                    'type': 'Subtype 2'
                 }
             }
         }
@@ -452,6 +457,7 @@ def _create_trees(aggregated_costs, date_selector):
                 '_type_symbol': ac['type__symbol'],
                 'cost': ac['cost_sum'],
                 'usage_value': ac['value_sum'],
+                'type': ac['type__name'],
             }
         }
         if "/" in ac['path']:
@@ -544,7 +550,6 @@ class ServiceEnvironmentCosts(APIView):
                 accepted_only,
                 forecast,
             )
-
             if group_by == 'day':
                 return Response(
                     ServiceEnvironmentDailyCostsSerializer(costs).data
