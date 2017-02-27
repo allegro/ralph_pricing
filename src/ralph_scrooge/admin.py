@@ -44,13 +44,21 @@ class ScroogeUserChangeForm(UserChangeForm):
 class ScroogeUserAdmin(UserAdmin):
 
     form = ScroogeUserChangeForm
+    readonly_fields = ('api_token_key',)
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
+        (None, {'fields': ('username', 'password', 'api_token_key')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
                                        'groups', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
+
+    def get_queryset(self, *args, **kwargs):
+        return super(ScroogeUserAdmin, self).get_queryset(
+            *args, **kwargs
+        ).select_related(
+            'auth_token'
+        )
 
 
 # =============================================================================
