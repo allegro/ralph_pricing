@@ -15,7 +15,7 @@ flake:
 	flake8 --exclude="migrations,settings" --statistics src/ralph_scrooge
 
 runserver:
-	dev_scrooge runserver
+	dev_scrooge runserver 0.0.0.0:8000
 
 install_ui:
 	npm install
