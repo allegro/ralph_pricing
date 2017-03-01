@@ -5,11 +5,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from dj.choices import Choices
 from django.contrib.auth.models import AbstractUser
 from django.db import models as db
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
-
-from dj.choices import Choices
+from rest_framework.authtoken.models import Token
 
 
 class ScroogeUser(AbstractUser):
@@ -20,6 +22,22 @@ class ScroogeUser(AbstractUser):
         verbose_name = _('user')
         verbose_name_plural = _('users')
         app_label = 'ralph_scrooge'
+
+    @property
+    def api_token_key(self):
+        try:
+            return self.auth_token.key
+        except Token.DoesNotExist:
+            return None
+
+
+@receiver(post_save, sender=ScroogeUser)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    """
+    Create token for newly created user.
+    """
+    if not instance.api_token_key:
+        Token.objects.create(user=instance)
 
 
 class OwnershipType(Choices):
