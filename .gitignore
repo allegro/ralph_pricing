@@ -45,3 +45,5 @@ src/ralph_scrooge/media/swagger/
 src/ralph_scrooge/settings/local.py
 src/ralph_scrooge/media/api_schema.json
 scrooge.log
+src/ralph_scrooge/media/api_schema.json
+vagrant/.vagrant

@@ -71,9 +71,9 @@ AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ralph',
-        'USER': 'ralph',
-        'PASSWORD': 'ralph',
+        'NAME': 'scrooge',
+        'USER': 'scrooge',
+        'PASSWORD': 'scrooge',
         'HOST': '',
         'PORT': '',
         'OPTIONS': dict(),
@@ -372,7 +372,7 @@ EMAIL_USE_TLS = False
 # have an acces to HTTP request or socket.
 # This setting is required if you want to provide Scrooge's REST API schema to
 # your clients (and swagger-ui is one of them).
-SCROOGE_HOST = ''
+SCROOGE_HOST = 'localhost:8000'
 
 # Values below should be given in days.
 USAGE_TYPE_UPLOAD_FREQ_MARGINS = {

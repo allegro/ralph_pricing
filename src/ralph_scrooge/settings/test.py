@@ -11,7 +11,7 @@ if TEST_DATABASE_ENGINE == 'mysql':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'ralph_test',
+            'NAME': 'scrooge_test',
             'USER': 'root',
             'HOST': 'localhost',
         },
@@ -21,7 +21,7 @@ elif TEST_DATABASE_ENGINE == 'postgres':
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'USER': 'postgres',
-            'NAME': 'ralph_test',
+            'NAME': 'scrooge_test',
             'OPTIONS': {}
         }
     }
