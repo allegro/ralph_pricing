@@ -71,9 +71,9 @@ AUTH_USER_MODEL = 'ralph_scrooge.ScroogeUser'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ralph',
-        'USER': 'ralph',
-        'PASSWORD': 'ralph',
+        'NAME': 'scrooge',
+        'USER': 'scrooge',
+        'PASSWORD': 'scrooge',
         'HOST': '',
         'PORT': '',
         'OPTIONS': dict(),
