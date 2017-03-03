@@ -63,7 +63,9 @@ class TestCyclesDetector(ScroogeTestCase):
     def setUpClass(cls):
         super(TestCyclesDetector, cls).setUpClass()
         cls.today = date(2017, 3, 3)
-        cls.se1, cls.se2, cls.se3, cls.se4 = ServiceEnvironmentFactory.create_batch(4)
+        cls.se1, cls.se2, cls.se3, cls.se4 = (
+            ServiceEnvironmentFactory.create_batch(4)
+        )
 
         cls.ps1 = PricingServiceFactory()
         cls.ps1.services.add(cls.se1.service)
