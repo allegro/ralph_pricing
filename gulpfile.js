@@ -114,27 +114,6 @@ gulp.task('clean_swagger', function () {
   return del(mediaPath + 'swagger/**');
 });
 
-// XXX These two tasks below are a temporary workaround for two files from
-// swagger-ui distribution that are either missing or have stale references in
-// style.css: logo.png and shield.png. And because of that, `scrooge collectstatic`
-// fails.
-// This workaround (along with `gulp-rename` package) should be removed once
-// this PR will be merged: https://github.com/swagger-api/swagger-ui/pull/2557
-gulp.task("swagger_fake_logo_png", ['swagger'], function() {
-    return gulp.src([
-        'images/logo_small.png',
-    ], {cwd: "node_modules/swagger-ui/dist/**"}) /* Glob required here. */
-    .pipe(rename('logo.png'))
-    .pipe(gulp.dest(mediaPath + "swagger/images/"));
-});
-gulp.task("swagger_fake_shield_png", ['swagger'], function() {
-    return gulp.src([
-        'images/logo_small.png',
-    ], {cwd: "node_modules/swagger-ui/dist/**"}) /* Glob required here. */
-    .pipe(rename('shield.png'))
-    .pipe(gulp.dest(mediaPath + "swagger/images/"));
-});
-
 gulp.task('default', function() {
-    gulp.start('compile', 'libs', 'swagger_fake_logo_png', 'swagger_fake_shield_png');
+    gulp.start('compile', 'libs', 'swagger');
 });
