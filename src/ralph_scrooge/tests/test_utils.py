@@ -7,8 +7,15 @@ from __future__ import unicode_literals
 
 from datetime import date
 
+from ralph_scrooge.models import ServiceUsageTypes
 from ralph_scrooge.tests import ScroogeTestCase
-from ralph_scrooge.utils import common
+from ralph_scrooge.tests.utils.factory import (
+    DailyUsageFactory,
+    PricingServiceFactory,
+    ServiceEnvironmentFactory,
+    UsageTypeFactory
+)
+from ralph_scrooge.utils import common, cycle_detector
 
 
 class TestRangesOverlap(ScroogeTestCase):
@@ -49,3 +56,93 @@ class TestRangesOverlap(ScroogeTestCase):
             ],
             result
         )
+
+
+class TestCyclesDetector(ScroogeTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(TestCyclesDetector, cls).setUpClass()
+        cls.today = date(2017, 3, 3)
+        cls.se1, cls.se2, cls.se3, cls.se4 = ServiceEnvironmentFactory.create_batch(4)
+
+        cls.ps1 = PricingServiceFactory()
+        cls.ps1.services.add(cls.se1.service)
+        cls.usage_type1 = UsageTypeFactory()
+        ServiceUsageTypes.objects.create(
+            usage_type=cls.usage_type1,
+            pricing_service=cls.ps1,
+            start=date.min,
+            end=date.max,
+        )
+        cls.usage_type2 = UsageTypeFactory()
+        ServiceUsageTypes.objects.create(
+            usage_type=cls.usage_type2,
+            pricing_service=cls.ps1,
+            start=date.min,
+            end=date.max,
+        )
+
+        cls.ps2 = PricingServiceFactory()
+        cls.ps2.services.add(cls.se2.service)
+        cls.usage_type3 = UsageTypeFactory()
+        ServiceUsageTypes.objects.create(
+            usage_type=cls.usage_type3,
+            pricing_service=cls.ps2,
+            start=date.min,
+            end=date.max,
+        )
+
+        cls.ps3 = PricingServiceFactory()
+        cls.ps3.services.add(cls.se3.service)
+        cls.usage_type4 = UsageTypeFactory()
+        ServiceUsageTypes.objects.create(
+            usage_type=cls.usage_type4,
+            pricing_service=cls.ps3,
+            start=date.min,
+            end=date.max,
+        )
+
+    def setUp(self):
+        DailyUsageFactory(
+            type=self.usage_type1,
+            service_environment=self.se2,
+            date=self.today
+        )
+        DailyUsageFactory(
+            type=self.usage_type3,
+            service_environment=self.se3,
+            date=self.today
+        )
+
+    def _make_cycle(self):
+        DailyUsageFactory(
+            type=self.usage_type4,
+            service_environment=self.se1,
+            date=self.today
+        )
+
+    def test_get_pricing_services_graph_when_graph_is_without_cycle(self):
+        graph = cycle_detector._get_pricing_services_graph(self.today)
+        self.assertEqual(graph, {
+            self.ps1: [self.ps2],
+            self.ps2: [self.ps3],
+        })
+
+    def test_get_pricing_services_graph_when_graph_is_with_cycle(self):
+        self._make_cycle()
+        graph = cycle_detector._get_pricing_services_graph(self.today)
+        self.assertEqual(graph, {
+            self.ps1: [self.ps2],
+            self.ps2: [self.ps3],
+            self.ps3: [self.ps1],
+        })
+
+    def test_detect_cycle_when_there_is_no_cycle(self):
+        cycles = cycle_detector.detect_cycles(self.today)
+        self.assertEqual(cycles, [])
+
+    def test_detect_cycle_when_there_is_cycle(self):
+        self._make_cycle()
+        graph = cycle_detector._get_pricing_services_graph(self.today)
+        cycles = cycle_detector._detect_cycles(self.ps1, graph, set(), [])
+        self.assertEqual(cycles, [[self.ps1, self.ps2, self.ps3, self.ps1]])

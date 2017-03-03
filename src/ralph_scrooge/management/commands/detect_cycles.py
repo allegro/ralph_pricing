@@ -23,9 +23,8 @@ def valid_date(date_):
 
 
 class Command(BaseCommand):
-    """Calculate daily costs for a given day (defaults to yesterday) and
-    pricing service (defaults to all which are bot active and have fixed
-    price).
+    """
+    Detect if there is cycle in charging between PricingServices for given date
     """
     def add_arguments(self, parser):
         parser.add_argument(
