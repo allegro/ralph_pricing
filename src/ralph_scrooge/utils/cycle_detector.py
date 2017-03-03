@@ -27,7 +27,7 @@ def _detect_cycles(node, graph, visited, ps_stack):
         visited: set of already visited PricingServices during graph traversal
         ps_stack: stack of PricingServices in current traversal (top->down)
     Returns:
-        list of lists of PricingServices
+        list of lists of PricingServices (or empty list if there's no cycle)
     """
     try:
         index = ps_stack.index(node)
