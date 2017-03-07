@@ -5,6 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import argparse
+from datetime import datetime
 from decimal import Decimal
 
 from django.conf import settings
@@ -123,3 +125,12 @@ def normalize_decimal(d):
     Decimal('1100')
     """
     return d.quantize(Decimal(1)) if d == d.to_integral() else d.normalize()
+
+
+def validate_date(date_):
+    try:
+        return datetime.strptime(date_, "%Y-%m-%d").date()
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            "Invalid date: '{}'.".format(date_)
+        )
