@@ -253,16 +253,13 @@ def _filter_out_ack(unusual_changes):
     """
     unusual_changes_ = {}
     for ut in unusual_changes.keys():
-        if not UsageAnomalyAck.objects.filter(type=ut).exists():
-            unusual_changes_[ut] = unusual_changes[ut]
-            continue
-        unusual_changes_[ut] = []
-        for change in unusual_changes[ut]:
-            if UsageAnomalyAck.objects.filter(
-                    type=ut, anomaly_date=change[0]
-            ).exists():
-                continue
-            unusual_changes_[ut].append(change)
+        ut_changes = unusual_changes[ut]
+        acks = set(
+            UsageAnomalyAck.objects.filter(
+                type=ut, anomaly_date__in=[ch[0] for ch in ut_changes]
+            ).values_list('anomaly_date', flat=True)
+        )
+        unusual_changes_[ut] = [ch for ch in ut_changes if ch[0] not in acks]
     return unusual_changes_
 
 

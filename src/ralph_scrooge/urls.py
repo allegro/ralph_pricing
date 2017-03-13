@@ -118,12 +118,12 @@ urlpatterns = [
     url(
         r'^$',
         login_required(BootstrapAngular.as_view()),
-        name='services_costs_report',  # XXX why this URL is called like that?
+        name='bootstrap_angular',
     ),
     url(
         r'^ui/$',
         login_required(BootstrapAngular2.as_view()),
-        name='angular2',
+        name='bootstrap_angular2',
     ),
     url(
         r'^login/', auth_views.login, {'template_name': 'admin/login.html'}

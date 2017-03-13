@@ -52,7 +52,7 @@ class Command(BaseCommand):
         )
         qs = UsageAnomalyAck.objects.filter(anomaly_date__lt=min_date)
         qs_count = qs.count()
-        if qs.exists():
+        if qs_count:
             qs.delete()
         logger.info(
             'Number of UsageType anomaly acknowledgements deleted: {}.'
