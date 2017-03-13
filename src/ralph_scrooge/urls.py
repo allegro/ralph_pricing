@@ -132,7 +132,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^hermes/', include('pyhermes.apps.django.urls')),
     url(
-        r'^ack/$',
+        r'^ack/(?P<ut_id>\d+)/(?P<date>\d{4}-\d{2}-\d{2})/$',
         login_required(AnomaliesAck.as_view()),
         name='anomalies_ack',
     )

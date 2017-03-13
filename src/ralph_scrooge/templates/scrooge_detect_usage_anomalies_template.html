@@ -61,7 +61,7 @@
           {{ ch.5|percentage:"dec=2&sign=true" }}
         </td>
         <td style="border: 1px solid black; padding: 5px; text-align: right">
-          <a href="{{ base_mail_url }}{% url 'anomalies_ack' %}?ut_id={{ ch.2.id }}&date={{ ch.0|date:'Y-m-d' }}">
+          <a href="{{ base_mail_url }}{% url 'anomalies_ack' ut_id=ch.2.id date=ch.0|date:'Y-m-d' %}">
             Acknowledge
           </a>
         </td>

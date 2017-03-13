@@ -36,9 +36,7 @@ class AnomaliesAck(View):
         return True
 
     # POST would be an overkill here, really...
-    def get(self, request):
-        ut_id = request.GET.get('ut_id')
-        date = request.GET.get('date')
+    def get(self, request, ut_id, date):
         if (
             not (ut_id and date) or
             not self._is_request_valid(ut_id, date, self.request.user)
