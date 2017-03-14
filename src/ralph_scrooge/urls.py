@@ -27,6 +27,7 @@ from ralph_scrooge.rest_api.public.v0_10.router import (
 from ralph_scrooge.rest_api.public.v0_9.team_time_division import (
     TeamTimeDivision,
 )
+from ralph_scrooge.views.anomalies_ack import AnomaliesAck
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
@@ -117,17 +118,22 @@ urlpatterns = [
     url(
         r'^$',
         login_required(BootstrapAngular.as_view()),
-        name='services_costs_report',
+        name='bootstrap_angular',
     ),
     url(
         r'^ui/$',
         login_required(BootstrapAngular2.as_view()),
-        name='angular2',
+        name='bootstrap_angular2',
     ),
     url(
         r'^login/', auth_views.login, {'template_name': 'admin/login.html'}
     ),
     url(r'^logout/', auth_views.logout, name='logout'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^hermes/', include('pyhermes.apps.django.urls'))
+    url(r'^hermes/', include('pyhermes.apps.django.urls')),
+    url(
+        r'^ack/(?P<ut_id>\d+)/(?P<date>\d{4}-\d{2}-\d{2})/$',
+        login_required(AnomaliesAck.as_view()),
+        name='anomalies_ack',
+    )
 ]

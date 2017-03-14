@@ -374,6 +374,9 @@ EMAIL_USE_TLS = False
 # your clients (and swagger-ui is one of them).
 SCROOGE_HOST = 'localhost:8000'
 
+# Base URL component for constructing Scrooge's links in outgoing mails.
+BASE_MAIL_URL = 'http://{}'.format(SCROOGE_HOST)
+
 # Values below should be given in days.
 USAGE_TYPE_UPLOAD_FREQ_MARGINS = {
     'daily': 1,

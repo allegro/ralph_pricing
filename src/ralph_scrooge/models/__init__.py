@@ -67,6 +67,7 @@ from ralph_scrooge.models.usage import (
     DailyUsage,
     UsagePrice,
     UsageType,
+    UsageAnomalyAck,
     UsageTypeUploadFreq,
 )
 
@@ -121,6 +122,7 @@ __all__ = [
     'TeamServiceEnvironmentPercent',
     'TenantInfo',
     'UsageType',
+    'UsageAnomalyAck',
     'UsageTypeUploadFreq',
     'UsagePrice',
     'VIPInfo',

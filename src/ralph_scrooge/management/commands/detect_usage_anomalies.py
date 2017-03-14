@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import argparse
 import datetime
 import logging
 from collections import defaultdict, OrderedDict
@@ -21,6 +20,7 @@ from django.template.loader import render_to_string
 
 from ralph_scrooge.models import (
     DailyUsage,
+    UsageAnomalyAck,
     UsageType,
     UsageTypeUploadFreq,
 )
@@ -28,6 +28,7 @@ from ralph_scrooge.models import (
 from ralph_scrooge.rest_api.public.v0_10.service_environment_costs import (
     date_range,
 )
+from ralph_scrooge.utils.common import validate_date
 
 
 class UnknownUsageTypeUploadFreqError(Exception):
@@ -40,15 +41,6 @@ class UnknownUsageTypeUploadFreqError(Exception):
 logger = logging.getLogger(__name__)
 a_day = datetime.timedelta(days=1)
 yesterday = datetime.date.today() - a_day
-
-
-def valid_date(date_):
-    try:
-        return datetime.datetime.strptime(date_, "%Y-%m-%d").date()
-    except ValueError:
-        raise argparse.ArgumentTypeError(
-            "Invalid date: '{}'.".format(date_)
-        )
 
 
 def get_usage_types(symbols):
@@ -248,10 +240,27 @@ def _postprocess_for_report(usage_types, missing_values, unusual_changes):
     """Post-process the output of `_detect_anomalies` in order to facilitate
     composing final e-mails with anomaly reports.
     """
-    anomalies_ = _merge_by_type(usage_types, missing_values, unusual_changes)
+    unusual_changes_ = _filter_out_ack(unusual_changes)
+    anomalies_ = _merge_by_type(usage_types, missing_values, unusual_changes_)
     anomalies__ = _group_anomalies_by_owner(anomalies_)
     anomalies___ = _sort_unusual_changes_by_date_and_type(anomalies__)
     return anomalies___
+
+
+def _filter_out_ack(unusual_changes):
+    """Filter out unusual changes that are already acknowledged by owner(s) of
+    given UsageType(s).
+    """
+    unusual_changes_ = {}
+    for ut in unusual_changes.keys():
+        ut_changes = unusual_changes[ut]
+        acks = set(
+            UsageAnomalyAck.objects.filter(
+                type=ut, anomaly_date__in=[ch[0] for ch in ut_changes]
+            ).values_list('anomaly_date', flat=True)
+        )
+        unusual_changes_[ut] = [ch for ch in ut_changes if ch[0] not in acks]
+    return unusual_changes_
 
 
 def _merge_by_type(usage_types, missing_values, unusual_changes_by_type):
@@ -436,8 +445,10 @@ def _send_notifications(anomalies):
             'unusual_changes': anomalies_['unusual_changes'],
             'missing_values': anomalies_['missing_values'],
             'reply_to_address': settings.EMAIL_NOTIFICATIONS_REPLY_TO,
+            'base_mail_url': settings.BASE_MAIL_URL,
         }
         body = render_to_string(template_name, context)
+
         if not recipient.email:
             logger.warning('User "{}" doesn\'t have an email. Skipping.')
             continue
@@ -486,7 +497,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '-e',
-            type=valid_date,
+            type=validate_date,
             dest='end_date',
             default=yesterday,
             help=(

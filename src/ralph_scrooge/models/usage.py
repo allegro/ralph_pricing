@@ -149,6 +149,27 @@ class UsageType(BaseUsage):
         )
 
 
+class UsageAnomalyAck(db.Model):
+    """
+    Model meant to record acknowledgements of anomalies reported to UsageType
+    owners (see management command `detect_usage_anomalies`).
+
+    Anomaly comes from the difference between *two* days, but since the 2nd
+    one of them is always the 1st one +1, we need to record only the 1st one.
+    """
+    type = db.ForeignKey(UsageType)
+    anomaly_date = db.DateField()
+    acknowledged_by = db.ForeignKey(settings.AUTH_USER_MODEL)
+
+    class Meta:
+        unique_together = ('type', 'anomaly_date', 'acknowledged_by')
+
+    def __unicode__(self):
+        return '{}: {:%Y-%m-%d} ({})'.format(
+            self.type.symbol, self.anomaly_date, self.acknowledged_by.username
+        )
+
+
 class UsagePrice(db.Model):
     """
     Model contains usages price information

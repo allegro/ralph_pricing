@@ -40,6 +40,7 @@ setup(
         'django==1.10.2',
         'djangorestframework==3.5.3',
         'factory-boy==2.3.1',
+        'flake8==3.3.0',
         'gunicorn==19.6.0',
         'ipaddr==2.1.11',
         'mock-django==0.6.6',

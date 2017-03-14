@@ -19,7 +19,7 @@
     <table style="border: 1px solid black; border-collapse: collapse">
       <tr>
         <th style="border: 1px solid black; padding: 5px">Date</th>
-        <th style="border: 1px solid black; padding: 5px">Usage type(s)</th>
+        <th style="border: 1px solid black; padding: 5px">Usage Type(s)</th>
       </tr>
       {% for date_, usage_types in missing_values.items %}
       <tr>
@@ -40,10 +40,11 @@
       <tr>
         <th style="border: 1px solid black; padding: 5px">Date 1</th>
         <th style="border: 1px solid black; padding: 5px">Date 2</th>
-        <th style="border: 1px solid black; padding: 5px">Usage type</th>
+        <th style="border: 1px solid black; padding: 5px">Usage Type</th>
         <th style="border: 1px solid black; padding: 5px">Value 1</th>
         <th style="border: 1px solid black; padding: 5px">Value 2</th>
-        <th style="border: 1px solid black; padding: 5px">Relative Change (%)</th>
+        <th style="border: 1px solid black; padding: 5px">Relative Change</th>
+        <th style="border-top-style:hidden; border-right-style:hidden"></th>
       </tr>
       {% for ch in unusual_changes %}
       <tr>
@@ -59,21 +60,34 @@
         <td style="border: 1px solid black; padding: 5px; text-align: right">
           {{ ch.5|percentage:"dec=2&sign=true" }}
         </td>
+        <td style="border: 1px solid black; padding: 5px; text-align: right">
+          <a href="{{ base_mail_url }}{% url 'anomalies_ack' ut_id=ch.2.id date=ch.0|date:'Y-m-d' %}">
+            Acknowledge
+          </a>
+        </td>
       </tr>
       {% endfor %}
     </table>
 
-    <p>In case you'd find any false positives in the table above, you may
-    request change of the "Change Tolerance" param in Scrooge's admin panel
-    (requires admin privileges).</p>
+    <p>In case you'd find any false positives in the table above (or just
+      anomalies that you are aware of), you can acknowledge each one of them, so
+      they won't be reported to anybody anymore (this includes other owners of
+      given Usage Type as well).
+    </p>
+
+    <p>Or alternatively, if you find yourself in a situation, where you have to
+      acknowledge such anomalies too often, you may request change of the
+      "Change Tolerance" param in Scrooge's admin panel (requires admin
+      privileges).
+    </p>
 
     {% endif %}
 
     {% if reply_to_address %}
-    <p>Please note: This e-mail was sent from a notification-only
-      address that can't accept incoming e-mail. If you want to
-      contact us, please send an e-mail to {{ reply_to_address }}
-      instead. Thanks!</p>
+    <p>Please note: This e-mail was sent from a notification-only address that
+      can't accept incoming e-mail. If you want to contact us, please send an
+      e-mail to {{ reply_to_address }} instead. Thanks!
+    </p>
     {% endif %}
 
     <p>Regards,<br>Scrooge Team</p>
