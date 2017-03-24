@@ -27,6 +27,7 @@ from ralph_scrooge.plugins.cost.base import (
     NoPriceCostError,
     MultiplePriceCostError,
 )
+from ralph_scrooge.plugins.validations import Validator
 from ralph_scrooge.utils.common import memoize, AttributeDict
 
 logger = logging.getLogger(__name__)
@@ -150,6 +151,8 @@ class Collector(object):
             date,
         ))
         self._verify_accepted_costs(date, forecast, delete_verified)
+        logger.info('Performing validation of data for costs calculation.')
+        Validator(date, forecast).validate()
         costs = self._collect_costs(
             date=date,
             forecast=forecast,
@@ -190,8 +193,7 @@ class Collector(object):
     def _verify_accepted_costs(self, date, forecast, delete_verified):
         """
         Verify if costs were already accepted for passed day. If yes and
-        recalculation isn't forces VerifiedDailyCostsExistsError exception is
-        raised.
+        recalculation isn't forced, VerifiedDailyCostsExistsError is raised.
         """
         if not delete_verified and CostDateStatus.objects.filter(
             date=date,
