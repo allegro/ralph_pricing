@@ -13,6 +13,7 @@ from ralph_scrooge.models import (
     CostDateStatus,
     DailyUsage,
     PricingService,
+    PricingServicePlugin,
     ServiceUsageTypes,
     Team,
     TeamCost,
@@ -32,35 +33,42 @@ class Validator(object):
         self.active_teams = Team.objects.filter(active=True)
         self.active_usage_types = UsageType.objects.filter(active=True)
 
-    def _check_for_required_costs(self):  # XXX or rather prices..?
-        """Are all required costs (for *active* usages, teams etc.) present?"""
+    # XXX And also, maybe check extra costs and dynamic extra costs.
+    def _check_for_required_costs_and_prices(self):
+        """Are all required costs/prices (for *active* usages, teams etc.)
+        present?
+        """
+        if self.forecast:
+            q = 'forecast_cost'
+        else:
+            q = 'cost'
+        # TODO(xor-xor): Handle costs *and* prices here.
+        # XXX(mkurek) I gues that we need to differentiate UsagePrices here by
+        # DC/Warehouse, right?
 
         for ut in self.active_usage_types:
-            if not UsagePrice.objects.filter(
+            sum_ = UsagePrice.objects.filter(
                 type=ut,
                 start__lte=self.date,
                 end__gte=self.date,
-            ).exists():
+            ).aggregate(s=Sum(q))['s']
+            if not sum_:
                 self.errors.append(
-                    'no price(s) defined for usage type "{}"'.format(ut.name)
+                    'no {}(s) defined for usage type "{}"'
+                    .format(' '.join(q.split('_')), ut.name)
                 )
+
         for team in self.active_teams:
-            if not TeamCost.objects.filter(
+            sum_ = TeamCost.objects.filter(
                 team=team,
                 start__lte=self.date,
                 end__gte=self.date,
-            ):
+            ).aggregate(s=Sum(q))['s']
+            if not sum_:
                 self.errors.append(
-                    'no cost(s) defined for team "{}"'.format(team.name)
+                    'no {}(s) defined for team "{}"'
+                    .format(' '.join(q.split('_')), team.name)
                 )
-
-        # XXX And also, maybe check extra costs and dynamic extra costs.
-
-        # XXX(mkurek): What about usage prices and team costs which are
-        # defined, but are equal to 0..?
-
-        # TODO(xor-xor): Handle forecast_cost here as well when it will
-        # become clear what to do with costs == 0.
 
     def _check_team_time_allocations(self):
         """Does every *active* team have its time allocated and does it sum up
@@ -94,7 +102,9 @@ class Validator(object):
 
     def _check_usage_types_percent(self):
         """Does every usage type which operates on percents sums up to 100%?"""
-        for ps in PricingService.objects.filter(active=True):
+        for ps in PricingService.objects.filter(active=True).exclude(
+            plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin
+        ):
             percent_sum = ServiceUsageTypes.objects.filter(
                 usage_type__in=ps.usage_types.filter(active=True),
                 start__lte=self.date,
@@ -133,7 +143,7 @@ class Validator(object):
             )
 
     def validate(self):
-        self._check_for_required_costs()
+        self._check_for_required_costs_and_prices()
         self._check_team_time_allocations()
         self._check_usage_types()
         self._check_usage_types_percent()
