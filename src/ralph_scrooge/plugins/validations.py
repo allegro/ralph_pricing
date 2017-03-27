@@ -23,6 +23,13 @@ from ralph_scrooge.models import (
     Warehouse,
 )
 
+class DataForReportValidationError(Exception):
+    """`errors` should be a list containing error msgs given by Validator."""
+
+    def __init__(self, message, errors):
+        setattr(self, 'errors', errors)
+        Exception.__init__(self, message)
+
 
 class Validator(object):
 
@@ -185,8 +192,7 @@ class Validator(object):
         self._check_for_accepted_costs()
         self._check_for_cycles()
         if self.errors:
-            msg = (
-                'Errors detected for day {:%Y-%m-%d}: {}.'
-                .format(self.date, '; '.join(self.errors))
+            raise DataForReportValidationError(
+                'Errors detected for day {:%Y-%m-%d}'.format(self.date),
+                errors=self.errors
             )
-            raise Exception(msg.encode('utf-8'))
