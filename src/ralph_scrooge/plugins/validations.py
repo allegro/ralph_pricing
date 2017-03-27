@@ -36,10 +36,9 @@ class Validator(object):
 
     # XXX And also, maybe check extra costs and dynamic extra costs..?
     def _check_for_required_costs_and_prices(self):
-        """Are all required costs/prices (for *active* usages) present?"""
-
+        """There should be no active UsageType without all required
+        costs/prices."""
         q = {'start__lte': self.date, 'end__gte': self.date}
-
         for ut in self.active_usage_types:
             q.update({'type': ut})
             field = 'cost' if not self.forecast else 'forecast_cost'
@@ -58,8 +57,9 @@ class Validator(object):
                 )
 
     def _check_for_usage_prices_by_warehouse(self):
-        """Each base UsageType which has by_warehouse set to True, should have
-        UsagePrice defined for a given day, for *each* active Warehouse.
+        """There should be no base UsageType with by_warehouse field set to
+        True, where UsagePrices for a given day are defined only for some (i.e.
+        not all) active Warehouses.
         """
         num_active_warehouses = Warehouse.objects.filter(
             show_in_report=True
@@ -85,8 +85,8 @@ class Validator(object):
                 )
 
     def _check_team_costs(self):
-        """There should be costs defined (and greater than 0) for every active
-        team.
+        """There should be no active team with undefined/zero costs on given
+        day.
         """
         if self.forecast:
             q = 'forecast_cost'
@@ -105,8 +105,8 @@ class Validator(object):
                 )
 
     def _check_team_time_allocations(self):
-        """Does every *active* team have its time allocated and does it sum up
-        to 100%?
+        """There should be no active team with time allocated that doesn't sum
+        up to 100%.
         """
         for team in self.active_teams:
             perc = TeamServiceEnvironmentPercent.objects.filter(
@@ -123,8 +123,8 @@ class Validator(object):
                 )
 
     def _check_usage_types(self):
-        """Does every *active* usage type have any usages saved for a given
-        day?
+        """There should be no active usage type without usage(s) saved for
+        a given day.
         """
         # XXX(mkurek): only active or maybe active *and* linked to some
         # pricing service..?
@@ -135,7 +135,8 @@ class Validator(object):
                 )
 
     def _check_usage_types_percent(self):
-        """Does every usage type which operates on percents sums up to 100%?"""
+        """There should be no usage type where percents do not sum up to 100%.
+        """
         for ps in PricingService.objects.filter(active=True).exclude(
             plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin
         ):
@@ -151,9 +152,7 @@ class Validator(object):
                 )
 
     def _check_for_accepted_costs(self):
-        """Are there any costs that are accepted already? (if yes, report an
-        error)
-        """
+        """There should be no costs that are already accepted."""
         q = {'date': self.date}
         if self.forecast:
             q.update({'forecast_accepted': True})
@@ -163,8 +162,8 @@ class Validator(object):
             self.errors.append('costs already accepted')
 
     def _check_for_cycles(self):
-        """Are there any cycles between pricing services operating on flexible
-        prices? (if yes, report an error)
+        """There should be no cycles between pricing services operating on
+        flexible prices.
         """
         cycles = detect_cycles(self.date)
         if cycles:
@@ -186,7 +185,8 @@ class Validator(object):
         self._check_for_accepted_costs()
         self._check_for_cycles()
         if self.errors:
-            raise Exception(
+            msg = (
                 'Errors detected for day {:%Y-%m-%d}: {}.'
                 .format(self.date, '; '.join(self.errors))
             )
+            raise Exception(msg.encode('utf-8'))
