@@ -20,6 +20,7 @@ from ralph_scrooge.models import (
     TeamServiceEnvironmentPercent,
     UsagePrice,
     UsageType,
+    Warehouse,
 )
 
 
@@ -33,31 +34,64 @@ class Validator(object):
         self.active_teams = Team.objects.filter(active=True)
         self.active_usage_types = UsageType.objects.filter(active=True)
 
-    # XXX And also, maybe check extra costs and dynamic extra costs.
+    # XXX And also, maybe check extra costs and dynamic extra costs..?
     def _check_for_required_costs_and_prices(self):
-        """Are all required costs/prices (for *active* usages, teams etc.)
-        present?
+        """Are all required costs/prices (for *active* usages) present?"""
+
+        q = {'start__lte': self.date, 'end__gte': self.date}
+
+        for ut in self.active_usage_types:
+            q.update({'type': ut})
+            field = 'cost' if not self.forecast else 'forecast_cost'
+            sum_cost = UsagePrice.objects.filter(**q).aggregate(
+                s=Sum(field)
+            )['s']
+            field = 'price' if not self.forecast else 'forecast_price'
+            sum_price = UsagePrice.objects.filter(**q).aggregate(
+                s=Sum(field)
+            )['s']
+
+            if not sum_cost or not sum_price:
+                self.errors.append(
+                    'no {}cost(s) or price(s) defined for usage type "{}"'
+                    .format('forecast ' if self.forecast else '', ut.name)
+                )
+
+    def _check_for_usage_prices_by_warehouse(self):
+        """Each base UsageType which has by_warehouse set to True, should have
+        UsagePrice defined for a given day, for *each* active Warehouse.
+        """
+        num_active_warehouses = Warehouse.objects.filter(
+            show_in_report=True
+        ).count()
+        for ut in self.active_usage_types.filter(
+                usage_type='BU', by_warehouse=True
+        ):
+            warehouses = UsagePrice.objects.filter(
+                type=ut,
+                warehouse__show_in_report=True,
+                start__lte=self.date,
+                end__gte=self.date,
+            ).values_list('warehouse', flat=True)
+            num_warehouses = len(set(warehouses))
+            if num_warehouses != num_active_warehouses:
+                self.errors.append(
+                    'no usage price(s) for {} of {} active warehouse(s) '
+                    'defined for usage type "{}"'.format(
+                        num_active_warehouses - num_warehouses,
+                        num_active_warehouses,
+                        ut.name,
+                    )
+                )
+
+    def _check_team_costs(self):
+        """There should be costs defined (and greater than 0) for every active
+        team.
         """
         if self.forecast:
             q = 'forecast_cost'
         else:
             q = 'cost'
-        # TODO(xor-xor): Handle costs *and* prices here.
-        # XXX(mkurek) I gues that we need to differentiate UsagePrices here by
-        # DC/Warehouse, right?
-
-        for ut in self.active_usage_types:
-            sum_ = UsagePrice.objects.filter(
-                type=ut,
-                start__lte=self.date,
-                end__gte=self.date,
-            ).aggregate(s=Sum(q))['s']
-            if not sum_:
-                self.errors.append(
-                    'no {}(s) defined for usage type "{}"'
-                    .format(' '.join(q.split('_')), ut.name)
-                )
-
         for team in self.active_teams:
             sum_ = TeamCost.objects.filter(
                 team=team,
@@ -144,6 +178,8 @@ class Validator(object):
 
     def validate(self):
         self._check_for_required_costs_and_prices()
+        self._check_for_usage_prices_by_warehouse()
+        self._check_team_costs()
         self._check_team_time_allocations()
         self._check_usage_types()
         self._check_usage_types_percent()
