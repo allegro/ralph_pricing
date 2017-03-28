@@ -23,6 +23,7 @@ from ralph_scrooge.models import (
     Warehouse,
 )
 
+
 class DataForReportValidationError(Exception):
     """`errors` should be a list containing error msgs given by Validator."""
 
@@ -41,27 +42,30 @@ class Validator(object):
         self.active_teams = Team.objects.filter(active=True)
         self.active_usage_types = UsageType.objects.filter(active=True)
 
-    # XXX And also, maybe check extra costs and dynamic extra costs..?
+    # XXX(mkurek): And also, what about checking (dynamic) extra costs..?
     def _check_for_required_costs_and_prices(self):
         """There should be no active UsageType without all required
         costs/prices."""
         q = {'start__lte': self.date, 'end__gte': self.date}
-        for ut in self.active_usage_types:
-            q.update({'type': ut})
-            field = 'cost' if not self.forecast else 'forecast_cost'
-            sum_cost = UsagePrice.objects.filter(**q).aggregate(
-                s=Sum(field)
-            )['s']
-            field = 'price' if not self.forecast else 'forecast_price'
-            sum_price = UsagePrice.objects.filter(**q).aggregate(
-                s=Sum(field)
-            )['s']
-
-            if not sum_cost or not sum_price:
-                self.errors.append(
-                    'no {}cost(s) or price(s) defined for usage type "{}"'
-                    .format('forecast ' if self.forecast else '', ut.name)
-                )
+        for ps in PricingService.objects.filter(
+            active=True,
+            plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin,  # noqa: E501
+        ):
+            for ut in ps.usage_types.all():
+                q.update({'type': ut})
+                field = 'cost' if not self.forecast else 'forecast_cost'
+                sum_cost = UsagePrice.objects.filter(**q).aggregate(
+                    s=Sum(field)
+                )['s']
+                field = 'price' if not self.forecast else 'forecast_price'
+                sum_price = UsagePrice.objects.filter(**q).aggregate(
+                    s=Sum(field)
+                )['s']
+                if not sum_cost or not sum_price:
+                    self.errors.append(
+                        'no {}cost(s) or price(s) defined for usage type "{}"'
+                        .format('forecast ' if self.forecast else '', ut.name)
+                    )
 
     def _check_for_usage_prices_by_warehouse(self):
         """There should be no base UsageType with by_warehouse field set to
@@ -133,16 +137,22 @@ class Validator(object):
         """There should be no active usage type without usage(s) saved for
         a given day.
         """
-        # XXX(mkurek): only active or maybe active *and* linked to some
-        # pricing service..?
-        for ut in self.active_usage_types:
+        for ut in self.active_usage_types.filter(usage_type__in=['BU', 'SU']):
+            if ut.usage_type == 'SU':
+                if not ServiceUsageTypes.objects.filter(
+                    usage_type=ut,
+                    start__lte=self.date,
+                    end__gte=self.date,
+                ).exists():
+                    continue
             if not DailyUsage.objects.filter(date=self.date, type=ut).exists():
                 self.errors.append(
                     'no usage(s) uploaded for usage type "{}"'.format(ut.name)
                 )
 
     def _check_usage_types_percent(self):
-        """There should be no usage type where percents do not sum up to 100%.
+        """There should be no pricing service with usage type(s) that together
+        do not sum up to 100%.
         """
         for ps in PricingService.objects.filter(active=True).exclude(
             plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin
