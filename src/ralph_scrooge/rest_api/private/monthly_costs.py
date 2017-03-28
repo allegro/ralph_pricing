@@ -19,12 +19,12 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from ralph_scrooge.models import CostDateStatus
 from ralph_scrooge.plugins.cost.collector import Collector
+from ralph_scrooge.plugins.validations import DataForReportValidationError
+from ralph_scrooge.rest_api.private.serializers import MonthlyCostsSerializer
 from ralph_scrooge.utils.common import get_cache_name, get_queue_name
 from ralph_scrooge.utils.worker_job import WorkerJob, _get_cache_key
-from ralph_scrooge.models import CostDateStatus
-from ralph_scrooge.rest_api.private.serializers import MonthlyCostsSerializer
-
 
 logger = logging.getLogger(__name__)
 
@@ -107,16 +107,23 @@ class MonthlyCosts(APIView, WorkerJob):
         progress, data, job, meta = self.run_on_worker(
             **job.kwargs
         )
+        validation_errors = meta['validation_errors']
         status = 'running'
         data = data or {}
-        data = sorted(data.items(), key=lambda k: k[0]),
-        data = [(str(i[0].date()), i[1]) for i in data[0]]
+        data_ = []
+        # XXX(mkurek): What does True/False in data mean?
+        # It's not status, AFAIK..?
+        for day, v in sorted(data.items(), key=lambda x: x[0]):
+            data_.append(
+                (str(day.date()), v, validation_errors.get(day, []))
+            )
         if job.is_finished:
             status = 'finished'
         elif job.is_failed:
             status = 'failed'
-
-        return Response({'status': status, 'data': data, 'progress': progress})
+        return Response(
+            {'status': status, 'data': data_, 'progress': progress}
+        )
 
     @classmethod
     def forget_cache(cls, start, end, **kwargs):
@@ -237,6 +244,12 @@ class MonthlyCosts(APIView, WorkerJob):
                 statuses[day] = success
             if result:
                 results[day] = result['collector_result']
+                job = get_current_job()
+                # Pass errors from sub-job(s) to master job.
+                if not job.meta.get('validation_errors'):
+                    job.meta['validation_errors'] = {}
+                job.meta['validation_errors'][day] = result['validation_errors']  # noqa: E501
+                job.save()
         # clear cache if all done
         if len(statuses) == days:
             cls.forget_cache(start, end, **kwargs)
@@ -262,14 +275,20 @@ class DailyCostsJob(WorkerJob):
         """
         collector = Collector()
         result = {}
+        validation_errors = []
         try:
             result = collector.process(day, forecast)
             success = True
+        except DataForReportValidationError as e:
+            logger.exception(e)
+            success = False
+            validation_errors = e.errors
         except Exception as e:
             logger.exception(e)
             success = False
         job = get_current_job()
         # save result to job meta to keep log clean
         job.meta['collector_result'] = result
+        job.meta['validation_errors'] = validation_errors
         job.save()
         yield 100, success
