@@ -27,7 +27,7 @@ from ralph_scrooge.plugins.cost.base import (
     NoPriceCostError,
     MultiplePriceCostError,
 )
-from ralph_scrooge.plugins.validations import Validator
+from ralph_scrooge.plugins.validations import DataForReportValidator
 from ralph_scrooge.utils.common import memoize, AttributeDict
 
 logger = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ class Collector(object):
         ))
         self._verify_accepted_costs(date, forecast, delete_verified)
         logger.info('Performing validation of data for costs calculation.')
-        Validator(date, forecast).validate()
+        DataForReportValidator(date, forecast=forecast).validate()
         costs = self._collect_costs(
             date=date,
             forecast=forecast,

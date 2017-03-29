@@ -32,9 +32,9 @@ class DataForReportValidationError(Exception):
         Exception.__init__(self, message)
 
 
-class Validator(object):
+class DataForReportValidator(object):
 
-    def __init__(self, date, forecast):
+    def __init__(self, date, forecast=False):
         self.date = date
         self.forecast = forecast
         self.errors = []
@@ -61,7 +61,7 @@ class Validator(object):
                 sum_price = UsagePrice.objects.filter(**q).aggregate(
                     s=Sum(field)
                 )['s']
-                if not sum_cost or not sum_price:
+                if not (sum_cost or sum_price):
                     self.errors.append(
                         'no {}cost(s) or price(s) defined for usage type "{}"'
                         .format('forecast ' if self.forecast else '', ut.name)
@@ -111,8 +111,8 @@ class Validator(object):
             ).aggregate(s=Sum(q))['s']
             if not sum_:
                 self.errors.append(
-                    'no {}(s) defined for team "{}"'
-                    .format(' '.join(q.split('_')), team.name)
+                    'no {}(s) defined (or there are costs equal 0) '
+                    'for team "{}"'.format(' '.join(q.split('_')), team.name)
                 )
 
     def _check_team_time_allocations(self):
@@ -158,11 +158,16 @@ class Validator(object):
             plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin
         ):
             percent_sum = ServiceUsageTypes.objects.filter(
+                pricing_service=ps,
                 usage_type__in=ps.usage_types.filter(active=True),
                 start__lte=self.date,
                 end__gte=self.date,
             ).aggregate(s=Sum('percent'))['s']
-            if abs(percent_sum - 100) > settings.PERCENT_DIFF_EPSILON:
+            if percent_sum is None:
+                self.errors.append(
+                    'no usage types for pricing service "{}"'.format(ps.name)
+                )
+            elif abs(percent_sum - 100) > settings.PERCENT_DIFF_EPSILON:
                 self.errors.append(
                     'usage types for pricing service "{}" does not sum up to '
                     '100% (it\'s {}%)'.format(ps.name, percent_sum)
