@@ -24,14 +24,17 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 from ralph_scrooge.models import (
-    PRICING_OBJECT_TYPES,
+    CostDateStatus,
     DailyUsage,
+    PRICING_OBJECT_TYPES,
     PricingObject,
     PricingService,
+    PricingServicePlugin,
     Service,
     ServiceEnvironment,
     UsageType,
 )
+from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.rest_api.public.auth import TastyPieLikeTokenAuthentication
 
 logger = logging.getLogger(__name__)
@@ -405,12 +408,18 @@ def get_usages(usages_date, pricing_service, filter_by_service=None):
 def create_pricing_service_usages(request, *args, **kwargs):
     deserializer = PricingServiceUsageDeserializer(data=request.data)
     if deserializer.is_valid():
-        save_usages(deserializer.validated_data)
+        _save_usages_and_recalculate_costs(deserializer.validated_data)
         return HttpResponse(status=201)
     return Response(deserializer.errors, status=400)
 
 
 @transaction.atomic
+def _save_usages_and_recalculate_costs(pricing_service_usage):
+    save_usages(pricing_service_usage)
+    # TODO(xor-xor): Consider recalculation of forecast costs as well.
+    _recalculate_costs(pricing_service_usage['date'])
+
+
 def save_usages(pricing_service_usage):
     """This combines three "low-level" steps:
     1) The transformation of the incoming pricing_service_usage dict into
@@ -430,6 +439,29 @@ def save_usages(pricing_service_usage):
         usages_daily_pricing_objects,
     )
     DailyUsage.objects.bulk_create(daily_usages)
+
+
+def _recalculate_costs(date, forecast=False):
+    ps = PricingService.objects.filter(
+        active=True,
+        plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin.id,
+    ).values_list('name', flat=True)
+    if not ps:
+        return
+
+    if CostDateStatus.objects.filter(
+        date=date,
+        **{'forecast_accepted' if forecast else 'accepted': True}
+    ).exists():
+        logger.warning(
+            "Costs for {:%Y-%m-%d} are already accepted and won't be "
+            "recalculated.".format(date)
+        )
+        return
+
+    collector = Collector()
+    plugins = [p for p in collector.get_plugins() if p.name in ps]
+    collector.calculate_daily_costs_for_day(date, forecast, plugins)
 
 
 def get_usages_for_save(pricing_service_usage):
