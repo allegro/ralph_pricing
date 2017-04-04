@@ -414,54 +414,52 @@ def create_pricing_service_usages(request, *args, **kwargs):
 
 
 @transaction.atomic
-def _save_usages_and_recalculate_costs(pricing_service_usage):
-    save_usages(pricing_service_usage)
-    # TODO(xor-xor): Consider recalculation of forecast costs as well.
-    _recalculate_costs(pricing_service_usage['date'])
+def _save_usages_and_recalculate_costs(ps_usage):
+    save_usages(ps_usage)
+    _recalculate_costs(ps_usage['pricing_service'], ps_usage['date'])
 
 
-def save_usages(pricing_service_usage):
+def save_usages(ps_usage):
     """This combines three "low-level" steps:
-    1) The transformation of the incoming pricing_service_usage dict into
+    1) The transformation of the incoming ps_usage dict into
        a data structure needed by next two steps.
     2) Removing previous usages associated with a given day.
     3) The actual save of the incoming usages.
     """
-    logger.info("Saving usages for service {}".format(
-        pricing_service_usage['pricing_service']
+    logger.info("Saving usages for pricing service {}".format(
+        ps_usage['pricing_service']
     ))
-    daily_usages, usages_daily_pricing_objects = get_usages_for_save(
-        pricing_service_usage
-    )
+    daily_usages, usages_daily_pricing_objects = get_usages_for_save(ps_usage)
     remove_previous_daily_usages(
-        pricing_service_usage['overwrite'],
-        pricing_service_usage['date'],
+        ps_usage['overwrite'],
+        ps_usage['date'],
         usages_daily_pricing_objects,
     )
     DailyUsage.objects.bulk_create(daily_usages)
 
 
-def _recalculate_costs(date, forecast=False):
-    ps = PricingService.objects.filter(
+def _recalculate_costs(ps_name, date):
+    pss = PricingService.objects.filter(
         active=True,
         plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin.id,
     ).values_list('name', flat=True)
-    if not ps:
-        return
-
-    if CostDateStatus.objects.filter(
-        date=date,
-        **{'forecast_accepted' if forecast else 'accepted': True}
-    ).exists():
-        logger.warning(
-            "Costs for {:%Y-%m-%d} are already accepted and won't be "
-            "recalculated.".format(date)
-        )
+    if ps_name not in pss:
         return
 
     collector = Collector()
-    plugins = [p for p in collector.get_plugins() if p.name in ps]
-    collector.calculate_daily_costs_for_day(date, forecast, plugins)
+    plugins = [p for p in collector.get_plugins() if p.name in pss]
+
+    for forecast in [False, True]:
+        if CostDateStatus.objects.filter(
+            date=date,
+            **{'forecast_accepted' if forecast else 'accepted': True}
+        ).exists():
+            logger.warning(
+                "Costs for {:%Y-%m-%d} are already accepted and won't be "
+                "recalculated (forecast={}).".format(date, forecast)
+            )
+            continue
+        collector.calculate_daily_costs_for_day(date, forecast, plugins)
 
 
 def get_usages_for_save(pricing_service_usage):
