@@ -93,7 +93,10 @@ class MonthlyCosts(APIView, WorkerJob):
                 serializer.validated_data['end'],
             ))
             self.progress, self.data, job, meta = self.run_on_worker(
-                **serializer.validated_data
+                start=serializer.validated_data['start'],
+                end=serializer.validated_data['end'],
+                forecast=serializer.validated_data['forecast'],
+                from_gui=True,
             )
             result['job_id'] = job.id
             result['message'] = _(
@@ -269,7 +272,7 @@ class DailyCostsJob(WorkerJob):
     _return_job_meta = True
 
     @classmethod
-    def run(cls, day, forecast):
+    def run(cls, day, forecast, from_gui=False):
         """
         Run collecting costs for one day.
         """
@@ -277,7 +280,7 @@ class DailyCostsJob(WorkerJob):
         result = {}
         validation_errors = []
         try:
-            result = collector.process(day, forecast)
+            result = collector.process(day, forecast, from_gui=from_gui)
             success = True
         except DataForReportValidationError as e:
             logger.exception(e)

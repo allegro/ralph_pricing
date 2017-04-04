@@ -135,6 +135,7 @@ class Collector(object):
         forecast=False,
         delete_verified=False,
         plugins=None,
+        from_gui=False,
     ):
         """
         Process costs for single date.
@@ -151,8 +152,9 @@ class Collector(object):
             date,
         ))
         self._verify_accepted_costs(date, forecast, delete_verified)
-        logger.info('Performing validation of data for costs calculation.')
-        DataForReportValidator(date, forecast=forecast).validate()
+        if from_gui:
+            logger.info('Performing validation of data for costs calculation.')
+            DataForReportValidator(date, forecast=forecast).validate()
         costs = self._collect_costs(
             date=date,
             forecast=forecast,
