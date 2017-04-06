@@ -20,6 +20,7 @@ from django.template.loader import render_to_string
 
 from ralph_scrooge.models import (
     DailyUsage,
+    ServiceUsageTypes,
     UsageAnomalyAck,
     UsageType,
     UsageTypeUploadFreq,
@@ -149,8 +150,15 @@ def _detect_missing_values(usage_values, end_date):
     where values are lists of those missing dates.
 
     The values (dates) that are outside of the margin defined by
-    UsageTypeUploadFreq are filtered out from the final dict.
+    UsageTypeUploadFreq are filtered out from the final dict. Similarly with
+    dates that don't belong to ranges taken from Pricing Service(s) divisions.
     """
+    def is_active_for_date(date, active_ranges):
+        for r in active_ranges:
+            if date >= r['start'] and date <= r['end']:
+                return True
+        return False
+
     missing_values = {}
     for usage_type in usage_values.keys():
         max_date = _get_max_expected_date(usage_type, end_date)
@@ -161,7 +169,14 @@ def _detect_missing_values(usage_values, end_date):
             )
         else:
             date_range = get_negative_month_range(end_date + a_day)
+
+        active_ranges = ServiceUsageTypes.objects.filter(
+            usage_type=usage_type
+        ).values('start', 'end')
+
         for date in date_range:
+            if not is_active_for_date(date, active_ranges):
+                continue
             if (usage_values[usage_type].get(date) is None and
                     not date > max_date):
                 if missing_values.get(usage_type) is None:
