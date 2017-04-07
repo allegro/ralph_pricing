@@ -24,14 +24,17 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
 from ralph_scrooge.models import (
-    PRICING_OBJECT_TYPES,
+    CostDateStatus,
     DailyUsage,
+    PRICING_OBJECT_TYPES,
     PricingObject,
     PricingService,
+    PricingServicePlugin,
     Service,
     ServiceEnvironment,
     UsageType,
 )
+from ralph_scrooge.plugins.cost.collector import Collector
 from ralph_scrooge.rest_api.public.auth import TastyPieLikeTokenAuthentication
 
 logger = logging.getLogger(__name__)
@@ -405,31 +408,58 @@ def get_usages(usages_date, pricing_service, filter_by_service=None):
 def create_pricing_service_usages(request, *args, **kwargs):
     deserializer = PricingServiceUsageDeserializer(data=request.data)
     if deserializer.is_valid():
-        save_usages(deserializer.validated_data)
+        _save_usages_and_recalculate_costs(deserializer.validated_data)
         return HttpResponse(status=201)
     return Response(deserializer.errors, status=400)
 
 
 @transaction.atomic
-def save_usages(pricing_service_usage):
+def _save_usages_and_recalculate_costs(ps_usage):
+    save_usages(ps_usage)
+    _recalculate_costs(ps_usage['pricing_service'], ps_usage['date'])
+
+
+def save_usages(ps_usage):
     """This combines three "low-level" steps:
-    1) The transformation of the incoming pricing_service_usage dict into
+    1) The transformation of the incoming ps_usage dict into
        a data structure needed by next two steps.
     2) Removing previous usages associated with a given day.
     3) The actual save of the incoming usages.
     """
-    logger.info("Saving usages for service {}".format(
-        pricing_service_usage['pricing_service']
+    logger.info("Saving usages for pricing service {}".format(
+        ps_usage['pricing_service']
     ))
-    daily_usages, usages_daily_pricing_objects = get_usages_for_save(
-        pricing_service_usage
-    )
+    daily_usages, usages_daily_pricing_objects = get_usages_for_save(ps_usage)
     remove_previous_daily_usages(
-        pricing_service_usage['overwrite'],
-        pricing_service_usage['date'],
+        ps_usage['overwrite'],
+        ps_usage['date'],
         usages_daily_pricing_objects,
     )
     DailyUsage.objects.bulk_create(daily_usages)
+
+
+def _recalculate_costs(ps_name, date):
+    pss = PricingService.objects.filter(
+        active=True,
+        plugin_type=PricingServicePlugin.pricing_service_fixed_price_plugin.id,
+    ).values_list('name', flat=True)
+    if ps_name not in pss:
+        return
+
+    collector = Collector()
+    plugins = [p for p in collector.get_plugins() if p.name in pss]
+
+    for forecast in [False, True]:
+        if CostDateStatus.objects.filter(
+            date=date,
+            **{'forecast_accepted' if forecast else 'accepted': True}
+        ).exists():
+            logger.warning(
+                "Costs for {:%Y-%m-%d} are already accepted and won't be "
+                "recalculated (forecast={}).".format(date, forecast)
+            )
+            continue
+        collector.calculate_daily_costs_for_day(date, forecast, plugins)
 
 
 def get_usages_for_save(pricing_service_usage):
