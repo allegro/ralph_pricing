@@ -1268,3 +1268,30 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.assertEqual(len(usages), 2)
         self.assertEqual(usages[0]['service_uid'], service1_uid)
         self.assertEqual(usages[1]['service_uid'], service2_uid)
+
+    def test_if_inactive_usage_types_are_accepted(self):
+        self.usage_type.active = False
+        self.usage_type.save()
+
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 40,
+                        },
+                    ],
+                },
+            ]
+        }
+
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
