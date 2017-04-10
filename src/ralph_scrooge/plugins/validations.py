@@ -28,8 +28,8 @@ class DataForReportValidationError(Exception):
     """`errors` should be a list containing error msgs given by Validator."""
 
     def __init__(self, message, errors):
-        setattr(self, 'errors', errors)
-        Exception.__init__(self, message)
+        self.errors = errors
+        super(DataForReportValidationError, self).__init__(message)
 
 
 class DataForReportValidator(object):
@@ -53,15 +53,12 @@ class DataForReportValidator(object):
         ):
             for ut in ps.usage_types.all():
                 q.update({'type': ut})
-                field = 'cost' if not self.forecast else 'forecast_cost'
-                sum_cost = UsagePrice.objects.filter(**q).aggregate(
-                    s=Sum(field)
-                )['s']
-                field = 'price' if not self.forecast else 'forecast_price'
-                sum_price = UsagePrice.objects.filter(**q).aggregate(
-                    s=Sum(field)
-                )['s']
-                if not (sum_cost or sum_price):
+                cost_field = 'cost' if not self.forecast else 'forecast_cost'
+                price_field = 'price' if not self.forecast else 'forecast_price'  # noqa: E501
+                up = UsagePrice.objects.filter(**q).aggregate(
+                    sum_cost=Sum(cost_field), sum_price=Sum(price_field)
+                )
+                if not (up['sum_cost'] or up['sum_price']):
                     self.errors.append(
                         'no {}cost(s) or price(s) defined for usage type "{}"'
                         .format('forecast ' if self.forecast else '', ut.name)
@@ -100,19 +97,21 @@ class DataForReportValidator(object):
         day.
         """
         if self.forecast:
-            q = 'forecast_cost'
+            cost_field = 'forecast_cost'
         else:
-            q = 'cost'
+            cost_field = 'cost'
         for team in self.active_teams:
             sum_ = TeamCost.objects.filter(
                 team=team,
                 start__lte=self.date,
                 end__gte=self.date,
-            ).aggregate(s=Sum(q))['s']
+            ).aggregate(s=Sum(cost_field))['s']
             if not sum_:
                 self.errors.append(
                     'no {}(s) defined (or there are costs equal 0) '
-                    'for team "{}"'.format(' '.join(q.split('_')), team.name)
+                    'for team "{}"'.format(
+                        ' '.join(cost_field.split('_')), team.name
+                    )
                 )
 
     def _check_team_time_allocations(self):

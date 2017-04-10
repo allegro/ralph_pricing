@@ -96,7 +96,6 @@ class MonthlyCosts(APIView, WorkerJob):
                 start=serializer.validated_data['start'],
                 end=serializer.validated_data['end'],
                 forecast=serializer.validated_data['forecast'],
-                from_gui=True,
             )
             result['job_id'] = job.id
             result['message'] = _(
@@ -110,15 +109,17 @@ class MonthlyCosts(APIView, WorkerJob):
         progress, data, job, meta = self.run_on_worker(
             **job.kwargs
         )
-        validation_errors = meta['validation_errors']
+        validation_errors = meta.get('validation_errors', {})
         status = 'running'
         data = data or {}
         data_ = []
-        # XXX(mkurek): What does True/False in data mean?
-        # It's not status, AFAIK..?
-        for day, v in sorted(data.items(), key=lambda x: x[0]):
+        for day, job_success in sorted(data.items(), key=lambda i: i[0]):
             data_.append(
-                (str(day.date()), v, validation_errors.get(day, []))
+                (
+                    str(day.date()),
+                    job_success,
+                    validation_errors.get(day, [])
+                )
             )
         if job.is_finished:
             status = 'finished'
@@ -272,7 +273,7 @@ class DailyCostsJob(WorkerJob):
     _return_job_meta = True
 
     @classmethod
-    def run(cls, day, forecast, from_gui=False):
+    def run(cls, day, forecast):
         """
         Run collecting costs for one day.
         """
@@ -280,7 +281,7 @@ class DailyCostsJob(WorkerJob):
         result = {}
         validation_errors = []
         try:
-            result = collector.process(day, forecast, from_gui=from_gui)
+            result = collector.process(day, forecast, perform_validation=True)
             success = True
         except DataForReportValidationError as e:
             logger.exception(e)
