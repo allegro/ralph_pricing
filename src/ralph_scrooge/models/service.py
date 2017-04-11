@@ -297,9 +297,10 @@ class PricingService(BaseUsage):
 
     def get_usage_types_for_date(self, date):
         """
-        Returns UsageTypes used by this pricing service on particular date.
+        Returns UsageTypes used by this pricing service on particular date
+        (includes inactive ones!).
         """
-        return UsageType.objects.filter(
+        return UsageType.objects_admin.filter(
             service_division__pricing_service=self,
             service_division__start__lte=date,
             service_division__end__gte=date,

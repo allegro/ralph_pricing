@@ -89,7 +89,10 @@ class UsageDeserializer(UsageSerializer):
     remarks = serializers.CharField(required=False, allow_blank=True)
 
     def validate_symbol(self, value):
-        if not UsageType.objects.filter(symbol=value).exists():
+        # `objects_admin` instead of `objects` b/c we allow uploading usage
+        # values for UsageTypes which are inactive at given moment (but e.g.
+        # will be active soon).
+        if not UsageType.objects_admin.filter(symbol=value).exists():
             err = (
                 'usage type for symbol "{}" does not exist'
                 .format(value)
@@ -481,7 +484,9 @@ def get_usages_for_save(pricing_service_usage):
             try:
                 usage_type = usage_types_cache[usage['symbol']]
             except KeyError:
-                usage_type = UsageType.objects.get(symbol=usage['symbol'])
+                usage_type = UsageType.objects_admin.get(
+                    symbol=usage['symbol']
+                )
             usage_types_cache[usage['symbol']] = usage_type
             if usages['pricing_object'] is IGNORE_USAGE_PRICING_OBJECT:
                 logger.warning(
