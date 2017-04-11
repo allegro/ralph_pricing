@@ -128,7 +128,7 @@ class Command(ScroogeBaseCommand):
         dates_to_calculate = collector._get_dates(start, end, forecast, False)
         plugins = [pl for pl in collector.get_plugins() if pl.name in plugins]
         for day in dates_to_calculate:
-            self.stdout.write('Calculating costs for {}'.format(day))
+            logger.info('Calculating costs for {}'.format(day))
             costs = collector.process(day, forecast, plugins=plugins)
             processed = collector._create_daily_costs(day, costs, forecast)
             collector.save_period_costs(day, day, forecast, processed)
@@ -260,7 +260,7 @@ class Command(ScroogeBaseCommand):
         end = self._parse_date(end)
 
         self._calculate_missing_dates(start, end, forecast, plugins)
-        self.stdout.write('Generating reports...')
+        logger.info('Generating reports...')
         filters = {}
         if 'warehouse' in options and options['warehouse']:
             filters['warehouse__name'] = options['warehouse']
