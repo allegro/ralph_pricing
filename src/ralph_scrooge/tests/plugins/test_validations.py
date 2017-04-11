@@ -19,6 +19,9 @@ from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
     CostDateStatusFactory,
     DailyUsageFactory,
+    DynamicExtraCostFactory,
+    DynamicExtraCostDivisionFactory,
+    DynamicExtraCostTypeFactory,
     PricingServiceFactory,
     ServiceUsageTypesFactory,
     TeamFactory,
@@ -34,9 +37,11 @@ UNIVERSAL_PLUGIN = PricingServicePlugin.pricing_service_plugin
 PERCENT_DIFF_EPSILON = 0.01
 
 
+# We don't test `_check_for_cycles` method, because it's only a wrapper on
+# `detect_cycles`, which has its own suite of tests.
 class TestDataForReportValidations(ScroogeTestCase):
 
-    def setUpHelper(self):
+    def setup_helper(self):
         self.date_start = datetime.datetime(2017, 3, 1).date()
         self.date_end = datetime.datetime(2017, 3, 31).date()
         self.date_kwargs = {'start': self.date_start, 'end': self.date_end}
@@ -49,7 +54,7 @@ class TestDataForReportValidations(ScroogeTestCase):
 
     def setUp(self):
         self.forecast = False
-        self.setUpHelper()
+        self.setup_helper()
 
     def test_if_active_usage_types_without_all_required_costs_or_prices_are_reported(self):  # noqa: E501
         ps1 = PricingServiceFactory(plugin_type=FIXED_PRICE_PLUGIN)
@@ -259,12 +264,121 @@ class TestDataForReportValidations(ScroogeTestCase):
         self.assertEqual(len(self.validator.errors), 1)
         self.assertIn('costs already accepted', self.validator.errors)
 
-    # We don't test `_check_for_cycles` method, because it's only a wrapper on
-    # `detect_cycles`, which has its own suite of tests.
+    def test_if_dynamic_extra_costs_with_zero_costs_for_date_are_reported(self):  # noqa: E501
+
+        # OK - there are costs != 0 for date
+        dect1 = DynamicExtraCostTypeFactory()
+        DynamicExtraCostFactory(
+            dynamic_extra_cost_type=dect1,
+            cost=10,
+            forecast_cost=20,
+            start=self.date_start,
+            end=self.date_end
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect1,
+            percent=60,
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect1,
+            percent=40,
+        )
+
+        # NOT OK - costs for date == 0
+        dect2 = DynamicExtraCostTypeFactory()
+        DynamicExtraCostFactory(
+            dynamic_extra_cost_type=dect2,
+            cost=0,
+            forecast_cost=0,
+            start=self.date_start,
+            end=self.date_end
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect2,
+            percent=60,
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect2,
+            percent=40,
+        )
+
+        self.validator._check_dynamic_extra_costs()
+        self.assertEqual(len(self.validator.errors), 1)
+        self.assertIn('cost(s) defined', self.validator.errors[0])
+
+    def test_if_dynamic_extra_costs_without_defined_costs_are_reported(self):
+        dect = DynamicExtraCostTypeFactory()
+        # no DynamicExtraCost for date - only divisions are defined here!
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect,
+            percent=60,
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect,
+            percent=40,
+        )
+
+        self.validator._check_dynamic_extra_costs()
+        self.assertEqual(len(self.validator.errors), 1)
+        self.assertIn('cost(s) defined', self.validator.errors[0])
+
+    @override_settings(PERCENT_DIFF_EPSILON=PERCENT_DIFF_EPSILON)
+    def test_if_dynamic_extra_costs_with_divisions_that_together_does_not_sum_up_to_100_percent_are_reported(self):  # noqa: E501
+        dect = DynamicExtraCostTypeFactory()
+        DynamicExtraCostFactory(
+            dynamic_extra_cost_type=dect,
+            cost=10,
+            forecast_cost=20,
+            start=self.date_start,
+            end=self.date_end
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect,
+            percent=60,
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect,
+            percent=(40 + 2 * PERCENT_DIFF_EPSILON)
+        )
+
+        self.validator._check_dynamic_extra_costs()
+        self.assertEqual(len(self.validator.errors), 1)
+        self.assertIn('does not sum up to 100%', self.validator.errors[0])
+
+    def test_if_dynamic_extra_costs_without_uploads_in_their_usage_types_are_reported(self):  # noqa: E501
+        dect = DynamicExtraCostTypeFactory()
+        DynamicExtraCostFactory(
+            dynamic_extra_cost_type=dect,
+            cost=10,
+            forecast_cost=20,
+            start=self.date_start,
+            end=self.date_end
+        )
+
+        # ut1 is OK, because it has uploads
+        ut1 = UsageTypeFactory(usage_type='BU')
+        DailyUsageFactory(type=ut1, date=self.day)
+        # ut2 is NOT OK
+        ut2 = UsageTypeFactory(usage_type='BU')
+
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect,
+            percent=60,
+            usage_type=ut1,
+        )
+        DynamicExtraCostDivisionFactory(
+            dynamic_extra_cost_type=dect,
+            percent=40,
+            usage_type=ut2,
+        )
+
+        self.validator._check_dynamic_extra_costs()
+        self.assertEqual(len(self.validator.errors), 1)
+        self.assertIn('no usage(s) uploaded', self.validator.errors[0])
 
 
 class TestDataForReportValidationsWithForecastOn(TestDataForReportValidations):
 
     def setUp(self):
         self.forecast = True
-        self.setUpHelper()
+        self.setup_helper()

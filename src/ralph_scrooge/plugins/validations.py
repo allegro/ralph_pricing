@@ -12,6 +12,7 @@ from ralph_scrooge.utils.cycle_detector import detect_cycles
 from ralph_scrooge.models import (
     CostDateStatus,
     DailyUsage,
+    DynamicExtraCostType,
     PricingService,
     PricingServicePlugin,
     ServiceUsageTypes,
@@ -42,7 +43,68 @@ class DataForReportValidator(object):
         self.active_teams = Team.objects.filter(active=True)
         self.active_usage_types = UsageType.objects.filter(active=True)
 
-    # XXX(mkurek): And also, what about checking (dynamic) extra costs..?
+    def _find_missing_uploads(self, usage_types):
+        """Helper method for finding UsageType(s) without uploads."""
+        missing_uploads = []
+        for ut in usage_types:
+            if ut.usage_type == 'SU':
+                if not ServiceUsageTypes.objects.filter(
+                    usage_type=ut,
+                    start__lte=self.date,
+                    end__gte=self.date,
+                ).exists():
+                    continue
+            if not DailyUsage.objects.filter(date=self.date, type=ut).exists():
+                missing_uploads.append(ut)
+        return missing_uploads
+
+    def _check_dynamic_extra_costs(self):
+        """There should not be no dynamic extra cost where:
+        1) costs are not defined for given date
+        2) divisions doesn't sum up to 100%
+        3) usage types in divisions do not have uploads for given date
+        """
+        cost_field = 'cost' if not self.forecast else 'forecast_cost'
+
+        for dect in DynamicExtraCostType.objects.all():
+
+            # costs
+            costs = dect.costs.filter(
+                start__lte=self.date,
+                end__gte=self.date,
+            ).aggregate(sum_cost=Sum(cost_field))
+            if not costs['sum_cost']:
+                self.errors.append(
+                        'no extra {}cost(s) defined for dynamic extra cost '
+                        'type "{}"'.format(
+                            'forecast ' if self.forecast else '',
+                            dect.name
+                        )
+                    )
+
+            # divisions
+            sum_perc = dect.division.aggregate(s=Sum('percent'))['s'] or 0
+            if abs(sum_perc - 100) > settings.PERCENT_DIFF_EPSILON:
+                self.errors.append(
+                    'divisions for dynamic extra cost type "{}" does not sum '
+                    'up to 100% (it\'s {}%)'
+                    .format(dect.name, sum_perc)
+                )
+
+            # usage types in divisions
+            uts = UsageType.objects.filter(
+                symbol__in=dect.division.all().values_list(
+                    'usage_type__symbol', flat=True
+                )
+            )
+            missing_uploads = self._find_missing_uploads(uts)
+            for ut in missing_uploads:
+                self.errors.append(
+                    'no usage(s) uploaded for usage type "{}", which is '
+                    'linked to dynamic extra cost type "{}"'
+                    .format(ut.name, dect.name)
+                )
+
     def _check_for_required_costs_and_prices(self):
         """There should be no active UsageType without all required
         costs/prices."""
@@ -136,18 +198,12 @@ class DataForReportValidator(object):
         """There should be no active usage type without usage(s) saved for
         a given day.
         """
-        for ut in self.active_usage_types.filter(usage_type__in=['BU', 'SU']):
-            if ut.usage_type == 'SU':
-                if not ServiceUsageTypes.objects.filter(
-                    usage_type=ut,
-                    start__lte=self.date,
-                    end__gte=self.date,
-                ).exists():
-                    continue
-            if not DailyUsage.objects.filter(date=self.date, type=ut).exists():
-                self.errors.append(
-                    'no usage(s) uploaded for usage type "{}"'.format(ut.name)
-                )
+        uts = self.active_usage_types.filter(usage_type__in=['BU', 'SU'])
+        missing_uploads = self._find_missing_uploads(uts)
+        for ut in missing_uploads:
+            self.errors.append(
+                'no usage(s) uploaded for usage type "{}"'.format(ut.name)
+            )
 
     def _check_usage_types_percent(self):
         """There should be no pricing service with usage type(s) that together
@@ -197,6 +253,7 @@ class DataForReportValidator(object):
             )
 
     def validate(self):
+        self._check_dynamic_extra_costs()
         self._check_for_required_costs_and_prices()
         self._check_for_usage_prices_by_warehouse()
         self._check_team_costs()
