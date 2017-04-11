@@ -36,21 +36,30 @@ PERCENT_DIFF_EPSILON = 0.01
 
 class TestDataForReportValidations(ScroogeTestCase):
 
-    def setUp(self):
+    def setUpHelper(self):
         self.date_start = datetime.datetime(2017, 3, 1).date()
         self.date_end = datetime.datetime(2017, 3, 31).date()
         self.date_kwargs = {'start': self.date_start, 'end': self.date_end}
         # All validations performed by DataForReportValidator operate on single
         # days.
         self.day = datetime.datetime(2017, 3, 29).date()
-        self.validator = DataForReportValidator(self.day, forecast=False)
+        self.validator = DataForReportValidator(
+            self.day, forecast=self.forecast
+        )
+
+    def setUp(self):
+        self.forecast = False
+        self.setUpHelper()
 
     def test_if_active_usage_types_without_all_required_costs_or_prices_are_reported(self):  # noqa: E501
         ps1 = PricingServiceFactory(plugin_type=FIXED_PRICE_PLUGIN)
         ps2 = PricingServiceFactory(plugin_type=FIXED_PRICE_PLUGIN)
 
         ut1, ut2 = UsageTypeFactory.create_batch(2)
-        UsagePriceFactory(type=ut1, cost=10, **self.date_kwargs)
+        if self.forecast:
+            UsagePriceFactory(type=ut1, forecast_cost=10, **self.date_kwargs)
+        else:
+            UsagePriceFactory(type=ut1, cost=10, **self.date_kwargs)
         UsagePriceFactory(type=ut2, **self.date_kwargs)
 
         # ps1(ut1) - OK b/c ut1 has cost defined
@@ -107,8 +116,12 @@ class TestDataForReportValidations(ScroogeTestCase):
         # t2 is NOT OK b/c it has cost == 0 defined
         # t3 is NOT OK b/c it doesn't have any cost defined
         t1, t2, t3 = TeamFactory.create_batch(3)
-        TeamCostFactory(team=t1, cost=10, **self.date_kwargs)
-        TeamCostFactory(team=t2, cost=0, **self.date_kwargs)
+        if self.forecast:
+            TeamCostFactory(team=t1, forecast_cost=10, **self.date_kwargs)
+            TeamCostFactory(team=t2, forecast_cost=0, **self.date_kwargs)
+        else:
+            TeamCostFactory(team=t1, cost=10, **self.date_kwargs)
+            TeamCostFactory(team=t2, cost=0, **self.date_kwargs)
 
         self.validator._check_team_costs()
         self.assertEqual(len(self.validator.errors), 2)
@@ -237,7 +250,10 @@ class TestDataForReportValidations(ScroogeTestCase):
         self.assertIn(ps3.name, all_errors_as_str)
 
     def test_if_costs_that_are_already_accepted_are_reported(self):
-        CostDateStatusFactory(date=self.day, accepted=True)
+        if self.forecast:
+            CostDateStatusFactory(date=self.day, forecast_accepted=True)
+        else:
+            CostDateStatusFactory(date=self.day, accepted=True)
 
         self.validator._check_for_accepted_costs()
         self.assertEqual(len(self.validator.errors), 1)
@@ -246,5 +262,9 @@ class TestDataForReportValidations(ScroogeTestCase):
     # We don't test `_check_for_cycles` method, because it's only a wrapper on
     # `detect_cycles`, which has its own suite of tests.
 
-    # XXX(mkurek): Do we need/want to test all above with `forecast=True`
-    # variant...?
+
+class TestDataForReportValidationsWithForecastOn(TestDataForReportValidations):
+
+    def setUp(self):
+        self.forecast = True
+        self.setUpHelper()
