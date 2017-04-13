@@ -45,8 +45,8 @@ class BasePluginReport(BaseReport):
         were calculated for single day, they will be not calculated again
         unless forcing it).
         """
-        colletor = Collector()
-        for day, status in colletor.process_period(start, end, forecast):
+        collector = Collector()
+        for day, status in collector.process_period(start, end, forecast):
             pass
 
     @classmethod
