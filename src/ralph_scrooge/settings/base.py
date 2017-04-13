@@ -387,5 +387,7 @@ USAGE_TYPE_UPLOAD_FREQ_MARGINS = {
 # Swagger/OpenAPI schema related stuff.
 API_SCHEMA_FILE = os.path.join(BASE_DIR, 'media', 'api_schema.yaml')
 
+# Settings for DataForReportValidator
+ENABLE_DATA_FOR_REPORT_VALIDATION = True
 # For validation of values given as percent, which should sum up to 100%.
 PERCENT_DIFF_EPSILON = 0.0001

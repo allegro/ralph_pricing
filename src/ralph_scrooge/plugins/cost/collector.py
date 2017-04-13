@@ -154,7 +154,7 @@ class Collector(object):
             date,
         ))
         self._verify_accepted_costs(date, forecast, delete_verified)
-        if perform_validation:
+        if settings.ENABLE_DATA_FOR_REPORT_VALIDATION and perform_validation:
             logger.info('Performing validation of data for costs calculation.')
             DataForReportValidator(date, forecast=forecast).validate()
         costs = self._collect_costs(
