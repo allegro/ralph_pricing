@@ -15,6 +15,7 @@ from django.db import IntegrityError, transaction
 from ralph_scrooge.models import (
     AssetInfo,
     DailyUsage,
+    PricingObjectModel,
     PRICING_OBJECT_TYPES,
     ServiceEnvironment,
     UsagePrice,
@@ -52,11 +53,22 @@ def get_asset_info(service_environment, warehouse, data):
             type_id=PRICING_OBJECT_TYPES.ASSET,
         )
         created = True
+    try:
+        pom = PricingObjectModel.objects.get(
+            ralph3_model_id=data['model']['id']
+        )
+    except PricingObjectModel.DoesNotExist:
+        logger.error(
+            "PricingObjectModel for asset with id={} and model.id={} does not "
+            "exist".format(data['id'], data['model']['id'])
+        )
+        pom = None
     asset_info.service_environment = service_environment
     asset_info.name = data['hostname']
     asset_info.warehouse = warehouse
     asset_info.sn = data['sn']
     asset_info.barcode = data['barcode']
+    asset_info.model = pom
     try:
         # create "new" transaction (it's new for django, but the same for DB)
         # to properly handle IntegrityError here to not get

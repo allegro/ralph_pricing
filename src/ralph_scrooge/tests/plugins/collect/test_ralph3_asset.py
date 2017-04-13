@@ -77,6 +77,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
                 },
             },
             'model': {
+                'id': 1,
                 'cores_count': 4,
                 'power_consumption': 200,
                 'height_of_device': 2,
