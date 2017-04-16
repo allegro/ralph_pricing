@@ -29,6 +29,7 @@ before_script:
   - psql -c 'create database ralph_test;' -U postgres
 # command to run tests, e.g. python setup.py test
 script:
-  make test-with-coveralls
-after_success:
-  coveralls
+  - make test-with-coveralls
+  - echo $?
+  - coveralls
+  # - if [[ $? -eq 0 ]]; then coveralls && echo "coveralls" ; fi
