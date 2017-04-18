@@ -59,8 +59,8 @@ def get_asset_info(service_environment, warehouse, data):
         )
     except PricingObjectModel.DoesNotExist:
         logger.error(
-            "PricingObjectModel for asset with id={} and model.id={} does not "
-            "exist".format(data['id'], data['model']['id'])
+            "PricingObjectModel for model.id={} does not exist"
+            .format(data['id'], data['model']['id'])
         )
         pom = None
     asset_info.service_environment = service_environment
