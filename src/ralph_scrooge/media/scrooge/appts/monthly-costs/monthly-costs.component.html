@@ -34,6 +34,19 @@
       <tr *ngFor="let item of results">
         <td>{{ item[0] }}</td>
         <td><i class="fa {{ icon(item[1]) }}" aria-hidden="true"></i></td>
+        <td>
+          <div *ngIf="item[2]?.length > 0">
+            <a (click)="showDataErrors(item[0])">
+              <span *ngIf="activeErrorItem != item[0]">show errors</span>
+              <span *ngIf="activeErrorItem == item[0]">hide errors</span>
+            </a>
+            <div [hidden]="activeErrorItem != item[0]">
+              <p *ngFor="let error of item[2]">
+                {{ error }}
+              </p>
+            </div>
+          </div>
+        </td>
       </tr>
     </table>
   </div>

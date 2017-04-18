@@ -31,6 +31,7 @@ export class MonthlyCostsComponent implements AfterViewInit {
   public results: Array<{0: string; 1: string}> = [];
   public showSpinner: boolean = false;
   public progress: string = "";
+  public activeErrorItem: string = "";
 
   constructor(
     private monthlyCostsService: MonthlyCostsService,
@@ -135,5 +136,13 @@ export class MonthlyCostsComponent implements AfterViewInit {
       return "fa-times-circle red";
     }
     return "fa-question-circle";
+  }
+
+  showDataErrors(date: string) {
+    if (date === this.activeErrorItem) {
+      this.activeErrorItem = "";
+    } else {
+      this.activeErrorItem = date;
+    }
   }
 }
