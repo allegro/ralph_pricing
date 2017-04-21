@@ -55,7 +55,10 @@ setup(
         'rq>=0.3.7',
         'SQLAlchemy==0.7.8',
         'django-filter==0.15.3',
-        'ipaddress==1.0.17'
+        'ipaddress==1.0.17',
+        # these two are not required, but we install them everytime anyway...
+        'ipython==2.4.1',
+        'ipdb==0.10.2',
     ],
     entry_points={
         'django.pluggable_app': [
