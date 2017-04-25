@@ -101,7 +101,7 @@ class ServicesCostsReport(BasePluginReport):
                         data[service_id].update(service_usage)
 
                 progress += step
-                yield progress, {}
+                yield False, progress, {}
             except KeyError:
                 logger.warning(
                     "Usage '{0}' has no usage plugin".format(plugin.name)
@@ -111,7 +111,7 @@ class ServicesCostsReport(BasePluginReport):
                     "Error while generating the report: {0}".format(e)
                 )
                 raise
-        yield 100, data
+        yield True, 100, data
 
     @classmethod
     def get_data(
@@ -132,17 +132,17 @@ class ServicesCostsReport(BasePluginReport):
         """
         logger.info("Generating report from {0} to {1}".format(start, end))
         services_environments = cls._get_services_environments(is_active)
-        for progress, data in cls._get_report_data(
+        for finished, progress, data in cls._get_report_data(
             start,
             end,
             is_active,
             forecast,
             services_environments,
         ):
-            if data:
-                yield progress, cls._prepare_final_report(
+            if finished:
+                yield True, progress, cls._prepare_final_report(
                     data,
                     services_environments
                 )
             else:
-                yield progress, []
+                yield False, progress, []

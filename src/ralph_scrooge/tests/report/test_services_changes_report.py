@@ -83,7 +83,7 @@ class TestServicesChangesReport(ScroogeTestCase):
 
     def test_report_pricing_object(self):
         self._create_pricing_objects()
-        for percent, result in ServicesChangesReport.get_data(
+        for finished, percent, result in ServicesChangesReport.get_data(
             start=date(2013, 10, 10),
             end=date(2013, 10, 13),
         ):
@@ -102,7 +102,7 @@ class TestServicesChangesReport(ScroogeTestCase):
 
     def test_report_asset(self):
         self._create_asset_info()
-        for percent, result in ServicesChangesReport.get_data(
+        for finished, percent, result in ServicesChangesReport.get_data(
             start=date(2013, 10, 10),
             end=date(2013, 10, 13),
         ):
