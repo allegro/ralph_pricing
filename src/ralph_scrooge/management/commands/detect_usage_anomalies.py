@@ -274,7 +274,9 @@ def _filter_out_ack(unusual_changes):
                 type=ut, anomaly_date__in=[ch[0] for ch in ut_changes]
             ).values_list('anomaly_date', flat=True)
         )
-        unusual_changes_[ut] = [ch for ch in ut_changes if ch[0] not in acks]
+        without_acks = [ch for ch in ut_changes if ch[0] not in acks]
+        if without_acks:
+            unusual_changes_[ut] = without_acks
     return unusual_changes_
 
 
