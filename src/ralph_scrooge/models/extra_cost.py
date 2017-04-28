@@ -30,6 +30,7 @@ class ExtraCostType(BaseUsage):
         verbose_name = _("extra cost type")
         verbose_name_plural = _("extra cost types")
         app_label = 'ralph_scrooge'
+        ordering = ['name']
 
     def save(self, *args, **kwargs):
         self.type = BaseUsageType.extra_cost
@@ -126,6 +127,7 @@ class DynamicExtraCostType(BaseUsage):
         verbose_name = _("Dynamic extra cost")
         verbose_name_plural = _("Dynamic extra costs")
         app_label = 'ralph_scrooge'
+        ordering = ['name']
 
     def save(self, *args, **kwargs):
         self.type = BaseUsageType.dynamic_extra_cost

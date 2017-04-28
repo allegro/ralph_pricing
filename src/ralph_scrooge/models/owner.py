@@ -22,6 +22,14 @@ class ScroogeUser(AbstractUser):
         verbose_name = _('user')
         verbose_name_plural = _('users')
         app_label = 'ralph_scrooge'
+        ordering = ['username']
+
+    def _full_name_or_username(self):
+        full_name = self.get_full_name().strip()
+        return full_name or self.username
+
+    def __unicode__(self):
+        return '{}'.format(self._full_name_or_username())
 
     @property
     def api_token_key(self):
