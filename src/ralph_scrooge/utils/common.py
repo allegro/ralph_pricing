@@ -142,7 +142,7 @@ def camel_case_to_dash(name):
     Converts CamelCase to dash-case, for example:
 
     >>> camel_case_to_dash('UberCamelCase')
-    uber-camel-case
+    'uber-camel-case'
     """
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1-\2', s1).lower()
