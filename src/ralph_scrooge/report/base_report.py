@@ -50,10 +50,16 @@ class BaseReport(WorkerJob):
     @classmethod
     def run(cls, **kwargs):
         header = cls.get_header(**kwargs)
-        for progress, data in cls.get_data(**kwargs):
+        for finished, progress, data in cls.get_data(**kwargs):
+            # If calculation of report is not finished, max returned progress
+            # is 99.0. Since reports users are depending on progress (check if
+            # progress < 100) we need to make sure that only final yield
+            # from here will have progress set to 100%.
+            progress = min(progress, 99.0)
             yield progress, (header, data)
-        if progress < 100:
-            yield 100, (header, data)
+            if finished:
+                break
+        yield 100, (header, data)
         logger.info("Report generated")
 
     @staticmethod

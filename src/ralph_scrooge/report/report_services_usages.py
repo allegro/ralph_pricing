@@ -187,7 +187,7 @@ class ServicesUsagesReport(BasePluginReport):
             usage_types,
             service_environments,
         )
-        yield 100, cls._prepare_final_report(
+        yield True, 100, cls._prepare_final_report(
             start,
             end,
             usage_types,

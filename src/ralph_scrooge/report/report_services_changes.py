@@ -180,9 +180,9 @@ class ServicesChangesReport(BaseReport):
             cursor.execute(q)
             result[pricing_object_type] = list(cursor.fetchall())
             progress += 100.0 / len(types)
-            yield progress, result
+            yield False, progress, result
         if progress < 100:
-            yield 100, result
+            yield True, 100, result
 
     @classmethod
     def get_header(cls, **kwargs):
