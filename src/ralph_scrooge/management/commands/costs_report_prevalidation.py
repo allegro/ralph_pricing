@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 
 from django.core.management.base import BaseCommand
 
-from ralph_scrooge.utils.common import validate_date
+from ralph_scrooge.utils.common import validate_date as valid_date
 from ralph_scrooge.plugins.validations import (
     DataForReportValidationError,
     DataForReportValidator
@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--date',
-            type=validate_date,
+            type=valid_date,
             dest='date',
             required=True,
         )
