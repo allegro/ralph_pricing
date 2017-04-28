@@ -431,8 +431,8 @@ class TestAllocationAdmin(ScroogeTestCase):
                             'id': extra_cost.id,
                             'cost': extra_cost.cost,
                             'forecast_cost': extra_cost.forecast_cost,
-                            'service': extra_cost.service_environment.service_id,
-                            'env': extra_cost.service_environment.environment_id
+                            'service': extra_cost.service_environment.service_id,  # noqa: E501
+                            'env': extra_cost.service_environment.environment_id  # noqa: E501
                         }]
                     },
                     {
