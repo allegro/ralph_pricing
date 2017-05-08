@@ -34,7 +34,7 @@ from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
 )
-from ralph_scrooge.utils.common import camel_case_to_dash
+from ralph_scrooge.utils.common import camel_case_to_kebab_case
 
 admin.site.site_header = 'Scrooge'
 admin.site.site_title = 'Scrooge'
@@ -44,13 +44,13 @@ admin.autodiscover()
 
 autocomplete_urlpatterns = [
     url(
-        '{}/$'.format(camel_case_to_dash(model._meta.object_name)),
+        '{}/$'.format(camel_case_to_kebab_case(model._meta.object_name)),
         login_required(
             ScroogeAutocomplete.as_view(
                 model=model, search_fields=search_fields
             )
         ),
-        name=camel_case_to_dash(model._meta.object_name),
+        name=camel_case_to_kebab_case(model._meta.object_name),
     )
     for model, search_fields in [
         (scrooge_models.ProfitCenter, ['name']),

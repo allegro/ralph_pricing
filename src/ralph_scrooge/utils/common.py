@@ -137,11 +137,11 @@ def validate_date(date_):
         )
 
 
-def camel_case_to_dash(name):
+def camel_case_to_kebab_case(name):
     """
-    Converts CamelCase to dash-case, for example:
+    Converts CamelCase to kebab-case, for example:
 
-    >>> camel_case_to_dash('UberCamelCase')
+    >>> camel_case_to_kebab_case('UberCamelCase')
     'uber-camel-case'
     """
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', name)
