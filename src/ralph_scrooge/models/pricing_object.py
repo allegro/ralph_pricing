@@ -475,8 +475,8 @@ class DailyVIPInfo(DailyPricingObject):
 
 class DatabaseInfo(PricingObject):
     database_id = db.IntegerField(
-        unique=True,
-        verbose_name=_("Ralph database ID")
+        null=True,
+        verbose_name=_("Ralph database ID (obsolete)")
     )
     parent_device = db.ForeignKey(
         AssetInfo,
