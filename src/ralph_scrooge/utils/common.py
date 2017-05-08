@@ -142,7 +142,7 @@ def camel_case_to_kebab_case(name):
     Converts CamelCase to kebab-case, for example:
 
     >>> camel_case_to_kebab_case('UberCamelCase')
-    'uber-camel-case'
+    u'uber-camel-case'
     """
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1-\2', s1).lower()
