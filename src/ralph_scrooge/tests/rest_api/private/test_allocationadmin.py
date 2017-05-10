@@ -356,7 +356,7 @@ class TestAllocationAdmin(ScroogeTestCase):
         )
 
     def test_get_extra_cost_when_there_is_one_additional_type(self):
-        extra_cost_type = factory.ExtraCostTypeFactory()
+        extra_cost_type = factory.ExtraCostTypeFactory(name='My-extra-cost')
         response = self.client.get(
             '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
@@ -367,25 +367,29 @@ class TestAllocationAdmin(ScroogeTestCase):
             json.loads(response.content)['extracosts'],
             {
                 'name': 'Extra Costs',
-                'rows': [{
-                    'extra_cost_type': {
-                        'id': 1,
-                        'name': 'Other'
+                'rows': [
+                    {
+                        'extra_cost_type': {
+                            'id': extra_cost_type.id,
+                            'name': extra_cost_type.name  # my-extra-cost
+                        },
+                        'extra_costs': []
                     },
-                    'extra_costs': []
-                }, {
-                    'extra_cost_type': {
-                        'id': 2,
-                        'name': 'Support'
+                    {
+                        'extra_cost_type': {
+                            'id': 1,
+                            'name': 'Other'
+                        },
+                        'extra_costs': []
                     },
-                    'extra_costs': []
-                }, {
-                    'extra_cost_type': {
-                        'id': extra_cost_type.id,
-                        'name': extra_cost_type.name
+                    {
+                        'extra_cost_type': {
+                            'id': 2,
+                            'name': 'Support'
+                        },
+                        'extra_costs': []
                     },
-                    'extra_costs': []
-                }],
+                ],
                 'template': 'tabextracostsadmin.html'
             }
         )
@@ -397,7 +401,7 @@ class TestAllocationAdmin(ScroogeTestCase):
             self.date.year,
             self.date.month,
         )
-        extra_cost_type = factory.ExtraCostTypeFactory()
+        extra_cost_type = factory.ExtraCostTypeFactory(name='My-extra-cost')
         service_environment = factory.ServiceEnvironmentFactory()
         extra_cost = factory.ExtraCostFactory(
             extra_cost_type=extra_cost_type,
@@ -417,31 +421,35 @@ class TestAllocationAdmin(ScroogeTestCase):
             json.loads(response.content)['extracosts'],
             {
                 'name': 'Extra Costs',
-                'rows': [{
-                    'extra_cost_type': {
-                        'id': 1,
-                        'name': 'Other'
+                'rows': [
+                    {
+                        'extra_cost_type': {
+                            'id': extra_cost_type.id,
+                            'name': extra_cost_type.name  # my-extra-cost
+                        },
+                        'extra_costs': [{
+                            'id': extra_cost.id,
+                            'cost': extra_cost.cost,
+                            'forecast_cost': extra_cost.forecast_cost,
+                            'service': extra_cost.service_environment.service_id,  # noqa: E501
+                            'env': extra_cost.service_environment.environment_id  # noqa: E501
+                        }]
                     },
-                    'extra_costs': []
-                }, {
-                    'extra_cost_type': {
-                        'id': 2,
-                        'name': 'Support'
+                    {
+                        'extra_cost_type': {
+                            'id': 1,
+                            'name': 'Other'
+                        },
+                        'extra_costs': []
                     },
-                    'extra_costs': []
-                }, {
-                    'extra_cost_type': {
-                        'id': extra_cost_type.id,
-                        'name': extra_cost_type.name
+                    {
+                        'extra_cost_type': {
+                            'id': 2,
+                            'name': 'Support'
+                        },
+                        'extra_costs': []
                     },
-                    'extra_costs': [{
-                        'id': extra_cost.id,
-                        'cost': extra_cost.cost,
-                        'forecast_cost': extra_cost.forecast_cost,
-                        'service': extra_cost.service_environment.service_id,
-                        'env': extra_cost.service_environment.environment_id
-                    }]
-                }],
+                ],
                 'template': 'tabextracostsadmin.html'
             }
         )

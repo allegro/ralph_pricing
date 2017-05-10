@@ -55,12 +55,14 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.admin',
+    'dal',
+    'dal_select2',
     'django_rq',
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'ralph_scrooge',
+    'django.contrib.admin',
 ]
 
 AUTHENTICATION_BACKENDS = (

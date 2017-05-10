@@ -13,6 +13,7 @@ from django.views.generic import RedirectView
 from rest_framework.authtoken import views
 
 import ralph_scrooge.plugins.subscribers  # noqa: F401
+from ralph_scrooge import models as scrooge_models
 from ralph_scrooge.rest_api.public.v0_9.pricing_service_usages import (
     create_pricing_service_usages,
     list_pricing_service_usages,
@@ -28,16 +29,48 @@ from ralph_scrooge.rest_api.public.v0_9.team_time_division import (
     TeamTimeDivision,
 )
 from ralph_scrooge.views.anomalies_ack import AnomaliesAck
+from ralph_scrooge.views.autocomplete import ScroogeAutocomplete
 from ralph_scrooge.views.bootstrapangular import (
     BootstrapAngular,
     BootstrapAngular2
 )
+from ralph_scrooge.utils.common import camel_case_to_kebab_case
 
 admin.site.site_header = 'Scrooge'
 admin.site.site_title = 'Scrooge'
 
 admin.autodiscover()
 
+
+autocomplete_urlpatterns = [
+    url(
+        '{}/$'.format(camel_case_to_kebab_case(model._meta.object_name)),
+        login_required(
+            ScroogeAutocomplete.as_view(
+                model=model, search_fields=search_fields
+            )
+        ),
+        name=camel_case_to_kebab_case(model._meta.object_name),
+    )
+    for model, search_fields in [
+        (scrooge_models.ProfitCenter, ['name']),
+        (scrooge_models.PricingService, ['name']),
+        (scrooge_models.UsageType, ['name']),
+        (
+            scrooge_models.ScroogeUser,
+            ['username', 'first_name', 'last_name']
+        ),
+        (
+            scrooge_models.ServiceEnvironment,
+            ['service__name', 'environment__name']
+        ),
+        (
+            scrooge_models.PricingObjectModel,
+            ['name', 'manufacturer', 'category']
+        ),
+        (scrooge_models.PricingObject, ['name']),
+    ]
+]
 
 urlpatterns = [
     # Public REST API ---------------------------------------------------------
@@ -113,6 +146,12 @@ urlpatterns = [
     # Internal REST API for GUI -----------------------------------------------
     url(r'^scrooge/rest/', include('ralph_scrooge.rest_api.private.urls')),
 
+
+    # autocomplete
+    url(
+        r'^autocomplete/',
+        include(autocomplete_urlpatterns, namespace='autocomplete'),
+    ),
 
     # All the rest ------------------------------------------------------------
     url(

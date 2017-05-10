@@ -130,6 +130,7 @@ class UsageType(BaseUsage):
         verbose_name = _("usage type")
         verbose_name_plural = _("usage types")
         app_label = 'ralph_scrooge'
+        ordering = ['name']
 
     def __unicode__(self):
         return self.name

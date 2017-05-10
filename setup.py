@@ -34,6 +34,7 @@ setup(
         'ddt==1.1.1',
         'dj.choices==0.11.0',
         'django-auth-ldap==1.2.8',
+        'django-autocomplete-light==3.2.7',
         'django-nose==1.4.4',
         'django-rq==0.9.3',
         'django-simple-history==1.8.1',

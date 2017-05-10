@@ -77,6 +77,7 @@ class BaseUsage(Named):
 
     class Meta:
         app_label = 'ralph_scrooge'
+        ordering = ['name']
 
     def __str__(self):
         return self.name

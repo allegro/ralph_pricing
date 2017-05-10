@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from dal import autocomplete
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.filters import SimpleListFilter
@@ -68,6 +69,8 @@ class ScroogeUserAdmin(UserAdmin):
 class WarehouseAdmin(admin.ModelAdmin):
     list_display = ('name', 'show_in_report')
     search_fields = ('name',)
+    exclude = ('created_by', 'modified_by')
+    readonly_fields = ('created', 'modified')
 
 
 # =============================================================================
@@ -98,11 +101,26 @@ class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     readonly_when_update = ('tenant_id', )
 
 
+class VIPInfoInlineForm(forms.ModelForm):
+    class Meta:
+        model = models.VIPInfo
+        fields = '__all__'
+        widgets = {
+            'ip_info': autocomplete.ModelSelect2(
+                url='autocomplete:pricing-object'
+            ),
+            'load_balancer': autocomplete.ModelSelect2(
+                url='autocomplete:pricing-object'
+            ),
+        }
+
+
 class VIPInfoInline(
     UpdateReadonlyMixin,
     PricingObjectChildInlineBase
 ):
     model = models.VIPInfo
+    form = VIPInfoInlineForm
     readonly_when_update = ('vip_id', )
     fk_name = 'pricingobject_ptr'
     related_search_fields = {
@@ -132,8 +150,23 @@ class PricingObjectTypeFilter(SimpleListFilter):
             return queryset
 
 
+class PricingObjectForm(forms.ModelForm):
+    class Meta:
+        model = models.PricingObject
+        fields = '__all__'
+        widgets = {
+            'service_environment': autocomplete.ModelSelect2(
+                url='autocomplete:service-environment'
+            ),
+            'model': autocomplete.ModelSelect2(
+                url='autocomplete:pricing-object-model'
+            ),
+        }
+
+
 @register(models.PricingObject)
 class PricingObjectAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
+    form = PricingObjectForm
     list_display = ('name', 'service', 'type', 'remarks',)
     search_fields = ('name', 'service_environment__service__name', 'remarks',)
     list_filter = (PricingObjectTypeFilter,)
@@ -144,6 +177,8 @@ class PricingObjectAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
         TenantInfoInline,
         VIPInfoInline,
     ]
+    exclude = ('created_by', 'modified_by')
+    readonly_fields = ('created', 'modified')
     # TODO: display inlines based on pricing object type
 
     def service(self, obj):
@@ -191,17 +226,46 @@ class UsagePriceInline(admin.TabularInline):
 
 @register(models.UsageType)
 class UsageTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'symbol',)
+    list_display = ('name', 'symbol', 'active', 'usage_type', 'get_owners')
     search_fields = ('name', 'symbol',)
+    list_filter = ('active', 'usage_type',)
     inlines = [UsagePriceInline]
     form = UsageTypeForm
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(UsageTypeAdmin, self).get_queryset(*args, **kwargs)
+        return qs.prefetch_related('owners')
+
+    def get_owners(self, usage_type):
+        return ', '.join(map(unicode, usage_type.owners.all()))
+    get_owners.short_description = _('Owners')
 
 
 # =============================================================================
 # EXTRA COSTS
 # =============================================================================
+class ExtraCostInlineForm(forms.ModelForm):
+    class Meta:
+        model = models.ExtraCost
+        fields = '__all__'
+        widgets = {
+            'service_environment': autocomplete.ModelSelect2(
+                url='autocomplete:service-environment'
+            ),
+        }
+
+
 class ExtraCostInline(admin.TabularInline):
     model = models.ExtraCost
+    form = ExtraCostInlineForm
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(ExtraCostInline, self).get_queryset(*args, **kwargs)
+        return qs.select_related(
+            'extra_cost_type',
+            'service_environment__service',
+            'service_environment__environment',
+        )
 
 
 @register(models.ExtraCostType)
@@ -212,8 +276,28 @@ class ExtraCostTypeAdmin(admin.ModelAdmin):
     inlines = [ExtraCostInline]
 
 
+class DynamicExtraCostDivisionInlineForm(forms.ModelForm):
+    class Meta:
+        model = models.DynamicExtraCostDivision
+        fields = '__all__'
+        widgets = {
+            'usage_type': autocomplete.ModelSelect2(
+                url='autocomplete:usage-type'
+            ),
+        }
+
+
 class DynamicExtraCostDivisionInline(admin.TabularInline):
     model = models.DynamicExtraCostDivision
+    form = DynamicExtraCostDivisionInlineForm
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(DynamicExtraCostDivisionInline, self).get_queryset(
+            *args, **kwargs
+        )
+        return qs.select_related(
+            'dynamic_extra_cost_type',
+        )
 
 
 class DynamicExtraCostInline(admin.TabularInline):
@@ -225,7 +309,7 @@ class DynamicExtraTypeForm(forms.ModelForm):
         model = models.DynamicExtraCostType
         fields = '__all__'
         widgets = {
-            'excluded_services': FilteredSelectMultiple('Service', False)
+            'excluded_services': FilteredSelectMultiple('Service', False),
         }
 
 
@@ -255,20 +339,63 @@ class EnvironmentAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
     readonly_when_update = ('ci_id', 'ci_uid')
 
 
+class ServiceOwnershipInlineForm(forms.ModelForm):
+    class Meta:
+        model = models.ServiceOwnership
+        fields = '__all__'
+        widgets = {
+            'owner': autocomplete.ModelSelect2(
+                url='autocomplete:scrooge-user'
+            ),
+        }
+
+
 class ServiceOwnershipInline(admin.TabularInline):
     model = models.ServiceOwnership
+    form = ServiceOwnershipInlineForm
+
+    def get_queryset(self, *args, **kwargs):
+        return super(ServiceOwnershipInline, self).get_queryset(
+            *args, **kwargs
+        ).select_related(
+            'owner'
+        )
 
 
 class ServiceEnvironmentsInline(admin.TabularInline):
     model = models.ServiceEnvironment
 
+    def get_queryset(self, *args, **kwargs):
+        return super(ServiceEnvironmentsInline, self).get_queryset(
+            *args, **kwargs
+        ).select_related(
+            'environment'
+        )
+
+
+class ServiceAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.Service
+        widgets = {
+            'profit_center': autocomplete.ModelSelect2(
+                url='autocomplete:profit-center'
+            ),
+            'pricing_service': autocomplete.ModelSelect2(
+                url='autocomplete:pricing-service'
+            )
+        }
+        exclude = ()
+
 
 @register(models.Service)
 class ServiceAdmin(UpdateReadonlyMixin, SimpleHistoryAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    form = ServiceAdminForm
+    list_display = ('name', 'ci_uid')
+    search_fields = ('name', 'ci_uid')
     inlines = [ServiceOwnershipInline, ServiceEnvironmentsInline]
     readonly_when_update = ('ci_id', 'ci_uid')
+    exclude = ('created_by', 'modified_by')
+    readonly_fields = ('created', 'modified')
 
 
 # =============================================================================
@@ -279,7 +406,10 @@ class PricingServiceForm(forms.ModelForm):
         model = models.PricingService
         fields = '__all__'
         widgets = {
-            'excluded_services': FilteredSelectMultiple('Service', False)
+            'excluded_services': FilteredSelectMultiple('Service', False),
+            'charge_diff_to_real_costs': autocomplete.ModelSelect2(
+                url='autocomplete:pricing-service'
+            )
         }
 
     services = forms.ModelMultipleChoiceField(
@@ -308,16 +438,44 @@ class PricingServiceForm(forms.ModelForm):
         return instance
 
 
+class ServiceUsageTypesInlineForm(forms.ModelForm):
+    class Meta:
+        model = models.ServiceUsageTypes
+        fields = '__all__'
+        widgets = {
+            'usage_type': autocomplete.ModelSelect2(
+                url='autocomplete:usage-type'
+            )
+        }
+
+
 class ServiceUsageTypesInline(admin.TabularInline):
     model = models.ServiceUsageTypes
+    form = ServiceUsageTypesInlineForm
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(ServiceUsageTypesInline, self).get_queryset(*args, **kwargs)
+        return qs.select_related(
+            'pricing_service',
+            'usage_type',
+        )
 
 
 @register(models.PricingService)
 class PricingServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'symbol', 'active')
-    search_fields = ('name',)
+    list_display = ('name', 'symbol', 'active', 'plugin_type', 'get_services')
+    search_fields = ('name', 'symbol',)
+    list_filter = ('active', 'plugin_type',)
     form = PricingServiceForm
     inlines = [ServiceUsageTypesInline]
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(PricingServiceAdmin, self).get_queryset(*args, **kwargs)
+        return qs.prefetch_related('services')
+
+    def get_services(self, pricing_service):
+        return ', '.join(map(unicode, pricing_service.services.all()))
+    get_services.short_description = _('Services')
 
 
 # =============================================================================
@@ -332,20 +490,45 @@ class TeamForm(forms.ModelForm):
         model = models.Team
         fields = '__all__'
         widgets = {
-            'excluded_services': FilteredSelectMultiple('Service', False)
+            'excluded_services': FilteredSelectMultiple('Service', False),
         }
 
 
 @register(models.Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ('name', 'symbol', 'active')
+    list_display = ('name', 'symbol', 'active', 'billing_type',)
+    list_filter = ('active', 'billing_type',)
     search_fields = ('name',)
     inlines = [TeamCostInline]
     form = TeamForm
+    exclude = ('created_by', 'modified_by')
+    readonly_fields = ('created', 'modified')
+
+
+class TeamServiceEnvironmentPercentInlineForm(forms.ModelForm):
+    class Meta:
+        model = models.TeamServiceEnvironmentPercent
+        fields = '__all__'
+        widgets = {
+            'service_environment': autocomplete.ModelSelect2(
+                url='autocomplete:service-environment'
+            ),
+        }
 
 
 class TeamServiceEnvironmentPercentInline(admin.TabularInline):
     model = models.TeamServiceEnvironmentPercent
+    form = TeamServiceEnvironmentPercentInlineForm
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(TeamServiceEnvironmentPercentInline, self).get_queryset(
+            *args, **kwargs
+        )
+        return qs.select_related(
+            'team_cost__team',
+            'service_environment__service',
+            'service_environment__environment',
+        )
 
 
 @register(models.TeamCost)
