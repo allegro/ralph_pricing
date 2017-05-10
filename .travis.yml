@@ -23,10 +23,8 @@ install:
   - pip install -e .
 before_install:
   - pip freeze
-  - pip install pipdeptree
-  - pipdeptree
-
-  # mock is installed in 2.0.0 version by default on travis
+  # mock is installed in 2.0.0 version by default on travis, which conflicts
+  # with 0.8.0 required by scrooge
   - pip install -U flake8 mock==0.8.0
   - make flake
 before_script:
