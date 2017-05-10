@@ -27,7 +27,7 @@ before_install:
   - pipdeptree
 
   # mock is installed in 2.0.0 version by default on travis
-  - pip install -U flake8 mock==0.0.8
+  - pip install -U flake8 mock==0.8.0
   - make flake
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot
