@@ -356,7 +356,7 @@ class TestAllocationAdmin(ScroogeTestCase):
         )
 
     def test_get_extra_cost_when_there_is_one_additional_type(self):
-        extra_cost_type = factory.ExtraCostTypeFactory(name='my-extra-cost')
+        extra_cost_type = factory.ExtraCostTypeFactory(name='My-extra-cost')
         response = self.client.get(
             '/scrooge/rest/allocationadmin/{0}/{1}/'.format(
                 self.date.year,
@@ -401,7 +401,7 @@ class TestAllocationAdmin(ScroogeTestCase):
             self.date.year,
             self.date.month,
         )
-        extra_cost_type = factory.ExtraCostTypeFactory(name='my-extra-cost')
+        extra_cost_type = factory.ExtraCostTypeFactory(name='My-extra-cost')
         service_environment = factory.ServiceEnvironmentFactory()
         extra_cost = factory.ExtraCostFactory(
             extra_cost_type=extra_cost_type,
