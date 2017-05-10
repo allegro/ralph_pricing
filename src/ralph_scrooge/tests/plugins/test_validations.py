@@ -12,6 +12,7 @@ from django.test.utils import override_settings
 from ralph_scrooge.models import (
     PricingServicePlugin,
     ServiceUsageTypes,
+    UsageType,
     Warehouse,
 )
 from ralph_scrooge.plugins.validations import DataForReportValidator
@@ -89,6 +90,79 @@ class TestDataForReportValidations(ScroogeTestCase):
         self.validator._check_for_required_costs_and_prices()
         self.assertEqual(len(self.validator.errors), 1)
         self.assertIn(ut2.name, self.validator.errors[0])
+
+    def test_if_usage_types_attached_to_pricing_service_in_the_past_are_not_reported(self):  # noqa: E501
+        ps1 = PricingServiceFactory(plugin_type=FIXED_PRICE_PLUGIN)
+        ps2 = PricingServiceFactory(plugin_type=FIXED_PRICE_PLUGIN)
+
+        ut1, ut2 = UsageTypeFactory.create_batch(2, active=False)
+        if self.forecast:
+            UsagePriceFactory(type=ut1, forecast_cost=10, **self.date_kwargs)
+            UsagePriceFactory(type=ut2, forecast_cost=20, **self.date_kwargs)
+        else:
+            UsagePriceFactory(type=ut1, cost=10, **self.date_kwargs)
+            UsagePriceFactory(type=ut2, cost=20, **self.date_kwargs)
+
+        past_date_kwargs = dict(
+            start=datetime.date(2017, 1, 1),
+            end=datetime.date(2017, 1, 31),
+        )
+
+        ServiceUsageTypes.objects.create(
+            usage_type=ut1,
+            pricing_service=ps1,
+            **past_date_kwargs
+        )
+        ServiceUsageTypes.objects.create(
+            usage_type=ut1,
+            pricing_service=ps2,
+            **past_date_kwargs
+        )
+        ServiceUsageTypes.objects.create(
+            usage_type=ut2,
+            pricing_service=ps2,
+            **past_date_kwargs
+        )
+
+        self.validator._check_for_required_costs_and_prices()
+        self.assertEqual(len(self.validator.errors), 0)
+
+    def test_if_usage_types_not_attached_to_pricing_service_are_not_reported(self):  # noqa: E501
+        ps1 = PricingServiceFactory(plugin_type=FIXED_PRICE_PLUGIN)
+        ps2 = PricingServiceFactory(plugin_type=FIXED_PRICE_PLUGIN)
+
+        ut1, ut2 = UsageTypeFactory.create_batch(2, active=False)
+        if self.forecast:
+            UsagePriceFactory(type=ut1, forecast_cost=10, **self.date_kwargs)
+            UsagePriceFactory(type=ut2, forecast_cost=20, **self.date_kwargs)
+        else:
+            UsagePriceFactory(type=ut1, cost=10, **self.date_kwargs)
+            UsagePriceFactory(type=ut2, cost=20, **self.date_kwargs)
+
+        past_date_kwargs = dict(
+            start=datetime.date(2017, 1, 1),
+            end=datetime.date(2017, 1, 31),
+        )
+
+        ServiceUsageTypes.objects.create(
+            usage_type=ut1,
+            pricing_service=ps1,
+            **past_date_kwargs
+        )
+
+        ServiceUsageTypes.objects.create(
+            usage_type=ut1,
+            pricing_service=ps2,
+            **past_date_kwargs
+        )
+        ServiceUsageTypes.objects.create(
+            usage_type=ut2,
+            pricing_service=ps2,
+            **past_date_kwargs
+        )
+
+        self.validator._check_for_required_costs_and_prices()
+        self.assertEqual(len(self.validator.errors), 0)
 
     def test_if_base_usage_types_calculated_by_warehouse_are_reported_when_prices_for_some_warehouses_are_missing(self):  # noqa: E501
         Warehouse.objects.all().delete()  # remove objs from fixtures
@@ -211,6 +285,20 @@ class TestDataForReportValidations(ScroogeTestCase):
         self.assertIn(ut2.name, all_errors_as_str)
         self.assertIn(ut5.name, all_errors_as_str)
 
+    def test_if_usage_types_not_attached_to_pricing_services_without_saved_usages_are_not_reported(self):  # noqa: E501
+        UsageType(usage_type='SU', active=True)
+
+        self.assertEqual(len(self.validator.active_usage_types.all()), 0)
+        self.validator._check_usage_types()
+        self.assertEqual(len(self.validator.errors), 0)
+
+    def test_if_inactive_usage_types_are_not_reported(self):  # noqa: E501
+        UsageType(usage_type='SU', active=False)
+
+        self.assertEqual(len(self.validator.active_usage_types.all()), 0)
+        self.validator._check_usage_types()
+        self.assertEqual(len(self.validator.errors), 0)
+
     @override_settings(PERCENT_DIFF_EPSILON=PERCENT_DIFF_EPSILON)
     def test_if_pricing_services_with_usage_types_that_together_does_not_sum_up_to_100_percent_are_reported(self):  # noqa: E501
         ut1, ut2 = UsageTypeFactory.create_batch(2)
@@ -265,6 +353,10 @@ class TestDataForReportValidations(ScroogeTestCase):
         self.assertIn('costs already accepted', self.validator.errors)
 
     def test_if_dynamic_extra_costs_with_zero_costs_for_date_are_reported(self):  # noqa: E501
+        ut1 = UsageTypeFactory(usage_type='BU')
+        DailyUsageFactory(type=ut1, date=self.day)
+        ut2 = UsageTypeFactory(usage_type='BU')
+        DailyUsageFactory(type=ut2, date=self.day)
 
         # OK - there are costs != 0 for date
         dect1 = DynamicExtraCostTypeFactory()
@@ -278,10 +370,12 @@ class TestDataForReportValidations(ScroogeTestCase):
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect1,
             percent=60,
+            usage_type=ut1,
         )
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect1,
             percent=40,
+            usage_type=ut2,
         )
 
         # NOT OK - costs for date == 0
@@ -296,10 +390,12 @@ class TestDataForReportValidations(ScroogeTestCase):
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect2,
             percent=60,
+            usage_type=ut1,
         )
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect2,
             percent=40,
+            usage_type=ut2,
         )
 
         self.validator._check_dynamic_extra_costs()
@@ -308,14 +404,20 @@ class TestDataForReportValidations(ScroogeTestCase):
 
     def test_if_dynamic_extra_costs_without_defined_costs_are_reported(self):
         dect = DynamicExtraCostTypeFactory()
+        ut1 = UsageTypeFactory(usage_type='BU')
+        DailyUsageFactory(type=ut1, date=self.day)
+        ut2 = UsageTypeFactory(usage_type='BU')
+        DailyUsageFactory(type=ut2, date=self.day)
         # no DynamicExtraCost for date - only divisions are defined here!
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect,
             percent=60,
+            usage_type=ut1,
         )
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect,
             percent=40,
+            usage_type=ut2,
         )
 
         self.validator._check_dynamic_extra_costs()
@@ -325,6 +427,10 @@ class TestDataForReportValidations(ScroogeTestCase):
     @override_settings(PERCENT_DIFF_EPSILON=PERCENT_DIFF_EPSILON)
     def test_if_dynamic_extra_costs_with_divisions_that_together_does_not_sum_up_to_100_percent_are_reported(self):  # noqa: E501
         dect = DynamicExtraCostTypeFactory()
+        ut1 = UsageTypeFactory(usage_type='BU')
+        DailyUsageFactory(type=ut1, date=self.day)
+        ut2 = UsageTypeFactory(usage_type='BU')
+        DailyUsageFactory(type=ut2, date=self.day)
         DynamicExtraCostFactory(
             dynamic_extra_cost_type=dect,
             cost=10,
@@ -335,10 +441,12 @@ class TestDataForReportValidations(ScroogeTestCase):
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect,
             percent=60,
+            usage_type=ut1,
         )
         DynamicExtraCostDivisionFactory(
             dynamic_extra_cost_type=dect,
-            percent=(40 + 2 * PERCENT_DIFF_EPSILON)
+            percent=(40 + 2 * PERCENT_DIFF_EPSILON),
+            usage_type=ut2,
         )
 
         self.validator._check_dynamic_extra_costs()

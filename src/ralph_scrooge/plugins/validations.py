@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Q, Sum
 
 from ralph_scrooge.utils.cycle_detector import detect_cycles
 from ralph_scrooge.models import (
@@ -41,20 +41,31 @@ class DataForReportValidator(object):
         self.errors = []
 
         self.active_teams = Team.objects.filter(active=True)
-        self.active_usage_types = UsageType.objects.filter(active=True)
+        self.active_usage_types = UsageType.objects.filter(
+            Q(usage_type='BU') |
+            (
+                Q(services__active=True) &
+                Q(usage_type='SU') &
+                Q(service_division__start__lte=date) &
+                Q(service_division__end__gte=date)
+            ),
+            active=True
+        ).distinct()
 
     def _find_missing_uploads(self, usage_types):
         """Helper method for finding UsageType(s) without uploads."""
         missing_uploads = []
+        # we're only interested in fact if some UsageType has any usage
+        # for particular date
+        existing_usage_types = set(
+            DailyUsage.objects.filter(
+                date=self.date
+            ).values_list(
+                'type_id', flat=True
+            ).distinct()
+        )
         for ut in usage_types:
-            if ut.usage_type == 'SU':
-                if not ServiceUsageTypes.objects.filter(
-                    usage_type=ut,
-                    start__lte=self.date,
-                    end__gte=self.date,
-                ).exists():
-                    continue
-            if not DailyUsage.objects.filter(date=self.date, type=ut).exists():
+            if ut.id not in existing_usage_types:
                 missing_uploads.append(ut)
         return missing_uploads
 
@@ -75,12 +86,12 @@ class DataForReportValidator(object):
             ).aggregate(sum_cost=Sum(cost_field))
             if not costs['sum_cost']:
                 self.errors.append(
-                        'no extra {}cost(s) defined for dynamic extra cost '
-                        'type "{}"'.format(
-                            'forecast ' if self.forecast else '',
-                            dect.name
-                        )
+                    'no extra {}cost(s) defined for dynamic extra cost '
+                    'type "{}"'.format(
+                        'forecast ' if self.forecast else '',
+                        dect.name
                     )
+                )
 
             # divisions
             sum_perc = dect.division.aggregate(s=Sum('percent'))['s'] or 0
@@ -198,7 +209,7 @@ class DataForReportValidator(object):
         """There should be no active usage type without usage(s) saved for
         a given day.
         """
-        uts = self.active_usage_types.filter(usage_type__in=['BU', 'SU'])
+        uts = self.active_usage_types
         missing_uploads = self._find_missing_uploads(uts)
         for ut in missing_uploads:
             self.errors.append(
@@ -249,7 +260,7 @@ class DataForReportValidator(object):
                 c_str = '->'.join(map(lambda ps: ps.symbol, c))
                 cycles_.append(c_str)
             self.errors.append(
-                'cycle(s) detected: {}'.format(', '.join(cycles_))
+                'cycle(s) detected: \n{}'.format('\n'.join(cycles_))
             )
 
     def validate(self):
