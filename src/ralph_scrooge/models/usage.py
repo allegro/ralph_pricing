@@ -122,6 +122,13 @@ class UsageType(BaseUsage):
             "this usage type will be notified about such (unusual) change."
         ),
     )
+    allow_no_daily_usage = db.BooleanField(
+        default=False,
+        help_text=_(
+            'Skip validation of this UsageType for existing DailyUsages before'
+            'recalculating costs'
+        ),
+    )
 
     objects_admin = db.Manager()
     objects = BaseUsageManager()
