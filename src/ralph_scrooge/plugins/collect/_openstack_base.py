@@ -86,6 +86,7 @@ class OpenStackBasePlugin(object):
             defaults=dict(
                 name=usage_name,
                 type='SU',
+                allow_no_daily_usage=True,
             ),
         )[0]
 

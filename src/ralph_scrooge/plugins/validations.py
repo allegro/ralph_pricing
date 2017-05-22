@@ -209,7 +209,7 @@ class DataForReportValidator(object):
         """There should be no active usage type without usage(s) saved for
         a given day.
         """
-        uts = self.active_usage_types
+        uts = self.active_usage_types.exclude(allow_no_daily_usage=True)
         missing_uploads = self._find_missing_uploads(uts)
         for ut in missing_uploads:
             self.errors.append(
