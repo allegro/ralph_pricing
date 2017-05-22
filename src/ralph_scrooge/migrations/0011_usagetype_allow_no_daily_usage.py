@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='usagetype',
             name='allow_no_daily_usage',
-            field=models.BooleanField(default=False, help_text='Skip validation of this UsageType for existing DailyUsages beforerecalculating costs'),
+            field=models.BooleanField(default=False, help_text='Skip validation of this UsageType for existing DailyUsages beforere calculating costs'),
         ),
     ]

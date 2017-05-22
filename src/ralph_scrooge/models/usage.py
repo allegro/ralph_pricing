@@ -126,7 +126,7 @@ class UsageType(BaseUsage):
         default=False,
         help_text=_(
             'Skip validation of this UsageType for existing DailyUsages before'
-            'recalculating costs'
+            ' recalculating costs'
         ),
     )
 
