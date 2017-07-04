@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from rest_framework import routers
 
 from ralph_scrooge.rest_api.public.v0_10.views import (
+    DailyUsageViewSet,
     UsageTypesViewSet,
     PricingServicesViewSet,
 )
@@ -16,4 +17,5 @@ router = routers.SimpleRouter()
 
 router.register(r'usage-types', UsageTypesViewSet)
 router.register(r'pricing-services', PricingServicesViewSet)
+router.register(r'daily-usages', DailyUsageViewSet)
 urlpatterns = router.urls
