@@ -377,6 +377,18 @@ class ServiceEnvironment(db.Model):
         return '{} - {}'.format(self.service, self.environment)
 
     @property
+    def service_name(self):
+        return self.service.name
+
+    @property
+    def service_uid(self):
+        return self.service.ci_uid
+
+    @property
+    def environment_name(self):
+        return self.environment.name
+
+    @property
     def dummy_pricing_object(self):
         """
         Returns dummy pricing object for service environment

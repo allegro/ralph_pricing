@@ -7,7 +7,13 @@ from __future__ import unicode_literals
 
 from rest_framework import serializers
 
-from ralph_scrooge.models import UsageType, UsagePrice, PricingService
+from ralph_scrooge.models import (
+    DailyUsage,
+    PricingService,
+    ServiceEnvironment,
+    UsageType,
+    UsagePrice
+)
 
 
 class UsagePriceSerializer(serializers.ModelSerializer):
@@ -51,3 +57,28 @@ class PricingServiceSerializer(serializers.ModelSerializer):
                 'lookup_field': 'symbol'
             }
         }
+
+
+class ServiceEnvironmentSimpleSerializer(serializers.ModelSerializer):
+    service = serializers.CharField(source='service_name', read_only=True)
+    environment = serializers.CharField(
+        source='environment_name', read_only=True
+    )
+    service_uid = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = ServiceEnvironment
+        fields = (
+            'id', 'service', 'environment', 'service_uid',
+        )
+
+
+class DailyUsageSerializer(serializers.ModelSerializer):
+    type = SimpleUsageTypeSerializer(read_only=True)
+    service_environment = ServiceEnvironmentSimpleSerializer(read_only=True)
+
+    class Meta:
+        model = DailyUsage
+        fields = [
+            'id', 'date', 'type', 'service_environment', 'value', 'remarks'
+        ]

@@ -207,6 +207,28 @@ definitions:
         type: string
         description: 'date (YYYY-MM-DD) to which price takes effect'
 
+  DailyUsage:
+    type: object
+    properties:
+      id:
+        type: number
+      type:
+        $ref: "#/definitions/SimpleUsageType"
+      date:
+        type: string
+        description: 'date (YYYY-MM-DD) from which price takes effect'
+      value:
+        type: float
+      service_environment:
+        $ref: "#/definitions/SimpleServiceEnvironment"
+      remarks:
+        type: string
+
+  DailyUsages:
+    type: array
+    items:
+      $ref: "#/definitions/DailyUsage"
+
   PricingService:
     type: object
     properties:
@@ -225,6 +247,18 @@ definitions:
     type: array
     items:
       $ref: "#/definitions/PricingService"
+
+  SimpleServiceEnvironment:
+    type: object
+    properties:
+      id:
+        type: number
+      service:
+        type: string
+      environment:
+        type: string
+      service_uid:
+        type: string
 
   ServiceEnvironmentCosts:
     type: object
@@ -302,6 +336,24 @@ parameters:
     type: integer
     required: true
     description: 'e.g. 12'
+  service_uid:
+    name: service_uid
+    in: query
+    type: string
+    required: false
+    description: 'eg. sc-123'
+  date:
+    name: date
+    in: query
+    type: string
+    required: false
+    description: 'YYYY-MM-DD, eg. 2017-07-01'
+  date__gte:
+    name: date__gte
+    in: query
+    type: string
+    required: false
+    description: 'YYYY-MM-DD, eg. 2017-07-01'
 
 
 # The presence of YAML anchors/references in 'paths' section comes from the fact
@@ -757,6 +809,23 @@ paths:
           description: OK
       tags:
         - v0.10
+
+  /v0.10/daily-usages/:
+    get:
+      description: "List of DailUsages."
+      summary: List all daily usages
+      operationId: daily-usages_list
+      responses:
+        200:
+          schema:
+            $ref: "#/definitions/DailyUsages"
+          description: OK
+      tags:
+        - v0.10
+      parameters:
+        - $ref: "#/parameters/date__gte"
+        - $ref: "#/parameters/date"
+        - $ref: "#/parameters/service_uid"
 
 
   /v0.10/api-token-auth/:
