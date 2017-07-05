@@ -357,10 +357,8 @@ LOGGING = {
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
-}
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 50
+    # PAGE_SIZE can NOT be set - it would break existing endpoints (changed
+    # structure etc)!
 }
 
 # For sending notifications re: detected anomalies / missing values in uploaded

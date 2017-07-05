@@ -14,6 +14,9 @@ from ralph_scrooge.models import (
     ServiceEnvironment,
     UsageType
 )
+from ralph_scrooge.rest_api.public.v0_10.pagination import (
+    ScroogeLimitOffsetPagination
+)
 from ralph_scrooge.rest_api.public.v0_10.serializers import (
     DailyUsageSerializer,
     PricingServiceSerializer,
@@ -64,3 +67,4 @@ class DailyUsageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DailyUsageSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = DailyUsageFilter
+    pagination_class = ScroogeLimitOffsetPagination
