@@ -81,7 +81,7 @@ def ralph3_support(**kwargs):
     total = pricing_objects_count = 0
     for support in get_from_ralph(
         'supports', logger,
-        query='date_from__lte={today}&date_to__gte={today}&price__gt=0'.format(
+        query='date_from__lte={today}&date_to__gte={today}&price__gte=0'.format(  # noqa: E501
             today=date
         )
     ):
