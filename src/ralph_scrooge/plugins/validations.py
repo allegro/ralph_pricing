@@ -17,6 +17,7 @@ from ralph_scrooge.models import (
     PricingServicePlugin,
     ServiceUsageTypes,
     Team,
+    TeamBillingType,
     TeamCost,
     TeamServiceEnvironmentPercent,
     UsagePrice,
@@ -191,7 +192,9 @@ class DataForReportValidator(object):
         """There should be no active team with time allocated that doesn't sum
         up to 100%.
         """
-        for team in self.active_teams:
+        for team in self.active_teams.filter(
+            billing_type=TeamBillingType.time
+        ):
             perc = TeamServiceEnvironmentPercent.objects.filter(
                 team_cost__team=team,
                 team_cost__start__lte=self.date,
