@@ -25,7 +25,7 @@ before_install:
   - pip freeze
   # mock is installed in 2.0.0 version by default on travis, which conflicts
   # with 0.8.0 required by scrooge
-  - pip install -U flake8 mock==0.8.0
+  - pip install -U flake8==3.3.0 mock==0.8.0
   - make flake
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot
