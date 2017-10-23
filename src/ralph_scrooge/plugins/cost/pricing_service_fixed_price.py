@@ -45,8 +45,12 @@ class PricingServiceFixedPricePlugin(PricingServiceBasePlugin):
             )
         )
         result_dict = defaultdict(dict)
-        usage_types = pricing_service.usage_types.all()
-        for usage_type in usage_types:
+        service_usage_types = pricing_service.serviceusagetypes_set.filter(
+            start__lte=date,
+            end__gte=date,
+        ).select_related('usage_type')
+        for sut in service_usage_types:
+            usage_type = sut.usage_type
             try:
                 # results per service environment (list of costs per pricing
                 # object as a value)
