@@ -29,7 +29,7 @@ class UsageTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UsageType
-        fields = ['id', 'name', 'symbol', 'usage_price', 'url']
+        fields = ['id', 'name', 'symbol', 'usage_price', 'url', 'support_team']
         extra_kwargs = {
             'url': {
                 'view_name': 'v0_10:usagetype-detail', 'lookup_field': 'symbol'
