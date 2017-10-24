@@ -45,6 +45,7 @@ setup(
         'flake8==3.3.0',
         'gunicorn==19.6.0',
         'ipaddr==2.1.11',
+        'ipaddress==1.0.17',
         'mock-django==0.6.6',
         'mock==0.8.0',
         'MySQL-python==1.2.3',
@@ -55,8 +56,8 @@ setup(
         'python-novaclient==2.17.0',
         'pyyaml==3.12',
         'rq>=0.3.7',
+        'six==1.10.0',
         'SQLAlchemy==0.7.8',
-        'ipaddress==1.0.17',
         # these two are not required, but we install them everytime anyway...
         'ipython==2.4.1',
         'ipdb==0.10.2',
