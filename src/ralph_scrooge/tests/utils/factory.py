@@ -129,6 +129,7 @@ class UsageTypeFactory(DjangoModelFactory):
 
     name = Sequence(lambda n: 'UsageType%s' % n)
     symbol = Sequence(lambda n: 'ut%s' % n)
+    support_team = Sequence(lambda n: 'Team #%s' % n)
 
 
 class PricingObjectModelFactory(DjangoModelFactory):

@@ -129,6 +129,13 @@ class UsageType(BaseUsage):
             ' recalculating costs'
         ),
     )
+    support_team = db.CharField(
+        max_length=255,
+        verbose_name=_("Support team"),
+        help_text=_("Information about support team."),
+        blank=True,
+        default=''
+    )
 
     objects_admin = db.Manager()
     objects = BaseUsageManager()
