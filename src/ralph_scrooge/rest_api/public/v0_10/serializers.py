@@ -41,7 +41,7 @@ class SimpleUsageTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UsageType
-        fields = ['id', 'name', 'symbol']
+        fields = ['id', 'name', 'symbol', 'support_team']
 
 
 class PricingServiceSerializer(serializers.ModelSerializer):
