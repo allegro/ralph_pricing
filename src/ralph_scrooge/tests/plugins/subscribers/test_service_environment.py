@@ -92,7 +92,7 @@ class TestServiceEnvironment(ScroogeTestCase):
         _update_service(CREATE_EVENT_DATA)
 
         self.assertEqual(
-            Service.objects.filter(name=u'test-scrooge-ąść').count(), 1
+            Service.objects.filter(ci_uid='sc-9').count(), 1
         )
 
     def test__update_owners_add_owners(self):
