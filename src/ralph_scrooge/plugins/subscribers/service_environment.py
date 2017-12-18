@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 def service_environment(event_data):
     logger.info(
         u'Start service environment processing for service with name: '
-        u'"{}" and uid: {}'.format(event_data.get('name'), event_data.get('uid'))
+        u'"{}" and uid: {}'.format(
+            event_data.get('name'), event_data.get('uid')
+        )
     )
     logger.debug(u'Event data: {}'.format(event_data))
     errors = _validate_service_data(event_data)
@@ -105,7 +107,8 @@ def _update_environments(service, environments):
     service.environments.filter(name__in=to_delete).delete()
     if to_delete:
         logger.info(
-            u'Removed environments: {} from service name: "{}" and uid: {}'.format(
+            u'Removed environments: {} from service name: "{}" '
+            u'and uid: {}'.format(
                 to_delete, service.name, service.ci_uid
             )
         )
@@ -167,6 +170,7 @@ def _update_owners(service, event_data):
         if to_add:
             logger.info(
                 u'Added {}: {} for service name: "{}" and uid: {}'.format(
-                    owner_type[0], to_add, event_data['name'], event_data['uid']
+                    owner_type[0], to_add, event_data['name'],
+                    event_data['uid']
                 )
             )

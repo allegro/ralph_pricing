@@ -89,11 +89,11 @@ class TestServiceEnvironment(ScroogeTestCase):
         self.assertEqual(service.environments.count(), 1)
 
     def test__update_service(self):
-       service = _update_service(CREATE_EVENT_DATA)
+        _update_service(CREATE_EVENT_DATA)
 
-       self.assertEqual(
-           Service.objects.filter(name=u'test-scrooge-ąść').count(), 1
-       )
+        self.assertEqual(
+            Service.objects.filter(name=u'test-scrooge-ąść').count(), 1
+        )
 
     def test__update_owners_add_owners(self):
         service = ServiceFactory()
