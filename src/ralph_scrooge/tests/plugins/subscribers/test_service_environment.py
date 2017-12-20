@@ -78,7 +78,7 @@ class TestServiceEnvironment(ScroogeTestCase):
 
         self.assertEqual(service.environments.count(), 2)
 
-    def test__update_environments_remove_environment(self):
+    def test__update_environments_doesnt_remove_environment(self):
         service = ServiceFactory()
         envs = ['test_env_1', 'test_env_2']
         envs_obj = _add_new_environments(envs)
@@ -86,7 +86,7 @@ class TestServiceEnvironment(ScroogeTestCase):
         _update_environments(service, envs_obj)
         _update_environments(service, [envs_obj[0]])
 
-        self.assertEqual(service.environments.count(), 1)
+        self.assertEqual(service.environments.count(), 2)
 
     def test__update_service(self):
         _update_service(CREATE_EVENT_DATA)

@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import logging
 
 from pyhermes.decorators import subscriber
 
 from ralph_scrooge.models import (
-    ProfitCenter,
     Environment,
     Service,
     ServiceEnvironment,
@@ -20,12 +24,12 @@ logger = logging.getLogger(__name__)
 @subscriber(topic='updateService')
 def service_environment(event_data):
     logger.info(
-        u'Start service environment processing for service with name: '
-        u'"{}" and uid: {}'.format(
+        'Start service environment processing for service with name: '
+        '"{}" and uid: {}'.format(
             event_data.get('name'), event_data.get('uid')
         )
     )
-    logger.debug(u'Event data: {}'.format(event_data))
+    logger.debug('Event data: {}'.format(event_data))
     errors = _validate_service_data(event_data)
     if errors:
         msg = (
@@ -44,8 +48,8 @@ def service_environment(event_data):
     _update_environments(service, environments)
     _update_owners(service, event_data)
     logger.info(
-        u'Finished service environment processing for service with name: '
-        u'"{}" and uid: {}'.format(event_data['name'], event_data['uid'])
+        'Finished service environment processing for service with name: '
+        '"{}" and uid: {}'.format(event_data['name'], event_data['uid'])
     )
 
 
@@ -68,28 +72,26 @@ def _add_new_environments(envs):
         if created:
             created_environments.append(obj)
     if created_environments:
-        logger.info(u'Added new environments: {}'.format(
+        logger.info('Added new environments: {}'.format(
             [env.name for env in created_environments]
         ))
     return environments
 
 
 def _update_service(event_data):
-    default_profit_center = ProfitCenter.objects.get(pk=1)  # from fixtures
-
-    service, created = Service.objects.get_or_create(ci_uid=event_data['uid'])
-    service.name = event_data['name']
-    service.symbol = event_data['uid']
-    # TODO(mbleschke) - need to set profit center but we have only name in
-    # hermes event.
-    service.profit_center = default_profit_center
-    service.save()
+    service, created = Service.objects.update_or_create(
+        ci_uid=event_data['uid'],
+        defaults={
+            'name': event_data['name'],
+            'symbol': event_data['uid']
+        }
+    )
     if created:
-        logger.info(u'Created new service with name: "{} and uid: {}'.format(
+        logger.info('Created new service with name: "{} and uid: {}'.format(
             event_data['name'], event_data['uid']
         ))
     else:
-        logger.info(u'Updated service with name: "{}" and uid: {}'.format(
+        logger.info('Updated service with name: "{}" and uid: {}'.format(
             event_data['name'], event_data['uid']
         ))
 
@@ -97,34 +99,19 @@ def _update_service(event_data):
 
 
 def _update_environments(service, environments):
-    current = set([env_obj.name for env_obj in environments])
-    previous = set(service.environments.all().values_list(
-        'name', flat=True)
-    )
-
-    # Delete obsolete environments.
-    to_delete = previous - current
-    service.environments.filter(name__in=to_delete).delete()
-    if to_delete:
-        logger.info(
-            u'Removed environments: {} from service name: "{}" '
-            u'and uid: {}'.format(
-                to_delete, service.name, service.ci_uid
-            )
-        )
-
-    # Add new environments.
-    to_add = current - previous
+    added_envs = []
     for env_obj in environments:
-        if env_obj.name in to_add:
-            ServiceEnvironment.objects.get_or_create(
-                service=service,
-                environment=env_obj,
-            )
-    if to_add:
+        _, created = ServiceEnvironment.objects.get_or_create(
+            service=service,
+            environment=env_obj,
+        )
+        if created:
+            added_envs.append(env_obj.name)
+
+    if added_envs:
         logger.info(
-            u'Added environments: {} to service name: "{}" and uid: {}'.format(
-                to_add, service.name, service.ci_uid
+            'Added environments: {} to service name: "{}" and uid: {}'.format(
+                added_envs, service.name, service.ci_uid
             )
         )
 
@@ -150,7 +137,7 @@ def _update_owners(service, event_data):
         ).delete()
         if to_delete:
             logger.info(
-                u'Removed {}: {} for service name: "{}" and uid: {}'.format(
+                'Removed {}: {} for service name: "{}" and uid: {}'.format(
                     owner_type[0], to_delete, event_data['name'],
                     event_data['uid']
                 )
@@ -169,7 +156,7 @@ def _update_owners(service, event_data):
         ServiceOwnership.objects.bulk_create(ownerships)
         if to_add:
             logger.info(
-                u'Added {}: {} for service name: "{}" and uid: {}'.format(
+                'Added {}: {} for service name: "{}" and uid: {}'.format(
                     owner_type[0], to_add, event_data['name'],
                     event_data['uid']
                 )
