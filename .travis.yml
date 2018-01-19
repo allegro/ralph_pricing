@@ -6,19 +6,12 @@ cache:
 before_cache:
   - pip uninstall Django -y
 env:
-  matrix:
-    - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=mysql
-    - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=sqlite
-    - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=postgres
-matrix:
-  allow_failures:
-    - env: DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=postgres
+  - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=postgres
 
 python:
   - "2.7"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - if [[ $TEST_DATABASE_ENGINE == postgres ]]; then pip install -q psycopg2; fi
   - pip install coveralls
   - pip install -e .
 before_install:
