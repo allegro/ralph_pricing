@@ -22,7 +22,6 @@ before_install:
   - make flake
 before_script:
   - mysql -e 'CREATE DATABASE ralph_test CHARACTER SET utf8 COLLATE utf8_general_ci;' -uroot
-  - psql -c 'create database ralph_test;' -U postgres
 # command to run tests, e.g. python setup.py test
 script:
   make test-with-coveralls
