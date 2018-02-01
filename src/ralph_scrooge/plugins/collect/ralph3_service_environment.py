@@ -87,12 +87,8 @@ def _update_owners(service, service_from_ralph):
 @transaction.atomic
 def update_environment(env_from_ralph):
     env, created = Environment.objects.get_or_create(
-        ralph3_id=env_from_ralph['id'],
-        defaults=dict(
-            name=env_from_ralph['name']
-        )
+        name=env_from_ralph['name']
     )
-    env.name = env_from_ralph['name']
     env.save()
     return created
 
@@ -122,7 +118,7 @@ def ralph3_service_environment(**kwargs):
         total_services += 1
 
         for env in service.get('environments', []):
-            env_obj = Environment.objects.get(ralph3_id=env['id'])
+            env_obj = Environment.objects.get(name=env['name'])
             _, created = ServiceEnvironment.objects.get_or_create(
                 service=service_obj,
                 environment=env_obj,

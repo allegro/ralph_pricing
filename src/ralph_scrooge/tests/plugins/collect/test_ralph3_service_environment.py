@@ -142,25 +142,24 @@ class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
 
     def _compare_environments(self, environment, sample_data):
         self.assertEquals(environment.name, sample_data['name'])
-        self.assertEquals(environment.ralph3_id, sample_data['id'])
 
     def test_add_environment(self):
         sample_data = SAMPLE_ENVIRONMENTS[0]
         self.assertTrue(update_environment(sample_data))
-        environment = Environment.objects.get(ralph3_id=sample_data['id'])
+        environment = Environment.objects.get(name=sample_data['name'])
         self._compare_environments(environment, sample_data)
 
     def test_update_environment(self):
         sample_data = SAMPLE_ENVIRONMENTS[0]
         self.assertTrue(update_environment(sample_data))
-        environment = Environment.objects.get(ralph3_id=sample_data['id'])
+        environment = Environment.objects.get(name=sample_data['name'])
         self._compare_environments(environment, sample_data)
 
         sample_data2 = SAMPLE_ENVIRONMENTS[1]
-        sample_data2['id'] = sample_data['id']
+        sample_data2['name'] = sample_data['name']
         self.assertFalse(update_environment(sample_data2))
         environment = Environment.objects.get(
-            ralph3_id=sample_data2['id']
+            name=sample_data2['name']
         )
         self._compare_environments(environment, sample_data2)
 

@@ -83,18 +83,12 @@ class ProfitCenter(Named.NonUnique):
         app_label = 'ralph_scrooge'
 
 
-class Environment(Named.NonUnique):
+class Environment(Named):
     ci_id = db.IntegerField(
         unique=True,
         null=True,
         blank=True,
         verbose_name=_("id from cmdb"),
-    )
-    ralph3_id = db.IntegerField(
-        unique=True,
-        null=True,
-        blank=True,
-        verbose_name=_("id from Ralph 3"),
     )
     ci_uid = db.CharField(
         null=True,
