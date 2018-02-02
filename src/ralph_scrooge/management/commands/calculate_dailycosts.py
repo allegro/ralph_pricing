@@ -143,7 +143,7 @@ class Command(BaseCommand):
                 .format(", ".join(unknown_names))
             )
         if len(pricing_service_names_verified) == 0:
-            logger.error(
+            logger.warning(
                 "No Pricing Service(s) that are both active and have fixed "
                 "price. Aborting."
             )
