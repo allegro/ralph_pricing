@@ -98,8 +98,6 @@ class EnvironmentFactory(DjangoModelFactory):
     FACTORY_DJANGO_GET_OR_CREATE = ['name']
 
     name = Sequence(lambda n: 'Environment%s' % n)
-    ci_id = Sequence(lambda n: n)
-    ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
 
 
 class ServiceEnvironmentFactory(DjangoModelFactory):

@@ -84,19 +84,6 @@ class ProfitCenter(Named.NonUnique):
 
 
 class Environment(Named):
-    ci_id = db.IntegerField(
-        unique=True,
-        null=True,
-        blank=True,
-        verbose_name=_("id from cmdb"),
-    )
-    ci_uid = db.CharField(
-        null=True,
-        blank=True,
-        max_length=100,
-        verbose_name=_("uid from cmdb"),
-    )
-
     class Meta:
         app_label = 'ralph_scrooge'
         ordering = ['name']
