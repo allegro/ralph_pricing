@@ -333,7 +333,7 @@ class BusinessLineAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
 
 
 @register(models.Environment)
-class EnvironmentAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
+class EnvironmentAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
 
