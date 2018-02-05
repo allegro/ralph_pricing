@@ -6,7 +6,7 @@ cache:
 before_cache:
   - pip uninstall Django -y
 env:
-  - DJANGO_VERSION=1.10.2 TEST_DATABASE_ENGINE=mysql
+  - DJANGO_VERSION=1.10.2
 
 python:
   - "2.7"

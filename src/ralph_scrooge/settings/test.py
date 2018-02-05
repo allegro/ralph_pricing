@@ -4,39 +4,23 @@
 from ralph_scrooge.settings.base import *  # noqa
 
 import os
-TEST_DATABASE_ENGINE = os.environ.get('TEST_DATABASE_ENGINE')
+TEST_DATABASE_NAME = os.environ.get('TEST_DATABASE_NAME', 'scrooge_test')
+TEST_DATABASE_HOST = os.environ.get('TEST_DATABASE_HOST', 'localhost')
+TEST_DATABASE_PORT = os.environ.get('TEST_DATABASE_PORT', 3306)
+TEST_DATABASE_USER = os.environ.get('TEST_DATABASE_USER', 'root')
+TEST_DATABASE_PASSWORD = os.environ.get('TEST_DATABASE_PASSWORD')
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-if TEST_DATABASE_ENGINE == 'mysql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'scrooge_test',
-            'USER': 'root',
-            'HOST': 'localhost',
-        },
-    }
-elif TEST_DATABASE_ENGINE == 'postgres':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'USER': 'postgres',
-            'NAME': 'scrooge_test',
-            'OPTIONS': {}
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '',
-            'OPTIONS': {},
-        }
-    }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': TEST_DATABASE_NAME,
+        'USER': TEST_DATABASE_USER,
+        'HOST': TEST_DATABASE_HOST,
+        'PORT': TEST_DATABASE_PORT,
+        'PASSWORD': TEST_DATABASE_PASSWORD,
+    },
+}
 
 SOUTH_TESTS_MIGRATE = False
 

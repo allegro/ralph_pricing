@@ -333,10 +333,9 @@ class BusinessLineAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
 
 
 @register(models.Environment)
-class EnvironmentAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
+class EnvironmentAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
-    readonly_when_update = ('ci_id', 'ci_uid')
 
 
 class ServiceOwnershipInlineForm(forms.ModelForm):
