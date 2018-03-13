@@ -173,9 +173,67 @@ def update_usage(daily_asset_info, warehouse, usage_type, value, date):
     usage.save()
 
 
+@transaction.atomic
+def update_back_office_asset(data, date, usages, unknown_service_env):
+    """
+    Updates single asset.
+
+    Creates asset if not exists, then creates its daily snapshot.
+
+    When asset has no service-env, unknown is used.
+    When asset has no back office assigned, default (from fixtures) is used.
+
+    :param dict data: Data from assets API
+    :param object date: datetime
+    :param dict usages: Dict with usage types from Django ORM UsageType
+    :returns: True, if asset info was created, else False
+    :rtype boolean:
+    """
+    bo_asset_repr = data['__str__']
+    if data.get('service_env') is None:
+        service_environment = unknown_service_env
+        logger.warning(
+            'Missing service environment for BO Asset {}'.format(bo_asset_repr)
+        )
+    else:
+        try:
+            service_environment = ServiceEnvironment.objects.get(
+                environment__name=data['service_env']['environment'],
+                service__ci_uid=data['service_env']['service_uid']
+            )
+        except ServiceEnvironment.DoesNotExist:
+            service_environment = unknown_service_env
+            logger.warning(
+                'Invalid service environment for BO Asset {}: {} - {}'.format(
+                    bo_asset_repr, data['service_env']['service_uid'],
+                    data['service_env']['environment']
+                )
+            )
+    warehouse = Warehouse.objects.get(pk=1)
+    asset_info, asset_info_created = get_asset_info(
+        service_environment,
+        warehouse,
+        data,
+    )
+    daily_asset_info = get_daily_asset_info(
+        asset_info,
+        date,
+        data,
+    )
+    update_usage(
+        daily_asset_info,
+        warehouse,
+        usages['depreciation'],
+        daily_asset_info.daily_cost,
+        date,
+    )
+    logger.info('Successfully saved {}'.format(bo_asset_repr))
+    return asset_info_created
+
+
 # TODO(xor-xor): Rename 'data' to some more descriptive variable name.
 @transaction.atomic
-def update_asset(data, date, usages, unknown_service_env):
+def update_data_center_asset(data, date, usages, unknown_service_env):
     """
     Updates single asset.
 
@@ -343,7 +401,8 @@ def ralph3_back_office_asset(**kwargs):
         'depreciation': depreciation_usage
     }
     return _update_asset_and_usages(
-        date=date, usages=usages, ralph_endpoint='back-office-assets'
+        date=date, usages=usages, ralph_endpoint='back-office-assets',
+        update_asset_func=update_back_office_asset
     )
 
 
@@ -394,7 +453,8 @@ def ralph3_data_center_asset(**kwargs):
         ),
     }
     return _update_asset_and_usages(
-        date=date, usages=usages, ralph_endpoint='data-center-assets'
+        date=date, usages=usages, ralph_endpoint='data-center-assets',
+        update_asset_func=update_data_center_asset
     )
 
 
@@ -414,7 +474,7 @@ def ralph3_asset(**kwargs):
     return ralph3_data_center_asset(**kwargs)
 
 
-def _update_asset_and_usages(date, usages, ralph_endpoint):
+def _update_asset_and_usages(date, usages, ralph_endpoint, update_asset_func):
     """
     Updates assets and usages
 
@@ -438,7 +498,7 @@ def _update_asset_and_usages(date, usages, ralph_endpoint):
     )
     for data in get_combined_data(queries, ralph_endpoint):
         total += 1
-        created = update_asset(data, date, usages, unknown_service_env)
+        created = update_asset_func(data, date, usages, unknown_service_env)
         if created:
             new += 1
         else:

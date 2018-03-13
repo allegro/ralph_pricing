@@ -173,7 +173,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
             1
         )
 
-    def test_a_update_asset_when_service_does_not_exist(self):
+    def test_a_update_data_center_asset_when_service_does_not_exist(self):
         self.data['service_env']['service_uid'] = 'uid-xxx'
         self.usages = {
             'depreciation': UsageTypeFactory.create(),
@@ -182,7 +182,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        asset.update_asset(
+        asset.update_data_center_asset(
             self.data, self.date, self.usages, self.unknown_service_environment
         )
         asset_info = AssetInfo.objects.get()
@@ -199,7 +199,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        asset.update_asset(
+        asset.update_data_center_asset(
             self.data, self.date, self.usages, self.unknown_service_environment
         )
         asset_info = AssetInfo.objects.get()
@@ -214,7 +214,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        asset.update_asset(
+        asset.update_data_center_asset(
             self.data, self.date, self.usages, self.unknown_service_environment
         )
         asset_info = AssetInfo.objects.get()
@@ -229,7 +229,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
             'power_consumption': UsageTypeFactory.create(),
             'collocation': UsageTypeFactory.create(),
         }
-        asset.update_asset(
+        asset.update_data_center_asset(
             self.data, self.date, self.usages, self.unknown_service_environment
         )
         asset_info = AssetInfo.objects.get()
@@ -246,7 +246,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
             'collocation': UsageTypeFactory.create(),
         }
         self.assertTrue(
-            asset.update_asset(
+            asset.update_data_center_asset(
                 self.data, self.date, self.usages,
                 self.unknown_service_environment
             )
@@ -281,7 +281,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
         data = [self.data]
         get_combined_data_mock.side_effect = sample_get_combined_data
         self.assertEqual(
-            asset.ralph3_asset(today=self.date),
+            asset.ralph3_data_center_asset(today=self.date),
             (True, u'1 new assets, 0 updated, 1 total')
         )
 
@@ -294,10 +294,79 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
         data = [self.data]
         get_combined_data_mock.side_effect = sample_get_combined_data
         self.assertEqual(
-            asset.ralph3_asset(today=self.date),
+            asset.ralph3_data_center_asset(today=self.date),
             (True, u'1 new assets, 0 updated, 1 total')
         )
         self.assertEqual(
-            asset.ralph3_asset(today=self.date),
+            asset.ralph3_data_center_asset(today=self.date),
+            (True, u'0 new assets, 1 updated, 1 total')
+        )
+
+
+@override_settings(**TEST_SETTINGS_UNKNOWN_SERVICES_ENVIRONMENTS)
+class TestBackOfficeAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
+    def setUp(self):
+        ServiceFactory.reset_sequence()
+        EnvironmentFactory.reset_sequence()
+        ServiceEnvironmentFactory.reset_sequence()
+        self.service_environment = ServiceEnvironmentFactory()
+        self.unknown_service_environment = ServiceEnvironmentFactory(
+            service__ci_uid=UNKNOWN_SERVICE_ENVIRONMENT[0],
+            environment__name=UNKNOWN_SERVICE_ENVIRONMENT[1],
+        )
+        self.date = datetime.date.today()
+        self.warehouse = WarehouseFactory.create()
+        self.data = {
+            'id': 1,
+            '__str__': 'Back Office Asset: c0000 (BC: bo100000000 / SN: 300-40-3835)',  # noqa
+            'sn': '300-40-3835',
+            'barcode': 'Barcode',
+            'hostname': 'bo100000000',
+            'depreciation_rate': 25.00,
+            'force_depreciation': False,
+            'invoice_date': '2014-08-10',
+            'depreciation_end_date': None,
+            'status': 'new',
+            'price': 100,
+            'service_env': {
+                'service': 'Service-1',
+                'environment': 'Environment1',
+                'service_uid': 'uid-1',
+            },
+            'model': {
+                'id': 1,
+                'cores_count': 0,
+                'power_consumption': 0,
+                'height_of_device': 0,
+            },
+        }
+
+    @mock.patch('ralph_scrooge.plugins.collect.ralph3_asset.get_combined_data')
+    def test_assets_when_new_pricing_object(self, get_combined_data_mock):
+
+        def sample_get_combined_data(queries, ralph_endpoint):
+            return data
+
+        data = [self.data]
+        get_combined_data_mock.side_effect = sample_get_combined_data
+        self.assertEqual(
+            asset.ralph3_back_office_asset(today=self.date),
+            (True, u'1 new assets, 0 updated, 1 total')
+        )
+
+    @mock.patch('ralph_scrooge.plugins.collect.ralph3_asset.get_combined_data')
+    def test_assets_when_update_pricing_object(self, get_combined_data_mock):
+
+        def sample_get_combined_data(queries, ralph_endpoint):
+            return data
+
+        data = [self.data]
+        get_combined_data_mock.side_effect = sample_get_combined_data
+        self.assertEqual(
+            asset.ralph3_back_office_asset(today=self.date),
+            (True, u'1 new assets, 0 updated, 1 total')
+        )
+        self.assertEqual(
+            asset.ralph3_back_office_asset(today=self.date),
             (True, u'0 new assets, 1 updated, 1 total')
         )
