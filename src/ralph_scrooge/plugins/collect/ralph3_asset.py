@@ -303,22 +303,7 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     return usage_type
 
 
-@plugin_runner.register(
-    chain='scrooge',
-    requires=[
-        'ralph3_service_environment',
-        'ralph3_data_center',
-        'ralph3_asset_model'
-    ]
-)
-def ralph3_asset(**kwargs):
-    """
-    Updates assets and usages
-
-    :returns tuple: Plugin status and statistics
-    :rtype tuple:
-    """
-    date = kwargs['today']
+def get_depreciation_usage(date):
     depreciation_usage = get_usage(
         'depreciation',
         'Depreciation',
@@ -338,17 +323,41 @@ def ralph3_asset(**kwargs):
     usage_price.price = D('1')
     usage_price.forecast_price = D('1')
     usage_price.save()
+    return depreciation_usage
 
-    try:
-        unknown_service_env = get_unknown_service_env('ralph3_asset')
-    except UnknownServiceEnvironmentNotConfiguredError:
-        msg = (
-            'Unknown service environment not configured for "ralph3_asset" '
-            'plugin'
-        )
-        logger.error(msg)
-        return (False, msg)
 
+@plugin_runner.register(
+    chain='scrooge',
+    requires=[
+        'ralph3_service_environment',
+        'ralph3_asset_model'  # TODO: back office asset model
+    ]
+)
+def ralph3_back_office_asset(**kwargs):
+    """
+    Updates back office assets and usages
+    """
+    date = kwargs['today']
+    depreciation_usage = get_depreciation_usage(date=date)
+    usages = {
+        'depreciation': depreciation_usage
+    }
+    return _update_asset_and_usages(
+        date=date, usages=usages, ralph_endpoint='back-office-assets'
+    )
+
+
+@plugin_runner.register(
+    chain='scrooge',
+    requires=[
+        'ralph3_service_environment',
+        'ralph3_data_center',
+        'ralph3_asset_model'
+    ]
+)
+def ralph3_data_center_asset(**kwargs):
+    date = kwargs['today']
+    depreciation_usage = get_depreciation_usage(date=date)
     usages = {
         'depreciation': depreciation_usage,
         'assets_count': get_usage(
@@ -384,13 +393,50 @@ def ralph3_asset(**kwargs):
             type='BU',
         ),
     }
+    return _update_asset_and_usages(
+        date=date, usages=usages, ralph_endpoint='data-center-assets'
+    )
+
+
+@plugin_runner.register(
+    chain='scrooge',
+    requires=[
+        'ralph3_service_environment',
+        'ralph3_data_center',
+        'ralph3_asset_model'
+    ]
+)
+def ralph3_asset(**kwargs):
+    logger.warning(
+        'This plugin is deprecated. '
+        'Please use instead ralph3_data_center_asset.'
+    )
+    return ralph3_data_center_asset(**kwargs)
+
+
+def _update_asset_and_usages(date, usages, ralph_endpoint):
+    """
+    Updates assets and usages
+
+    :returns tuple: Plugin status and statistics
+    :rtype tuple:
+    """
+    try:
+        unknown_service_env = get_unknown_service_env('ralph3_asset')
+    except UnknownServiceEnvironmentNotConfiguredError:
+        msg = (
+            'Unknown service environment not configured for "ralph3_asset" '
+            'plugin'
+        )
+        logger.error(msg)
+        return (False, msg)
 
     new = update = total = 0
     queries = (
         "invoice_date__isnull=True",
         "invoice_date__lt={}".format(date.isoformat()),
     )
-    for data in get_combined_data(queries):
+    for data in get_combined_data(queries, ralph_endpoint):
         total += 1
         created = update_asset(data, date, usages, unknown_service_env)
         if created:
@@ -403,13 +449,13 @@ def ralph3_asset(**kwargs):
     )
 
 
-def get_combined_data(queries):
+def get_combined_data(queries, ralph_endpoint):
     """
     Generates (chain) data from multiple queries to Ralph3. Each row is
     validated (if Scrooge should handle this asset or not).
     """
     for query in queries:
-        for asset in get_from_ralph("data-center-assets", logger, query=query):
+        for asset in get_from_ralph(ralph_endpoint, logger, query=query):
             if should_be_handled_by_scrooge(asset):
                 yield asset
 

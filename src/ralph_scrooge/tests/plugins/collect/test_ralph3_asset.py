@@ -275,7 +275,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
     @mock.patch('ralph_scrooge.plugins.collect.ralph3_asset.get_combined_data')
     def test_assets_when_new_pricing_object(self, get_combined_data_mock):
 
-        def sample_get_combined_data(queries):
+        def sample_get_combined_data(queries, ralph_endpoint):
             return data
 
         data = [self.data]
@@ -288,7 +288,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
     @mock.patch('ralph_scrooge.plugins.collect.ralph3_asset.get_combined_data')
     def test_assets_when_update_pricing_object(self, get_combined_data_mock):
 
-        def sample_get_combined_data(queries):
+        def sample_get_combined_data(queries, ralph_endpoint):
             return data
 
         data = [self.data]
