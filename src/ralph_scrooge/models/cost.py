@@ -36,6 +36,7 @@ class DailyCost(MultiPathNode, db.Model):
         blank=True,
         related_name='daily_costs',
         verbose_name=_('pricing object'),
+        db_constraint=False,
     )
     service_environment = db.ForeignKey(
         'ServiceEnvironment',
@@ -43,6 +44,7 @@ class DailyCost(MultiPathNode, db.Model):
         blank=False,
         related_name='daily_costs',
         verbose_name=_('service environment'),
+        db_constraint=False,
     )
     type = db.ForeignKey(
         'BaseUsage',
@@ -50,6 +52,7 @@ class DailyCost(MultiPathNode, db.Model):
         blank=False,
         related_name='daily_costs',
         verbose_name=_('type'),
+        db_constraint=False,
     )
     warehouse = db.ForeignKey(
         'Warehouse',
@@ -57,6 +60,7 @@ class DailyCost(MultiPathNode, db.Model):
         blank=True,
         related_name='daily_costs',
         verbose_name=_('warehouse'),
+        db_constraint=False,
     )
     value = db.FloatField(verbose_name=_("value"), default=0)
     cost = db.DecimalField(
