@@ -1,5 +1,10 @@
 from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
+from ralph_scrooge.models.back_office import (
+    BackOfficeAssetInfo,
+    DailyBackOfficeAssetInfo,
+)
+
 from ralph_scrooge.models.cost import CostDateStatus, DailyCost
 
 from ralph_scrooge.models.extra_cost import (
@@ -77,13 +82,15 @@ from ralph_scrooge.models.warehouse import (
 
 __all__ = [
     'AssetInfo',
+    'BackOfficeAssetInfo',
     'BaseUsage',
     'BaseUsageType',
     'BusinessLine',
     'CostDateStatus',
     'DailyAssetInfo',
-    'DailyDatabaseInfo',
+    'DailyBackOfficeAssetInfo',
     'DailyCost',
+    'DailyDatabaseInfo',
     'DailyPricingObject',
     'DailyTenantInfo',
     'DailyUsage',
@@ -96,16 +103,16 @@ __all__ = [
     'Environment',
     'ExtraCost',
     'ExtraCostType',
-    'IPInfo',
     'HistoricalService',  # dynamic model
+    'IPInfo',
     'OwnershipType',
-    'ProfitCenter',
+    'PRICING_OBJECT_TYPES',
     'PricingObject',
     'PricingObjectModel',
     'PricingObjectType',
-    'PRICING_OBJECT_TYPES',
     'PricingService',
     'PricingServicePlugin',
+    'ProfitCenter',
     'ScroogeUser',
     'Service',
     'ServiceEnvironment',
@@ -121,10 +128,10 @@ __all__ = [
     'TeamManager',
     'TeamServiceEnvironmentPercent',
     'TenantInfo',
-    'UsageType',
     'UsageAnomalyAck',
-    'UsageTypeUploadFreq',
     'UsagePrice',
+    'UsageType',
+    'UsageTypeUploadFreq',
     'VIPInfo',
     'VirtualInfo',
     'Warehouse',

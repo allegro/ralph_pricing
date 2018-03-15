@@ -107,6 +107,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
                 self.service_environment,
                 self.warehouse,
                 self.data,
+                AssetInfo,
             ),
             (
                 AssetInfo.objects.all()[:1].get(),
@@ -124,6 +125,7 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
                 self.service_environment,
                 self.warehouse,
                 self.data,
+                AssetInfo,
             ),
             (
                 AssetInfo.objects.all()[:1].get(),
@@ -141,7 +143,9 @@ class TestAssetPlugin(ScroogeTestCaseMixin, TransactionTestCase):
         data[1]['barcode'] = 'Barcode2'
 
         for d in data:
-            asset.get_asset_info(self.service_environment, self.warehouse, d)
+            asset.get_asset_info(
+                self.service_environment, self.warehouse, d, AssetInfo
+            )
         self.assertEqual(AssetInfo.objects.count(), 2)
         asset1 = AssetInfo.objects.get(ralph3_asset_id=1)
         asset2 = AssetInfo.objects.get(ralph3_asset_id=2)

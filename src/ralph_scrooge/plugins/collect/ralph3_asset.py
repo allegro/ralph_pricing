@@ -14,6 +14,7 @@ from django.db import IntegrityError, transaction
 
 from ralph_scrooge.models import (
     AssetInfo,
+    BackOfficeAssetInfo,
     DailyUsage,
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
@@ -34,9 +35,10 @@ from ralph_scrooge.plugins.collect.utils import (
 logger = logging.getLogger(__name__)
 
 
-def get_asset_info(service_environment, warehouse, data):
+def get_asset_info(service_environment, warehouse, data, asset_info_model):
     """
-    Update AssetInfo object or create it if not exist.
+    Update asset_info_model (AssetInfo, BaseObjectAssetInfo) object or create
+    it if not exist.
 
     :param object service_environment: Django ORM ServiceEnvironment object
     :param object warehouse: Django ORM Warehouse object
@@ -46,9 +48,9 @@ def get_asset_info(service_environment, warehouse, data):
     """
     created = False
     try:
-        asset_info = AssetInfo.objects.get(ralph3_asset_id=data['id'])
-    except AssetInfo.DoesNotExist:
-        asset_info = AssetInfo(
+        asset_info = asset_info_model.objects.get(ralph3_asset_id=data['id'])
+    except asset_info_model.DoesNotExist:
+        asset_info = asset_info_model(
             ralph3_asset_id=data['id'],
             type_id=PRICING_OBJECT_TYPES.ASSET,
         )
@@ -82,7 +84,7 @@ def get_asset_info(service_environment, warehouse, data):
         for field in ['sn', 'barcode']:
             if data[field] is None:
                 continue
-            assets = AssetInfo.objects.filter(**{field: data[field]}).exclude(
+            assets = asset_info_model.objects.filter(**{field: data[field]}).exclude(
                 ralph3_asset_id=data['id'],
             )
             for asset in assets:
@@ -214,6 +216,7 @@ def update_back_office_asset(data, date, usages, unknown_service_env):
         service_environment,
         warehouse,
         data,
+        BackOfficeAssetInfo,
     )
     daily_asset_info = get_daily_asset_info(
         asset_info,
@@ -289,6 +292,7 @@ def update_data_center_asset(data, date, usages, unknown_service_env):
         service_environment,
         warehouse,
         data,
+        AssetInfo,
     )
     daily_asset_info = get_daily_asset_info(
         asset_info,
@@ -361,10 +365,10 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     return usage_type
 
 
-def get_depreciation_usage(date):
+def get_depreciation_usage(date, symbol='depreciation', name='Depreciation'):
     depreciation_usage = get_usage(
-        'depreciation',
-        'Depreciation',
+        symbol=symbol,
+        name=name,
         by_warehouse=False,
         by_cost=False,
         average=True,
@@ -396,7 +400,11 @@ def ralph3_back_office_asset(**kwargs):
     Updates back office assets and usages
     """
     date = kwargs['today']
-    depreciation_usage = get_depreciation_usage(date=date)
+    depreciation_usage = get_depreciation_usage(
+        date=date,
+        name='Back office depreciation',
+        symbol='bo_depreciation'
+    )
     usages = {
         'depreciation': depreciation_usage
     }

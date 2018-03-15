@@ -229,6 +229,7 @@ class DailyPricingObject(db.Model):
         return '{} ({})'.format(self.pricing_object, self.date)
 
 
+# TODO(aadamski): refactor AssetInfo -> DataCenterAssetInfo
 class AssetInfo(PricingObject):
     sn = db.CharField(
         verbose_name=_("serial number"),
@@ -282,6 +283,7 @@ class AssetInfo(PricingObject):
         )[0]
 
 
+# TODO(aadamski): refactor DailyAssetInfo -> DailyDataCenterAssetInfo
 class DailyAssetInfo(DailyPricingObject):
     asset_info = db.ForeignKey(
         AssetInfo,
