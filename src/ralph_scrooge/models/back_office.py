@@ -97,4 +97,3 @@ class DailyBackOfficeAssetInfo(DailyPricingObject):
     def save(self, *args, **kwargs):
         self.calc_costs()
         super(DailyBackOfficeAssetInfo, self).save(*args, **kwargs)
-

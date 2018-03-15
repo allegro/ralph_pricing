@@ -84,7 +84,7 @@ def get_asset_info(service_environment, warehouse, data, asset_info_model):
         for field in ['sn', 'barcode']:
             if data[field] is None:
                 continue
-            assets = asset_info_model.objects.filter(**{field: data[field]}).exclude(
+            assets = asset_info_model.objects.filter(**{field: data[field]}).exclude(  # noqa: E501
                 ralph3_asset_id=data['id'],
             )
             for asset in assets:
