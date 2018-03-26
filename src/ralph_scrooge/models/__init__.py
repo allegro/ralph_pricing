@@ -1,10 +1,5 @@
 from ralph_scrooge.models.base import BaseUsage, BaseUsageType
 
-from ralph_scrooge.models.back_office import (
-    BackOfficeAssetInfo,
-    DailyBackOfficeAssetInfo,
-)
-
 from ralph_scrooge.models.cost import CostDateStatus, DailyCost
 
 from ralph_scrooge.models.extra_cost import (
@@ -15,6 +10,7 @@ from ralph_scrooge.models.extra_cost import (
     ExtraCostType,
     SupportCost,
 )
+
 from ralph_scrooge.models.owner import (
     OwnershipType,
     ServiceOwnership,
@@ -24,7 +20,9 @@ from ralph_scrooge.models.owner import (
 
 from ralph_scrooge.models.pricing_object import (
     AssetInfo,
+    BackOfficeAssetInfo,
     DailyAssetInfo,
+    DailyBackOfficeAssetInfo,
     DailyDatabaseInfo,
     DailyPricingObject,
     DailyTenantInfo,
@@ -32,10 +30,10 @@ from ralph_scrooge.models.pricing_object import (
     DailyVirtualInfo,
     DatabaseInfo,
     IPInfo,
-    PricingObjectModel,
-    PricingObjectType,
     PRICING_OBJECT_TYPES,
     PricingObject,
+    PricingObjectModel,
+    PricingObjectType,
     TenantInfo,
     VIPInfo,
     VirtualInfo,

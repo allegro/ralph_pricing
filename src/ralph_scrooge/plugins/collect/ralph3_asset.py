@@ -388,6 +388,69 @@ def get_depreciation_usage(date, symbol='depreciation', name='Depreciation'):
     return depreciation_usage
 
 
+def _update_asset_and_usages(date, usages, ralph_endpoint, update_asset_func):
+    """
+    Updates assets and usages
+
+    :returns tuple: Plugin status and statistics
+    :rtype tuple:
+    """
+    try:
+        unknown_service_env = get_unknown_service_env('ralph3_asset')
+    except UnknownServiceEnvironmentNotConfiguredError:
+        msg = (
+            'Unknown service environment not configured for "ralph3_asset" '
+            'plugin'
+        )
+        logger.error(msg)
+        return (False, msg)
+
+    new = update = total = 0
+    queries = (
+        "invoice_date__isnull=True",
+        "invoice_date__lt={}".format(date.isoformat()),
+    )
+    for data in get_combined_data(queries, ralph_endpoint):
+        total += 1
+        created = update_asset_func(data, date, usages, unknown_service_env)
+        if created:
+            new += 1
+        else:
+            update += 1
+
+    return True, '{} new assets, {} updated, {} total'.format(
+        new, update, total
+    )
+
+
+def get_combined_data(queries, ralph_endpoint):
+    """
+    Generates (chain) data from multiple queries to Ralph3. Each row is
+    validated (if Scrooge should handle this asset or not).
+    """
+    for query in queries:
+        for asset in get_from_ralph(ralph_endpoint, logger, query=query):
+            if should_be_handled_by_scrooge(asset):
+                yield asset
+
+
+# Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
+def should_be_handled_by_scrooge(asset):
+    """
+    Check if asset should be handled by Scrooge.
+
+    Returns True if it should, False otherwise.
+    """
+    if asset['status'] == 'liquidated':
+        logger.info(
+            "Skipping DataCenterAsset {} - it's liquidated".format(
+                asset['__str__']
+            )
+        )
+        return False
+    return True
+
+
 @plugin_runner.register(
     chain='scrooge',
     requires=[
@@ -480,66 +543,3 @@ def ralph3_asset(**kwargs):
         'Please use instead ralph3_data_center_asset.'
     )
     return ralph3_data_center_asset(**kwargs)
-
-
-def _update_asset_and_usages(date, usages, ralph_endpoint, update_asset_func):
-    """
-    Updates assets and usages
-
-    :returns tuple: Plugin status and statistics
-    :rtype tuple:
-    """
-    try:
-        unknown_service_env = get_unknown_service_env('ralph3_asset')
-    except UnknownServiceEnvironmentNotConfiguredError:
-        msg = (
-            'Unknown service environment not configured for "ralph3_asset" '
-            'plugin'
-        )
-        logger.error(msg)
-        return (False, msg)
-
-    new = update = total = 0
-    queries = (
-        "invoice_date__isnull=True",
-        "invoice_date__lt={}".format(date.isoformat()),
-    )
-    for data in get_combined_data(queries, ralph_endpoint):
-        total += 1
-        created = update_asset_func(data, date, usages, unknown_service_env)
-        if created:
-            new += 1
-        else:
-            update += 1
-
-    return True, '{} new assets, {} updated, {} total'.format(
-        new, update, total
-    )
-
-
-def get_combined_data(queries, ralph_endpoint):
-    """
-    Generates (chain) data from multiple queries to Ralph3. Each row is
-    validated (if Scrooge should handle this asset or not).
-    """
-    for query in queries:
-        for asset in get_from_ralph(ralph_endpoint, logger, query=query):
-            if should_be_handled_by_scrooge(asset):
-                yield asset
-
-
-# Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
-def should_be_handled_by_scrooge(asset):
-    """
-    Check if asset should be handled by Scrooge.
-
-    Returns True if it should, False otherwise.
-    """
-    if asset['status'] == 'liquidated':
-        logger.info(
-            "Skipping DataCenterAsset {} - it's liquidated".format(
-                asset['__str__']
-            )
-        )
-        return False
-    return True
