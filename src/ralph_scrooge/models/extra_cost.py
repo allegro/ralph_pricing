@@ -37,7 +37,13 @@ class ExtraCostType(BaseUsage):
         super(ExtraCostType, self).save(*args, **kwargs)
 
     def get_plugin_name(self):
-        return 'extra_cost_plugin' if self.id != 2 else 'support_plugin'
+        # TODO (mbleschke): licence_plugin
+        if self.id == 2:
+            return 'support_plugin'
+        elif self.id == 3:
+            return 'licence_plugin'
+        else:
+            return 'extra_cost_plugin'
 
 
 class AbstractExtraCost(db.Model):
@@ -86,7 +92,7 @@ class AbstractExtraCost(db.Model):
 class ExtraCost(AbstractExtraCost):
     """
     Contains information about cost of extra cost types per venture.
-    This is a static value without any time interval becouse this
+    This is a static value without any time interval because this
     value (cost) is accumulate each day by collect plugin in
     DailyExtraCost model.
     """
@@ -235,3 +241,18 @@ class SupportCost(AbstractExtraCost):
     def save(self, *args, **kwargs):
         self.extra_cost_type_id = 2  # from fixture
         return super(SupportCost, self).save(*args, **kwargs)
+
+
+class LicenceCost(AbstractExtraCost):
+    licence_id = db.IntegerField(
+        null=False,
+        blank=False
+    )
+    pricing_object = db.ForeignKey('PricingObject')
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+    def save(self, *args, **kwargs):
+        self.extra_cost_type_id = 3  # TODO (mbleschke): meaningful value, not 3
+        return super(LicenceCost, self).save(*args, **kwargs)

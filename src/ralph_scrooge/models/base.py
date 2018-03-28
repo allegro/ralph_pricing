@@ -67,7 +67,7 @@ class BaseUsage(Named):
         default=0,
     )
     rounding = db.IntegerField(
-        verbose_name=("Value rounding"),
+        verbose_name=_("Value rounding"),
         help_text=_("Decimal places"),
         default=0,
     )
