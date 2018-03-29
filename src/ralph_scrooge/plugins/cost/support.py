@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import logging
 from collections import defaultdict, namedtuple
 
-from ralph_scrooge.models import ExtraCostType, SupportCost
+from ralph_scrooge.models import ExtraCostType, EXTRA_COST_TYPES, SupportCost
 from ralph_scrooge.plugins.base import register
 from ralph_scrooge.plugins.cost.base import BaseCostPlugin
 from ralph_scrooge.utils.common import memoize
@@ -62,7 +62,9 @@ class SupportPlugin(BaseCostPlugin):
         }
         """
         logger.info("Calculating supports costs")
-        support_type = ExtraCostType.objects.get(pk=2)  # from fixture
+        support_type = ExtraCostType.objects.get(
+            pk=EXTRA_COST_TYPES.SUPPORT.id
+        )
         usages = defaultdict(list)
         supports = SupportCost.objects.filter(
             end__gte=date,

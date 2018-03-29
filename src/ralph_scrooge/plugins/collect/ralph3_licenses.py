@@ -27,14 +27,6 @@ def _get_object_id_from_url(url):
 def update_licence(licence):
     logger.info('Processing licence: {}'.format(licence['__str__']))
 
-    # Licences can have invoice date set up some time after licence was added.
-    # We can't process it until then.
-    if not licence['invoice_date']:
-        logger.warning('Licence {} doesn\'t have invoice date'.format(
-            licence['__str__'])
-        )
-        return 0
-
     base_objects = licence['base_objects']
     price = Decimal(licence['price'])
     licence_cost_ids = set()
@@ -42,16 +34,17 @@ def update_licence(licence):
         _get_object_id_from_url(bo['base_object']) for bo in base_objects
     ]
 
-    # TODO (mbleschke): deleting LicenceCost without pricing objects?
-    #   What with dummy pricing objects?
+    # TODO (mbleschke): delete LicenceCost for objects that no longer exist.
+    #   Look out for dummy PricingObject
     if objects_ids:
-        # TODO (mbleschke): how to divide costs?
-        #   purchased items vs number of base_objects
+        # TODO (mbleschke): divide price for use case when there are more
+        #   purchased items than assets connected to licence.
         price_per_object = price / len(objects_ids)
         for object_id in objects_ids:
             try:
                 pricing_object = PricingObject.objects.get(
-                    # TODO (mbleschke): change to bo_asset_id (waiting for other PR)
+                    # TODO (mbleschke): change to bo_asset_id
+                    #   (waiting for other PR)
                     assetinfo__ralph3_asset_id=object_id
                 )
             except PricingObject.DoesNotExist:
@@ -66,7 +59,6 @@ def update_licence(licence):
                     pricing_object=pricing_object,
                     defaults=dict(
                         start=licence['invoice_date'],
-                        # TODO (mbleschke): is it better to calculate from depreciation here?
                         end=licence['valid_thru'],
                         cost=price_per_object,
                         forecast_cost=price_per_object,
@@ -89,13 +81,17 @@ def ralph3_licenses(**kwargs):
     licences = get_from_ralph(
         'licences',
         logger,
-        query='valid_thru__gte={today}'.format(today=kwargs['today'])
+        query='invoice_date__lte={today}&valid_thru__gte={today}&price__gte=0'.format(  # noqa: E501
+            today=kwargs['today']
+        )
     )
-    # TODO (mbleschke): handle perpetual licences
+    # TODO (mbleschke): handle perpetual licences (depreciation rate)
     perpetual_licences = get_from_ralph(
         'licences',
         logger,
-        query='valid_thru__isnull=true'
+        query='invoice_date__lte={today}&valid_thru__isnull=true&price__gte=0'.format(  # noqa: E501
+            today=kwargs['today']
+        )
     )
     for licence in licences:
         total += 1

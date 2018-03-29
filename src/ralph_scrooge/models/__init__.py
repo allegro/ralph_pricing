@@ -8,6 +8,7 @@ from ralph_scrooge.models.extra_cost import (
     DynamicExtraCostType,
     ExtraCost,
     ExtraCostType,
+    EXTRA_COST_TYPES,
     SupportCost,
 )
 from ralph_scrooge.models.owner import (
@@ -96,6 +97,7 @@ __all__ = [
     'Environment',
     'ExtraCost',
     'ExtraCostType',
+    'EXTRA_COST_TYPES',
     'IPInfo',
     'HistoricalService',  # dynamic model
     'OwnershipType',

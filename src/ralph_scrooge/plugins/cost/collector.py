@@ -17,6 +17,7 @@ from ralph_scrooge.models import (
     DailyCost,
     DynamicExtraCostType,
     ExtraCostType,
+    EXTRA_COST_TYPES,
     PricingService,
     ServiceEnvironment,
     Team,
@@ -471,9 +472,11 @@ class Collector(object):
         Returns all extra costs (excluding supports)
         """
         # exclude supports (from fixture)
-        # TODO (mbleschke) some more meaningful values for pk__in
         return ExtraCostType.objects.exclude(
-            pk__in=[2, 3]
+            pk__in=[
+                EXTRA_COST_TYPES.SUPPORT.id,
+                EXTRA_COST_TYPES.LICENCE.id,
+            ]
         ).order_by('name')
 
     @classmethod

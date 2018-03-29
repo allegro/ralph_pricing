@@ -64,19 +64,29 @@ class TestAllocationAdmin(ScroogeTestCase):
                 },
                 'extracosts': {
                     'name': 'Extra Costs',
-                    'rows': [{
-                        'extra_cost_type': {
-                            'id': 1,
-                            'name': 'Other'
+                    'rows': [
+                        {
+                            'extra_cost_type': {
+                                'id': 3,
+                                'name': u'Licence'
+                            },
+                            'extra_costs': []
                         },
-                        'extra_costs': []
-                    }, {
-                        'extra_cost_type': {
-                            'id': 2,
-                            'name': 'Support'
+                        {
+                            'extra_cost_type': {
+                                'id': 1,
+                                'name': 'Other'
+                            },
+                            'extra_costs': []
                         },
-                        'extra_costs': []
-                    }],
+                        {
+                            'extra_cost_type': {
+                                'id': 2,
+                                'name': 'Support'
+                            },
+                            'extra_costs': []
+                        }
+                    ],
                     'template': 'tabextracostsadmin.html'
                 },
             }
@@ -370,6 +380,13 @@ class TestAllocationAdmin(ScroogeTestCase):
                 'rows': [
                     {
                         'extra_cost_type': {
+                            'id': 3,
+                            'name': 'Licence'
+                        },
+                        'extra_costs': []
+                    },
+                    {
+                        'extra_cost_type': {
                             'id': extra_cost_type.id,
                             'name': extra_cost_type.name  # my-extra-cost
                         },
@@ -422,6 +439,13 @@ class TestAllocationAdmin(ScroogeTestCase):
             {
                 'name': 'Extra Costs',
                 'rows': [
+                    {
+                        'extra_cost_type': {
+                            'id': 3,
+                            'name': 'Licence'
+                        },
+                        'extra_costs': []
+                    },
                     {
                         'extra_cost_type': {
                             'id': extra_cost_type.id,
