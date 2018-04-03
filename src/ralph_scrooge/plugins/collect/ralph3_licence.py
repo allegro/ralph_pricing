@@ -53,7 +53,7 @@ def update_licence(licence):
                         object_id, licence['__str__']
                     )
                 )
-            finally:
+            else:
                 licence_cost, created = LicenceCost.objects.update_or_create(
                     licence_id=licence['id'],
                     pricing_object=pricing_object,
@@ -74,7 +74,7 @@ def update_licence(licence):
 
 # TODO (mbleschke): add required plugins
 @plugin_runner.register(chain='scrooge')
-def ralph3_licenses(**kwargs):
+def ralph3_licence(**kwargs):
     """Updates licences from Ralph."""
     total = pricing_objects_count = 0
     # TODO: add invoice_date to query

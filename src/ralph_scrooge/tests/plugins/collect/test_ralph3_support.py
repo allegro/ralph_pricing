@@ -12,10 +12,7 @@ from ralph_scrooge.models import SupportCost
 from ralph_scrooge.plugins.collect import ralph3_support
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import DailyAssetInfoFactory
-
-
-def _get_pricing_object_url(obj_id):
-    return 'http://ralph.allegro/api/base-objects/{}'.format(obj_id)
+from ralph_scrooge.tests.utils.url_helpers import get_pricing_object_url
 
 
 class TestRalph3SupportPlugin(ScroogeTestCase):
@@ -26,7 +23,7 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
         self.data = {
             'id': 1,
             'base_objects': [
-                _get_pricing_object_url(
+                get_pricing_object_url(
                     self.daily_asset1.asset_info.ralph3_asset_id
                 ),
             ],
@@ -60,7 +57,7 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
 
     def test_update_support_with_support_assigned_to_multiple_objects_then_two_support_costs_are_created(self):  # noqa: E501
         self.data['base_objects'].append(
-            _get_pricing_object_url(
+            get_pricing_object_url(
                 self.daily_asset2.asset_info.ralph3_asset_id
             ),
         )
@@ -84,7 +81,7 @@ class TestRalph3SupportPlugin(ScroogeTestCase):
         )
         daily_asset3 = DailyAssetInfoFactory.build()
         self.data['base_objects'].append(
-            _get_pricing_object_url(
+            get_pricing_object_url(
                 daily_asset3.asset_info.ralph3_asset_id
             ),
         )
