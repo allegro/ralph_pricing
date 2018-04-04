@@ -86,13 +86,13 @@ def ralph3_licence(**kwargs):
         )
     )
     # TODO (mbleschke): handle perpetual licences (depreciation rate)
-    perpetual_licences = get_from_ralph(
-        'licences',
-        logger,
-        query='invoice_date__lte={today}&valid_thru__isnull=true&price__gte=0'.format(  # noqa: E501
-            today=kwargs['today']
-        )
-    )
+    # perpetual_licences = get_from_ralph(
+    #     'licences',
+    #     logger,
+    #     query='invoice_date__lte={today}&valid_thru__isnull=true&price__gte=0'.format(  # noqa: E501
+    #         today=kwargs['today']
+    #     )
+    # )
     for licence in licences:
         total += 1
         try:

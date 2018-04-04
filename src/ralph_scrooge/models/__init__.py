@@ -101,6 +101,7 @@ __all__ = [
     'EXTRA_COST_TYPES',
     'IPInfo',
     'HistoricalService',  # dynamic model
+    'LicenceCost',
     'OwnershipType',
     'ProfitCenter',
     'PricingObject',
