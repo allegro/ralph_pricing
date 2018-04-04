@@ -9,6 +9,7 @@ from ralph_scrooge.models.extra_cost import (
     ExtraCost,
     ExtraCostType,
     EXTRA_COST_TYPES,
+    LicenceCost,
     SupportCost,
 )
 from ralph_scrooge.models.owner import (
