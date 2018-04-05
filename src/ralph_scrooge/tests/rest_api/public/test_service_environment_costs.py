@@ -205,7 +205,7 @@ class TestServiceEnvironmentCosts(ScroogeTestCase):
         parent_base_usages = BaseUsage.objects.exclude(
             pk__in=UsageType.objects.filter(usage_type='SU')
         )
-        types_from_fixtures = {'other', 'support'}
+        types_from_fixtures = {'other', 'support', 'licence'}
         parent_base_usages_ = set([p.symbol for p in parent_base_usages])
         types_expected = parent_base_usages_ - types_from_fixtures
         self.assertEquals(types_used, types_expected)

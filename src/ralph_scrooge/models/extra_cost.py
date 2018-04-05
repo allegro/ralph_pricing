@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from dj.choices import Choices
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models as db
 from django.utils.translation import ugettext_lazy as _
@@ -17,6 +18,18 @@ from ralph_scrooge.models.base import (
 
 PRICE_DIGITS = 16
 PRICE_PLACES = 6
+
+
+class EXTRA_COST_TYPES(Choices):
+    """
+    Choices must correlate with ralph_scrooge.ExtraCostType entries in
+    initial_data.yaml.
+    """
+    _ = Choices.Choice
+
+    OTHER = _("Other").extra(plugin_name='extra_cost_plugin')
+    SUPPORT = _("Support").extra(plugin_name='support_plugin')
+    LICENCE = _("Licence").extra(plugin_name='licence_plugin')
 
 
 class ExtraCostType(BaseUsage):
@@ -37,7 +50,11 @@ class ExtraCostType(BaseUsage):
         super(ExtraCostType, self).save(*args, **kwargs)
 
     def get_plugin_name(self):
-        return 'extra_cost_plugin' if self.id != 2 else 'support_plugin'
+        extra_cost_type = EXTRA_COST_TYPES.from_id(
+            self.id,
+            fallback=EXTRA_COST_TYPES.OTHER
+        )
+        return extra_cost_type.plugin_name
 
 
 class AbstractExtraCost(db.Model):
@@ -86,7 +103,7 @@ class AbstractExtraCost(db.Model):
 class ExtraCost(AbstractExtraCost):
     """
     Contains information about cost of extra cost types per venture.
-    This is a static value without any time interval becouse this
+    This is a static value without any time interval because this
     value (cost) is accumulate each day by collect plugin in
     DailyExtraCost model.
     """
@@ -233,5 +250,20 @@ class SupportCost(AbstractExtraCost):
         )
 
     def save(self, *args, **kwargs):
-        self.extra_cost_type_id = 2  # from fixture
+        self.extra_cost_type_id = EXTRA_COST_TYPES.SUPPORT.id
         return super(SupportCost, self).save(*args, **kwargs)
+
+
+class LicenceCost(AbstractExtraCost):
+    licence_id = db.IntegerField(
+        null=False,
+        blank=False
+    )
+    pricing_object = db.ForeignKey('PricingObject')
+
+    class Meta:
+        app_label = 'ralph_scrooge'
+
+    def save(self, *args, **kwargs):
+        self.extra_cost_type_id = EXTRA_COST_TYPES.LICENCE.id
+        return super(LicenceCost, self).save(*args, **kwargs)

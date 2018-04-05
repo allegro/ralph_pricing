@@ -53,7 +53,7 @@ class BaseCostPlugin(BasePlugin):
         """
         Return information about costs of some type (ex. team, service)
         filtered by passed service environments (if passed - otherwise it's
-        simple proxt to _costs method, which should be cached).
+        simple proxy to _costs method, which should be cached).
         """
         costs = self._costs(*args, **kwargs)
         # filter by service environments if specified

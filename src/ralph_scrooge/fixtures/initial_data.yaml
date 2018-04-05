@@ -48,6 +48,18 @@
   fields:
     baseusage_ptr: 2
 
+- model: ralph_scrooge.BaseUsage
+  pk: 3
+  fields:
+    name: 'Licence'
+    symbol: 'licence'
+    type: 3  # extra cost
+
+- model: ralph_scrooge.ExtraCostType
+  pk: 3
+  fields:
+    baseusage_ptr: 3
+
 # Pricing object types
 - model: ralph_scrooge.PricingObjectType
   pk: 1

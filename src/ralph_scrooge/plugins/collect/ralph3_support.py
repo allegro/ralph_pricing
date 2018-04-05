@@ -41,7 +41,7 @@ def update_support(support):
                 )
             except PricingObject.DoesNotExist:
                 logger.warning(
-                    'PricingObject with it {} not found for support {}'.format(
+                    'PricingObject with id {} not found for support {}'.format(
                         obj_id, support['__str__']
                     )
                 )

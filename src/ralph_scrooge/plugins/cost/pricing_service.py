@@ -41,14 +41,14 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         If for_all_service_environments is True, then cost will be calculated
         for all possible service_environments, which is in general "real" total
         cost of this pricing service (equivalent of pricing service row in
-        costs report). It's usefull to calculate difference between real costs
+        costs report). It's useful to calculate difference between real costs
         of pricing service (equivalent of row in costs report) and costs
         calculated by specific plugin for pricing service (column in costs
         report).
 
         If for_all_service_environments is False, then total costs is
         calculated only for service_environments specified in
-        service_environments param. It's usefull to calculate dependent pricing
+        service_environments param. It's useful to calculate dependent pricing
         service costs only for some subset of all service_environments (in
         other words, how dependent pricing service is charging "me" (my service
         environments)).
@@ -56,7 +56,7 @@ class PricingServiceBasePlugin(BaseCostPlugin):
         In both cases dict with costs hierarchy is returned. On top-level of
         a dict there is only one key-value pair, which is this pricing service
         id and tuple, containing total cost of this pricing service, and dict
-        with total cost details (hirearchy). (See `_get_pricing_service_costs`
+        with total cost details (hierarchy). (See `_get_pricing_service_costs`
         for sample).
 
         :rtype: dict

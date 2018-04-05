@@ -17,6 +17,7 @@ from ralph_scrooge.models import (
     DailyCost,
     DynamicExtraCostType,
     ExtraCostType,
+    EXTRA_COST_TYPES,
     PricingService,
     ServiceEnvironment,
     Team,
@@ -339,6 +340,7 @@ class Collector(object):
         """
         extra_cost_types_plugins = cls._get_extra_cost_types_plugins()
         support_plugins = cls._get_support_plugins()
+        licence_plugins = cls._get_licence_plugins()
         dynamic_extra_cost_types_plugins = (
             cls._get_dynamic_extra_cost_types_plugins()
         )
@@ -347,7 +349,8 @@ class Collector(object):
         services_plugins = cls._get_pricing_services_plugins()
         teams_plugins = cls._get_teams_plugins()
         plugins = (base_usage_types_plugins + regular_usage_types_plugins +
-                   teams_plugins + support_plugins + extra_cost_types_plugins +
+                   teams_plugins + support_plugins + licence_plugins +
+                   extra_cost_types_plugins +
                    dynamic_extra_cost_types_plugins + services_plugins)
         return plugins
 
@@ -470,7 +473,10 @@ class Collector(object):
         """
         # exclude supports (from fixture)
         return ExtraCostType.objects.exclude(
-            pk=2
+            pk__in=[
+                EXTRA_COST_TYPES.SUPPORT.id,
+                EXTRA_COST_TYPES.LICENCE.id,
+            ]
         ).order_by('name')
 
     @classmethod
@@ -497,6 +503,16 @@ class Collector(object):
             AttributeDict(
                 name='support',
                 plugin_name='support_plugin',
+                plugin_kwargs={},
+            )
+        ]
+
+    @classmethod
+    def _get_licence_plugins(cls):
+        return [
+            AttributeDict(
+                name='licence',
+                plugin_name='licence_plugin',
                 plugin_kwargs={},
             )
         ]
