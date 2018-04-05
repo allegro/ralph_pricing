@@ -17,7 +17,7 @@ MEDIA_URL = '/u/'
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'  # noqa: E501
 STATICFILES_DIRS = (
-    BASE_DIR + '/media',
+    BASE_DIR + '/static/',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -389,7 +389,7 @@ USAGE_TYPE_UPLOAD_FREQ_MARGINS = {
 }
 
 # Swagger/OpenAPI schema related stuff.
-API_SCHEMA_FILE = os.path.join(BASE_DIR, 'media', 'api_schema.yaml')
+API_SCHEMA_FILE = os.path.join(BASE_DIR, 'static', 'api_schema.yaml')
 
 # Settings for DataForReportValidator
 ENABLE_DATA_FOR_REPORT_VALIDATION = True

@@ -42,14 +42,14 @@ nosetests.xml
 
 node_modules/
 typings/
-src/ralph_scrooge/media/scrooge/dist/
-src/ralph_scrooge/media/scrooge/lib/
-src/ralph_scrooge/media/swagger/
+src/ralph_scrooge/static/scrooge/dist/
+src/ralph_scrooge/static/scrooge/lib/
+src/ralph_scrooge/static/swagger/
 src/ralph_scrooge/settings/local.py
 src/ralph_scrooge/urls_local.py
-src/ralph_scrooge/media/api_schema.json
+src/ralph_scrooge/static/api_schema.json
 scrooge.log
-src/ralph_scrooge/media/api_schema.json
+src/ralph_scrooge/static/api_schema.json
 vagrant/.vagrant
 
 # Code editors / IDE
