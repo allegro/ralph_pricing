@@ -158,7 +158,7 @@ class TestComponents(ScroogeTestCase):
         asset_type = models.PricingObjectType.objects.get(
             pk=models.PRICING_OBJECT_TYPES.ASSET.id
         )
-        dpo = models.DailyPricingObject.objects.all()
+        dpo = models.DailyPricingObject.objects.all().order_by('id')
         result = self.components.process_single_type(asset_type, dpo)
 
         def get_asset_dict(a):

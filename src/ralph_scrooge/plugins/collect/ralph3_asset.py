@@ -14,6 +14,7 @@ from django.db import IntegrityError, transaction
 
 from ralph_scrooge.models import (
     AssetInfo,
+    BackOfficeAssetInfo,
     DailyUsage,
     PricingObjectModel,
     PRICING_OBJECT_TYPES,
@@ -34,9 +35,10 @@ from ralph_scrooge.plugins.collect.utils import (
 logger = logging.getLogger(__name__)
 
 
-def get_asset_info(service_environment, warehouse, data):
+def get_asset_info(service_environment, warehouse, data, asset_info_model):
     """
-    Update AssetInfo object or create it if not exist.
+    Update asset_info_model (AssetInfo, BaseObjectAssetInfo) object or create
+    it if not exist.
 
     :param object service_environment: Django ORM ServiceEnvironment object
     :param object warehouse: Django ORM Warehouse object
@@ -46,9 +48,9 @@ def get_asset_info(service_environment, warehouse, data):
     """
     created = False
     try:
-        asset_info = AssetInfo.objects.get(ralph3_asset_id=data['id'])
-    except AssetInfo.DoesNotExist:
-        asset_info = AssetInfo(
+        asset_info = asset_info_model.objects.get(ralph3_asset_id=data['id'])
+    except asset_info_model.DoesNotExist:
+        asset_info = asset_info_model(
             ralph3_asset_id=data['id'],
             type_id=PRICING_OBJECT_TYPES.ASSET,
         )
@@ -82,7 +84,7 @@ def get_asset_info(service_environment, warehouse, data):
         for field in ['sn', 'barcode']:
             if data[field] is None:
                 continue
-            assets = AssetInfo.objects.filter(**{field: data[field]}).exclude(
+            assets = asset_info_model.objects.filter(**{field: data[field]}).exclude(  # noqa: E501
                 ralph3_asset_id=data['id'],
             )
             for asset in assets:
@@ -173,9 +175,68 @@ def update_usage(daily_asset_info, warehouse, usage_type, value, date):
     usage.save()
 
 
+@transaction.atomic
+def update_back_office_asset(data, date, usages, unknown_service_env):
+    """
+    Updates single asset.
+
+    Creates asset if not exists, then creates its daily snapshot.
+
+    When asset has no service-env, unknown is used.
+    When asset has no back office assigned, default (from fixtures) is used.
+
+    :param dict data: Data from assets API
+    :param object date: datetime
+    :param dict usages: Dict with usage types from Django ORM UsageType
+    :returns: True, if asset info was created, else False
+    :rtype boolean:
+    """
+    bo_asset_repr = data['__str__']
+    if data.get('service_env') is None:
+        service_environment = unknown_service_env
+        logger.warning(
+            'Missing service environment for BO Asset {}'.format(bo_asset_repr)
+        )
+    else:
+        try:
+            service_environment = ServiceEnvironment.objects.get(
+                environment__name=data['service_env']['environment'],
+                service__ci_uid=data['service_env']['service_uid']
+            )
+        except ServiceEnvironment.DoesNotExist:
+            service_environment = unknown_service_env
+            logger.warning(
+                'Invalid service environment for BO Asset {}: {} - {}'.format(
+                    bo_asset_repr, data['service_env']['service_uid'],
+                    data['service_env']['environment']
+                )
+            )
+    warehouse = Warehouse.objects.get(pk=1)
+    asset_info, asset_info_created = get_asset_info(
+        service_environment,
+        warehouse,
+        data,
+        BackOfficeAssetInfo,
+    )
+    daily_asset_info = get_daily_asset_info(
+        asset_info,
+        date,
+        data,
+    )
+    update_usage(
+        daily_asset_info,
+        warehouse,
+        usages['depreciation'],
+        daily_asset_info.daily_cost,
+        date,
+    )
+    logger.info('Successfully saved {}'.format(bo_asset_repr))
+    return asset_info_created
+
+
 # TODO(xor-xor): Rename 'data' to some more descriptive variable name.
 @transaction.atomic
-def update_asset(data, date, usages, unknown_service_env):
+def update_data_center_asset(data, date, usages, unknown_service_env):
     """
     Updates single asset.
 
@@ -231,6 +292,7 @@ def update_asset(data, date, usages, unknown_service_env):
         service_environment,
         warehouse,
         data,
+        AssetInfo,
     )
     daily_asset_info = get_daily_asset_info(
         asset_info,
@@ -303,25 +365,10 @@ def get_usage(symbol, name, by_warehouse, by_cost, average, type):
     return usage_type
 
 
-@plugin_runner.register(
-    chain='scrooge',
-    requires=[
-        'ralph3_service_environment',
-        'ralph3_data_center',
-        'ralph3_asset_model'
-    ]
-)
-def ralph3_asset(**kwargs):
-    """
-    Updates assets and usages
-
-    :returns tuple: Plugin status and statistics
-    :rtype tuple:
-    """
-    date = kwargs['today']
+def get_depreciation_usage(date, symbol='depreciation', name='Depreciation'):
     depreciation_usage = get_usage(
-        'depreciation',
-        'Depreciation',
+        symbol=symbol,
+        name=name,
         by_warehouse=False,
         by_cost=False,
         average=True,
@@ -338,7 +385,16 @@ def ralph3_asset(**kwargs):
     usage_price.price = D('1')
     usage_price.forecast_price = D('1')
     usage_price.save()
+    return depreciation_usage
 
+
+def _update_asset_and_usages(date, usages, ralph_endpoint, update_asset_func):
+    """
+    Updates assets and usages
+
+    :returns tuple: Plugin status and statistics
+    :rtype tuple:
+    """
     try:
         unknown_service_env = get_unknown_service_env('ralph3_asset')
     except UnknownServiceEnvironmentNotConfiguredError:
@@ -349,6 +405,89 @@ def ralph3_asset(**kwargs):
         logger.error(msg)
         return (False, msg)
 
+    new = update = total = 0
+    queries = (
+        "invoice_date__isnull=True",
+        "invoice_date__lt={}".format(date.isoformat()),
+    )
+    for data in get_combined_data(queries, ralph_endpoint):
+        total += 1
+        created = update_asset_func(data, date, usages, unknown_service_env)
+        if created:
+            new += 1
+        else:
+            update += 1
+
+    return True, '{} new assets, {} updated, {} total'.format(
+        new, update, total
+    )
+
+
+def get_combined_data(queries, ralph_endpoint):
+    """
+    Generates (chain) data from multiple queries to Ralph3. Each row is
+    validated (if Scrooge should handle this asset or not).
+    """
+    for query in queries:
+        for asset in get_from_ralph(ralph_endpoint, logger, query=query):
+            if should_be_handled_by_scrooge(asset):
+                yield asset
+
+
+# Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
+def should_be_handled_by_scrooge(asset):
+    """
+    Check if asset should be handled by Scrooge.
+
+    Returns True if it should, False otherwise.
+    """
+    if asset['status'] == 'liquidated':
+        logger.info(
+            "Skipping DataCenterAsset {} - it's liquidated".format(
+                asset['__str__']
+            )
+        )
+        return False
+    return True
+
+
+@plugin_runner.register(
+    chain='scrooge',
+    requires=[
+        'ralph3_service_environment',
+        'ralph3_asset_model'  # TODO: back office asset model
+    ]
+)
+def ralph3_back_office_asset(**kwargs):
+    """
+    Updates back office assets and usages
+    """
+    date = kwargs['today']
+    depreciation_usage = get_depreciation_usage(
+        date=date,
+        name='Back office depreciation',
+        symbol='bo_depreciation'
+    )
+    usages = {
+        'depreciation': depreciation_usage
+    }
+    return _update_asset_and_usages(
+        date=date, usages=usages, ralph_endpoint='back-office-assets',
+        update_asset_func=update_back_office_asset
+    )
+
+
+@plugin_runner.register(
+    chain='scrooge',
+    requires=[
+        'ralph3_service_environment',
+        'ralph3_data_center',
+        'ralph3_asset_model'
+    ]
+)
+def ralph3_data_center_asset(**kwargs):
+    date = kwargs['today']
+    depreciation_usage = get_depreciation_usage(date=date)
     usages = {
         'depreciation': depreciation_usage,
         'assets_count': get_usage(
@@ -384,48 +523,23 @@ def ralph3_asset(**kwargs):
             type='BU',
         ),
     }
-
-    new = update = total = 0
-    queries = (
-        "invoice_date__isnull=True",
-        "invoice_date__lt={}".format(date.isoformat()),
-    )
-    for data in get_combined_data(queries):
-        total += 1
-        created = update_asset(data, date, usages, unknown_service_env)
-        if created:
-            new += 1
-        else:
-            update += 1
-
-    return True, '{} new assets, {} updated, {} total'.format(
-        new, update, total
+    return _update_asset_and_usages(
+        date=date, usages=usages, ralph_endpoint='data-center-assets',
+        update_asset_func=update_data_center_asset
     )
 
 
-def get_combined_data(queries):
-    """
-    Generates (chain) data from multiple queries to Ralph3. Each row is
-    validated (if Scrooge should handle this asset or not).
-    """
-    for query in queries:
-        for asset in get_from_ralph("data-center-assets", logger, query=query):
-            if should_be_handled_by_scrooge(asset):
-                yield asset
-
-
-# Heavily stripped down version of ralph_assets.api_scrooge.get_assets.
-def should_be_handled_by_scrooge(asset):
-    """
-    Check if asset should be handled by Scrooge.
-
-    Returns True if it should, False otherwise.
-    """
-    if asset['status'] == 'liquidated':
-        logger.info(
-            "Skipping DataCenterAsset {} - it's liquidated".format(
-                asset['__str__']
-            )
-        )
-        return False
-    return True
+@plugin_runner.register(
+    chain='scrooge',
+    requires=[
+        'ralph3_service_environment',
+        'ralph3_data_center',
+        'ralph3_asset_model'
+    ]
+)
+def ralph3_asset(**kwargs):
+    logger.warning(
+        'This plugin is deprecated. '
+        'Please use instead ralph3_data_center_asset.'
+    )
+    return ralph3_data_center_asset(**kwargs)
