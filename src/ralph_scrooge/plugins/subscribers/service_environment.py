@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 @subscriber(topic='createService')
 @subscriber(topic='updateService')
+@subscriber(topic='refreshService')
 def service_environment(event_data):
     logger.info(
         'Start service environment processing for service with name: '
