@@ -9,6 +9,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.http import HttpResponse
@@ -419,7 +420,8 @@ def create_pricing_service_usages(request, *args, **kwargs):
 @transaction.atomic
 def _save_usages_and_recalculate_costs(ps_usage):
     save_usages(ps_usage)
-    _recalculate_costs(ps_usage['pricing_service'], ps_usage['date'])
+    if settings.ENABLE_RECALCULATE_COSTS_ON_POST:
+        _recalculate_costs(ps_usage['pricing_service'], ps_usage['date'])
 
 
 def save_usages(ps_usage):
