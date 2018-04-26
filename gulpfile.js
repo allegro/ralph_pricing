@@ -5,8 +5,8 @@ const tscConfig = require('./tsconfig.json');
 const sourcemaps = require('gulp-sourcemaps');
 const rename = require('gulp-rename');
 
-const mediaPath = 'src/ralph_scrooge/media/'
-const appPath = mediaPath + 'scrooge/'
+const staticPath = 'src/ralph_scrooge/static/'
+const appPath = staticPath + 'scrooge/'
 
 
 gulp.task('clean', function () {
@@ -107,11 +107,11 @@ gulp.task("swagger", ['clean_swagger'], function() {
         'swagger-ui.min.js',
         'o2c.html',
     ], {cwd: "node_modules/swagger-ui/dist/**"}) /* Glob required here. */
-    .pipe(gulp.dest(mediaPath + "swagger/"));
+    .pipe(gulp.dest(staticPath + "swagger/"));
 });
 
 gulp.task('clean_swagger', function () {
-  return del(mediaPath + 'swagger/**');
+  return del(staticPath + 'swagger/**');
 });
 
 gulp.task('default', function() {
