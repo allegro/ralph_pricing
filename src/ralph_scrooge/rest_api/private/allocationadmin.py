@@ -226,8 +226,8 @@ class AllocationAdminContent(APIView):
                 )})
 
             usage_price = UsagePrice.objects.get_or_create(**params)[0]
-            usage_price.cost = row.get('cost', 0)
-            usage_price.forecast_cost = row.get('forecast_cost', 0)
+            usage_price.cost = row['cost'] or 0
+            usage_price.forecast_cost = row['forecast_cost'] or 0
             usage_price.save()
 
     def _save_extra_costs(self, start, end, post_data, from_csv=False):
@@ -278,8 +278,8 @@ class AllocationAdminContent(APIView):
                                     ec_row['id']
                                 )
                             )
-                        extra_cost.cost = ec_row['cost']
-                        extra_cost.forecast_cost = ec_row['forecast_cost']
+                        extra_cost.cost = ec_row['cost'] or 0
+                        extra_cost.forecast_cost = ec_row['forecast_cost'] or 0
                         extra_cost.save()
                     else:
                         extra_cost = ExtraCost.objects.create(
@@ -287,8 +287,8 @@ class AllocationAdminContent(APIView):
                             service_environment=service_environment,
                             start=start,
                             end=end,
-                            cost=ec_row['cost'],
-                            forecast_cost=ec_row['forecast_cost']
+                            cost=ec_row['cost'] or 0,
+                            forecast_cost=ec_row['forecast_cost'] or 0,
                         )
                     saved_costs.append(extra_cost.id)
 
@@ -325,8 +325,8 @@ class AllocationAdminContent(APIView):
                     forecast_cost=row['forecast_cost']
                 )
             )[0]
-            dynamic_extra_cost.cost = row['cost']
-            dynamic_extra_cost.forecast_cost = row['forecast_cost']
+            dynamic_extra_cost.cost = row['cost'] or 0
+            dynamic_extra_cost.forecast_cost = row['forecast_cost'] or 0
             dynamic_extra_cost.save()
 
     def _save_team_costs(self, start, end, post_data):
@@ -344,8 +344,8 @@ class AllocationAdminContent(APIView):
                 start=start,
                 end=end,
             )[0]
-            team_cost.cost = row['cost']
-            team_cost.forecast_cost = row['forecast_cost']
+            team_cost.cost = row['cost'] or 0
+            team_cost.forecast_cost = row['forecast_cost'] or 0
             team_cost.members_count = row['members']
             team_cost.save()
 
