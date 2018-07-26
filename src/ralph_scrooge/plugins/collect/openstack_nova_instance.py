@@ -31,13 +31,14 @@ class NovaInstancePlugin(OpenStackBasePlugin):
             ), '{to_ts}') as DATETIME),
             CAST(GREATEST(instances.created_at, '{from_ts}') as DATETIME)
         )) / (60.0 * 60)) as work_time,
-        instance_types.name AS metric_name
-    FROM instances
-    LEFT JOIN instance_types ON instances.instance_type_id=instance_types.id
+        {flavors_table}.name AS metric_name
+    FROM {instances_db}.instances
+    LEFT JOIN {flavors_db}.{flavors_table}
+      ON instances.instance_type_id={flavors_table}.id
     WHERE
         instances.created_at <= '{to_ts}' and
         (instances.deleted_at IS NULL OR instances.deleted_at >= '{from_ts}')
-    GROUP BY instances.project_id, instance_type_id;
+    GROUP BY instances.project_id, instances.instance_type_id;
     """
 
     def _format_date(self, d):

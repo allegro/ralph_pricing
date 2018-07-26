@@ -215,6 +215,7 @@ class TestOpenStackBasePlugin(ScroogeTestCase):
         get_usages_mock.assert_any_call(
             self.today,
             CEILOMETER_SETTINGS[0]['CONNECTION'],
+            {}
         )
         self.assertEquals(get_usages_mock.call_count, 2)
         save_usages_mock.assert_any_call(

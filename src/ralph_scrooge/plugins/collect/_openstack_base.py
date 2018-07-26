@@ -130,7 +130,7 @@ class OpenStackBasePlugin(object):
         )
         return date_from, date_to
 
-    def get_usages(self, date, connection_string):
+    def get_usages(self, date, connection_string, query_config=None):
         """
         Return usages from OpenStack for given date.
 
@@ -140,12 +140,17 @@ class OpenStackBasePlugin(object):
         :return: list of usages
         :rtype: list
         """
+        query_config = query_config or {}
         date_from, date_to = self._get_dates_from_to(date)
         engine = create_engine(connection_string)
         connection = engine.connect()
+        default_db = connection_string.split('/')[-1]
         params = dict(
             from_ts=self._format_date(date_from),
             to_ts=self._format_date(date_to),
+            instances_db=query_config.get('instances_db', default_db),
+            flavors_db=query_config.get('flavors_db', default_db),
+            flavors_table=query_config.get('flavors_table', 'instance_types')
         )
         query = self.query.format(**params)
         return connection.execute(query)
@@ -202,8 +207,9 @@ class OpenStackBasePlugin(object):
         new = total = 0
         for site in sites:
             logger.info(
-                "Processing {} {}".format(
+                "Processing {} {}.{}".format(
                     self.plugin_name,
+                    site.get('USAGE_PREFIX', ''),
                     site['WAREHOUSE'],
                 )
             )
@@ -215,7 +221,9 @@ class OpenStackBasePlugin(object):
                 ))
                 # default warehouse from fixtures
                 warehouse = Warehouse.objects.get(pk=1)
-            usages = self.get_usages(today, site['CONNECTION'])
+            usages = self.get_usages(
+                today, site['CONNECTION'], site.get('QUERY_CONFIG', {})
+            )
             site_new, site_total = self.save_usages(
                 usages,
                 today,
