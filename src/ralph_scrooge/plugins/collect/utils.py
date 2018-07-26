@@ -5,13 +5,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from django.conf import settings
+import requests
+
 from ralph_scrooge.models import ServiceEnvironment
 from ralph_scrooge.plugins.collect._exceptions import (
     UnknownServiceEnvironmentNotConfiguredError,
 )
-
-from django.conf import settings
-import requests
 
 
 # TODO(xor-xor): Move this module from plugins.collect to plugins, since it is

@@ -35,6 +35,9 @@ class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
         self.default_profit_center = ProfitCenter(pk=1)
         ProfitCenterFactory.reset_sequence()
         self.profit_centers = ProfitCenterFactory.create_batch(2)
+        self.profit_centers_mapping = {
+            pc.ralph3_id: pc for pc in ProfitCenter.objects.all()
+        }
         Ralph3UserFactory.reset_sequence()
         # Don't create more than 6 owners (see remark in Ralph3UserFactory for
         # explaination).
@@ -44,8 +47,12 @@ class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
         """
         General method to check if created/updated service match passed data
         """
+        services_mapping = {
+            s.ci_uid: s for s in Service.objects.all()
+        }
         created, saved_service = update_service(
-            data, self.default_profit_center
+            data, self.default_profit_center, self.profit_centers_mapping,
+            services_mapping
         )
 
         self.assertEquals(saved_service.name, data['name'])
@@ -151,13 +158,13 @@ class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
 
     def test_update_environment(self):
         sample_data = SAMPLE_ENVIRONMENTS[0]
-        self.assertTrue(update_environment(sample_data))
+        self.assertTrue(update_environment(sample_data)[0])
         environment = Environment.objects.get(name=sample_data['name'])
         self._compare_environments(environment, sample_data)
 
         sample_data2 = SAMPLE_ENVIRONMENTS[1]
         sample_data2['name'] = sample_data['name']
-        self.assertFalse(update_environment(sample_data2))
+        self.assertFalse(update_environment(sample_data2)[0])
         environment = Environment.objects.get(
             name=sample_data2['name']
         )
