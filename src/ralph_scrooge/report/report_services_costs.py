@@ -6,8 +6,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+from collections import defaultdict
 
-
+from ralph_scrooge.models import ServiceEnvironment
 from ralph_scrooge.plugins import plugin_runner as plugin_runner
 from ralph_scrooge.report.base_plugin_report import BasePluginReport
 from ralph_scrooge.utils.common import memoize, AttributeDict
@@ -77,11 +78,13 @@ class ServicesCostsReport(BasePluginReport):
         :rtype dict:
         """
         logger.debug("Getting report date")
-        data = {se.id: {} for se in service_environments}
-        plugins = cls.get_plugins()
+        data = defaultdict(dict)
+        all_plugins = cls.get_plugins()
+        information_plugin, plugins = all_plugins[0], all_plugins[1:]
         progress = 0
         step = 100 / len(plugins)
-        for i, plugin in enumerate(plugins):
+
+        def _run_plugin(plugin):
             try:
                 logger.info('Calling plugin {} with base usage {}'.format(
                     plugin.plugin_name,
@@ -97,11 +100,7 @@ class ServicesCostsReport(BasePluginReport):
                     **plugin.get('plugin_kwargs', {})
                 )
                 for service_id, service_usage in plugin_report.iteritems():
-                    if service_id in data:
-                        data[service_id].update(service_usage)
-
-                progress += step
-                yield False, progress, {}
+                    data[service_id].update(service_usage)
             except KeyError:
                 logger.warning(
                     "Usage '{0}' has no usage plugin".format(plugin.name)
@@ -111,6 +110,21 @@ class ServicesCostsReport(BasePluginReport):
                     "Error while generating the report: {0}".format(e)
                 )
                 raise
+
+        for i, plugin in enumerate(plugins):
+            _run_plugin(plugin)
+            progress += step
+            yield False, progress, {}
+
+        # run information plugin at the end to fetch information only for
+        # services with some costs
+        information_plugin.plugin_kwargs = {
+            'service_environments': ServiceEnvironment.objects.filter(
+                pk__in=data.keys()
+            )
+        }
+        _run_plugin(information_plugin)
+
         yield True, 100, data
 
     @classmethod

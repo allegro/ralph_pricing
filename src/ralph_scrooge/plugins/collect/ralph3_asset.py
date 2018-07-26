@@ -443,7 +443,7 @@ def should_be_handled_by_scrooge(asset):
     """
     if asset['status'] == 'liquidated':
         logger.info(
-            "Skipping DataCenterAsset {} - it's liquidated".format(
+            "Skipping Asset {} - it's liquidated".format(
                 asset['__str__']
             )
         )
