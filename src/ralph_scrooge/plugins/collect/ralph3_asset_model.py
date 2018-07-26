@@ -6,6 +6,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import logging
+from itertools import chain
+
+from django.conf import settings
 
 from ralph_scrooge.models import (
     PricingObjectModel,
@@ -36,7 +39,12 @@ def update_asset_model(model):
 def ralph3_asset_model(**kwargs):
     new = total = 0
     # fetch only data center models
-    for model in get_from_ralph("assetmodels", logger, query="type=2"):
+    for model in chain(
+        get_from_ralph("assetmodels", logger, query="type={}".format(
+            settings.ASSET_MODEL_TYPE_RALPH_ID
+        )),
+        get_from_ralph("assetmodels", logger, query="type=4")  # type==all
+    ):
         created = update_asset_model(model)
         if created:
             new += 1
