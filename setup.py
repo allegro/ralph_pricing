@@ -49,7 +49,7 @@ setup(
         'mock-django==0.6.6',
         'mock==0.8.0',
         'MySQL-python==1.2.3',
-        'paramiko==1.9.0',
+        'paramiko==1.17.6',
         'pyhermes>=0.1.2',
         'pymongo>=2.7.2',
         'python-dateutil==2.5.3',
