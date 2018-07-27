@@ -258,7 +258,8 @@ class PricingService(BaseUsage):
     def get_dependent_services(self, date, exclude=None):
         """
         Returns pricing services, which resources (usage types) are used by
-        this service (for given date).
+        this service (for given date) - in other words, all pricing services,
+        which will charge (one of) my services.
         """
         ps = PricingService.objects.filter(
             serviceusagetypes__usage_type__id__in=DailyUsage.objects.filter(
@@ -269,7 +270,11 @@ class PricingService(BaseUsage):
                 date=date,
             ).values_list('type', flat=True).distinct()
         )
-        ps = ps.exclude(excluded_services__in=self.services.all())
+        # exclude only pricing services with universal plugin type
+        ps = ps.exclude(
+            excluded_services__in=self.services.all(),
+            plugin_type=PricingServicePlugin.pricing_service_plugin
+        )
         if exclude:
             ps = ps.exclude(id__in=[p.id for p in exclude])
         # exclude self to prevent cycle
