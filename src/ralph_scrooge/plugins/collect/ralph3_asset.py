@@ -60,7 +60,7 @@ def get_asset_info(service_environment, warehouse, data, asset_info_model):
             ralph3_model_id=data['model']['id']
         )
     except PricingObjectModel.DoesNotExist:
-        logger.error(
+        logger.warning(
             "PricingObjectModel for model with ID={} does not exist"
             .format(data['model']['id'])
         )
