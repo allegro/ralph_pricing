@@ -36,7 +36,6 @@ class Information(BaseReportPlugin):
         :returns dict: information about ventures
         :rtype dict:
         """
-        logger.debug("Get information usage")
         info = {}
 
         # historical business lines
@@ -52,8 +51,12 @@ class Information(BaseReportPlugin):
         # 4)                        |________|
         # in cases 1 and 2 start has to be between active_from and active_end
         # in cases 3 and 4 active_from has to be between start and end
-        if not service_environments:
+        if service_environments is None:
             service_environments = ServiceEnvironment.objects.all()
+        logger.debug("Get information for {} service-environments".format(
+            service_environments.count()
+        ))
+
         services_history = HistoricalService.objects.filter(
             (Q(active_from__lte=start) & Q(active_to__gte=start)) |  # 1-2
             (Q(active_from__gte=start) & Q(active_from__lt=day_after_end)),

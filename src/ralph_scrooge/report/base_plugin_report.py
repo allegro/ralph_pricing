@@ -261,7 +261,7 @@ class BasePluginReport(BaseReport):
         return row
 
     @classmethod
-    def _prepare_final_report(cls, intial_data, data):
+    def _prepare_final_report(cls, initial_data, data):
         """
         Convert information from dict to list. In this case data must be
         understandable for generating reports in html. Data returned by
@@ -289,9 +289,10 @@ class BasePluginReport(BaseReport):
         logger.debug("Preparing final report")
         final_data = []
         for row in data:
-            final_data.append(
-                cls._prepare_row(intial_data.get(row.id, {}))
-            )
+            if row.id in initial_data:
+                final_data.append(
+                    cls._prepare_row(initial_data.get(row.id, {}))
+                )
         return final_data
 
     @classmethod

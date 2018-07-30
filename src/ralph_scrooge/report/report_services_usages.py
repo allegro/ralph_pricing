@@ -83,6 +83,7 @@ class ServicesUsagesReport(BasePluginReport):
         for se in service_environments:
             # TODO: add historical information (name between start and end)
             se_data = [se.service.name, se.environment.name]
+            any_value = False
             for day in rrule.rrule(rrule.DAILY, dtstart=start, until=end):
                 date = day.date()
                 for usage_type in usage_types:
@@ -91,13 +92,15 @@ class ServicesUsagesReport(BasePluginReport):
                             data[date][usage_type.id][se.id],
                             usage_type
                         )
+                        any_value = True
                     except KeyError:
                         value = cls._prepare_field(
                             0,
                             usage_type
                         )
                     se_data.append(value)
-            final_data.append(se_data)
+            if any_value:
+                final_data.append(se_data)
         return final_data
 
     @classmethod
