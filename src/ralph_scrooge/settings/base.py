@@ -342,14 +342,18 @@ LOGGING = {
         },
     },
     'loggers': {
+        '': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+        },
         'django.request': {
             'handlers': ['file'],
             'level': 'ERROR',
-            'propagate': True,
+            'propagate': False,
         },
         'ralph_scrooge': {
             'handlers': ['file', 'console'],
-            'propagate': True,
+            'propagate': False,
             'level': 'DEBUG',
         },
     },
