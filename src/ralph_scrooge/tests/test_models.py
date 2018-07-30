@@ -10,6 +10,7 @@ from decimal import Decimal as D
 
 
 from ralph_scrooge import models
+from ralph_scrooge.models import PricingServicePlugin
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.models import History, HistoricalHistory
 from ralph_scrooge.tests.utils.factory import (
@@ -106,7 +107,9 @@ class TestPricingService(ScroogeTestCase):
         # 3 Pricing Services (1 tested and dependent from others)
         # usage types:
         self.ps1, self.ps2, self.ps3 = PricingServiceFactory.create_batch(3)
-        se1 = ServiceEnvironmentFactory(service__pricing_service=self.ps1)
+        self.se1 = se1 = ServiceEnvironmentFactory(
+            service__pricing_service=self.ps1
+        )
         se2 = ServiceEnvironmentFactory(service__pricing_service=self.ps1)
 
         ut1, ut2, ut3 = UsageTypeFactory.create_batch(3, usage_type='SU')
@@ -184,6 +187,24 @@ class TestPricingService(ScroogeTestCase):
             date=datetime.date(2013, 11, 30)
         )
         self.assertEquals(set(result), set())
+
+    def test_get_dependent_services_should_exclude_service_when_added_to_pricing_service_excluded_services(self):  # noqa
+        self._set_sample_usages()
+        self.ps2.excluded_services.add(self.se1.service)
+        result = self.ps1.get_dependent_services(
+            date=datetime.date(2013, 10, 3),
+        )
+        self.assertEquals(set(result), {self.ps3})
+
+    def test_get_dependent_services_should_not_exclude_service_when_added_to_pricing_service_excluded_services_but_its_fixed_price(self):  # noqa
+        self._set_sample_usages()
+        self.ps2.plugin_type = PricingServicePlugin.pricing_service_fixed_price_plugin  # noqa
+        self.ps2.save()
+        self.ps2.excluded_services.add(self.se1.service)
+        result = self.ps1.get_dependent_services(
+            date=datetime.date(2013, 10, 3),
+        )
+        self.assertEquals(set(result), {self.ps2, self.ps3})
 
 
 class TestDailyCost(ScroogeTestCase):
