@@ -88,17 +88,24 @@ class PricingObjectChildInlineBase(admin.StackedInline):
 
 class AssetInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     model = models.AssetInfo
-    readonly_when_update = ('asset_id', )
+    readonly_when_update = ('ralph3_asset_id', )
+
+
+class BackOfficeAssetInfoInline(
+    UpdateReadonlyMixin, PricingObjectChildInlineBase
+):
+    model = models.BackOfficeAssetInfo
+    readonly_when_update = ('ralph3_asset_id', )
 
 
 class VirtualInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     model = models.VirtualInfo
-    readonly_when_update = ('device_id', )
+    readonly_when_update = ('ralph3_id', )
 
 
 class TenantInfoInline(UpdateReadonlyMixin, PricingObjectChildInlineBase):
     model = models.TenantInfo
-    readonly_when_update = ('tenant_id', )
+    readonly_when_update = ('ralph3_tenant_id', )
 
 
 class VIPInfoInlineForm(forms.ModelForm):
@@ -121,7 +128,7 @@ class VIPInfoInline(
 ):
     model = models.VIPInfo
     form = VIPInfoInlineForm
-    readonly_when_update = ('vip_id', )
+    readonly_when_update = ('external_id', )
     fk_name = 'pricingobject_ptr'
     related_search_fields = {
         'ip_info': ['^name'],
@@ -173,6 +180,7 @@ class PricingObjectAdmin(UpdateReadonlyMixin, admin.ModelAdmin):
     filter_exclude = ['created_by', 'modified_by']
     inlines = [
         AssetInfoInline,
+        BackOfficeAssetInfoInline,
         VirtualInfoInline,
         TenantInfoInline,
         VIPInfoInline,
