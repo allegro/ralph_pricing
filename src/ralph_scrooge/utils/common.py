@@ -6,13 +6,20 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import argparse
+import logging
 import re
+import time
 from datetime import datetime
 from decimal import Decimal
 
+from functools import wraps
+
 from django.conf import settings
+from django.db import connection
 # DEPRECATED. Import memoize directly from `ralph_scrooge.cache`
 from ralph_scrooge.utils.cache import memoize  # noqa: F401
+
+logger = logging.getLogger(__name__)
 
 
 class AttributeDict(dict):
@@ -146,3 +153,32 @@ def camel_case_to_kebab_case(name):
     """
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1-\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1-\2', s1).lower()
+
+
+class timeit(object):
+    def __init__(self, name, count_db_queries=True):
+        self.name = name
+        self.count_db_queries = count_db_queries
+
+    def __enter__(self):
+        self.queries_count_start = len(connection.queries)
+        self.ts = time.time()
+
+    def __exit__(self, *exc):
+        te = time.time()
+        queries_count_end = len(connection.queries)
+        logger.debug(
+            'executed "%s" in %2.2f ms with %d db queries' % (
+                self.name,
+                (te - self.ts) * 1000,
+                queries_count_end - self.queries_count_start
+            )
+        )
+        return False
+
+    def __call__(self, func):
+        @wraps(func)
+        def inner(*args, **kwds):
+            with self:
+                return func(*args, **kwds)
+        return inner
