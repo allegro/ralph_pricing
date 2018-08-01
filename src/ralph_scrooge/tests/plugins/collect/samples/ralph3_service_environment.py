@@ -4,6 +4,7 @@ SAMPLE_SERVICES = [
         'uid': 's-1',
         'name': 'Service #1',
         'profit_center': {'id': 2},
+        'business_segment': {'id': 2},
         'business_owners': [
             {'id': 1, 'username': 'james_smith'},
             {'id': 2, 'username': 'michael_wilson'},
@@ -19,6 +20,7 @@ SAMPLE_SERVICES = [
         'uid': 's-2',
         'name': 'Service #2',
         'profit_center': {'id': 3},
+        'business_segment': {'id': 3},
         'business_owners': [
             {'id': 1, 'username': 'james_smith'},
         ],

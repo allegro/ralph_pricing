@@ -21,7 +21,6 @@
     name: '-'
     ci_id: -1
     ci_uid: -1
-    business_line: 1
 
 # Base Usages
 - model: ralph_scrooge.BaseUsage

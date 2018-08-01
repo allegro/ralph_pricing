@@ -79,7 +79,6 @@ class ProfitCenterFactory(DjangoModelFactory):
     ci_id = Sequence(lambda n: n)
     ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: n)
-    business_line = SubFactory(BusinessLineFactory)
 
 
 class ServiceFactory(DjangoModelFactory):

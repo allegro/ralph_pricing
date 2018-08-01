@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 from copy import deepcopy
 
 from ralph_scrooge.models import (
+    BusinessLine,
     Environment,
     OwnershipType,
     ProfitCenter,
@@ -19,9 +20,10 @@ from ralph_scrooge.plugins.collect.ralph3_service_environment import (
 )
 from ralph_scrooge.tests import ScroogeTestCase
 from ralph_scrooge.tests.utils.factory import (
+    BusinessLineFactory,
     ProfitCenterFactory,
     Ralph3UserFactory,
-    ServiceFactory,
+    ServiceFactory
 )
 from ralph_scrooge.tests.plugins.collect.samples.ralph3_service_environment import (  # noqa
     SAMPLE_ENVIRONMENTS,
@@ -32,12 +34,21 @@ from ralph_scrooge.tests.plugins.collect.samples.ralph3_service_environment impo
 class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
     def setUp(self):
         self.data = deepcopy(SAMPLE_SERVICES[0])
+
         self.default_profit_center = ProfitCenter(pk=1)
         ProfitCenterFactory.reset_sequence()
         self.profit_centers = ProfitCenterFactory.create_batch(2)
         self.profit_centers_mapping = {
             pc.ralph3_id: pc for pc in ProfitCenter.objects.all()
         }
+
+        self.default_business_line = BusinessLine(pk=1)
+        BusinessLineFactory.reset_sequence()
+        self.business_lines = BusinessLineFactory.create_batch(2)
+        self.business_lines_mapping = {
+            bl.ralph3_id: bl for bl in BusinessLine.objects.all()
+        }
+
         Ralph3UserFactory.reset_sequence()
         # Don't create more than 6 owners (see remark in Ralph3UserFactory for
         # explaination).
@@ -52,6 +63,7 @@ class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
         }
         created, saved_service = update_service(
             data, self.default_profit_center, self.profit_centers_mapping,
+            self.default_business_line, self.business_lines_mapping,
             services_mapping
         )
 
@@ -90,6 +102,14 @@ class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
         self.assertTrue(created)
         self.assertEquals(Service.objects.count(), 1)
         self.assertIn(service.profit_center, self.profit_centers)
+        self.assertEqual(
+            service.profit_center.ralph3_id, self.data['profit_center']['id']
+        )
+        self.assertIn(service.business_line, self.business_lines)
+        self.assertEqual(
+            service.business_line.ralph3_id,
+            self.data['business_segment']['id']
+        )
 
     def test_new_service_without_profit_center(self):
         """
@@ -101,6 +121,17 @@ class TestServiceEnvironmentCollectPlugin(ScroogeTestCase):
         self.assertTrue(created)
         self.assertEquals(Service.objects.count(), 1)
         self.assertEquals(service.profit_center, self.default_profit_center)
+
+    def test_new_service_without_business_line(self):
+        """
+        Basic test for new service without profit center
+        """
+        self.data['business_segment'] = None
+        self.assertEquals(Service.objects.count(), 0)
+        created, service = self._create_and_test_service(self.data)
+        self.assertTrue(created)
+        self.assertEquals(Service.objects.count(), 1)
+        self.assertEquals(service.business_line, self.default_business_line)
 
     def test_service_update(self):
         """
