@@ -503,20 +503,22 @@ def get_usages_for_save(pricing_service_usage):
                     pricing_service_usage['date']
                 )
             )
-            daily_usage = DailyUsage(
-                date=pricing_service_usage['date'],
-                type=usage_type,
-                value=usage['value'],
-                daily_pricing_object=daily_pricing_object,
-                service_environment=(
-                    daily_pricing_object.service_environment
-                ),
-                remarks=usage.get('remarks', ''),
+            if usage['value'] > 0:
+                daily_usage = DailyUsage(
+                    date=pricing_service_usage['date'],
+                    type=usage_type,
+                    value=usage['value'],
+                    daily_pricing_object=daily_pricing_object,
+                    service_environment=(
+                        daily_pricing_object.service_environment
+                    ),
+                    remarks=usage.get('remarks', ''),
+                )
+                daily_usages.append(daily_usage)
+                usages_daily_pricing_objects[usage_type].append(
+                    daily_pricing_object
             )
-            daily_usages.append(daily_usage)
-            usages_daily_pricing_objects[usage_type].append(
-                daily_pricing_object
-            )
+
     return (daily_usages, usages_daily_pricing_objects)
 
 

@@ -52,6 +52,42 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.client = APIClient()
         self.client.force_authenticate(superuser)
 
+    def test_ignore_usages_with_zero_value(self):
+        usage_type2 = UsageTypeFactory()
+        usage_type3 = UsageTypeFactory()
+        pricing_service_usage = {
+            "pricing_service": self.pricing_service.name,
+            "date": self.date_as_str,
+            "usages": [
+                {
+                    "pricing_object": self.pricing_object1.name,
+                    "usages": [
+                        {
+                            "symbol": self.usage_type.symbol,
+                            "value": 0.0,
+                        },
+                        {
+                            "symbol": usage_type2.symbol,
+                            "value": 0,
+                        },
+                        {
+                            "symbol": usage_type3.symbol,
+                            "value": 1,
+                        },
+
+                    ],
+                },
+            ]
+        }
+        resp = self.client.post(
+            reverse('create_pricing_service_usages'),
+            json.dumps(pricing_service_usage),
+            content_type='application/json',
+        )
+        self.assertEquals(resp.status_code, 201)
+        daily_usages = DailyUsage.objects.order_by('id')
+        self.assertEquals(daily_usages.count(), 1)
+
     def test_save_usages_successfully_when_pricing_object_is_given(self):
         pricing_service_usage = {
             "pricing_service": self.pricing_service.name,
@@ -1264,6 +1300,7 @@ class TestPricingServiceUsages(ScroogeTestCase):
         self.assertEquals(resp.status_code, 200)
         received_response = json.loads(resp.content)
         usages = received_response['usages']
+        usages.sort()
 
         self.assertEqual(len(usages), 2)
         self.assertEqual(usages[0]['service_uid'], service1_uid)
