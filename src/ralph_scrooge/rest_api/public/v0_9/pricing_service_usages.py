@@ -517,7 +517,7 @@ def get_usages_for_save(pricing_service_usage):
                 daily_usages.append(daily_usage)
                 usages_daily_pricing_objects[usage_type].append(
                     daily_pricing_object
-            )
+                )
 
     return (daily_usages, usages_daily_pricing_objects)
 
