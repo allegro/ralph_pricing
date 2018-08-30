@@ -9,6 +9,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
     mysql-server redis-server libmysqlclient-dev libldap2-dev libsasl2-dev \
     vim-nox git
 
+apt-get install -y --only-upgrade libssl-dev openssl
+
 chown vagrant:vagrant /home/vagrant/sources
 
 # We're handling this node-related stuff oustide of the `exec sudo ...` block below because of $HOME var,
@@ -28,7 +30,7 @@ echo "CREATE DATABASE scrooge DEFAULT CHARACTER SET 'utf8'" | mysql -u root
 echo "GRANT ALL ON scrooge.* TO scrooge@'%' IDENTIFIED BY 'scrooge'; FLUSH PRIVILEGES" | mysql -u root
 
 virtualenv --clear /home/vagrant/env
-/home/vagrant/env/bin/pip install -U pip==1.5.6
+/home/vagrant/env/bin/pip install --index=https://pypi.org/simple/ -U pip==1.5.6
 /home/vagrant/env/bin/pip install -U setuptools==3.6
 /home/vagrant/env/bin/pip install rq-dashboard  # not required (but useful), hence not present in requirements
 
@@ -40,7 +42,7 @@ dev_scrooge migrate
 dev_scrooge generate_json_schema
 
 mkdir -p /home/vagrant/.scrooge/log
-cp src/ralph_scrooge/settings/local.py /home/vagrant/.scrooge/settings
+cp src/ralph_scrooge/settings/dev.py /home/vagrant/.scrooge/settings
 
 dev_scrooge createsuperuser --noinput --user scrooge --email scrooge@scrooge.local
 DJANGO_SETTINGS_MODULE='ralph_scrooge.settings.dev' \
