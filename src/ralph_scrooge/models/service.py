@@ -69,14 +69,6 @@ class ProfitCenter(Named.NonUnique):
         max_length=100,
         verbose_name=_("uid from cmdb"),
     )
-    business_line = db.ForeignKey(
-        BusinessLine,
-        null=False,
-        blank=False,
-        default=1,
-        related_name='profit_centers',
-        verbose_name=_('business line'),
-    )
     description = db.TextField(null=True, default=None)
 
     class Meta:
@@ -125,6 +117,15 @@ class Service(ModelDiffMixin, EditorTrackable, TimeTrackable):
         related_name='services',
         related_query_name='services',
         verbose_name=_('profit center'),
+    )
+    business_line = db.ForeignKey(
+        BusinessLine,
+        null=False,
+        blank=False,
+        default=1,
+        related_name='services',
+        verbose_name=_('business line'),
+        on_delete=db.PROTECT,
     )
     ownership = db.ManyToManyField(
         'ScroogeUser',

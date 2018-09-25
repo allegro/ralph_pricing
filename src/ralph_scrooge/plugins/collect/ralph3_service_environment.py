@@ -17,7 +17,7 @@ from ralph_scrooge.models import (
     ScroogeUser,
     ServiceEnvironment,
     ServiceOwnership,
-)
+    BusinessLine)
 from ralph_scrooge.plugins import plugin_runner
 from ralph_scrooge.plugins.collect.utils import get_from_ralph
 
@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 @transaction.atomic
 def update_service(
-    service_from_ralph, default_profit_center, profit_centers, all_services
+    service_from_ralph, default_profit_center, profit_centers,
+    default_business_line, business_lines, all_services
 ):
     created = False
     try:
@@ -37,12 +38,21 @@ def update_service(
     service.ralph3_id = service_from_ralph['id']
     service.name = service_from_ralph['name']
     service.symbol = service_from_ralph['uid']
+
     if service_from_ralph['profit_center'] is not None:
         service.profit_center = (
             profit_centers[service_from_ralph['profit_center']['id']]
         )
     else:
         service.profit_center = default_profit_center
+
+    if service_from_ralph.get('business_segment') is not None:
+        service.business_line = (
+            business_lines[service_from_ralph['business_segment']['id']]
+        )
+    else:
+        service.business_line = default_business_line
+
     service.save()
     _update_owners(service, service_from_ralph)
     return created, service
@@ -126,6 +136,10 @@ def ralph3_service_environment(**kwargs):
     profit_centers = {
         pc.ralph3_id: pc for pc in ProfitCenter.objects.all()
     }
+    default_business_line = BusinessLine.objects.get(pk=1)  # from fixtures
+    business_lines = {
+        bl.ralph3_id: bl for bl in BusinessLine.objects.all()
+    }
 
     # envs
     envs = {}
@@ -150,7 +164,8 @@ def ralph3_service_environment(**kwargs):
     ):
 
         created, service_obj = update_service(
-            service, default_profit_center, profit_centers, all_services
+            service, default_profit_center, profit_centers,
+            default_business_line, business_lines, all_services
         )
         if created:
             new_services += 1

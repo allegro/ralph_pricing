@@ -14,25 +14,32 @@ from ralph_scrooge.plugins.report.information import Information
 from ralph_scrooge.tests.utils.factory import (
     ProfitCenterFactory,
     ServiceEnvironmentFactory,
-)
+    BusinessLineFactory)
 
 
 class TestInformationPlugin(ScroogeTestCase):
     def setUp(self):
+        self.bl1 = BusinessLineFactory()
+        self.bl2 = BusinessLineFactory()
+
         self.pc1 = ProfitCenterFactory()
         self.pc2 = ProfitCenterFactory()
 
         self.report_start = date.today()
         self.report_end = self.report_start + timedelta(days=1)
         self.service_environment1 = ServiceEnvironmentFactory(
-            service__profit_center=self.pc1
+            service__profit_center=self.pc1,
+            service__business_line=self.bl1,
         )
         self.service_environment2 = ServiceEnvironmentFactory(
-            service__profit_center=self.pc2
+            service__profit_center=self.pc2,
+            service__business_line=self.bl2,
         )
         self.service_environments = models.ServiceEnvironment.objects.all()
 
+        # change profit center and business line to test history
         self.service_environment1.service.profit_center = self.pc2
+        self.service_environment1.service.business_line = self.bl2
         self.service_environment1.service.save()
         self.maxDiff = None
 
@@ -50,8 +57,8 @@ class TestInformationPlugin(ScroogeTestCase):
                     ' - '.join((self.pc2.name, self.pc2.description)),
                 )),
                 'business_line': ' / '.join((
-                    self.pc1.business_line.name,
-                    self.pc2.business_line.name,
+                    self.bl1.name,
+                    self.bl2.name,
                 )),
                 'id': self.service_environment1.id,
                 'service': self.service_environment1.service.name,
@@ -63,7 +70,7 @@ class TestInformationPlugin(ScroogeTestCase):
                     self.pc2.name,
                     self.pc2.description
                 )),
-                'business_line': self.pc2.business_line.name,
+                'business_line': self.bl2.name,
                 'id': self.service_environment2.id,
                 'service': self.service_environment2.service.name,
                 'service_uid': self.service_environment2.service.ci_uid,

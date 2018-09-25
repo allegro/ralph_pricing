@@ -397,7 +397,8 @@ class ServiceAdminForm(forms.ModelForm):
 @register(models.Service)
 class ServiceAdmin(UpdateReadonlyMixin, SimpleHistoryAdmin):
     form = ServiceAdminForm
-    list_display = ('name', 'ci_uid')
+    list_display = ('name', 'ci_uid', 'profit_center', 'business_line')
+    list_select_related = ('profit_center', 'business_line')
     search_fields = ('name', 'ci_uid')
     inlines = [ServiceOwnershipInline, ServiceEnvironmentsInline]
     readonly_when_update = ('ci_id', 'ci_uid')
