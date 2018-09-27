@@ -28,6 +28,7 @@ from ralph_scrooge.models import (
 )
 from ralph_scrooge.rest_api.public.auth import IsServiceOwner
 from ralph_scrooge.utils.cache import memoize
+from ralph_scrooge.utils.date import date_range
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
@@ -171,15 +172,6 @@ class ServiceEnvironmentDailyCostsSerializer(Serializer):
 
 class ServiceEnvironmentMonthlyCostsSerializer(Serializer):
     service_environment_costs = MonthlyCostsSerializer(many=True)
-
-
-def date_range(start, stop, step=datetime.timedelta(days=1)):
-    """This function is similar to "normal" `range`, but it operates on dates
-    instead of numbers. Taken from "Python Cookbook, 3rd ed.".
-    """
-    while start < stop:
-        yield start
-        start += step
 
 
 def round_safe(value, precision):

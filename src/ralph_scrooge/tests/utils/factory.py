@@ -90,6 +90,7 @@ class ServiceFactory(DjangoModelFactory):
     ralph3_id = Sequence(lambda n: n)
     ci_uid = Sequence(lambda n: 'uid-{}'.format(n))
     profit_center = SubFactory(ProfitCenterFactory)
+    business_line = SubFactory(BusinessLineFactory)
 
 
 class EnvironmentFactory(DjangoModelFactory):

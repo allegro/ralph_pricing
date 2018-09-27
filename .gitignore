@@ -45,7 +45,7 @@ typings/
 src/ralph_scrooge/static/scrooge/dist/
 src/ralph_scrooge/static/scrooge/lib/
 src/ralph_scrooge/static/swagger/
-src/ralph_scrooge/settings/local.py
+src/ralph_scrooge/settings/local*
 src/ralph_scrooge/urls_local.py
 src/ralph_scrooge/static/api_schema.json
 scrooge.log

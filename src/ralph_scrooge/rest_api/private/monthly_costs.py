@@ -13,6 +13,7 @@ from django.conf import settings
 from django.core.cache import caches as dj_caches
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
+from ralph_scrooge.sync.publisher import publish_accepted_costs_dump
 from rq import get_current_job
 
 from rest_framework import status
@@ -32,31 +33,42 @@ logger = logging.getLogger(__name__)
 class AcceptMonthlyCosts(APIView):
 
     def post(self, request, *args, **kwargs):
-        result = {'status': 'failed', 'message': ''}
         serializer = MonthlyCostsSerializer(data=request.data)
-        if serializer.is_valid():
-            start = serializer.validated_data['start']
-            end = serializer.validated_data['end']
-            forecast = serializer.validated_data['forecast']
-            calculated_costs = CostDateStatus.objects.filter(
-                date__gte=start,
-                date__lte=end,
-                **{
-                    'forecast_calculated' if forecast else 'calculated': True
-                }
-            )
-            days = (end - start).days + 1
-            if len(calculated_costs) != days:
-                result['message'] = _(
-                    'Costs were not calculated for all selected days!'
-                )
-            else:
-                calculated_costs.update(**{
-                    'forecast_accepted' if forecast else 'accepted': True,
-                })
-                result['message'] = _('Costs were accepted!')
-                result['status'] = 'ok'
+        serializer.is_valid(raise_exception=True)
+        start = serializer.validated_data['start']
+        end = serializer.validated_data['end']
+        forecast = serializer.validated_data['forecast']
+
+        with transaction.atomic():
+            result = self._update_calculated_costs()
+            self._publish_costs(start, end, forecast)
+
         return Response(result)
+
+    def _update_calculated_costs(self, start, end, forecast):
+        result = {'status': 'failed', 'message': ''}
+        calculated_costs = CostDateStatus.objects.filter(
+            date__gte=start,
+            date__lte=end,
+            **{
+                'forecast_calculated' if forecast else 'calculated': True
+            }
+        )
+        days = (end - start).days + 1
+        if len(calculated_costs) != days:
+            result['message'] = _(
+                'Costs were not calculated for all selected days!'
+            )
+        else:
+            calculated_costs.update(**{
+                'forecast_accepted' if forecast else 'accepted': True,
+            })
+            result['message'] = _('Costs were accepted!')
+            result['status'] = 'ok'
+        return result
+
+    def _publish_costs(self, start, end, forecast):
+        publish_accepted_costs_dump(start, end, forecast)
 
 
 class MonthlyCosts(APIView, WorkerJob):

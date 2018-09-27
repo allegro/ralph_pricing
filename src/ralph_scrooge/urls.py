@@ -169,5 +169,5 @@ urlpatterns = [
         r'^ack/(?P<ut_id>\d+)/(?P<date>\d{4}-\d{2}-\d{2})/$',
         login_required(AnomaliesAck.as_view()),
         name='anomalies_ack',
-    )
+    ),
 ]

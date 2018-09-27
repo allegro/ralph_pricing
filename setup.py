@@ -55,6 +55,8 @@ setup(
         'python-dateutil==2.5.3',
         'python-novaclient==2.17.0',
         'pyyaml==3.12',
+        'responses==0.9.0',
+        'requests==2.19.1',
         'rq>=0.3.7',
         'six==1.10.0',
         'SQLAlchemy==0.7.8',

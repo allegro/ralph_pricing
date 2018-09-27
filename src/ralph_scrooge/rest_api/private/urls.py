@@ -27,6 +27,7 @@ from ralph_scrooge.rest_api.private.router import (
     urlpatterns as router_urlpatterns,
 )
 from ralph_scrooge.rest_api.private.menu import SubMenu
+from ralph_scrooge.rest_api.private.sync import SyncBetweenScroogesAPIView
 from ralph_scrooge.utils.security import (
     superuser_permission,
     service_permission,
@@ -115,5 +116,10 @@ urlpatterns = [
         r'^symbol_to_id/sc-(?P<symbol>\d+)?$',
         login_required(SymbolToIdAPIView.as_view()),
         name='symbol_to_id'
+    ),
+    url(
+        r'^import-accepted-costs/$',
+        SyncBetweenScroogesAPIView.as_view(),
+        name='import_accepted_costs',
     ),
 ]
