@@ -32,7 +32,9 @@ class SyncAcceptedCostsSerializer(serializers.Serializer):
         Check that the start is before the stop.
         """
         if data['date_from'] > data['date_to']:
-            raise serializers.ValidationError("date_to must occur after date_from")
+            raise serializers.ValidationError(
+                "date_to must occur after date_from"
+            )
         if self._check_accepted_costs(data['date_from'], data['date_to']):
             raise serializers.ValidationError(
                 'Costs are already accepted between selected dates'

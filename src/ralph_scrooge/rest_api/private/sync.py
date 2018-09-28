@@ -5,7 +5,9 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ralph_scrooge.rest_api.private.serializers import SyncAcceptedCostsSerializer
+from ralph_scrooge.rest_api.private.serializers import (
+    SyncAcceptedCostsSerializer
+)
 from ralph_scrooge.sync.recipient import accepted_costs_handler
 
 
@@ -27,5 +29,3 @@ class SyncBetweenScroogesAPIView(APIView):
             data['date_from'], data['date_to'], data['type'], data['costs']
         )
         return Response({}, status=202)
-
-

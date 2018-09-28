@@ -23,7 +23,9 @@ def accepted_costs_handler(date_from, date_to, type_, costs):
         )
     )[0]
 
-    extra_costs = _prepare_extra_costs(costs, date_from, date_to, extra_cost_type)
+    extra_costs = _prepare_extra_costs(
+        costs, date_from, date_to, extra_cost_type
+    )
     _update_extra_costs(extra_cost_type, date_from, date_to, extra_costs)
 
     logger.info(
@@ -35,10 +37,14 @@ def accepted_costs_handler(date_from, date_to, type_, costs):
 
 def _update_extra_costs(extra_cost_type, date_from, date_to, extra_costs):
     with transaction.atomic():
-        deleted = extra_cost_type.extracost_set.filter(start=date_from, end=date_to).delete()
-        logger.info('Deleted {} previously saved extra costs of type {}'.format(
-            deleted, extra_cost_type
-        ))
+        deleted = extra_cost_type.extracost_set.filter(
+            start=date_from, end=date_to
+        ).delete()
+        logger.info(
+            'Deleted {} previously saved extra costs of type {}'.format(
+                deleted, extra_cost_type
+            )
+        )
         ExtraCost.objects.bulk_create(extra_costs)
 
 
@@ -49,12 +55,13 @@ def _prepare_extra_costs(costs, date_from, date_to, extra_cost_type):
     service_envs = {
         (se.service.ci_uid, se.environment.name): se.id
         for se in ServiceEnvironment.objects.filter(
-            service__business_line_id=settings.ACCEPTED_COSTS_SYNC_HANDLER_BUSINESS_LINE_ID
+            service__business_line_id=settings.ACCEPTED_COSTS_SYNC_HANDLER_BUSINESS_LINE_ID  # noqa
         ).select_related('service', 'environment')
     }
 
     for cost_info in costs:
-        service_uid, env_name = cost_info['service_uid'], cost_info['environment']
+        service_uid = cost_info['service_uid']
+        env_name = cost_info['environment']
         try:
             service_env_id = service_envs[(service_uid, env_name)]
         except KeyError:
@@ -72,5 +79,7 @@ def _prepare_extra_costs(costs, date_from, date_to, extra_cost_type):
                 remarks='Imported at {}'.format(import_datetime)
             )
             extra_costs.append(extra_cost)
-            logger.info('Saving imported cost for {} - {}'.format(service_uid, env_name))
+            logger.info('Saving imported cost for {} - {}'.format(
+                service_uid, env_name
+            ))
     return extra_costs

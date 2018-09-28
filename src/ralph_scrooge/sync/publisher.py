@@ -67,4 +67,3 @@ def _publish_dump(dump):
             logger.error('Error publishing accepted costs to {}: {}'.format(
                 recipient_url, response.text
             ))
-
