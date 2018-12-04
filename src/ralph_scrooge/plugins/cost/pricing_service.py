@@ -237,12 +237,11 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 ...
             }
         """
-        usages = defaultdict(list)
-        total_usages = []
-        percentage = []
+        usages = defaultdict(dict)
+        total_usages = {}
+        percentage = {}
         result = defaultdict(list)
         self.pricing_service = pricing_service
-
         for service_usage_type in service_usage_types:
             service_excluded = excluded_services.union(
                 service_usage_type.usage_type.excluded_services.all()
@@ -255,18 +254,22 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 'daily_pricing_object__pricing_object',
                 'service_environment',
             ).annotate(usage=Sum('value'))
+            usage_type_id = service_usage_type.usage_type_id
             for pricing_object, se, usage in usages_per_po:
-                usages[(pricing_object, se)].append(usage)
+                usages[(pricing_object, se)][usage_type_id] = usage
 
-            total_usages.append(self._get_total_usage(
+            total_usages[usage_type_id] = self._get_total_usage(
                 usage_type=service_usage_type.usage_type,
                 date=date,
                 excluded_services=service_excluded,
-            ))
-            percentage.append(service_usage_type.percent)
+            )
+            percentage[usage_type_id] = service_usage_type.percent
         # create hierarchy basing on usages
         for (po, se), po_usages in usages.items():
-            po_usages_info = zip(po_usages, total_usages, percentage)
+            po_usages_info = [
+                (value, total_usages[ut_id], percentage[ut_id])
+                for ut_id, value in po_usages.items()
+            ]
             result[se].extend(
                 self._add_hierarchy_costs(po, po_usages_info, costs_hierarchy)
             )

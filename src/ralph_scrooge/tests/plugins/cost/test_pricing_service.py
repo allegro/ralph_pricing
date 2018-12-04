@@ -859,6 +859,72 @@ class TestPricingServiceDependency(ScroogeTestCase):
                     ]),
                 )
 
+    def test_distribute_costs_with_incomplete_multiple_usages(self):
+        self._init_one()
+
+        # delete some daily usages
+        models.DailyUsage.objects.get(
+            daily_pricing_object=self.dpo1,
+            date=self.today,
+            type=self.service_usage_types[0]
+        ).delete()
+        models.DailyUsage.objects.get(
+            daily_pricing_object=self.dpo2,
+            date=self.today,
+            type=self.service_usage_types[1]
+        ).delete()
+
+        # usages right now:
+        #     | percent | dpo1 | dpo2 | dpo3 | total
+        # SU1 | 70%     | -    | 10   | 10   | 20
+        # SU2 | 30%     | 20   | -    | 20   | 40
+
+        distributed_costs = PricingServicePlugin._distribute_costs(
+            date=self.today,
+            pricing_service=self.ps1,
+            costs_hierarchy={
+                self.ps1.id: (
+                    D(1000),
+                    {
+                        self.service_usage_types[0].id: (D(300), {}),
+                        self.service_usage_types[1].id: (D(700), {}),
+                    }
+                )
+            },
+            service_usage_types=self.ps1.serviceusagetypes_set.all(),
+            excluded_services=set()
+        )
+
+        expected = {
+            self.dpo1.service_environment_id: [
+                {
+                    'pricing_object_id': self.dpo1.pricing_object.id,
+                    # 70% * 1000 * 0 / 20 + 30% * 1000 * 20 / 40
+                    'cost': D('150.00'),
+                    'type_id': self.ps1.id,
+                    'value': 20,
+                }
+            ],
+            self.dpo2.service_environment_id: [
+                {
+                    'pricing_object_id': self.dpo2.pricing_object.id,
+                    # 70% * 1000 * 10 / 20 + 30% * 1000 * 0 / 40
+                    'cost': D('350.00'),
+                    'value': 10,
+                    'type_id': self.ps1.id,
+                }
+            ],
+            self.dpo3.service_environment_id: [
+                {
+                    'pricing_object_id': self.dpo3.pricing_object.id,
+                    # 70% * 1000 * 10 / 20 + 30% * 1000 * 20 / 40
+                    'cost': D('500.00'),
+                    'type_id': self.ps1.id,
+                }
+            ],
+        }
+        self.assertEqual(dict(distributed_costs), expected)
+
     def test_pricing_dependent_services(self):
         """
         Call costs for PS1, which dependent on PS2, which dependent of PS3.
