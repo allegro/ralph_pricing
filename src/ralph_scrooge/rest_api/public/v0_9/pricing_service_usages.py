@@ -292,10 +292,10 @@ class PricingServiceUsageDeserializer(PricingServiceUsageSerializer):
 
     def validate_pricing_service(self, value):
         try:
-            PricingService.objects.get(name=value)
+            PricingService.objects_admin.get(name=value)
         except PricingService.DoesNotExist:
             raise serializers.ValidationError(
-                "Unknown service name: {}".format(value)
+                "Unknown pricing service name: {}".format(value)
             )
         return value
 
