@@ -237,17 +237,16 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 ...
             }
         """
-        usages = defaultdict(list)
-        total_usages = []
-        percentage = []
+        usages = defaultdict(dict)
+        total_usages = {}
+        percentage = {}
         result = defaultdict(list)
         self.pricing_service = pricing_service
-
         for service_usage_type in service_usage_types:
             service_excluded = excluded_services.union(
                 service_usage_type.usage_type.excluded_services.all()
             )
-            usages_per_po = self._get_usages_per_pricing_object(
+            usages_per_pricing_object = self._get_usages_per_pricing_object(
                 usage_type=service_usage_type.usage_type,
                 date=date,
                 excluded_services=service_excluded,
@@ -255,20 +254,33 @@ class PricingServiceBasePlugin(BaseCostPlugin):
                 'daily_pricing_object__pricing_object',
                 'service_environment',
             ).annotate(usage=Sum('value'))
-            for pricing_object, se, usage in usages_per_po:
-                usages[(pricing_object, se)].append(usage)
+            usage_type_id = service_usage_type.usage_type_id
+            for (
+                pricing_object, service_environment, usage
+            ) in usages_per_pricing_object:
+                usages[(
+                    pricing_object, service_environment
+                )][usage_type_id] = usage
 
-            total_usages.append(self._get_total_usage(
+            total_usages[usage_type_id] = self._get_total_usage(
                 usage_type=service_usage_type.usage_type,
                 date=date,
                 excluded_services=service_excluded,
-            ))
-            percentage.append(service_usage_type.percent)
+            )
+            percentage[usage_type_id] = service_usage_type.percent
         # create hierarchy basing on usages
-        for (po, se), po_usages in usages.items():
-            po_usages_info = zip(po_usages, total_usages, percentage)
-            result[se].extend(
-                self._add_hierarchy_costs(po, po_usages_info, costs_hierarchy)
+        for (
+            (pricing_object, service_environment),
+            pricing_object_usages
+        ) in usages.items():
+            pricing_object_usages_info = [
+                (value, total_usages[usage_type_id], percentage[usage_type_id])
+                for usage_type_id, value in pricing_object_usages.items()  # noqa: F812,E501
+            ]
+            result[service_environment].extend(
+                self._add_hierarchy_costs(
+                    pricing_object, pricing_object_usages_info, costs_hierarchy
+                )
             )
         return result
 
