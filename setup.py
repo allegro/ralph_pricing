@@ -55,7 +55,7 @@ setup(
         'python-dateutil==2.5.3',
         'python-novaclient==2.17.0',
         'pyyaml==3.12',
-        'rq>=0.3.7',
+        'rq==0.12.0',
         'six==1.10.0',
         'SQLAlchemy==0.7.8',
         # these two are not required, but we install them everytime anyway...
