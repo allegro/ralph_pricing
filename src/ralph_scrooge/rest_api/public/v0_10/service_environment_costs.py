@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import datetime
+import logging
 from copy import deepcopy
 
 from dateutil.relativedelta import relativedelta
@@ -28,6 +29,8 @@ from ralph_scrooge.models import (
 )
 from ralph_scrooge.rest_api.public.auth import IsServiceOwner
 from ralph_scrooge.utils.cache import memoize
+
+logger = logging.getLogger(__name__)
 
 USAGE_COST_NUM_DIGITS = 2
 USAGE_VALUE_NUM_DIGITS = 5
@@ -558,4 +561,13 @@ class ServiceEnvironmentCosts(APIView):
                 return Response(
                     ServiceEnvironmentMonthlyCostsSerializer(costs).data
                 )
+
+        logger.warning(
+            'Error while fetching service environment costs.',
+            extra={
+                'action_type': 'API_ERROR',
+                'error': str(deserializer.errors),
+                'request_data': str(request.data)
+            }
+        )
         return Response(deserializer.errors, status=400)
