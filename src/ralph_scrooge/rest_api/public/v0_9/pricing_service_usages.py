@@ -414,6 +414,15 @@ def create_pricing_service_usages(request, *args, **kwargs):
     if deserializer.is_valid():
         _save_usages_and_recalculate_costs(deserializer.validated_data)
         return HttpResponse(status=201)
+
+    logger.warning(
+        'Error while creating pricing service usages.',
+        extra={
+            'action_type': 'API_ERROR',
+            'error': str(deserializer.errors),
+            'data': str(request.data)
+        }
+    )
     return Response(deserializer.errors, status=400)
 
 
