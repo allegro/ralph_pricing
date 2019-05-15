@@ -21,6 +21,7 @@ STATICFILES_DIRS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'ralph_scrooge.middleware.RequestIDMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -327,9 +328,14 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'filters': ['request_id'],
             'formatter': 'simple',
         },
-
+    },
+    'filters': {
+        'request_id': {
+            '()': 'ralph_scrooge.middleware.AddRequestIDFilter',
+        }
     },
     'formatters': {
         'verbose': {
@@ -340,7 +346,7 @@ LOGGING = {
         },
         'simple': {
             'datefmt': '%Y-%m-%d %H:%M:%S',
-            'format': '[%(asctime)08s] %(levelname)-7s %(message)s',
+            'format': '[%(asctime)08s] %(levelname)-7s %(request_id)s %(message)s',
         },
     },
     'loggers': {
@@ -349,7 +355,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'django.request': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'ERROR',
             'propagate': False,
         },
